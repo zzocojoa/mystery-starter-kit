@@ -1,0 +1,23 @@
+{
+  "$schema": "./schemas/novelty_thresholds.schema.json",
+  "schema_family": "novelty-thresholds",
+  "schema_version": "1.0.0",
+  "similarity": {
+    "recent_5_max": 60,
+    "recent_10_max": 65,
+    "overall_max": 70
+  },
+  "weights": {
+    "mystery_type": 8,
+    "architecture": 12,
+    "protagonist_role": 8,
+    "primary_twist": 15,
+    "timeline_style": 7,
+    "culprit_structure": 8,
+    "setting_logic": 8,
+    "information_mechanism": 8,
+    "relationship_engine": 8,
+    "pressure_engine": 8,
+    "dramatic_engine": 8
+  }
+}

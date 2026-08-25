@@ -1,0 +1,165 @@
+"""GATE-00부터 GATE-13까지의 Project 상태 전이."""
+
+from copy import deepcopy
+from typing import TypedDict
+
+from VALIDATORS.exceptions import StateTransitionError
+from VALIDATORS.models import ProjectState, ProjectStatus
+
+
+class GateDefinition(TypedDict):
+    """Gate 통과에 필요한 Artifact와 도착 상태."""
+
+    gate_id: str
+    required_artifacts: tuple[str, ...]
+    target_state: ProjectStatus
+
+
+GATES: tuple[GateDefinition, ...] = (
+    {
+        "gate_id": "GATE-00",
+        "required_artifacts": (
+            "project_manifest",
+            "compatibility_report",
+            "production_config",
+        ),
+        "target_state": "COMPATIBILITY_VALIDATED",
+    },
+    {
+        "gate_id": "GATE-01",
+        "required_artifacts": ("variation_candidates", "novelty_precheck"),
+        "target_state": "VARIATION_APPROVED",
+    },
+    {
+        "gate_id": "GATE-02",
+        "required_artifacts": ("story_dna",),
+        "target_state": "STORY_DESIGNED",
+    },
+    {
+        "gate_id": "GATE-03",
+        "required_artifacts": ("case_input", "facts", "sources", "claim_evidence"),
+        "target_state": "CASE_DEFINED",
+    },
+    {
+        "gate_id": "GATE-04",
+        "required_artifacts": ("characters", "relationships", "knowledge_matrix"),
+        "target_state": "CHARACTERS_DESIGNED",
+    },
+    {
+        "gate_id": "GATE-05",
+        "required_artifacts": (
+            "actual_timeline",
+            "viewer_timeline",
+            "audience_belief",
+            "clue_matrix",
+            "hypothesis_ledger",
+            "causal_graph",
+        ),
+        "target_state": "MYSTERY_DESIGNED",
+    },
+    {
+        "gate_id": "GATE-06",
+        "required_artifacts": ("beat_sheet", "retention_plan"),
+        "target_state": "STORY_STRUCTURED",
+    },
+    {
+        "gate_id": "GATE-07",
+        "required_artifacts": ("scene_cards", "presentation_plan"),
+        "target_state": "SCENES_DESIGNED",
+    },
+    {
+        "gate_id": "GATE-08",
+        "required_artifacts": ("draft_script", "final_script"),
+        "target_state": "SCRIPT_WRITTEN",
+    },
+    {
+        "gate_id": "GATE-09",
+        "required_artifacts": ("continuity_report",),
+        "target_state": "SCRIPT_WRITTEN",
+    },
+    {
+        "gate_id": "GATE-10",
+        "required_artifacts": ("story_fingerprint", "novelty_report"),
+        "target_state": "SCRIPT_WRITTEN",
+    },
+    {
+        "gate_id": "GATE-11",
+        "required_artifacts": ("reference_collision_report",),
+        "target_state": "SCRIPT_WRITTEN",
+    },
+    {
+        "gate_id": "GATE-12",
+        "required_artifacts": ("channel_consistency_report", "validation_report"),
+        "target_state": "QA_PASSED",
+    },
+    {
+        "gate_id": "GATE-13",
+        "required_artifacts": (
+            "shooting_script",
+            "narration",
+            "subtitle_script",
+            "edit_script",
+        ),
+        "target_state": "PRODUCTION_READY",
+    },
+)
+
+
+def gate_index(gate_id: str) -> int:
+    """Gate ID의 실행 순서를 반환한다."""
+    for index, definition in enumerate(GATES):
+        if definition["gate_id"] == gate_id:
+            return index
+    raise StateTransitionError(f"알 수 없는 Gate입니다: gate_id={gate_id}")
+
+
+def expected_gate(state: ProjectState) -> GateDefinition:
+    """현재 상태에서 실행해야 할 다음 Gate를 계산한다."""
+    current_gate = state["current_gate"]
+    if current_gate == "NONE":
+        return GATES[0]
+    next_index = gate_index(current_gate) + 1
+    if next_index >= len(GATES):
+        raise StateTransitionError("모든 Gate가 이미 통과되었습니다.")
+    return GATES[next_index]
+
+
+def missing_clean_artifacts(
+    state: ProjectState,
+    gate: GateDefinition,
+) -> list[str]:
+    """Gate에 필요하지만 CLEAN이 아닌 Artifact 이름을 반환한다."""
+    missing: list[str] = []
+    for artifact_name in gate["required_artifacts"]:
+        artifact_state = state["artifacts"].get(artifact_name)
+        if artifact_state is None or artifact_state["status"] != "CLEAN":
+            missing.append(artifact_name)
+    return missing
+
+
+def advance_gate(
+    state: ProjectState,
+    gate_id: str,
+    passed: bool,
+    updated_at: str,
+) -> ProjectState:
+    """정해진 순서와 CLEAN 조건을 만족할 때만 Project 상태를 전이한다."""
+    gate = expected_gate(state)
+    if gate["gate_id"] != gate_id:
+        raise StateTransitionError(
+            f"Gate 순서가 올바르지 않습니다: expected={gate['gate_id']}, actual={gate_id}"
+        )
+    next_state = deepcopy(state)
+    next_state["updated_at"] = updated_at
+    if not passed:
+        next_state["state"] = "BLOCKED"
+        return next_state
+
+    missing = missing_clean_artifacts(state, gate)
+    if missing:
+        raise StateTransitionError(
+            f"Gate 필수 Artifact가 CLEAN이 아닙니다: gate={gate_id}, artifacts={missing}"
+        )
+    next_state["current_gate"] = gate_id
+    next_state["state"] = gate["target_state"]
+    return next_state

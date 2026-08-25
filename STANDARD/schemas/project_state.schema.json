@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/project-state-1.0.0.json",
+  "title": "Project State and Artifact Validity",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "project_id", "state", "current_gate", "updated_at", "artifacts"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_family": {
+      "const": "project-state"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^PRJ-[0-9]{3,}$"
+    },
+    "state": {
+      "enum": [
+        "INITIALIZED",
+        "COMPATIBILITY_VALIDATED",
+        "VARIATION_APPROVED",
+        "STORY_DESIGNED",
+        "CASE_DEFINED",
+        "CHARACTERS_DESIGNED",
+        "MYSTERY_DESIGNED",
+        "STORY_STRUCTURED",
+        "SCENES_DESIGNED",
+        "SCRIPT_WRITTEN",
+        "QA_PASSED",
+        "PRODUCTION_READY",
+        "BLOCKED"
+      ]
+    },
+    "current_gate": {
+      "type": "string",
+      "pattern": "^(NONE|GATE-(0[0-9]|1[0-3]))$"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "artifacts": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["status", "content_hash", "invalidated_by"],
+        "properties": {
+          "status": {
+            "enum": ["CLEAN", "DIRTY", "INVALID", "MISSING"]
+          },
+          "content_hash": {
+            "type": ["string", "null"],
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "invalidated_by": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
+        }
+      }
+    }
+  }
+}

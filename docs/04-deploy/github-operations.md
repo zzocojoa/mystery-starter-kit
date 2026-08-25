@@ -18,6 +18,8 @@
 | Python 3.11 | 최소 지원 Python에서 lint, type, test, build, audit |
 | Python 3.14 | 현재 Python에서 lint, type, test, build |
 
+각 Matrix는 비편집 설치와 `mystery-kit --help` Smoke Test를 먼저 수행해 배포 Entry Point도 확인한다.
+
 현재 비공개 저장소의 GitHub 요금제에서는 Branch Protection API를 사용할 수 없다. 따라서 다음 항목은 운영 정책으로 적용되며 GitHub 서버가 직접 강제하지는 않는다.
 
 - Pull Request를 통한 변경

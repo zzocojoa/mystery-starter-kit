@@ -1,10 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/story-dna-1.0.0.json",
-  "title": "Story DNA v1",
+  "$id": "https://example.local/schemas/story-dna-1.3.0.json",
+  "title": "Story DNA v1.3",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_family", "schema_version", "project_id", "story_dna"],
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "story_source_mode",
+    "story_dna"
+  ],
   "properties": {
     "$schema": {
       "type": "string"
@@ -13,14 +19,178 @@
       "const": "story-dna"
     },
     "schema_version": {
+      "$ref": "#/$defs/semanticVersion"
+    },
+    "project_id": {
+      "$ref": "#/$defs/projectId"
+    },
+    "story_source_mode": {
+      "enum": [
+        "ORIGINAL",
+        "REFERENCE_INSPIRED",
+        "TRUE_STORY",
+        "INSPIRED_BY_TRUE_EVENTS"
+      ]
+    },
+    "reference_profile": {
+      "$ref": "#/$defs/referenceProfile"
+    },
+    "story_dna": {
+      "$ref": "#/$defs/storyDna"
+    },
+    "variation_overrides": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "override_reason": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "story_source_mode": {
+            "const": "REFERENCE_INSPIRED"
+          }
+        }
+      },
+      "then": {
+        "required": ["reference_profile"]
+      }
+    },
+    {
+      "if": {
+        "required": ["variation_overrides"]
+      },
+      "then": {
+        "required": ["override_reason"]
+      }
+    }
+  ],
+  "$defs": {
+    "semanticVersion": {
       "type": "string",
       "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
     },
-    "project_id": {
+    "projectId": {
       "type": "string",
       "pattern": "^PRJ-[0-9]{3,}$"
     },
-    "story_dna": {
+    "enumName": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "enumList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/enumName"
+      }
+    },
+    "referenceProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_id",
+        "allowed_style_features",
+        "prohibited_story_content",
+        "separation_attestation"
+      ],
+      "properties": {
+        "reference_id": {
+          "type": "string",
+          "pattern": "^REF-[0-9]{3,}$"
+        },
+        "allowed_style_features": {
+          "$ref": "#/$defs/enumList"
+        },
+        "prohibited_story_content": {
+          "$ref": "#/$defs/enumList"
+        },
+        "separation_attestation": {
+          "const": true
+        }
+      }
+    },
+    "relationshipEngine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "protagonist_counterpart_role"],
+      "properties": {
+        "primary": {
+          "$ref": "#/$defs/enumName"
+        },
+        "secondary": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/enumName"
+          }
+        },
+        "protagonist_counterpart_role": {
+          "$ref": "#/$defs/enumName"
+        }
+      }
+    },
+    "pressureEngine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "escalation", "stakes"],
+      "properties": {
+        "source": {
+          "$ref": "#/$defs/enumName"
+        },
+        "escalation": {
+          "enum": ["RISING", "WAVE", "COUNTDOWN", "SQUEEZE", "CASCADE"]
+        },
+        "stakes": {
+          "$ref": "#/$defs/enumList"
+        }
+      }
+    },
+    "dramaticEngine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "audience_emotion_curve"],
+      "properties": {
+        "primary": {
+          "$ref": "#/$defs/enumName"
+        },
+        "secondary": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/enumName"
+          }
+        },
+        "audience_emotion_curve": {
+          "$ref": "#/$defs/enumList"
+        }
+      }
+    },
+    "audienceExperience": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initial_belief", "midpoint_shift", "final_reframe"],
+      "properties": {
+        "initial_belief": {
+          "type": "string",
+          "minLength": 1
+        },
+        "midpoint_shift": {
+          "type": "string",
+          "minLength": 1
+        },
+        "final_reframe": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "storyDna": {
       "type": "object",
       "additionalProperties": true,
       "required": [
@@ -37,42 +207,103 @@
         "information_mechanism",
         "clue_mechanism",
         "emotional_engine",
+        "relationship_engine",
+        "pressure_engine",
+        "dramatic_engine",
+        "thematic_question",
+        "audience_experience",
         "reveal_mode",
         "ending_type"
       ],
       "properties": {
         "mystery_type": {
-          "enum": ["WHO", "WHY", "HOW", "WHEN", "WHERE", "WHETHER", "WHAT"]
+          "enum": ["WHO", "WHOSE", "WHY", "HOW", "WHEN", "WHERE", "WHETHER", "WHAT"]
         },
         "architecture": {
           "type": "string",
           "pattern": "^ARCH-[0-9]{2}_[A-Z0-9_]+$"
         },
         "protagonist_role": {
-          "enum": ["INVESTIGATOR", "SUSPECT", "WITNESS", "VICTIM", "OUTSIDER", "ACCOMPLICE"]
+          "enum": [
+            "INVESTIGATOR",
+            "SUSPECT",
+            "WITNESS",
+            "VICTIM",
+            "OUTSIDER",
+            "ACCOMPLICE",
+            "SURVIVOR",
+            "VICTIM_FAMILY",
+            "CULPRIT_FAMILY",
+            "REPORTER",
+            "EMPLOYEE",
+            "MANAGER",
+            "NEIGHBOR",
+            "FRIEND",
+            "PARTNER",
+            "EX_PARTNER",
+            "AUTHORITY",
+            "CULPRIT",
+            "UNWITTING_PARTICIPANT"
+          ]
         },
         "perspective": {
-          "enum": ["FIRST_PERSON", "THIRD_PERSON_LIMITED", "MULTIPLE_POV", "OMNISCIENT"]
+          "enum": [
+            "FIRST_PERSON",
+            "THIRD_PERSON_LIMITED",
+            "MULTIPLE_POV",
+            "OMNISCIENT",
+            "FOUND_FOOTAGE",
+            "DOCUMENTARY",
+            "INTERVIEW_BASED",
+            "SCREENLIFE"
+          ]
         },
         "narrator_reliability": {
-          "enum": ["RELIABLE", "UNRELIABLE_MEMORY", "UNRELIABLE_BIAS", "DECEPTIVE"]
+          "enum": [
+            "RELIABLE",
+            "UNRELIABLE_MEMORY",
+            "UNRELIABLE_BIAS",
+            "DECEPTIVE",
+            "MULTIPLE_CONFLICTING"
+          ]
         },
         "timeline_style": {
-          "enum": ["LINEAR", "FLASHBACK_DRIVEN", "REVERSE", "DUAL_TIMELINE", "FRAGMENTED"]
+          "enum": [
+            "LINEAR",
+            "FLASHBACK_DRIVEN",
+            "REVERSE",
+            "DUAL_TIMELINE",
+            "FRAGMENTED",
+            "PARALLEL",
+            "REAL_TIME",
+            "LOOP"
+          ]
         },
         "incident_type": {
-          "type": "string",
-          "pattern": "^[A-Z][A-Z0-9_]*$"
+          "$ref": "#/$defs/enumName"
         },
         "setting": {
-          "type": "string",
-          "pattern": "^[A-Z][A-Z0-9_]*$"
+          "$ref": "#/$defs/enumName"
         },
         "setting_logic": {
           "$ref": "#/$defs/enumList"
         },
         "culprit_structure": {
-          "enum": ["SINGLE", "MULTIPLE", "ACCOMPLICE", "NO_CULPRIT", "UNKNOWN"]
+          "enum": [
+            "SINGLE",
+            "DUAL",
+            "MULTIPLE",
+            "ACCOMPLICE",
+            "NO_CULPRIT",
+            "VICTIM_SELF_ENGINEERED",
+            "SYSTEMIC_CAUSE",
+            "ACCIDENTAL",
+            "UNKNOWN"
+          ]
+        },
+        "causal_truth": {
+          "type": "string",
+          "minLength": 1
         },
         "primary_twist": {
           "type": "string",
@@ -93,39 +324,42 @@
           "$ref": "#/$defs/enumList"
         },
         "motive_class": {
-          "type": "string",
-          "pattern": "^[A-Z][A-Z0-9_]*$"
+          "$ref": "#/$defs/enumName"
         },
         "emotional_engine": {
+          "$ref": "#/$defs/enumName"
+        },
+        "relationship_engine": {
+          "$ref": "#/$defs/relationshipEngine"
+        },
+        "pressure_engine": {
+          "$ref": "#/$defs/pressureEngine"
+        },
+        "dramatic_engine": {
+          "$ref": "#/$defs/dramaticEngine"
+        },
+        "thematic_question": {
           "type": "string",
-          "pattern": "^[A-Z][A-Z0-9_]*$"
+          "minLength": 1
+        },
+        "audience_experience": {
+          "$ref": "#/$defs/audienceExperience"
         },
         "reveal_mode": {
-          "type": "string",
-          "pattern": "^[A-Z][A-Z0-9_]*$"
+          "$ref": "#/$defs/enumName"
         },
         "ending_type": {
-          "enum": ["CLOSED", "OPEN", "AMBIGUOUS", "BITTERSWEET", "TRAGIC", "FALSE_RESOLUTION", "CIRCULAR", "MORAL_REVERSAL"]
+          "enum": [
+            "CLOSED",
+            "OPEN",
+            "AMBIGUOUS",
+            "BITTERSWEET",
+            "TRAGIC",
+            "FALSE_RESOLUTION",
+            "CIRCULAR",
+            "MORAL_REVERSAL"
+          ]
         }
-      }
-    },
-    "variation_overrides": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "override_reason": {
-      "type": "string",
-      "minLength": 1
-    }
-  },
-  "$defs": {
-    "enumList": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "pattern": "^[A-Z][A-Z0-9_]*$"
       }
     }
   }

@@ -34,13 +34,6 @@
     "capabilities": {
       "type": "object",
       "additionalProperties": true,
-      "required": [
-        "GENRE_POLICY",
-        "TONE_POLICY",
-        "PRESENTATION_POLICY",
-        "AUDIENCE_CONTRACT",
-        "STORY_VARIATION_POLICY"
-      ],
       "properties": {
         "GENRE_POLICY": {
           "$ref": "#/$defs/genrePolicy"

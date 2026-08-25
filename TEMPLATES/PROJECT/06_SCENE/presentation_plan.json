@@ -1,0 +1,6 @@
+{
+  "project_id": "PRJ-000",
+  "modes": ["DRAMA", "NARRATION", "REACTION"],
+  "reaction_ratio": 0.2,
+  "scene_presentations": []
+}

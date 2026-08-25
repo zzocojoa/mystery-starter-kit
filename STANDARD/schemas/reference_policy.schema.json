@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/reference-policy-1.0.0.json",
+  "title": "Reference Firewall Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "allowed_style_features",
+    "prohibited_story_content",
+    "example_isolation",
+    "collision_thresholds"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_family": {
+      "const": "reference-policy"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "allowed_style_features": {
+      "$ref": "#/$defs/enumList"
+    },
+    "prohibited_story_content": {
+      "$ref": "#/$defs/enumList"
+    },
+    "example_isolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["production_agents_may_read_examples", "context_builder_excludes_examples"],
+      "properties": {
+        "production_agents_may_read_examples": {
+          "const": false
+        },
+        "context_builder_excludes_examples": {
+          "const": true
+        }
+      }
+    },
+    "collision_thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lexical_phrase_words", "story_element_match_count", "hard_collision"],
+      "properties": {
+        "lexical_phrase_words": {
+          "type": "integer",
+          "minimum": 4
+        },
+        "story_element_match_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "hard_collision": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "enumList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      }
+    }
+  }
+}

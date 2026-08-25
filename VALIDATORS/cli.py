@@ -7,6 +7,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import NoReturn
 
+from VALIDATORS.channel_validation import validate_reaction_ratio
 from VALIDATORS.compatibility import append_errors, evaluate_compatibility
 from VALIDATORS.exceptions import ConfigurationError, StarterKitError
 from VALIDATORS.io import load_json_object, write_json_object
@@ -83,7 +84,10 @@ def run_cli(argv: Sequence[str]) -> int:
             channel_schema,
             str(arguments.channel),
         )
-        final_report = append_errors(report, channel_schema_errors)
+        final_report = append_errors(
+            report,
+            channel_schema_errors + validate_reaction_ratio(channel),
+        )
         write_json_object(arguments.output, final_report)
     except StarterKitError as error:
         print(str(error), file=sys.stderr)

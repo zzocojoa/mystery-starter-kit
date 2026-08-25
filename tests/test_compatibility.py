@@ -3,6 +3,7 @@
 from copy import deepcopy
 from pathlib import Path
 
+from VALIDATORS.channel_validation import validate_reaction_ratio
 from VALIDATORS.compatibility import append_errors, evaluate_compatibility
 from VALIDATORS.io import load_json_object
 from VALIDATORS.schema_validation import collect_schema_errors
@@ -89,8 +90,14 @@ def test_missing_required_capability_fails_before_unknowns_are_ignored() -> None
     capabilities["GENRE_POLCIY"] = capabilities.pop("GENRE_POLICY")
 
     report = evaluate_compatibility(contract, defaults, changed_channel)
+    schema_errors = collect_schema_errors(
+        changed_channel,
+        load_json_object(CHANNEL_SCHEMA_PATH),
+        str(CHANNEL_PATH),
+    )
 
     assert report["compatibility"] == "FAIL"
+    assert schema_errors == []
     assert report["required_capabilities"]["GENRE_POLICY"] == "MISSING"
     assert "GENRE_POLCIY" in report["ignored_unknown_capabilities"]
     assert any(error["code"] == "MISSING_REQUIRED_CAPABILITY" for error in report["errors"])
@@ -160,3 +167,28 @@ def test_inner_required_capability_schema_error_blocks_execution() -> None:
 
     assert final_report["compatibility"] == "FAIL"
     assert any(error["code"] == "SCHEMA_VALIDATION_ERROR" for error in final_report["errors"])
+
+
+def test_contract_is_the_only_owner_of_required_capability_names() -> None:
+    """Channel Schema는 Capability Shape만 소유하고 Required 목록은 소유하지 않아야 한다."""
+    channel_schema = load_json_object(CHANNEL_SCHEMA_PATH)
+    properties = channel_schema["properties"]
+    assert isinstance(properties, dict)
+    capabilities = properties["capabilities"]
+    assert isinstance(capabilities, dict)
+    assert "required" not in capabilities
+
+
+def test_reaction_ratio_minimum_cannot_exceed_maximum() -> None:
+    """JSON Schema로 표현하기 어려운 비율 관계는 의미 검증에서 실패해야 한다."""
+    _, _, channel = load_core_documents()
+    changed_channel = deepcopy(channel)
+    capabilities = changed_channel["capabilities"]
+    assert isinstance(capabilities, dict)
+    reaction = capabilities["REACTION_POLICY"]
+    assert isinstance(reaction, dict)
+    reaction["target_ratio"] = {"min": 0.8, "max": 0.2}
+
+    errors = validate_reaction_ratio(changed_channel)
+
+    assert [error["code"] for error in errors] == ["INVALID_REACTION_RATIO"]

@@ -1,35 +1,58 @@
-# 스키마 설계
+# v1.3 스키마와 Artifact 계약
 
-## 핵심 엔티티
+## 독립 Version 경계
 
-| 엔티티 | 식별자 | 필수 필드 | 관계 |
+| 계층 | 식별자 | 구조 Version | 책임 |
 |---|---|---|---|
-| Compatibility Contract | `contract_family` + `contract_version` | 지원 Schema 범위, 필수·선택 Capability, 호환성 정책 | Channel DNA를 판정 |
-| Standard Defaults | `defaults_version` | 선택 Capability별 기본값 | 누락된 Optional만 보완 |
-| Channel DNA | `channel_id` + `schema_version` | 5개 Required Capability | Story DNA의 허용 범위를 제약 |
-| Compatibility Report | Channel 실행 단위 | 판정, Capability 상태, 무시 필드, 오류 | PASS일 때만 Story 생성 허용 |
-| Story DNA | `project_id` | 미스터리 구조, 관점, 시간선, 반전, 정보·단서 장치 | Project를 생성 |
-| Story Fingerprint | `project_id` | 구조적 특징 | Novelty QA 비교 |
+| Compatibility Contract | `contract_family` | `contract_version` | Required/Optional Capability 이름과 호환 범위 |
+| Channel DNA | `channel_id` | `schema_version` | Capability별 정책 값과 내부 구조 |
+| Story DNA | `project_id` | `schema_version` | Episode 구조와 Source Mode |
+| Agent Manifest | Agent 이름 | `schema_version` | 읽기·쓰기·선행 Agent·Gate |
+| Dependency Graph | Artifact 이름 | `schema_version` | 경로·의존성·Owner |
+| Project State | `project_id` | `schema_version` | Gate와 Artifact Hash/상태 |
+| Story Library | `project_id` | `schema_version` | Production Ready Fingerprint History |
 
-## Required Capability
+Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json`은 `capabilities` 객체에 Required 목록을 중복하지 않고 개별 Capability 형상만 검증한다.
 
-| 이름 | 책임 | 최소 제약 |
-|---|---|---|
-| `GENRE_POLICY` | 장르 범위와 현실성 | 허용 장르 1개 이상, realism |
-| `TONE_POLICY` | 일관된 정서와 금지 톤 | 핵심 톤 1개 이상 |
-| `PRESENTATION_POLICY` | Drama/Narration/Reaction 결합 방식 | 표현 모드, 관객 위치, 정보 순환 |
-| `AUDIENCE_CONTRACT` | 관객에게 약속하는 추리 경험 | Fair Play 여부, 약속 1개 이상 |
-| `STORY_VARIATION_POLICY` | 반복 요소와 가변 요소 분리 | 고정·가변 차원 각각 1개 이상 |
+## 주요 Schema
 
-## 판정 순서
+| 파일 | 검증 대상 |
+|---|---|
+| `compatibility_contract.schema.json` | Channel 요구 Interface |
+| `project_manifest.schema.json` | Project 식별, Standard, Channel, Source Mode |
+| `production_config.schema.json` | 승인 정책, Genre/Tone, Runtime 설정 |
+| `channel_dna.schema.json` | Channel Identity와 Capability 구조 |
+| `story_dna.schema.json` | Source Mode와 Full Story DNA v1.3 |
+| `reference_policy.schema.json` | 허용 Style과 금지 Story Content |
+| `reference_profile.schema.json` | Project별 정제 Reference Profile |
+| `fact_evidence.schema.json` | Fact/Inference/Dramatization과 Source/Claim 계약 |
+| `variation_catalog.schema.json` | 다축 후보 선택 Catalog |
+| `variation_candidates.schema.json` | 생성·승인 후보 출력 |
+| `story_fingerprint.schema.json` | Story/Beat/Causal Fingerprint |
+| `causal_graph.schema.json` | Mystery 인과 Node/Edge와 Causal Fingerprint |
+| `novelty_thresholds.schema.json` | 최근/전체 유사도와 Weight |
+| `novelty_precheck.schema.json` | 승인 Variation의 사전 History 비교 |
+| `agent_manifest.schema.json` | 10개 Agent 실행 계약 |
+| `dependency_graph.schema.json` | Artifact DAG |
+| `project_state.schema.json` | 상태와 Hash 기반 무효화 |
+| `validation_report.schema.json` | 14 Gate 통합 결과 |
+| `story_library.schema.json` | 등록된 Fingerprint 집합 |
 
-1. Contract와 Defaults 자체 Schema를 검증한다.
-2. Channel의 Required Capability 존재 여부와 내부 Schema를 검증한다.
-3. Optional Capability가 없으면 동일 이름의 Standard Default를 적용한다.
-4. Schema Family와 Major 호환 범위를 검증한다.
-5. 검증이 끝난 뒤 미지의 상위 필드와 Capability를 보고하고 무시한다.
-6. 오류가 하나라도 있으면 `FAIL`, 아니면 `PASS`를 반환한다.
+## 의미 규칙
 
-## 버전 규칙
+JSON Schema가 구조를 검증하고 Validator가 다음 교차 규칙을 검증한다.
 
-호환 범위는 `min_inclusive <= schema_version < max_exclusive`로 판정한다. `content_version`은 보고서에 기록하지만 판정에는 사용하지 않는다. 같은 Major Version의 새 필드는 `additionalProperties`로 허용해 Forward Compatibility를 유지한다.
+- Reaction Ratio `min <= max`
+- Culprit Structure별 `causal_truth` 또는 `motive_class`
+- Source Mode와 Reference Profile 일치
+- 승인 Variation과 Story DNA Override 일치
+- Story Fingerprint의 현재성
+- Causal Graph DAG와 Root-to-Resolution 경로
+- Timeline, Knowledge, Clue, Runtime, ID 참조
+- Reference Lexical/Story Element Collision
+- Channel Genre/Tone/Presentation/Reaction 일치
+- Production Ready에서만 Story Library 등록
+
+## Artifact 유효성
+
+각 Artifact는 `MISSING`, `DIRTY`, `INVALID`, `CLEAN` 중 하나다. 파일이 존재한다는 사실만으로 `CLEAN`이 되지 않는다. 검증된 현재 Hash와 일치해야 하며 상위 Artifact가 바뀌면 Dependency Graph를 따라 하위 Artifact가 `DIRTY`가 된다.

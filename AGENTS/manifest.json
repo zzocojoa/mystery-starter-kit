@@ -1,0 +1,108 @@
+{
+  "$schema": "../STANDARD/schemas/agent_manifest.schema.json",
+  "schema_family": "agent-manifest",
+  "schema_version": "1.0.0",
+  "execution_mode": "GATE_DRIVEN",
+  "agents": {
+    "orchestrator": {
+      "prompt_file": "orchestrator.md",
+      "stage": 0,
+      "reads": ["compatibility_report", "validation_report", "final_script", "presentation_plan", "retention_plan"],
+      "writes": ["project_manifest", "compatibility_report", "production_config", "validation_report", "shooting_script", "narration", "subtitle_script", "edit_script"],
+      "gates": ["GATE-00", "GATE-12", "GATE-13"],
+      "requires_agents": [],
+      "resources": [],
+      "may_read_examples": false
+    },
+    "variation_designer": {
+      "prompt_file": "variation_designer.md",
+      "stage": 1,
+      "reads": ["production_config", "reference_profile"],
+      "writes": ["variation_candidates"],
+      "gates": ["GATE-01"],
+      "requires_agents": ["reference_auditor"],
+      "resources": ["STORY_LIBRARY/story_fingerprints.json"],
+      "may_read_examples": false
+    },
+    "story_architect": {
+      "prompt_file": "story_architect.md",
+      "stage": 2,
+      "reads": ["variation_candidates", "story_dna", "viewer_timeline", "clue_matrix"],
+      "writes": ["story_dna", "case_input", "facts", "beat_sheet", "retention_plan"],
+      "gates": ["GATE-02", "GATE-03", "GATE-06"],
+      "requires_agents": ["variation_designer"],
+      "resources": [],
+      "may_read_examples": false
+    },
+    "character_designer": {
+      "prompt_file": "character_designer.md",
+      "stage": 3,
+      "reads": ["case_input", "story_dna", "facts"],
+      "writes": ["characters", "relationships", "knowledge_matrix"],
+      "gates": ["GATE-04"],
+      "requires_agents": ["story_architect"],
+      "resources": [],
+      "may_read_examples": false
+    },
+    "mystery_designer": {
+      "prompt_file": "mystery_designer.md",
+      "stage": 4,
+      "reads": ["story_dna", "facts", "characters", "relationships", "knowledge_matrix"],
+      "writes": ["actual_timeline", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "causal_graph"],
+      "gates": ["GATE-05"],
+      "requires_agents": ["character_designer"],
+      "resources": [],
+      "may_read_examples": false
+    },
+    "scene_designer": {
+      "prompt_file": "scene_designer.md",
+      "stage": 6,
+      "reads": ["beat_sheet", "retention_plan", "clue_matrix", "production_config"],
+      "writes": ["scene_cards", "presentation_plan"],
+      "gates": ["GATE-07"],
+      "requires_agents": ["story_architect", "mystery_designer"],
+      "resources": [],
+      "may_read_examples": false
+    },
+    "script_writer": {
+      "prompt_file": "script_writer.md",
+      "stage": 7,
+      "reads": ["scene_cards", "presentation_plan", "knowledge_matrix", "clue_matrix"],
+      "writes": ["draft_script", "final_script"],
+      "gates": ["GATE-08"],
+      "requires_agents": ["scene_designer"],
+      "resources": [],
+      "may_read_examples": false
+    },
+    "continuity_critic": {
+      "prompt_file": "continuity_critic.md",
+      "stage": 8,
+      "reads": ["final_script", "actual_timeline", "viewer_timeline", "knowledge_matrix", "clue_matrix", "presentation_plan"],
+      "writes": ["continuity_report", "channel_consistency_report"],
+      "gates": ["GATE-09", "GATE-12"],
+      "requires_agents": ["script_writer"],
+      "resources": [],
+      "may_read_examples": false
+    },
+    "novelty_auditor": {
+      "prompt_file": "novelty_auditor.md",
+      "stage": 9,
+      "reads": ["variation_candidates", "story_dna", "story_fingerprint", "beat_sheet", "causal_graph"],
+      "writes": ["novelty_precheck", "story_fingerprint", "novelty_report"],
+      "gates": ["GATE-01", "GATE-10"],
+      "requires_agents": ["continuity_critic"],
+      "resources": ["STORY_LIBRARY/story_fingerprints.json"],
+      "may_read_examples": false
+    },
+    "reference_auditor": {
+      "prompt_file": "reference_auditor.md",
+      "stage": 1,
+      "reads": ["production_config", "reference_profile", "sources", "claim_evidence", "final_script"],
+      "writes": ["reference_profile", "sources", "claim_evidence", "reference_collision_report"],
+      "gates": ["GATE-01", "GATE-03", "GATE-11"],
+      "requires_agents": [],
+      "resources": [],
+      "may_read_examples": false
+    }
+  }
+}

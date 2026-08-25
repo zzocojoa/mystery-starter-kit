@@ -1,0 +1,42 @@
+{
+  "$schema": "./schemas/reference_policy.schema.json",
+  "schema_family": "reference-policy",
+  "schema_version": "1.0.0",
+  "allowed_style_features": [
+    "PRESENTATION_MODE",
+    "NARRATION_FUNCTION",
+    "REACTION_FUNCTION",
+    "DIALOGUE_RHYTHM",
+    "TONE",
+    "PACING",
+    "AUDIENCE_POSITION",
+    "INFORMATION_DELIVERY",
+    "SUSPENSE_HANDLING",
+    "EDITING_RHYTHM"
+  ],
+  "prohibited_story_content": [
+    "CHARACTERS",
+    "CHARACTER_RELATIONSHIPS",
+    "LOCATIONS",
+    "INCIDENTS",
+    "CULPRIT",
+    "VICTIM",
+    "MOTIVE",
+    "METHOD",
+    "CLUES",
+    "TWISTS",
+    "UNIQUE_DIALOGUE",
+    "UNIQUE_NUMBERS",
+    "UNIQUE_OBJECTS",
+    "BEAT_SEQUENCE"
+  ],
+  "example_isolation": {
+    "production_agents_may_read_examples": false,
+    "context_builder_excludes_examples": true
+  },
+  "collision_thresholds": {
+    "lexical_phrase_words": 6,
+    "story_element_match_count": 2,
+    "hard_collision": true
+  }
+}

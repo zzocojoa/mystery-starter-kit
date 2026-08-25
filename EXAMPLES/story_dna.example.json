@@ -1,8 +1,9 @@
 {
   "$schema": "../STANDARD/schemas/story_dna.schema.json",
   "schema_family": "story-dna",
-  "schema_version": "1.0.0",
+  "schema_version": "1.3.0",
   "project_id": "PRJ-002",
+  "story_source_mode": "ORIGINAL",
   "story_dna": {
     "mystery_type": "WHEN",
     "architecture": "ARCH-05_CLOSED_ROOM",
@@ -18,6 +19,7 @@
       "SHIFT_CHANGE"
     ],
     "culprit_structure": "NO_CULPRIT",
+    "causal_truth": "차단된 안전 센서와 교대 기록 오류가 결합되어 실종처럼 보이는 사고가 발생했다.",
     "primary_twist": "TW-05_TIMELINE",
     "secondary_twists": [
       "TW-10_CAUSALITY"
@@ -32,6 +34,27 @@
     ],
     "motive_class": "NO_INTENT",
     "emotional_engine": "GUILT",
+    "relationship_engine": {
+      "primary": "TRUST_TO_RESPONSIBILITY",
+      "secondary": ["WORKPLACE_SOLIDARITY"],
+      "protagonist_counterpart_role": "MISSING_COWORKER"
+    },
+    "pressure_engine": {
+      "source": "SHIFT_CHANGE_DEADLINE",
+      "escalation": "COUNTDOWN",
+      "stakes": ["LIFE", "EMPLOYMENT", "PUBLIC_SAFETY"]
+    },
+    "dramatic_engine": {
+      "primary": "GUILT_DRIVEN_SEARCH",
+      "secondary": ["SYSTEM_MISTRUST"],
+      "audience_emotion_curve": ["UNEASE", "SUSPICION", "URGENCY", "RELIEF", "GRIEF"]
+    },
+    "thematic_question": "개인의 실수와 시스템의 책임은 어디에서 갈리는가?",
+    "audience_experience": {
+      "initial_belief": "누군가 실종을 은폐했다.",
+      "midpoint_shift": "주인공의 기억과 기계 기록이 서로 충돌한다.",
+      "final_reframe": "범죄처럼 보인 사건은 연쇄적인 안전 실패의 결과였다."
+    },
     "reveal_mode": "TIMELINE_RECONSTRUCTION",
     "ending_type": "BITTERSWEET"
   },
