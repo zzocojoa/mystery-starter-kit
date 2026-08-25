@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/variation-candidates-1.0.0.json",
+  "title": "Generated Story Variation Candidates",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project_id",
+    "story_seed_hash",
+    "candidate_count",
+    "candidates",
+    "approved_candidate_id",
+    "override"
+  ],
+  "properties": {
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "story_seed_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "candidate_count": {"type": "integer", "minimum": 3},
+    "candidates": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidate_id", "selection", "signature", "selection_status"],
+        "properties": {
+          "candidate_id": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
+          "selection": {
+            "type": "object",
+            "minProperties": 10,
+            "additionalProperties": {"type": "string", "minLength": 1}
+          },
+          "signature": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "selection_status": {"enum": ["PENDING", "APPROVED", "REJECTED"]}
+        }
+      }
+    },
+    "approved_candidate_id": {
+      "type": ["string", "null"],
+      "pattern": "^VAR-[0-9]{2,}$"
+    },
+    "override": {"type": ["object", "null"]}
+  }
+}

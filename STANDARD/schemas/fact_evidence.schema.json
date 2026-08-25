@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/fact-evidence-1.0.0.json",
+  "title": "True Story Fact and Evidence Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["facts", "sources", "claims"],
+  "properties": {
+    "facts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/fact"}
+    },
+    "sources": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/source"}
+    },
+    "claims": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/claim"}
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{2,}$"},
+    "idList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "fact": {
+      "type": "object",
+      "required": ["fact_id", "classification"],
+      "properties": {
+        "fact_id": {"$ref": "#/$defs/id"},
+        "classification": {"enum": ["FACT", "INFERENCE", "DRAMATIZATION"]},
+        "source_ids": {"$ref": "#/$defs/idList"},
+        "basis_fact_ids": {"$ref": "#/$defs/idList"},
+        "presented_as_fact": {"type": "boolean"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"classification": {"const": "FACT"}}},
+          "then": {"required": ["source_ids"]}
+        },
+        {
+          "if": {"properties": {"classification": {"const": "INFERENCE"}}},
+          "then": {"required": ["basis_fact_ids"]}
+        },
+        {
+          "if": {"properties": {"classification": {"const": "DRAMATIZATION"}}},
+          "then": {
+            "required": ["presented_as_fact"],
+            "properties": {"presented_as_fact": {"const": false}}
+          }
+        }
+      ]
+    },
+    "source": {
+      "type": "object",
+      "required": ["source_id", "url"],
+      "properties": {
+        "source_id": {"$ref": "#/$defs/id"},
+        "url": {"type": "string", "minLength": 1}
+      }
+    },
+    "claim": {
+      "type": "object",
+      "required": ["fact_id", "evidence_source_ids"],
+      "properties": {
+        "fact_id": {"$ref": "#/$defs/id"},
+        "evidence_source_ids": {"$ref": "#/$defs/idList"}
+      }
+    }
+  }
+}

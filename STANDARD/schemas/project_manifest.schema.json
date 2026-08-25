@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/project-manifest-1.0.0.json",
+  "title": "Mystery Project Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["project_id", "standard_version", "channel_id", "story_source_mode"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "standard_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "channel_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "story_source_mode": {
+      "enum": ["ORIGINAL", "REFERENCE_INSPIRED", "TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"]
+    }
+  }
+}

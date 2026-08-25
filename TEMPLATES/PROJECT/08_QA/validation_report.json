@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../STANDARD/schemas/validation_report.schema.json",
+  "schema_family": "validation-report",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-000",
+  "result": "FAIL",
+  "gate_results": {},
+  "issues": []
+}

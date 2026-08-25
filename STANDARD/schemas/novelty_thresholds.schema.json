@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/novelty-thresholds-1.0.0.json",
+  "title": "Novelty Thresholds",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "similarity", "weights"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_family": {
+      "const": "novelty-thresholds"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "similarity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recent_5_max", "recent_10_max", "overall_max"],
+      "properties": {
+        "recent_5_max": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "recent_10_max": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "overall_max": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "weights": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number",
+        "exclusiveMinimum": 0
+      }
+    }
+  }
+}

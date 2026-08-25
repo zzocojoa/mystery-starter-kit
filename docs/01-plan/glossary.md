@@ -2,13 +2,23 @@
 
 | 용어 | 정의 | 수명주기 |
 |---|---|---|
-| Production Standard | 제작 단계, Gate, 검증 원칙을 정의하는 범용 엔진 | 드물게 변경 |
-| Compatibility Contract | Standard가 Channel DNA에 요구하는 최소 Interface | 독립 버전 관리 |
-| Channel DNA | 장르, 톤, 표현, 관객 경험을 정의하는 채널 설정 | 채널 단위 변경 |
-| Story DNA | 한 에피소드의 구조적 차별성을 정의하는 실행 인스턴스 | 프로젝트마다 생성 |
-| Required Capability | 없거나 구조가 잘못되면 실행을 차단하는 채널 기능 | 최소화 |
-| Optional Capability | 없으면 Standard Default를 사용하는 채널 기능 | 새 기능의 기본 도입 방식 |
-| Standard Default | Channel DNA에 없는 선택 기능에만 적용하는 기본값 | Standard 소유 |
-| Compatibility Report | Story 생성 전에 계약 적합성을 기록하는 판정 결과 | 실행마다 생성 |
-| Schema Version | 데이터 구조와 Interface 버전 | 호환성 판정에 사용 |
-| Content Version | 구조를 바꾸지 않는 정책 내용 버전 | 호환성 판정에서 무시 |
+| Production Standard | 제작 단계, Gate, 실패 조건을 정의하는 범용 Engine | 드물게 변경 |
+| Compatibility Contract | Standard가 Channel에 요구하는 최소 Interface | 독립 Version |
+| Channel DNA | 장르, Tone, 표현, 관객 경험 정책 | Channel 단위 |
+| Story DNA | Episode의 구조, Source Mode, Engine을 정의하는 실행 인스턴스 | Project 단위 |
+| Story Source Mode | Original, Reference, True Story의 입력 경계 | Project 단위 |
+| Variation Candidate | 대본 전 단계의 다축 구조 후보 | 승인 전 임시 |
+| Relationship Engine | 주인공과 Counterpart 사이의 변화 동력 | Story 단위 |
+| Pressure Engine | 시간·사회·법·자원 압박의 상승 구조 | Story 단위 |
+| Dramatic Engine | 관객 감정과 선택 갈등을 움직이는 중심 동력 | Story 단위 |
+| Actual Timeline | 사건 세계에서 실제로 일어난 순서 | Project 단위 |
+| Viewer Timeline | 관객에게 정보가 공개되는 순서 | Project 단위 |
+| Audience Belief Timeline | 공개 정보에 따른 관객 가설 변화 | Project 단위 |
+| Knowledge Matrix | Character가 Fact를 언제 알게 되는지 기록한 경계 | Project 단위 |
+| Causal Graph | Root Cause에서 Resolution까지의 방향 비순환 그래프 | Project 단위 |
+| Story Fingerprint | Story Dimension과 Beat Signature를 합친 구조 서명 | 영구 History |
+| Causal Fingerprint | Root Cause, Mechanism, Concealment, Discovery, Resolution | 영구 History |
+| Hard Collision | 다섯 Causal Dimension이 모두 같은 즉시 실패 | QA 실행마다 |
+| Reference Firewall | Style만 보존하고 Story Content와 원문을 격리하는 경계 | Reference Project |
+| Artifact State | MISSING, DIRTY, INVALID, CLEAN 상태와 Hash | 변경마다 |
+| Production Ready | 14개 Gate와 Production Package가 모두 통과한 최종 상태 | Project 완료 |

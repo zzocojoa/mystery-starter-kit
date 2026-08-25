@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/validation-report-1.0.0.json",
+  "title": "Production Validation Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "project_id", "result", "gate_results", "issues"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_family": {
+      "const": "validation-report"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^PRJ-[0-9]{3,}$"
+    },
+    "result": {
+      "enum": ["PASS", "FAIL"]
+    },
+    "gate_results": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^GATE-(0[0-9]|1[0-3])$"
+      },
+      "additionalProperties": {
+        "enum": ["PASS", "FAIL", "NOT_RUN"]
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/issue"
+      }
+    }
+  },
+  "$defs": {
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "code", "message", "artifact", "context"],
+      "properties": {
+        "severity": {
+          "enum": ["ERROR", "WARN", "INFO"]
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

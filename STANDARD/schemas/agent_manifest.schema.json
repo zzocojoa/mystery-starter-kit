@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/agent-manifest-1.0.0.json",
+  "title": "Production Agent Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "execution_mode", "agents"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_family": {
+      "const": "agent-manifest"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "execution_mode": {
+      "const": "GATE_DRIVEN"
+    },
+    "agents": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "orchestrator",
+        "variation_designer",
+        "story_architect",
+        "character_designer",
+        "mystery_designer",
+        "scene_designer",
+        "script_writer",
+        "continuity_critic",
+        "novelty_auditor",
+        "reference_auditor"
+      ],
+      "properties": {
+        "orchestrator": {
+          "$ref": "#/$defs/agent"
+        },
+        "variation_designer": {
+          "$ref": "#/$defs/agent"
+        },
+        "story_architect": {
+          "$ref": "#/$defs/agent"
+        },
+        "character_designer": {
+          "$ref": "#/$defs/agent"
+        },
+        "mystery_designer": {
+          "$ref": "#/$defs/agent"
+        },
+        "scene_designer": {
+          "$ref": "#/$defs/agent"
+        },
+        "script_writer": {
+          "$ref": "#/$defs/agent"
+        },
+        "continuity_critic": {
+          "$ref": "#/$defs/agent"
+        },
+        "novelty_auditor": {
+          "$ref": "#/$defs/agent"
+        },
+        "reference_auditor": {
+          "$ref": "#/$defs/agent"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "artifactList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      }
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prompt_file",
+        "stage",
+        "reads",
+        "writes",
+        "gates",
+        "requires_agents",
+        "resources",
+        "may_read_examples"
+      ],
+      "properties": {
+        "prompt_file": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*\\.md$"
+        },
+        "stage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 13
+        },
+        "reads": {
+          "$ref": "#/$defs/artifactList"
+        },
+        "writes": {
+          "$ref": "#/$defs/artifactList"
+        },
+        "gates": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^GATE-(0[0-9]|1[0-3])$"
+          }
+        },
+        "requires_agents": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "resources": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(STANDARD|CHANNELS|STORY_LIBRARY)/[A-Za-z0-9_./-]+$"
+          }
+        },
+        "may_read_examples": {
+          "const": false
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "$schema": "./schemas/dependency_graph.schema.json",
+  "schema_family": "dependency-graph",
+  "schema_version": "1.0.0",
+  "artifacts": {
+    "project_manifest": {
+      "path": "00_PROJECT/project_manifest.json",
+      "depends_on": [],
+      "owner_agent": "orchestrator"
+    },
+    "compatibility_report": {
+      "path": "00_PROJECT/compatibility_report.json",
+      "depends_on": ["project_manifest"],
+      "owner_agent": "orchestrator"
+    },
+    "production_config": {
+      "path": "00_PROJECT/production_config.json",
+      "depends_on": ["project_manifest", "compatibility_report"],
+      "owner_agent": "orchestrator"
+    },
+    "reference_profile": {
+      "path": "00_PROJECT/reference_profile.json",
+      "depends_on": ["production_config"],
+      "owner_agent": "reference_auditor"
+    },
+    "variation_candidates": {
+      "path": "00_PROJECT/variation_candidates.json",
+      "depends_on": ["production_config", "reference_profile"],
+      "owner_agent": "variation_designer"
+    },
+    "novelty_precheck": {
+      "path": "08_QA/novelty_precheck.json",
+      "depends_on": ["variation_candidates"],
+      "owner_agent": "novelty_auditor"
+    },
+    "story_dna": {
+      "path": "00_PROJECT/story_dna.json",
+      "depends_on": ["variation_candidates", "novelty_precheck"],
+      "owner_agent": "story_architect"
+    },
+    "story_fingerprint": {
+      "path": "00_PROJECT/story_fingerprint.json",
+      "depends_on": ["story_dna", "beat_sheet", "causal_graph"],
+      "owner_agent": "novelty_auditor"
+    },
+    "case_input": {
+      "path": "01_CASE/case_input.json",
+      "depends_on": ["story_dna"],
+      "owner_agent": "story_architect"
+    },
+    "facts": {
+      "path": "01_CASE/facts.json",
+      "depends_on": ["case_input"],
+      "owner_agent": "story_architect"
+    },
+    "sources": {
+      "path": "01_CASE/sources.json",
+      "depends_on": ["case_input"],
+      "owner_agent": "reference_auditor"
+    },
+    "claim_evidence": {
+      "path": "01_CASE/claim_evidence.json",
+      "depends_on": ["facts", "sources"],
+      "owner_agent": "reference_auditor"
+    },
+    "characters": {
+      "path": "02_CHARACTER/characters.json",
+      "depends_on": ["case_input", "story_dna"],
+      "owner_agent": "character_designer"
+    },
+    "relationships": {
+      "path": "02_CHARACTER/relationships.json",
+      "depends_on": ["characters", "story_dna"],
+      "owner_agent": "character_designer"
+    },
+    "knowledge_matrix": {
+      "path": "02_CHARACTER/knowledge_matrix.json",
+      "depends_on": ["characters", "facts"],
+      "owner_agent": "character_designer"
+    },
+    "actual_timeline": {
+      "path": "03_TIMELINE/actual_timeline.json",
+      "depends_on": ["case_input", "characters"],
+      "owner_agent": "mystery_designer"
+    },
+    "viewer_timeline": {
+      "path": "03_TIMELINE/viewer_timeline.json",
+      "depends_on": ["actual_timeline", "knowledge_matrix"],
+      "owner_agent": "mystery_designer"
+    },
+    "audience_belief": {
+      "path": "03_TIMELINE/audience_belief_timeline.json",
+      "depends_on": ["viewer_timeline", "story_dna"],
+      "owner_agent": "mystery_designer"
+    },
+    "clue_matrix": {
+      "path": "04_MYSTERY/clue_matrix.json",
+      "depends_on": ["actual_timeline", "viewer_timeline"],
+      "owner_agent": "mystery_designer"
+    },
+    "hypothesis_ledger": {
+      "path": "04_MYSTERY/hypothesis_ledger.json",
+      "depends_on": ["clue_matrix", "audience_belief"],
+      "owner_agent": "mystery_designer"
+    },
+    "causal_graph": {
+      "path": "04_MYSTERY/causal_graph.json",
+      "depends_on": ["actual_timeline", "facts"],
+      "owner_agent": "mystery_designer"
+    },
+    "beat_sheet": {
+      "path": "05_STORY/beat_sheet.json",
+      "depends_on": ["story_dna", "viewer_timeline", "clue_matrix"],
+      "owner_agent": "story_architect"
+    },
+    "retention_plan": {
+      "path": "05_STORY/retention_plan.json",
+      "depends_on": ["beat_sheet", "audience_belief"],
+      "owner_agent": "story_architect"
+    },
+    "scene_cards": {
+      "path": "06_SCENE/scene_cards.json",
+      "depends_on": ["beat_sheet", "retention_plan", "clue_matrix"],
+      "owner_agent": "scene_designer"
+    },
+    "presentation_plan": {
+      "path": "06_SCENE/presentation_plan.json",
+      "depends_on": ["scene_cards", "production_config"],
+      "owner_agent": "scene_designer"
+    },
+    "draft_script": {
+      "path": "07_SCRIPT/draft_v01.md",
+      "depends_on": ["scene_cards", "presentation_plan"],
+      "owner_agent": "script_writer"
+    },
+    "final_script": {
+      "path": "07_SCRIPT/final_script.md",
+      "depends_on": ["draft_script"],
+      "owner_agent": "script_writer"
+    },
+    "continuity_report": {
+      "path": "08_QA/continuity_report.json",
+      "depends_on": ["final_script", "actual_timeline", "knowledge_matrix", "clue_matrix"],
+      "owner_agent": "continuity_critic"
+    },
+    "novelty_report": {
+      "path": "08_QA/novelty_report.json",
+      "depends_on": ["story_fingerprint"],
+      "owner_agent": "novelty_auditor"
+    },
+    "reference_collision_report": {
+      "path": "08_QA/reference_collision_report.json",
+      "depends_on": ["final_script", "reference_profile"],
+      "owner_agent": "reference_auditor"
+    },
+    "channel_consistency_report": {
+      "path": "08_QA/channel_consistency_report.json",
+      "depends_on": ["final_script", "presentation_plan", "production_config"],
+      "owner_agent": "continuity_critic"
+    },
+    "validation_report": {
+      "path": "08_QA/validation_report.json",
+      "depends_on": ["continuity_report", "novelty_report", "reference_collision_report", "channel_consistency_report"],
+      "owner_agent": "orchestrator"
+    },
+    "shooting_script": {
+      "path": "09_PRODUCTION/shooting_script.md",
+      "depends_on": ["validation_report", "final_script"],
+      "owner_agent": "orchestrator"
+    },
+    "narration": {
+      "path": "09_PRODUCTION/narration.md",
+      "depends_on": ["shooting_script", "presentation_plan"],
+      "owner_agent": "orchestrator"
+    },
+    "subtitle_script": {
+      "path": "09_PRODUCTION/subtitle_script.md",
+      "depends_on": ["shooting_script"],
+      "owner_agent": "orchestrator"
+    },
+    "edit_script": {
+      "path": "09_PRODUCTION/edit_script.md",
+      "depends_on": ["shooting_script", "presentation_plan", "retention_plan"],
+      "owner_agent": "orchestrator"
+    }
+  }
+}

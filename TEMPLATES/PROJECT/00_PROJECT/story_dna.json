@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../STANDARD/schemas/story_dna.schema.json",
+  "schema_family": "story-dna",
+  "schema_version": "1.3.0",
+  "project_id": "PRJ-000",
+  "story_source_mode": "ORIGINAL",
+  "story_dna": {}
+}

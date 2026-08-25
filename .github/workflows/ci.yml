@@ -39,10 +39,13 @@ jobs:
       - name: 프로젝트 설치
         run: |
           python -m pip install 'pip>=26.2' 'setuptools>=83'
-          python -m pip install -e '.[dev]'
+          python -m pip install '.[dev]'
 
       - name: 린트
         run: python -m ruff check .
+
+      - name: CLI 설치 확인
+        run: mystery-kit --help
 
       - name: 타입 검사
         run: python -m mypy VALIDATORS tests

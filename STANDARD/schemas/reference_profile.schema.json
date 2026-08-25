@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/reference-profile-1.0.0.json",
+  "title": "Sanitized Project Reference Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project_id",
+    "mode",
+    "reference_id",
+    "allowed_style_features",
+    "prohibited_story_content"
+  ],
+  "properties": {
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "mode": {"enum": ["NONE", "REFERENCE_INSPIRED"]},
+    "reference_id": {"type": ["string", "null"], "pattern": "^REF-[0-9]{3,}$"},
+    "allowed_style_features": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+    },
+    "prohibited_story_content": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+    },
+    "separation_attestation": {"const": true}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"mode": {"const": "NONE"}}},
+      "then": {
+        "properties": {
+          "reference_id": {"const": null},
+          "allowed_style_features": {"maxItems": 0},
+          "prohibited_story_content": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"mode": {"const": "REFERENCE_INSPIRED"}}},
+      "then": {
+        "required": ["separation_attestation"],
+        "properties": {
+          "reference_id": {"type": "string", "pattern": "^REF-[0-9]{3,}$"},
+          "allowed_style_features": {"minItems": 1},
+          "prohibited_story_content": {"minItems": 1}
+        }
+      }
+    }
+  ]
+}

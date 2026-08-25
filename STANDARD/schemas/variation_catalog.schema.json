@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/variation-catalog-1.0.0.json",
+  "title": "Variation Catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "dimensions"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "variation-catalog"},
+    "schema_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "dimensions": {
+      "type": "object",
+      "minProperties": 10,
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 3,
+        "uniqueItems": true,
+        "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$"}
+      }
+    }
+  }
+}

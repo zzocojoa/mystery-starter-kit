@@ -1,0 +1,157 @@
+"""Story/Causal Fingerprint 신규성 검증."""
+
+from copy import deepcopy
+from pathlib import Path
+
+from VALIDATORS.io import load_json_object
+from VALIDATORS.novelty import (
+    build_story_fingerprint,
+    evaluate_novelty,
+    evaluate_variation_precheck,
+)
+from VALIDATORS.schema_validation import collect_schema_errors
+from VALIDATORS.variation import (
+    approve_variation_candidate,
+    generate_variation_candidates,
+)
+
+ROOT = Path(__file__).resolve().parents[1]
+STORY_PATH = ROOT / "EXAMPLES" / "story_dna.example.json"
+THRESHOLDS_PATH = ROOT / "STANDARD" / "novelty_thresholds.json"
+THRESHOLDS_SCHEMA_PATH = (
+    ROOT / "STANDARD" / "schemas" / "novelty_thresholds.schema.json"
+)
+FINGERPRINT_SCHEMA_PATH = ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
+PRECHECK_SCHEMA_PATH = ROOT / "STANDARD" / "schemas" / "novelty_precheck.schema.json"
+
+
+def make_fingerprint() -> dict[str, object]:
+    """테스트용 완전한 Fingerprint를 생성한다."""
+    story = load_json_object(STORY_PATH)
+    beat_sheet: dict[str, object] = {
+        "project_id": "PRJ-001",
+        "beats": [
+            {"beat_id": "BEAT-01", "type": "HOOK"},
+            {"beat_id": "BEAT-02", "type": "FALSE_SOLUTION"},
+            {"beat_id": "BEAT-03", "type": "REVEAL"},
+        ],
+    }
+    causal_graph: dict[str, object] = {
+        "project_id": "PRJ-001",
+        "fingerprint": {
+            "root_cause": "SYSTEMIC_NEGLECT",
+            "mechanism": "AUTOMATION_CASCADE",
+            "concealment": "LOG_ROTATION",
+            "discovery_path": "TIME_GAP_ANALYSIS",
+            "resolution": "PUBLIC_DISCLOSURE",
+        },
+    }
+    return build_story_fingerprint(story, beat_sheet, causal_graph)
+
+
+def test_story_fingerprint_passes_schema() -> None:
+    """Story, Beat, Causal 요소로 만든 Fingerprint는 표준 Schema를 통과해야 한다."""
+    fingerprint = make_fingerprint()
+    schema = load_json_object(FINGERPRINT_SCHEMA_PATH)
+
+    assert collect_schema_errors(fingerprint, schema, "generated_fingerprint") == []
+
+
+def test_novelty_thresholds_pass_schema() -> None:
+    """최근·전체 유사도와 Weight 기준은 자체 Schema를 통과해야 한다."""
+    thresholds = load_json_object(THRESHOLDS_PATH)
+    schema = load_json_object(THRESHOLDS_SCHEMA_PATH)
+
+    assert collect_schema_errors(thresholds, schema, "novelty_thresholds") == []
+
+
+def test_causal_fingerprint_exact_match_is_hard_collision() -> None:
+    """Causal 다섯 요소가 모두 같으면 유사도와 무관하게 차단해야 한다."""
+    fingerprint = make_fingerprint()
+    thresholds = load_json_object(THRESHOLDS_PATH)
+
+    report = evaluate_novelty(fingerprint, [deepcopy(fingerprint)], thresholds)
+
+    assert report["result"] == "FAIL"
+    issues = report["issues"]
+    assert isinstance(issues, list)
+    assert [issue["code"] for issue in issues] == ["CAUSAL_HARD_COLLISION"]
+
+
+def test_distinct_story_and_causal_fingerprint_passes() -> None:
+    """구조와 인과가 충분히 다른 후보는 신규성 Gate를 통과해야 한다."""
+    fingerprint = make_fingerprint()
+    existing = deepcopy(fingerprint)
+    existing["project_id"] = "PRJ-099"
+    story = existing["story"]
+    causal = existing["causal"]
+    assert isinstance(story, dict)
+    assert isinstance(causal, dict)
+    story.update(
+        {
+            "mystery_type": "WHO",
+            "architecture": "ARCH-01_LINEAR_REVEAL",
+            "protagonist_role": "REPORTER",
+            "primary_twist": "TW-03_FALSE_VICTIM",
+            "timeline_style": "REAL_TIME",
+            "culprit_structure": "DUAL",
+            "setting_logic": ["OPEN_CITY"],
+            "information_mechanism": ["INTERVIEW"],
+            "relationship_engine": "RIVALRY",
+            "pressure_engine": "COUNTDOWN",
+            "dramatic_engine": "MORAL_DILEMMA",
+        }
+    )
+    causal.update(
+        {
+            "root_cause": "GREED",
+            "mechanism": "PHYSICAL_SWAP",
+            "concealment": "FALSE_WITNESS",
+            "discovery_path": "OBJECT_TRACE",
+            "resolution": "ARREST",
+        }
+    )
+    thresholds = load_json_object(THRESHOLDS_PATH)
+
+    report = evaluate_novelty(fingerprint, [existing], thresholds)
+
+    assert report["result"] == "PASS"
+    assert report["issues"] == []
+
+
+def test_approved_variation_precheck_passes_schema_without_history() -> None:
+    """History가 비어 있으면 승인 후보 Precheck는 PASS하고 Schema를 통과해야 한다."""
+    catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
+    candidates = generate_variation_candidates("PRJ-002", "seed", 5, catalog)
+    approved = approve_variation_candidate(candidates, "VAR-01")
+    thresholds = load_json_object(THRESHOLDS_PATH)
+
+    report = evaluate_variation_precheck(approved, [], thresholds)
+    schema = load_json_object(PRECHECK_SCHEMA_PATH)
+
+    assert report["result"] == "PASS"
+    assert collect_schema_errors(report, schema, "novelty_precheck") == []
+
+
+def test_approved_variation_collision_fails_precheck() -> None:
+    """승인 후보의 구조가 최근 History와 같으면 Story 설계 전에 차단해야 한다."""
+    catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
+    candidates = generate_variation_candidates("PRJ-002", "seed", 5, catalog)
+    approved = approve_variation_candidate(candidates, "VAR-01")
+    records = approved["candidates"]
+    assert isinstance(records, list)
+    first = records[0]
+    assert isinstance(first, dict)
+    selection = first["selection"]
+    assert isinstance(selection, dict)
+    history = [{"project_id": "PRJ-001", "story": deepcopy(selection)}]
+    thresholds = load_json_object(THRESHOLDS_PATH)
+
+    report = evaluate_variation_precheck(approved, history, thresholds)
+
+    assert report["result"] == "FAIL"
+    issues = report["issues"]
+    assert isinstance(issues, list)
+    assert [issue["code"] for issue in issues] == [
+        "APPROVED_VARIATION_SIMILARITY_EXCEEDED"
+    ]
