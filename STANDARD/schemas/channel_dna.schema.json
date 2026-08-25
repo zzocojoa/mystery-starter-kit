@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/channel-dna-1.0.0.json",
+  "title": "Channel DNA v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "content_version",
+    "channel_id",
+    "capabilities"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_family": {
+      "const": "channel-dna"
+    },
+    "schema_version": {
+      "$ref": "#/$defs/semanticVersion"
+    },
+    "content_version": {
+      "$ref": "#/$defs/semanticVersion"
+    },
+    "channel_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "identity": {
+      "type": "object"
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "GENRE_POLICY",
+        "TONE_POLICY",
+        "PRESENTATION_POLICY",
+        "AUDIENCE_CONTRACT",
+        "STORY_VARIATION_POLICY"
+      ],
+      "properties": {
+        "GENRE_POLICY": {
+          "$ref": "#/$defs/genrePolicy"
+        },
+        "TONE_POLICY": {
+          "$ref": "#/$defs/tonePolicy"
+        },
+        "PRESENTATION_POLICY": {
+          "$ref": "#/$defs/presentationPolicy"
+        },
+        "AUDIENCE_CONTRACT": {
+          "$ref": "#/$defs/audienceContract"
+        },
+        "STORY_VARIATION_POLICY": {
+          "$ref": "#/$defs/storyVariationPolicy"
+        },
+        "NARRATION_POLICY": {
+          "$ref": "#/$defs/narrationPolicy"
+        },
+        "REACTION_POLICY": {
+          "$ref": "#/$defs/reactionPolicy"
+        },
+        "HUMOR_POLICY": {
+          "$ref": "#/$defs/genericPolicy"
+        },
+        "VISUAL_POLICY": {
+          "$ref": "#/$defs/genericPolicy"
+        },
+        "PACING_POLICY": {
+          "$ref": "#/$defs/genericPolicy"
+        },
+        "RETENTION_POLICY": {
+          "$ref": "#/$defs/genericPolicy"
+        },
+        "HOST_POLICY": {
+          "$ref": "#/$defs/genericPolicy"
+        },
+        "MUSIC_POLICY": {
+          "$ref": "#/$defs/genericPolicy"
+        },
+        "THUMBNAIL_POLICY": {
+          "$ref": "#/$defs/genericPolicy"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "enumList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      }
+    },
+    "genrePolicy": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["allowed_genres", "realism"],
+      "properties": {
+        "allowed_genres": {
+          "$ref": "#/$defs/enumList"
+        },
+        "adjacent_genres": {
+          "$ref": "#/$defs/enumList"
+        },
+        "realism": {
+          "enum": ["GROUNDED", "HEIGHTENED", "SPECULATIVE"]
+        }
+      }
+    },
+    "tonePolicy": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["primary_tones", "prohibited_tones"],
+      "properties": {
+        "primary_tones": {
+          "$ref": "#/$defs/enumList"
+        },
+        "prohibited_tones": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          }
+        }
+      }
+    },
+    "presentationPolicy": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["modes", "audience_position", "information_cycle"],
+      "properties": {
+        "modes": {
+          "$ref": "#/$defs/enumList"
+        },
+        "audience_position": {
+          "enum": ["OBSERVER", "CO_INVESTIGATOR", "WITNESS", "CONFIDANT"]
+        },
+        "information_cycle": {
+          "$ref": "#/$defs/enumList"
+        }
+      }
+    },
+    "audienceContract": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["fair_play", "promises"],
+      "properties": {
+        "fair_play": {
+          "type": "boolean"
+        },
+        "promises": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "storyVariationPolicy": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["fixed_dimensions", "variable_dimensions"],
+      "properties": {
+        "fixed_dimensions": {
+          "$ref": "#/$defs/enumList"
+        },
+        "variable_dimensions": {
+          "$ref": "#/$defs/enumList"
+        }
+      }
+    },
+    "narrationPolicy": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["enabled", "purposes"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "purposes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          }
+        },
+        "repeat_visible_information": {
+          "type": "boolean"
+        }
+      }
+    },
+    "reactionPolicy": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["enabled", "target_ratio"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "target_ratio": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min", "max"],
+          "properties": {
+            "min": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "max": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      }
+    },
+    "genericPolicy": {
+      "type": "object"
+    }
+  }
+}

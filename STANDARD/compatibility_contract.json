@@ -1,0 +1,54 @@
+{
+  "$schema": "./schemas/compatibility_contract.schema.json",
+  "contract_family": "mystery-production-channel-dna",
+  "contract_version": "1.0.0",
+  "channel_dna_interface": {
+    "schema_family": "channel-dna",
+    "supported_schema_versions": {
+      "min_inclusive": "1.0.0",
+      "max_exclusive": "2.0.0"
+    },
+    "required_capabilities": [
+      "GENRE_POLICY",
+      "TONE_POLICY",
+      "PRESENTATION_POLICY",
+      "AUDIENCE_CONTRACT",
+      "STORY_VARIATION_POLICY"
+    ],
+    "optional_capabilities": [
+      "NARRATION_POLICY",
+      "REACTION_POLICY",
+      "HUMOR_POLICY",
+      "VISUAL_POLICY",
+      "PACING_POLICY",
+      "RETENTION_POLICY",
+      "HOST_POLICY",
+      "MUSIC_POLICY",
+      "THUMBNAIL_POLICY"
+    ]
+  },
+  "compatibility_policy": {
+    "unknown_fields": "IGNORE",
+    "unknown_optional_capabilities": "IGNORE",
+    "missing_optional_capabilities": "USE_STANDARD_DEFAULT",
+    "missing_required_capabilities": "FAIL",
+    "unsupported_schema_family": "FAIL",
+    "unsupported_schema_version": "FAIL",
+    "content_version_mismatch": "IGNORE"
+  },
+  "fallback_policy": {
+    "source": "standard_defaults.json",
+    "apply_only_to_optional_capabilities": true,
+    "never_override_explicit_channel_values": true
+  },
+  "immutability_policy": {
+    "standard_may_modify_channel_dna": false,
+    "channel_dna_may_modify_standard": false,
+    "story_generation_may_modify_channel_dna": false
+  },
+  "validation": {
+    "validate_before_story_generation": true,
+    "emit_compatibility_report": true,
+    "block_on_error": true
+  }
+}

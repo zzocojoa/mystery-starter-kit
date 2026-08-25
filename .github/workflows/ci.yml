@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.14"
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v7
+
+      - name: Python 설정
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 프로젝트 설치
+        run: |
+          python -m pip install 'pip>=26.2'
+          python -m pip install -e '.[dev]'
+
+      - name: 린트
+        run: python -m ruff check .
+
+      - name: 타입 검사
+        run: python -m mypy VALIDATORS tests
+
+      - name: 테스트
+        run: python -m pytest
+
+      - name: 패키지 빌드
+        run: python -m build
+
+      - name: 의존성 취약점 검사
+        if: matrix.python-version == '3.11'
+        run: python -m pip_audit

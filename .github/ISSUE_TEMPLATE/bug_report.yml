@@ -1,0 +1,61 @@
+name: 버그 보고
+description: 재현 가능한 오류 또는 잘못된 판정을 보고합니다.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 문제 요약
+      description: 실제로 발생한 문제를 간단히 설명해 주세요.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 재현 절차
+      description: 실행 명령과 입력 파일을 포함해 순서대로 작성해 주세요.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 결과
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 실제 결과
+      description: 오류 메시지와 Compatibility Report를 첨부해 주세요. 비밀값은 제거해야 합니다.
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python 버전
+      placeholder: 3.11.9
+    validations:
+      required: true
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: 영향 영역
+      options:
+        - Compatibility Contract
+        - Channel DNA
+        - Story DNA
+        - Validator 또는 CLI
+        - 문서 또는 운영 환경
+    validations:
+      required: true

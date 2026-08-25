@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/compatibility-contract-1.0.0.json",
+  "title": "Production Standard와 Channel DNA 호환성 계약",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_family",
+    "contract_version",
+    "channel_dna_interface",
+    "compatibility_policy",
+    "fallback_policy",
+    "immutability_policy",
+    "validation"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "contract_family": {
+      "const": "mystery-production-channel-dna"
+    },
+    "contract_version": {
+      "$ref": "#/$defs/semanticVersion"
+    },
+    "channel_dna_interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_family",
+        "supported_schema_versions",
+        "required_capabilities",
+        "optional_capabilities"
+      ],
+      "properties": {
+        "schema_family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supported_schema_versions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min_inclusive", "max_exclusive"],
+          "properties": {
+            "min_inclusive": {
+              "$ref": "#/$defs/semanticVersion"
+            },
+            "max_exclusive": {
+              "$ref": "#/$defs/semanticVersion"
+            }
+          }
+        },
+        "required_capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/capabilityName"
+          }
+        },
+        "optional_capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/capabilityName"
+          }
+        }
+      }
+    },
+    "compatibility_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unknown_fields",
+        "unknown_optional_capabilities",
+        "missing_optional_capabilities",
+        "missing_required_capabilities",
+        "unsupported_schema_family",
+        "unsupported_schema_version",
+        "content_version_mismatch"
+      ],
+      "properties": {
+        "unknown_fields": {
+          "const": "IGNORE"
+        },
+        "unknown_optional_capabilities": {
+          "const": "IGNORE"
+        },
+        "missing_optional_capabilities": {
+          "const": "USE_STANDARD_DEFAULT"
+        },
+        "missing_required_capabilities": {
+          "const": "FAIL"
+        },
+        "unsupported_schema_family": {
+          "const": "FAIL"
+        },
+        "unsupported_schema_version": {
+          "const": "FAIL"
+        },
+        "content_version_mismatch": {
+          "const": "IGNORE"
+        }
+      }
+    },
+    "fallback_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "apply_only_to_optional_capabilities",
+        "never_override_explicit_channel_values"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "apply_only_to_optional_capabilities": {
+          "const": true
+        },
+        "never_override_explicit_channel_values": {
+          "const": true
+        }
+      }
+    },
+    "immutability_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "standard_may_modify_channel_dna",
+        "channel_dna_may_modify_standard",
+        "story_generation_may_modify_channel_dna"
+      ],
+      "properties": {
+        "standard_may_modify_channel_dna": {
+          "const": false
+        },
+        "channel_dna_may_modify_standard": {
+          "const": false
+        },
+        "story_generation_may_modify_channel_dna": {
+          "const": false
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "validate_before_story_generation",
+        "emit_compatibility_report",
+        "block_on_error"
+      ],
+      "properties": {
+        "validate_before_story_generation": {
+          "const": true
+        },
+        "emit_compatibility_report": {
+          "const": true
+        },
+        "block_on_error": {
+          "const": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "capabilityName": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    }
+  }
+}

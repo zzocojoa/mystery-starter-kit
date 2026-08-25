@@ -1,0 +1,39 @@
+{
+  "$schema": "./schemas/standard_defaults.schema.json",
+  "defaults_version": "1.0.0",
+  "optional_capability_defaults": {
+    "NARRATION_POLICY": {
+      "enabled": false,
+      "purposes": []
+    },
+    "REACTION_POLICY": {
+      "enabled": false,
+      "target_ratio": {
+        "min": 0.0,
+        "max": 0.0
+      }
+    },
+    "HUMOR_POLICY": {
+      "enabled": false,
+      "mode": "NONE"
+    },
+    "VISUAL_POLICY": {
+      "mode": "UNSPECIFIED"
+    },
+    "PACING_POLICY": {
+      "mode": "STANDARD"
+    },
+    "RETENTION_POLICY": {
+      "mode": "STANDARD"
+    },
+    "HOST_POLICY": {
+      "enabled": false
+    },
+    "MUSIC_POLICY": {
+      "mode": "UNSPECIFIED"
+    },
+    "THUMBNAIL_POLICY": {
+      "mode": "UNSPECIFIED"
+    }
+  }
+}

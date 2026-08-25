@@ -1,0 +1,43 @@
+{
+  "$schema": "../STANDARD/schemas/story_dna.schema.json",
+  "schema_family": "story-dna",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-002",
+  "story_dna": {
+    "mystery_type": "WHEN",
+    "architecture": "ARCH-05_CLOSED_ROOM",
+    "protagonist_role": "SUSPECT",
+    "perspective": "FIRST_PERSON",
+    "narrator_reliability": "RELIABLE",
+    "timeline_style": "DUAL_TIMELINE",
+    "incident_type": "DISAPPEARANCE",
+    "setting": "FACTORY",
+    "setting_logic": [
+      "ACCESS_LOG",
+      "MACHINE_LOG",
+      "SHIFT_CHANGE"
+    ],
+    "culprit_structure": "NO_CULPRIT",
+    "primary_twist": "TW-05_TIMELINE",
+    "secondary_twists": [
+      "TW-10_CAUSALITY"
+    ],
+    "information_mechanism": [
+      "MACHINE_LOG",
+      "CCTV"
+    ],
+    "clue_mechanism": [
+      "TIMESTAMP",
+      "TECHNICAL"
+    ],
+    "motive_class": "NO_INTENT",
+    "emotional_engine": "GUILT",
+    "reveal_mode": "TIMELINE_RECONSTRUCTION",
+    "ending_type": "BITTERSWEET"
+  },
+  "variation_overrides": {
+    "minimum_suspect_count": 0,
+    "culprit_required": false
+  },
+  "override_reason": "No-Culprit 구조에서는 범인 대신 인과적 진실을 정의한다."
+}

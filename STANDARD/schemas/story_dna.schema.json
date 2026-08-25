@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/story-dna-1.0.0.json",
+  "title": "Story DNA v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "project_id", "story_dna"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_family": {
+      "const": "story-dna"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^PRJ-[0-9]{3,}$"
+    },
+    "story_dna": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "mystery_type",
+        "architecture",
+        "protagonist_role",
+        "perspective",
+        "narrator_reliability",
+        "timeline_style",
+        "incident_type",
+        "setting",
+        "culprit_structure",
+        "primary_twist",
+        "information_mechanism",
+        "clue_mechanism",
+        "emotional_engine",
+        "reveal_mode",
+        "ending_type"
+      ],
+      "properties": {
+        "mystery_type": {
+          "enum": ["WHO", "WHY", "HOW", "WHEN", "WHERE", "WHETHER", "WHAT"]
+        },
+        "architecture": {
+          "type": "string",
+          "pattern": "^ARCH-[0-9]{2}_[A-Z0-9_]+$"
+        },
+        "protagonist_role": {
+          "enum": ["INVESTIGATOR", "SUSPECT", "WITNESS", "VICTIM", "OUTSIDER", "ACCOMPLICE"]
+        },
+        "perspective": {
+          "enum": ["FIRST_PERSON", "THIRD_PERSON_LIMITED", "MULTIPLE_POV", "OMNISCIENT"]
+        },
+        "narrator_reliability": {
+          "enum": ["RELIABLE", "UNRELIABLE_MEMORY", "UNRELIABLE_BIAS", "DECEPTIVE"]
+        },
+        "timeline_style": {
+          "enum": ["LINEAR", "FLASHBACK_DRIVEN", "REVERSE", "DUAL_TIMELINE", "FRAGMENTED"]
+        },
+        "incident_type": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "setting": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "setting_logic": {
+          "$ref": "#/$defs/enumList"
+        },
+        "culprit_structure": {
+          "enum": ["SINGLE", "MULTIPLE", "ACCOMPLICE", "NO_CULPRIT", "UNKNOWN"]
+        },
+        "primary_twist": {
+          "type": "string",
+          "pattern": "^TW-[0-9]{2}_[A-Z0-9_]+$"
+        },
+        "secondary_twists": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^TW-[0-9]{2}_[A-Z0-9_]+$"
+          }
+        },
+        "information_mechanism": {
+          "$ref": "#/$defs/enumList"
+        },
+        "clue_mechanism": {
+          "$ref": "#/$defs/enumList"
+        },
+        "motive_class": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "emotional_engine": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "reveal_mode": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "ending_type": {
+          "enum": ["CLOSED", "OPEN", "AMBIGUOUS", "BITTERSWEET", "TRAGIC", "FALSE_RESOLUTION", "CIRCULAR", "MORAL_REVERSAL"]
+        }
+      }
+    },
+    "variation_overrides": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "override_reason": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "enumList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      }
+    }
+  }
+}

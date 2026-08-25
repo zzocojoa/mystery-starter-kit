@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/standard-defaults-1.0.0.json",
+  "title": "선택 Capability 표준 기본값",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["defaults_version", "optional_capability_defaults"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "defaults_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "optional_capability_defaults": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "object"
+      }
+    }
+  }
+}
