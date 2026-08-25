@@ -10,7 +10,7 @@
 ## 로컬 검증
 
 ```bash
-.venv/bin/python -m pip install 'pip>=26.2'
+.venv/bin/python -m pip install 'pip>=26.2' 'setuptools>=83'
 .venv/bin/pytest
 .venv/bin/mypy VALIDATORS tests
 .venv/bin/ruff check .

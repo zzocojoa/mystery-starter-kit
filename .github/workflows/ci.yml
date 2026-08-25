@@ -38,7 +38,7 @@ jobs:
 
       - name: 프로젝트 설치
         run: |
-          python -m pip install 'pip>=26.2'
+          python -m pip install 'pip>=26.2' 'setuptools>=83'
           python -m pip install -e '.[dev]'
 
       - name: 린트

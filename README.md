@@ -23,7 +23,7 @@ python -m VALIDATORS.cli \
 
 ```bash
 python -m venv .venv
-.venv/bin/python -m pip install 'pip>=26.2'
+.venv/bin/python -m pip install 'pip>=26.2' 'setuptools>=83'
 .venv/bin/pip install -e '.[dev]'
 .venv/bin/pytest
 .venv/bin/mypy VALIDATORS
