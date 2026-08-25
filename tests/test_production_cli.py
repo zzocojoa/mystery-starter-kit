@@ -31,8 +31,8 @@ def write_complete_artifacts(
             write_json_object(path, content)
 
 
-def test_init_and_validate_reach_production_ready(tmp_path: Path) -> None:
-    """새 Scaffold에 완전한 Artifact를 넣고 검증하면 Production Ready가 된다."""
+def test_readme_golden_path_reaches_production_ready(tmp_path: Path) -> None:
+    """README 명령 순서 전체가 실제 디스크에서 Production Ready에 도달해야 한다."""
     projects_root = tmp_path / "projects"
     init_code = run_cli(
         [
@@ -45,7 +45,27 @@ def test_init_and_validate_reach_production_ready(tmp_path: Path) -> None:
         ]
     )
     project_path = projects_root / "PRJ-002"
-    write_complete_artifacts(project_path, make_complete_project_artifacts())
+    compat_code = run_cli(["compat", str(project_path)])
+    variation_code = run_cli(
+        [
+            "variations",
+            str(project_path),
+            "--seed",
+            "공장 교대 중 사라진 작업자",
+            "--count",
+            "5",
+        ]
+    )
+    approve_code = run_cli(["approve", str(project_path), "VAR-01"])
+    precheck_code = run_cli(["precheck", str(project_path)])
+    artifacts = make_complete_project_artifacts()
+    for generated_artifact in (
+        "compatibility_report",
+        "variation_candidates",
+        "novelty_precheck",
+    ):
+        del artifacts[generated_artifact]
+    write_complete_artifacts(project_path, artifacts)
 
     validate_code = run_cli(["validate", str(project_path)])
     state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
@@ -73,6 +93,10 @@ def test_init_and_validate_reach_production_ready(tmp_path: Path) -> None:
     library = load_json_object(library_path)
 
     assert init_code == 0
+    assert compat_code == 0
+    assert variation_code == 0
+    assert approve_code == 0
+    assert precheck_code == 0
     assert validate_code == 0
     assert register_code == 0
     assert report["result"] == "PASS"
@@ -169,6 +193,11 @@ def test_variation_approval_and_precheck_commands_form_gate_one(tmp_path: Path) 
         ]
     ) == 0
     project_path = projects_root / "PRJ-004"
+    assert run_cli(["compat", str(project_path)]) == 0
+    compatibility = load_json_object(
+        project_path / "00_PROJECT" / "compatibility_report.json"
+    )
+    state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
 
     assert run_cli(
         [
@@ -186,3 +215,86 @@ def test_variation_approval_and_precheck_commands_form_gate_one(tmp_path: Path) 
 
     assert report["result"] == "PASS"
     assert report["approved_candidate_id"] == "VAR-01"
+    assert compatibility["project_id"] == "PRJ-004"
+    assert compatibility["compatibility"] == "PASS"
+    assert state["current_gate"] == "GATE-00"
+
+
+def test_variations_require_project_compatibility_gate(tmp_path: Path) -> None:
+    """Compatibility를 실행하지 않은 Project는 Variation을 생성할 수 없어야 한다."""
+    projects_root = tmp_path / "projects"
+    assert run_cli(
+        [
+            "init",
+            "PRJ-005",
+            "--projects-root",
+            str(projects_root),
+            "--created-at",
+            "2026-08-25T00:00:00Z",
+        ]
+    ) == 0
+    project_path = projects_root / "PRJ-005"
+
+    result = run_cli(
+        [
+            "variations",
+            str(project_path),
+            "--seed",
+            "호환성 없는 후보 생성",
+            "--count",
+            "5",
+        ]
+    )
+
+    assert result == 2
+    candidates = load_json_object(
+        project_path / "00_PROJECT" / "variation_candidates.json"
+    )
+    assert candidates["candidate_count"] == 0
+
+
+def test_failed_project_compatibility_blocks_variations(tmp_path: Path) -> None:
+    """필수 Capability가 없는 Channel은 GATE-00과 Variation을 차단해야 한다."""
+    projects_root = tmp_path / "projects"
+    assert run_cli(
+        [
+            "init",
+            "PRJ-006",
+            "--projects-root",
+            str(projects_root),
+            "--created-at",
+            "2026-08-25T00:00:00Z",
+        ]
+    ) == 0
+    project_path = projects_root / "PRJ-006"
+    channel = load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json")
+    capabilities = channel.get("capabilities")
+    assert isinstance(capabilities, dict)
+    del capabilities["GENRE_POLICY"]
+    channel_path = tmp_path / "incompatible_channel.json"
+    write_json_object(channel_path, channel)
+
+    compat_code = run_cli(
+        ["compat", str(project_path), "--channel", str(channel_path)]
+    )
+    variation_code = run_cli(
+        [
+            "variations",
+            str(project_path),
+            "--seed",
+            "호환되지 않는 채널",
+            "--count",
+            "5",
+        ]
+    )
+    report = load_json_object(
+        project_path / "00_PROJECT" / "compatibility_report.json"
+    )
+    state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
+
+    assert compat_code == 1
+    assert variation_code == 2
+    assert report["project_id"] == "PRJ-006"
+    assert report["compatibility"] == "FAIL"
+    assert state["state"] == "BLOCKED"
+    assert state["current_gate"] == "NONE"

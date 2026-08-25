@@ -13,6 +13,7 @@ python -m venv .venv
 
 # 아래 명령은 저장소 Root에서 실행한다.
 .venv/bin/mystery-kit init PRJ-002
+.venv/bin/mystery-kit compat PROJECTS/PRJ-002
 .venv/bin/mystery-kit variations PROJECTS/PRJ-002 \
   --seed "공장 교대 중 사라진 작업자" \
   --count 5
@@ -35,7 +36,11 @@ Reference 기반 Project는 후보 생성 전에 원문 JSON을 Project 밖에 �
 
 `validate`는 `08_QA`의 개별 보고서와 통합 보고서, `00_PROJECT/project_state.json`, Change Log를 갱신한다. `register`는 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 `PASS=0`, Gate 실패 `=1`, 입력·구성 오류 `=2`다.
 
-## Compatibility 단독 실행
+`compat`는 Project ID가 포함된 Compatibility Report를 만들고 `GATE-00`을 통과시킨다. Compatibility와 `GATE-00`이 모두 PASS가 아니면 `variations`는 실행되지 않는다.
+
+## Compatibility 단독 진단
+
+Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 사용한다. 이 출력은 Project Artifact가 아니므로 `PROJECTS/` 아래에 저장하지 않는다.
 
 ```bash
 .venv/bin/mystery-compat \
@@ -45,10 +50,8 @@ Reference 기반 Project는 후보 생성 전에 원문 JSON을 Project 밖에 �
   --contract-schema STANDARD/schemas/compatibility_contract.schema.json \
   --defaults-schema STANDARD/schemas/standard_defaults.schema.json \
   --channel-schema STANDARD/schemas/channel_dna.schema.json \
-  --output PROJECTS/PRJ-001/00_PROJECT/compatibility_report.json
+  --output compatibility_report.json
 ```
-
-Compatibility가 `PASS`가 아니면 Variation 단계로 진행하지 않는다.
 
 ## 구조
 

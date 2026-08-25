@@ -13,6 +13,7 @@ from VALIDATORS.models import (
     CompatibilityReport,
     CompatibilityResult,
     OptionalCapabilityStatus,
+    ProjectCompatibilityReport,
     RequiredCapabilityStatus,
     ResolvedCapability,
 )
@@ -317,4 +318,26 @@ def append_errors(
         ignored_unknown_fields=report["ignored_unknown_fields"].copy(),
         ignored_unknown_capabilities=report["ignored_unknown_capabilities"].copy(),
         errors=combined_errors,
+    )
+
+
+def make_project_compatibility_report(
+    project_id: str,
+    report: CompatibilityReport,
+) -> ProjectCompatibilityReport:
+    """Project ID와 호환성 판정 결과를 새 Project Report로 결합한다."""
+    return ProjectCompatibilityReport(
+        project_id=project_id,
+        contract_family=report["contract_family"],
+        contract_version=report["contract_version"],
+        channel=deepcopy(report["channel"]),
+        compatibility=report["compatibility"],
+        required_capabilities=deepcopy(report["required_capabilities"]),
+        optional_capabilities=deepcopy(report["optional_capabilities"]),
+        resolved_optional_capabilities=deepcopy(
+            report["resolved_optional_capabilities"]
+        ),
+        ignored_unknown_fields=report["ignored_unknown_fields"].copy(),
+        ignored_unknown_capabilities=report["ignored_unknown_capabilities"].copy(),
+        errors=deepcopy(report["errors"]),
     )

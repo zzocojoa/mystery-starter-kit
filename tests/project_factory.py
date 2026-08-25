@@ -6,7 +6,10 @@ from pathlib import Path
 from VALIDATORS.io import load_json_object
 from VALIDATORS.novelty import build_story_fingerprint, evaluate_variation_precheck
 from VALIDATORS.pipeline import ArtifactContent
-from VALIDATORS.variation import generate_variation_candidates
+from VALIDATORS.variation import (
+    approve_variation_candidate,
+    generate_variation_candidates,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -19,6 +22,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     )
     catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
     variations = generate_variation_candidates(project_id, "공장 교대 중 사라진 작업자", 5, catalog)
+    variations = approve_variation_candidate(variations, "VAR-01")
     candidates = variations["candidates"]
     story_dna = story_document["story_dna"]
     assert isinstance(candidates, list)
@@ -27,22 +31,26 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     assert isinstance(first_candidate, dict)
     selection = first_candidate["selection"]
     assert isinstance(selection, dict)
-    selection.update(
-        {
-            "mystery_type": story_dna["mystery_type"],
-            "architecture": story_dna["architecture"],
-            "protagonist_role": story_dna["protagonist_role"],
-            "perspective": story_dna["perspective"],
-            "timeline_style": story_dna["timeline_style"],
-            "culprit_structure": story_dna["culprit_structure"],
-            "primary_twist": story_dna["primary_twist"],
-            "relationship_engine": story_dna["relationship_engine"]["primary"],
-            "pressure_engine": story_dna["pressure_engine"]["source"],
-            "dramatic_engine": story_dna["dramatic_engine"]["primary"],
-        }
+    direct_dimensions = (
+        "mystery_type",
+        "architecture",
+        "protagonist_role",
+        "perspective",
+        "timeline_style",
+        "culprit_structure",
+        "primary_twist",
     )
-    first_candidate["selection_status"] = "APPROVED"
-    variations["approved_candidate_id"] = first_candidate["candidate_id"]
+    for dimension in direct_dimensions:
+        story_dna[dimension] = selection[dimension]
+    relationship_engine = story_dna["relationship_engine"]
+    pressure_engine = story_dna["pressure_engine"]
+    dramatic_engine = story_dna["dramatic_engine"]
+    assert isinstance(relationship_engine, dict)
+    assert isinstance(pressure_engine, dict)
+    assert isinstance(dramatic_engine, dict)
+    relationship_engine["primary"] = selection["relationship_engine"]
+    pressure_engine["source"] = selection["pressure_engine"]
+    dramatic_engine["primary"] = selection["dramatic_engine"]
     thresholds = load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json")
     novelty_precheck = evaluate_variation_precheck(variations, [], thresholds)
 

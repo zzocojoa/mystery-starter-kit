@@ -11,6 +11,7 @@ from VALIDATORS.channel_validation import validate_reaction_ratio
 from VALIDATORS.compatibility import append_errors, evaluate_compatibility
 from VALIDATORS.exceptions import ConfigurationError, StarterKitError
 from VALIDATORS.io import load_json_object, write_json_object
+from VALIDATORS.models import CompatibilityReport
 from VALIDATORS.schema_validation import collect_schema_errors
 
 
@@ -52,6 +53,43 @@ def raise_for_configuration_schema_errors(
     )
 
 
+def evaluate_compatibility_documents(
+    contract: Mapping[str, object],
+    defaults: Mapping[str, object],
+    channel: Mapping[str, object],
+    contract_schema: Mapping[str, object],
+    defaults_schema: Mapping[str, object],
+    channel_schema: Mapping[str, object],
+    contract_source: str,
+    defaults_source: str,
+    channel_source: str,
+) -> CompatibilityReport:
+    """구성 Schema와 Channel 의미 규칙을 포함한 호환성 보고서를 만든다."""
+    contract_schema_errors = collect_schema_errors(
+        contract,
+        contract_schema,
+        contract_source,
+    )
+    defaults_schema_errors = collect_schema_errors(
+        defaults,
+        defaults_schema,
+        defaults_source,
+    )
+    raise_for_configuration_schema_errors(contract_schema_errors, contract_source)
+    raise_for_configuration_schema_errors(defaults_schema_errors, defaults_source)
+
+    report = evaluate_compatibility(contract, defaults, channel)
+    channel_schema_errors = collect_schema_errors(
+        channel,
+        channel_schema,
+        channel_source,
+    )
+    return append_errors(
+        report,
+        channel_schema_errors + validate_reaction_ratio(channel),
+    )
+
+
 def run_cli(argv: Sequence[str]) -> int:
     """명령행 입력을 실행하고 PASS는 0, FAIL은 1, 구성 오류는 2를 반환한다."""
     parser = build_parser()
@@ -65,28 +103,16 @@ def run_cli(argv: Sequence[str]) -> int:
         defaults_schema = load_json_object(arguments.defaults_schema)
         channel_schema = load_json_object(arguments.channel_schema)
 
-        contract_schema_errors = collect_schema_errors(
+        final_report = evaluate_compatibility_documents(
             contract,
-            contract_schema,
-            str(arguments.contract),
-        )
-        defaults_schema_errors = collect_schema_errors(
             defaults,
-            defaults_schema,
-            str(arguments.defaults),
-        )
-        raise_for_configuration_schema_errors(contract_schema_errors, str(arguments.contract))
-        raise_for_configuration_schema_errors(defaults_schema_errors, str(arguments.defaults))
-
-        report = evaluate_compatibility(contract, defaults, channel)
-        channel_schema_errors = collect_schema_errors(
             channel,
+            contract_schema,
+            defaults_schema,
             channel_schema,
+            str(arguments.contract),
+            str(arguments.defaults),
             str(arguments.channel),
-        )
-        final_report = append_errors(
-            report,
-            channel_schema_errors + validate_reaction_ratio(channel),
         )
         write_json_object(arguments.output, final_report)
     except StarterKitError as error:

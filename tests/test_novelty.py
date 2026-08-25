@@ -92,7 +92,7 @@ def test_distinct_story_and_causal_fingerprint_passes() -> None:
             "mystery_type": "WHO",
             "architecture": "ARCH-01_LINEAR_REVEAL",
             "protagonist_role": "REPORTER",
-            "primary_twist": "FALSE_VICTIM",
+            "primary_twist": "TW-03_FALSE_VICTIM",
             "timeline_style": "REAL_TIME",
             "culprit_structure": "DUAL",
             "setting_logic": ["OPEN_CITY"],

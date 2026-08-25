@@ -1,4 +1,5 @@
 {
+  "project_id": "PRJ-001",
   "contract_family": "mystery-production-channel-dna",
   "contract_version": "1.0.0",
   "channel": {

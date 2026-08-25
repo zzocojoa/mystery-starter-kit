@@ -65,6 +65,12 @@ class CompatibilityReport(TypedDict):
     errors: list[CompatibilityError]
 
 
+class ProjectCompatibilityReport(CompatibilityReport):
+    """Project ID를 포함한 Project 전용 호환성 보고서."""
+
+    project_id: str
+
+
 class ValidationIssue(TypedDict):
     """Production Gate가 소비하는 공통 검증 문제."""
 

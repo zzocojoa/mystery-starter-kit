@@ -1,5 +1,6 @@
 """다축 Story Variation 후보 생성 검증."""
 
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,8 @@ CATALOG_SCHEMA_PATH = ROOT / "STANDARD" / "schemas" / "variation_catalog.schema.
 CANDIDATES_SCHEMA_PATH = (
     ROOT / "STANDARD" / "schemas" / "variation_candidates.schema.json"
 )
+STORY_SCHEMA_PATH = ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"
+STORY_EXAMPLE_PATH = ROOT / "EXAMPLES" / "story_dna.example.json"
 
 
 def test_variation_catalog_passes_schema() -> None:
@@ -23,6 +26,28 @@ def test_variation_catalog_passes_schema() -> None:
     schema = load_json_object(CATALOG_SCHEMA_PATH)
 
     assert collect_schema_errors(catalog, schema, str(CATALOG_PATH)) == []
+
+
+def test_catalog_primary_twists_pass_story_dna_schema() -> None:
+    """Catalog의 모든 Primary Twist는 Story DNA의 Canonical ID여야 한다."""
+    catalog = load_json_object(CATALOG_PATH)
+    dimensions = catalog.get("dimensions")
+    assert isinstance(dimensions, dict)
+    primary_twists = dimensions.get("primary_twist")
+    assert isinstance(primary_twists, list)
+    story_schema = load_json_object(STORY_SCHEMA_PATH)
+    story_example = load_json_object(STORY_EXAMPLE_PATH)
+
+    for primary_twist in primary_twists:
+        story_document = deepcopy(story_example)
+        story_dna = story_document.get("story_dna")
+        assert isinstance(story_dna, dict)
+        story_dna["primary_twist"] = primary_twist
+        assert collect_schema_errors(
+            story_document,
+            story_schema,
+            f"story_dna.primary_twist={primary_twist}",
+        ) == []
 
 
 def test_generator_returns_reproducible_distinct_candidates() -> None:

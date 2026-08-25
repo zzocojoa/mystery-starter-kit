@@ -9,6 +9,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
+from VALIDATORS.cli import (
+    evaluate_compatibility_documents,
+    raise_for_configuration_schema_errors,
+)
+from VALIDATORS.compatibility import make_project_compatibility_report
 from VALIDATORS.dependency import (
     artifact_hash,
     dependency_artifacts,
@@ -25,7 +30,7 @@ from VALIDATORS.pipeline import load_project_artifacts, run_production_validatio
 from VALIDATORS.reference_validation import sanitize_reference_profile
 from VALIDATORS.scaffold import create_project_scaffold
 from VALIDATORS.schema_validation import collect_schema_errors
-from VALIDATORS.state_machine import GATES, advance_gate
+from VALIDATORS.state_machine import GATES, advance_gate, gate_index
 from VALIDATORS.variation import approve_variation_candidate, generate_variation_candidates
 
 ROOT = Path.cwd().resolve()
@@ -50,6 +55,17 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.add_argument("project_id")
     init_parser.add_argument("--projects-root", type=Path, default=ROOT / "PROJECTS")
     init_parser.add_argument("--created-at")
+
+    compat_parser = subparsers.add_parser(
+        "compat",
+        help="Project와 Channel의 호환성을 판정하고 GATE-00을 실행합니다.",
+    )
+    compat_parser.add_argument("project_path", type=Path)
+    compat_parser.add_argument(
+        "--channel",
+        type=Path,
+        default=ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json",
+    )
 
     variation_parser = subparsers.add_parser(
         "variations",
@@ -116,6 +132,167 @@ def project_id_from_manifest(project_path: Path) -> str:
     if not isinstance(project_id, str):
         raise ConfigurationError("project_manifest.project_id 문자열이 필요합니다.")
     return project_id
+
+
+def validate_project_compatibility_configuration(
+    project_path: Path,
+    channel: Mapping[str, object],
+) -> str:
+    """Project와 Channel 식별 구성이 호환성 판정 전에 일치하는지 검증한다."""
+    manifest_path = project_path / "00_PROJECT" / "project_manifest.json"
+    config_path = project_path / "00_PROJECT" / "production_config.json"
+    manifest = load_json_object(manifest_path)
+    production_config = load_json_object(config_path)
+    manifest_schema = load_json_object(
+        ROOT / "STANDARD" / "schemas" / "project_manifest.schema.json"
+    )
+    config_schema = load_json_object(
+        ROOT / "STANDARD" / "schemas" / "production_config.schema.json"
+    )
+    raise_for_configuration_schema_errors(
+        collect_schema_errors(manifest, manifest_schema, str(manifest_path)),
+        str(manifest_path),
+    )
+    raise_for_configuration_schema_errors(
+        collect_schema_errors(production_config, config_schema, str(config_path)),
+        str(config_path),
+    )
+
+    project_id = project_id_from_manifest(project_path)
+    identifiers = {
+        "project_manifest.project_id": project_id,
+        "production_config.project_id": production_config.get("project_id"),
+    }
+    project_id_mismatches = sorted(
+        name for name, value in identifiers.items() if value != project_id
+    )
+    if project_id_mismatches:
+        raise ConfigurationError(
+            "Project ID 구성이 일치하지 않습니다: "
+            f"project_id={project_id}, fields={project_id_mismatches}"
+        )
+
+    channel_id = channel.get("channel_id")
+    channel_identifiers = {
+        "project_manifest.channel_id": manifest.get("channel_id"),
+        "production_config.channel_id": production_config.get("channel_id"),
+        "channel.channel_id": channel_id,
+    }
+    channel_id_mismatches = sorted(
+        name for name, value in channel_identifiers.items() if value != channel_id
+    )
+    if not isinstance(channel_id, str) or channel_id_mismatches:
+        raise ConfigurationError(
+            "Channel ID 구성이 일치하지 않습니다: "
+            f"channel_id={channel_id!r}, fields={channel_id_mismatches}"
+        )
+    return project_id
+
+
+def synchronize_compatibility_state(
+    project_path: Path,
+    compatibility_passed: bool,
+    updated_at: str,
+) -> ProjectState:
+    """GATE-00 Artifact Hash와 호환성 결과를 Project State에 반영한다."""
+    dependency_graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
+    state = load_project_state(project_path)
+    gate_zero_artifacts = (
+        "project_manifest",
+        "compatibility_report",
+        "production_config",
+    )
+    definitions = dependency_artifacts(dependency_graph)
+    artifacts_changed = False
+    next_state = state
+    for artifact_name in gate_zero_artifacts:
+        definition = definitions.get(artifact_name)
+        if not isinstance(definition, Mapping):
+            raise ConfigurationError(
+                f"GATE-00 Artifact 정의가 없습니다: artifact={artifact_name}"
+            )
+        relative_path = definition.get("path")
+        if not isinstance(relative_path, str):
+            raise ConfigurationError(
+                f"GATE-00 Artifact path 문자열이 필요합니다: artifact={artifact_name}"
+            )
+        artifact_path = project_path / relative_path
+        try:
+            content_hash = artifact_hash(artifact_path.read_bytes())
+        except OSError as error:
+            raise ConfigurationError(
+                f"GATE-00 Artifact를 읽지 못했습니다: path={artifact_path}, detail={error}"
+            ) from error
+        current_artifact = next_state["artifacts"].get(artifact_name)
+        if current_artifact is None:
+            raise ConfigurationError(
+                f"Project State에 GATE-00 Artifact가 없습니다: artifact={artifact_name}"
+            )
+        if current_artifact["content_hash"] != content_hash:
+            next_state = invalidate_artifact_dependents(
+                dependency_graph,
+                next_state,
+                artifact_name,
+                content_hash,
+                updated_at,
+            )
+            artifacts_changed = True
+        next_state = mark_artifact_clean(
+            next_state,
+            artifact_name,
+            content_hash,
+            updated_at,
+        )
+
+    current_gate = next_state["current_gate"]
+    gate_zero_already_passed = (
+        current_gate != "NONE"
+        and gate_index(current_gate) >= gate_index("GATE-00")
+    )
+    if compatibility_passed and gate_zero_already_passed and not artifacts_changed:
+        write_json_object(project_path / "00_PROJECT" / "project_state.json", next_state)
+        return next_state
+
+    reset_state = deepcopy(next_state)
+    reset_state["state"] = "INITIALIZED"
+    reset_state["current_gate"] = "NONE"
+    synchronized = advance_gate(
+        reset_state,
+        "GATE-00",
+        compatibility_passed,
+        updated_at,
+    )
+    write_json_object(project_path / "00_PROJECT" / "project_state.json", synchronized)
+    return synchronized
+
+
+def require_variation_prerequisites(project_path: Path, project_id: str) -> None:
+    """Variation 생성 전에 Project-aware Compatibility PASS를 강제한다."""
+    state = load_project_state(project_path)
+    report = load_json_object(
+        project_path / "00_PROJECT" / "compatibility_report.json"
+    )
+    current_gate = state["current_gate"]
+    gate_passed = (
+        current_gate != "NONE"
+        and gate_index(current_gate) >= gate_index("GATE-00")
+    )
+    if state["project_id"] != project_id:
+        raise ConfigurationError(
+            "Project State의 Project ID가 Manifest와 다릅니다: "
+            f"manifest={project_id}, state={state['project_id']}"
+        )
+    if report.get("project_id") != project_id:
+        raise ConfigurationError(
+            "Compatibility Report의 Project ID가 Manifest와 다릅니다: "
+            f"manifest={project_id}, report={report.get('project_id')!r}"
+        )
+    if report.get("compatibility") != "PASS" or not gate_passed:
+        raise ConfigurationError(
+            "Variation 생성 전에 Project Compatibility를 통과해야 합니다: "
+            f"command='mystery-kit compat {project_path}', "
+            f"compatibility={report.get('compatibility')!r}, current_gate={current_gate}"
+        )
 
 
 def load_story_history(path: Path) -> list[Mapping[str, object]]:
@@ -362,9 +539,68 @@ def run_init(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_compat(args: argparse.Namespace) -> int:
+    """Project-aware Compatibility 판정과 GATE-00 전이를 실행한다."""
+    contract_path = ROOT / "STANDARD" / "compatibility_contract.json"
+    defaults_path = ROOT / "STANDARD" / "standard_defaults.json"
+    contract_schema_path = (
+        ROOT / "STANDARD" / "schemas" / "compatibility_contract.schema.json"
+    )
+    defaults_schema_path = (
+        ROOT / "STANDARD" / "schemas" / "standard_defaults.schema.json"
+    )
+    channel_schema_path = ROOT / "STANDARD" / "schemas" / "channel_dna.schema.json"
+    channel = load_json_object(args.channel)
+    project_id = validate_project_compatibility_configuration(args.project_path, channel)
+    report = evaluate_compatibility_documents(
+        load_json_object(contract_path),
+        load_json_object(defaults_path),
+        channel,
+        load_json_object(contract_schema_path),
+        load_json_object(defaults_schema_path),
+        load_json_object(channel_schema_path),
+        str(contract_path),
+        str(defaults_path),
+        str(args.channel),
+    )
+    project_report = make_project_compatibility_report(project_id, report)
+    output_path = args.project_path / "00_PROJECT" / "compatibility_report.json"
+    write_json_object(output_path, project_report)
+    changed_at = utc_now()
+    state = synchronize_compatibility_state(
+        args.project_path,
+        report["compatibility"] == "PASS",
+        changed_at,
+    )
+    append_change_log(
+        args.project_path,
+        "PROJECT_COMPATIBILITY_EVALUATED",
+        {
+            "compatibility": report["compatibility"],
+            "error_count": len(report["errors"]),
+            "current_gate": state["current_gate"],
+        },
+        changed_at,
+    )
+    print(
+        json.dumps(
+            {
+                "project_id": project_id,
+                "compatibility": report["compatibility"],
+                "current_gate": state["current_gate"],
+                "report": str(output_path),
+                "error_count": len(report["errors"]),
+            },
+            ensure_ascii=False,
+        )
+    )
+    return 0 if report["compatibility"] == "PASS" else 1
+
+
 def run_variations(args: argparse.Namespace) -> int:
     """Variation 후보 생성 명령을 실행한다."""
     project_id = project_id_from_manifest(args.project_path)
+    require_variation_prerequisites(args.project_path, project_id)
     catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
     candidates = generate_variation_candidates(
         project_id,
@@ -557,6 +793,8 @@ def run_cli(argv: Sequence[str]) -> int:
     try:
         if args.command == "init":
             return run_init(args)
+        if args.command == "compat":
+            return run_compat(args)
         if args.command == "variations":
             return run_variations(args)
         if args.command == "validate":
