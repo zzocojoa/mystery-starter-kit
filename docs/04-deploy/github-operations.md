@@ -18,6 +18,17 @@
 | Python 3.11 | 최소 지원 Python에서 lint, type, test, build, audit |
 | Python 3.14 | 현재 Python에서 lint, type, test, build |
 
+현재 비공개 저장소의 GitHub 요금제에서는 Branch Protection API를 사용할 수 없다. 따라서 다음 항목은 운영 정책으로 적용되며 GitHub 서버가 직접 강제하지는 않는다.
+
+- Pull Request를 통한 변경
+- Python 3.11과 Python 3.14 Check 통과
+- 최신 `main` 기준 Strict Check
+- Linear History
+- Force Push와 Branch 삭제 금지
+- 미해결 Review Conversation이 있는 Pull Request 병합 금지
+
+GitHub Pro로 전환하거나 저장소를 공개로 변경하는 경우 위 항목을 `main` Branch Protection으로 활성화한다. 보호 기능만을 위해 비공개 저장소를 공개로 변경하지 않는다.
+
 ## Dependabot
 
 매주 월요일 다음 두 생태계를 검사한다.
