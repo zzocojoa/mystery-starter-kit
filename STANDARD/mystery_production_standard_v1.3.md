@@ -38,11 +38,14 @@ Project / Script / Production Package
 | Mode | 의미 | 추가 조건 |
 |---|---|---|
 | `ORIGINAL` | 독립 창작 | Reference Profile과 원문을 사용하지 않음 |
+| `USER_CASE` | 사용자가 일부 설정을 제공 | 각 입력을 `LOCKED`, `FLEXIBLE`, `UNKNOWN`으로 선언 |
 | `REFERENCE_INSPIRED` | 표현 방식만 참고 | 정제된 Reference Profile과 Collision QA 필수 |
 | `TRUE_STORY` | 검증 가능한 실제 사건 | Sources와 Claim-Evidence 필수 |
 | `INSPIRED_BY_TRUE_EVENTS` | 사실에서 출발한 각색 | Sources와 Claim-Evidence, Fact/Inference/Dramatization 분리 필수 |
 
 Reference 입력은 Production Agent Context에 직접 들어가지 않는다. Reference Auditor가 정책상 허용된 `PRESENTATION_MODE`, `PACING`, `TONE`, `SUSPENSE_HANDLING` 같은 Style Feature 이름만 남기고 다음 Story Content를 차단한다.
+
+`USER_CASE`의 Constraint는 Production Config가 단일 원천이다. `LOCKED` 값은 모든 Variation과 Story DNA에서 유지하고, `FLEXIBLE` 값은 변경할 수 있으며, `UNKNOWN` 값은 Variation 단계에서 새로 제안한다.
 
 - Characters와 Character Relationships
 - Locations와 Incidents
@@ -50,7 +53,7 @@ Reference 입력은 Production Agent Context에 직접 들어가지 않는다. R
 - Clues, Twists, Beat Sequence
 - 고유 Dialogue, Number, Object
 
-최종 Script는 6단어 이상 동일 문구와 2개 이상 금지 Story Element Category 충돌을 검사한다. Collision Report에는 원문 대신 비가역 Phrase Hash만 기록한다. 모든 Production Agent의 `may_read_examples`는 `false`이며 Context Builder는 `EXAMPLES/` 경로를 거부한다.
+최종 Script는 6단어 이상 동일 문구와 2개 이상 금지 Story Element Category 충돌을 검사한다. Project Artifact에서 정책의 14개 금지 Category를 모두 추출하며 빈 Category도 명시적으로 유지한다. Collision Report에는 원문 대신 비가역 Phrase Hash만 기록한다. 모든 Production Agent의 `may_read_examples`는 `false`이며 Context Builder는 `EXAMPLES/` 경로를 거부한다.
 
 ## 4. Story DNA v1.3
 
@@ -78,7 +81,7 @@ Variation Designer는 Story 문장을 쓰기 전에 최소 5개 구조 후보를
 
 승인 직후 Novelty Precheck가 Story History의 최근 5개·10개·전체 구조와 비교한다. Precheck Report는 후보 Selection과 승인 ID의 Hash를 보존하며 후보가 바뀌면 오래된 Report로 차단된다.
 
-## 6. Agent Production Pipeline
+## 6. Agent Contract Pipeline
 
 | Agent | 핵심 책임 | 주요 출력 |
 |---|---|---|
@@ -94,6 +97,8 @@ Variation Designer는 Story 문장을 쓰기 전에 최소 5개 구조 후보를
 | `reference_auditor` | Reference 정제와 사실/충돌 검사 | Reference, Evidence, Collision Report |
 
 `AGENTS/manifest.json`이 읽기·쓰기 Artifact, 선행 Agent, Gate, Prompt를 소유한다. Agent는 선언되지 않은 Project Artifact와 `EXAMPLES/`를 읽을 수 없다.
+
+이 저장소가 구현한 범위는 Agent의 입출력·순서·Gate 계약이다. 외부 LLM을 호출해 10개 Agent가 Artifact를 자동 작성하는 Runtime은 포함하지 않으며, 현재 CLI는 Scaffold, Validator, Gate Engine을 실행한다.
 
 ## 7. Project Scaffold와 Artifact Chain
 
@@ -164,7 +169,7 @@ Story Fingerprint는 Story Dimension, Beat Signature, 다섯 Causal Dimension으
 4. Discovery Path
 5. Resolution
 
-최근 5개는 60%, 최근 10개는 65%, 전체는 70%를 초과할 수 없다. 다섯 Causal Dimension이 모두 같으면 가중 유사도와 무관하게 `CAUSAL_HARD_COLLISION`이다. 저장 Fingerprint가 현재 Story/Beat/Causal Artifact에서 재생성되지 않으면 오래된 것으로 차단한다.
+Category는 Exact Match, 배열은 Jaccard, Beat는 Sequence Similarity, Causal은 다섯 Dimension의 부분 구조 일치율로 계산한다. 이 Component를 가중 합산하며 최근 5개는 60%, 최근 10개는 65%, 전체는 70%를 초과할 수 없다. 다섯 Causal Dimension이 모두 같으면 가중 유사도와 무관하게 `CAUSAL_HARD_COLLISION`이다. 저장 Fingerprint가 현재 Story/Beat/Causal Artifact에서 재생성되지 않으면 오래된 것으로 차단한다.
 
 ### Channel Consistency
 
@@ -193,6 +198,7 @@ Genre, 금지 Tone, 필수 Presentation Mode, Reaction Ratio를 Channel DNA와 �
 
 ```bash
 mystery-kit init PRJ-002
+mystery-kit compat PROJECTS/PRJ-002
 mystery-kit variations PROJECTS/PRJ-002 --seed "공장 교대 중 실종" --count 5
 mystery-kit approve PROJECTS/PRJ-002 VAR-03
 mystery-kit precheck PROJECTS/PRJ-002

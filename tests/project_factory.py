@@ -37,6 +37,8 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "protagonist_role",
         "perspective",
         "timeline_style",
+        "incident_type",
+        "setting",
         "culprit_structure",
         "primary_twist",
     )

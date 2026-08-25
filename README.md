@@ -38,6 +38,10 @@ Reference 기반 Project는 후보 생성 전에 원문 JSON을 Project 밖에 �
 
 `compat`는 Project ID가 포함된 Compatibility Report를 만들고 `GATE-00`을 통과시킨다. Compatibility와 `GATE-00`이 모두 PASS가 아니면 `variations`는 실행되지 않는다.
 
+사용자가 주인공·사건 같은 일부 설정을 제공하는 경우 `production_config.json`의 `story_source_mode`를 `USER_CASE`로 설정하고 각 `user_case_constraints`를 `LOCKED`, `FLEXIBLE`, `UNKNOWN`으로 선언한다. `LOCKED` 값은 Variation과 Story DNA에서 변경할 수 없다.
+
+`AGENTS/`는 10개 Agent의 입출력·선행 단계·Gate 계약을 제공한다. 외부 LLM을 호출해 Artifact를 자동 생성하는 Agent Runtime은 현재 범위에 포함하지 않는다.
+
 ## Compatibility 단독 진단
 
 Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 사용한다. 이 출력은 Project Artifact가 아니므로 `PROJECTS/` 아래에 저장하지 않는다.
@@ -57,7 +61,7 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 
 - `STANDARD/`: v1.3 표준, Contract, Policy, Catalog, Dependency Graph, JSON Schema
 - `CHANNELS/`: 독립 Version의 Channel DNA
-- `AGENTS/`: 10개 Agent Prompt와 실행 Manifest
+- `AGENTS/`: 10개 Agent Prompt와 계약 Manifest
 - `TEMPLATES/PROJECT/`: `00_PROJECT`~`09_PRODUCTION` Scaffold
 - `VALIDATORS/`: CLI, 상태 머신, Pipeline과 QA Engine
 - `STORY_LIBRARY/`: Production Ready Story/Causal Fingerprint History

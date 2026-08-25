@@ -20,7 +20,7 @@ Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json
 |---|---|
 | `compatibility_contract.schema.json` | Channel 요구 Interface |
 | `project_manifest.schema.json` | Project 식별, Standard, Channel, Source Mode |
-| `production_config.schema.json` | 승인 정책, Genre/Tone, Runtime 설정 |
+| `production_config.schema.json` | 승인 정책, Genre/Tone, Runtime, USER_CASE 입력 상태 |
 | `channel_dna.schema.json` | Channel Identity와 Capability 구조 |
 | `story_dna.schema.json` | Source Mode와 Full Story DNA v1.3 |
 | `reference_policy.schema.json` | 허용 Style과 금지 Story Content |
@@ -45,11 +45,12 @@ JSON Schema가 구조를 검증하고 Validator가 다음 교차 규칙을 검�
 - Reaction Ratio `min <= max`
 - Culprit Structure별 `causal_truth` 또는 `motive_class`
 - Source Mode와 Reference Profile 일치
+- USER_CASE의 LOCKED/FLEXIBLE/UNKNOWN 상태와 Story DNA 일치
 - 승인 Variation과 Story DNA Override 일치
 - Story Fingerprint의 현재성
 - Causal Graph DAG와 Root-to-Resolution 경로
 - Timeline, Knowledge, Clue, Runtime, ID 참조
-- Reference Lexical/Story Element Collision
+- Reference Lexical/14개 Story Element Category Collision
 - Channel Genre/Tone/Presentation/Reaction 일치
 - Production Ready에서만 Story Library 등록
 

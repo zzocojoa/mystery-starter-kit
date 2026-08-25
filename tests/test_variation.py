@@ -8,7 +8,11 @@ import pytest
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object
 from VALIDATORS.schema_validation import collect_schema_errors
-from VALIDATORS.variation import approve_variation_candidate, generate_variation_candidates
+from VALIDATORS.variation import (
+    apply_user_case_constraints,
+    approve_variation_candidate,
+    generate_variation_candidates,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = ROOT / "STANDARD" / "variation_catalog.json"
@@ -90,3 +94,38 @@ def test_approval_marks_exactly_one_candidate_without_mutating_input() -> None:
     ]
     assert approved_ids == ["VAR-03"]
     assert candidates["approved_candidate_id"] is None
+
+
+def test_user_case_locked_dimensions_are_applied_without_mutating_candidates() -> None:
+    """LOCKED 사용자 입력은 모든 후보에 적용하고 원본 후보는 변경하지 않아야 한다."""
+    catalog = load_json_object(CATALOG_PATH)
+    candidates = generate_variation_candidates("PRJ-001", "seed", 5, catalog)
+    production_config = {
+        "story_source_mode": "USER_CASE",
+        "user_case_constraints": [
+            {"field": "protagonist_role", "value": "REPORTER", "status": "LOCKED"},
+            {"field": "incident_type", "value": "DISAPPEARANCE", "status": "LOCKED"},
+            {"field": "setting", "value": "FACTORY", "status": "FLEXIBLE"},
+            {"field": "primary_twist", "value": None, "status": "UNKNOWN"},
+        ],
+    }
+
+    constrained = apply_user_case_constraints(candidates, production_config)
+    records = constrained.get("candidates")
+    original_records = candidates.get("candidates")
+    assert isinstance(records, list)
+    assert isinstance(original_records, list)
+
+    assert all(
+        isinstance(record, dict)
+        and isinstance(record.get("selection"), dict)
+        and record["selection"]["protagonist_role"] == "REPORTER"
+        and record["selection"]["incident_type"] == "DISAPPEARANCE"
+        for record in records
+    )
+    assert any(
+        isinstance(record, dict)
+        and isinstance(record.get("selection"), dict)
+        and record["selection"]["protagonist_role"] != "REPORTER"
+        for record in original_records
+    )
