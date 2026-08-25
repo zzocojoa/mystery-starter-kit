@@ -8,6 +8,7 @@ from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.story_validation import (
     validate_reference_profile_alignment,
     validate_story_dna_semantics,
+    validate_user_case_constraints,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -105,4 +106,25 @@ def test_reference_artifact_must_match_embedded_profile() -> None:
 
     assert [issue["code"] for issue in issues] == [
         "REFERENCE_ARTIFACT_CONTENT_MISMATCH"
+    ]
+
+
+def test_user_case_locked_value_cannot_change_in_story_dna() -> None:
+    """USER_CASE의 LOCKED 값과 다른 Story DNA는 GATE-02에서 차단해야 한다."""
+    story = load_json_object(STORY_PATH)
+    changed_story = deepcopy(story)
+    changed_story["story_source_mode"] = "USER_CASE"
+    production_config = {
+        "story_source_mode": "USER_CASE",
+        "user_case_constraints": [
+            {"field": "protagonist_role", "value": "REPORTER", "status": "LOCKED"},
+            {"field": "incident_type", "value": "DISAPPEARANCE", "status": "FLEXIBLE"},
+            {"field": "primary_twist", "value": None, "status": "UNKNOWN"},
+        ],
+    }
+
+    issues = validate_user_case_constraints(production_config, changed_story)
+
+    assert [issue["code"] for issue in issues] == [
+        "USER_CASE_LOCKED_VALUE_CHANGED"
     ]

@@ -8,6 +8,30 @@ from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.models import ValidationIssue
 
 TOKEN_PATTERN = re.compile(r"[0-9A-Za-z가-힣]+")
+NUMBER_PATTERN = re.compile(r"(?<![0-9A-Za-z가-힣_-])[0-9]+(?:[.,][0-9]+)?(?![0-9.,])")
+DIALOGUE_TAG = "[DIALOGUE]"
+DIALOGUE_PATTERNS = (
+    re.compile(r'"([^"\n]+)"'),
+    re.compile(r"“([^”\n]+)”"),
+    re.compile(r"'([^'\n]+)'"),
+    re.compile("\\u2018([^\\u2019\\n]+)\\u2019"),
+)
+REFERENCE_STORY_CATEGORIES = (
+    "CHARACTERS",
+    "CHARACTER_RELATIONSHIPS",
+    "LOCATIONS",
+    "INCIDENTS",
+    "CULPRIT",
+    "VICTIM",
+    "MOTIVE",
+    "METHOD",
+    "CLUES",
+    "TWISTS",
+    "UNIQUE_DIALOGUE",
+    "UNIQUE_NUMBERS",
+    "UNIQUE_OBJECTS",
+    "BEAT_SEQUENCE",
+)
 
 
 def make_reference_issue(
@@ -141,6 +165,228 @@ def threshold_integer(
     return value
 
 
+def require_record_list(
+    document: Mapping[str, object],
+    key: str,
+    source: str,
+) -> list[Mapping[str, object]]:
+    """Artifact의 필수 객체 배열을 엄격하게 읽는다."""
+    value = document.get(key)
+    if not isinstance(value, list) or not all(isinstance(item, Mapping) for item in value):
+        raise ConfigurationError(f"객체 배열이 필요합니다: source={source}, field={key}")
+    return list(value)
+
+
+def optional_string(document: Mapping[str, object], key: str) -> list[str]:
+    """선택 문자열 필드가 존재할 때 단일 요소 배열로 반환한다."""
+    value = document.get(key)
+    if value is None:
+        return []
+    if not isinstance(value, str):
+        raise ConfigurationError(f"선택 필드는 문자열이어야 합니다: field={key}")
+    return [value] if value.strip() else []
+
+
+def optional_string_list(document: Mapping[str, object], key: str) -> list[str]:
+    """선택 문자열 배열 필드를 엄격하게 읽는다."""
+    value = document.get(key)
+    if value is None:
+        return []
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise ConfigurationError(f"선택 필드는 문자열 배열이어야 합니다: field={key}")
+    return [item for item in value if item.strip()]
+
+
+def unique_strings(values: list[str]) -> list[str]:
+    """빈 문자열을 제거한 고유 Story Element를 정렬한다."""
+    return sorted({value.strip() for value in values if value.strip()})
+
+
+def character_elements(
+    characters: Mapping[str, object],
+) -> tuple[list[str], dict[str, str], list[str]]:
+    """Character 이름, ID-이름 사전, 명시적 Victim 이름을 추출한다."""
+    records = require_record_list(characters, "characters", "characters")
+    names: list[str] = []
+    names_by_id: dict[str, str] = {}
+    victims: list[str] = []
+    for record in records:
+        character_id = record.get("character_id")
+        name = record.get("name")
+        role = record.get("role")
+        if not isinstance(character_id, str) or not isinstance(name, str):
+            raise ConfigurationError(
+                "Character ID와 이름 문자열이 필요합니다: source=characters"
+            )
+        names.append(name)
+        names_by_id[character_id] = name
+        if role == "VICTIM":
+            victims.append(name)
+    return unique_strings(names), names_by_id, unique_strings(victims)
+
+
+def relationship_elements(
+    relationships: Mapping[str, object],
+    names_by_id: Mapping[str, str],
+) -> list[str]:
+    """Character Relationship을 이름과 Engine의 Canonical 문자열로 변환한다."""
+    records = require_record_list(
+        relationships,
+        "relationships",
+        "relationships",
+    )
+    elements: list[str] = []
+    for record in records:
+        source_id = record.get("from")
+        target_id = record.get("to")
+        engine = record.get("engine")
+        if not isinstance(source_id, str) or not isinstance(target_id, str):
+            raise ConfigurationError("Relationship from/to 문자열이 필요합니다.")
+        if not isinstance(engine, str):
+            raise ConfigurationError("Relationship engine 문자열이 필요합니다.")
+        source_name = names_by_id.get(source_id, source_id)
+        target_name = names_by_id.get(target_id, target_id)
+        elements.append(f"{source_name} {engine} {target_name}")
+    return unique_strings(elements)
+
+
+def location_elements(actual_timeline: Mapping[str, object]) -> list[str]:
+    """Actual Timeline의 Location ID를 추출한다."""
+    records = require_record_list(actual_timeline, "events", "actual_timeline")
+    locations: list[str] = []
+    for record in records:
+        location_id = record.get("location_id")
+        if not isinstance(location_id, str):
+            raise ConfigurationError("Timeline Event location_id 문자열이 필요합니다.")
+        locations.append(location_id)
+    return unique_strings(locations)
+
+
+def clue_and_object_elements(
+    clue_matrix: Mapping[str, object],
+) -> tuple[list[str], list[str]]:
+    """Clue 설명/Mechanism과 고유 Object를 분리해 추출한다."""
+    records = require_record_list(clue_matrix, "clues", "clue_matrix")
+    clue_fields = (
+        "description",
+        "content",
+        "mechanism",
+        "first_interpretation",
+        "true_meaning",
+    )
+    object_fields = ("object", "object_name", "evidence_object")
+    clues = [
+        value
+        for record in records
+        for field in clue_fields
+        for value in optional_string(record, field)
+    ]
+    objects = [
+        value
+        for record in records
+        for field in object_fields
+        for value in optional_string(record, field)
+    ]
+    return unique_strings(clues), unique_strings(objects)
+
+
+def twist_elements(story_document: Mapping[str, object]) -> list[str]:
+    """Story DNA의 Primary와 Secondary Twist Canonical ID를 추출한다."""
+    story_dna = require_mapping(story_document, "story_dna", "story_dna")
+    values = optional_string(story_dna, "primary_twist")
+    values.extend(optional_string_list(story_dna, "secondary_twists"))
+    return unique_strings(values)
+
+
+def dialogue_elements(script: str) -> list[str]:
+    """명시적 Dialogue Tag와 인용부호 안의 대사를 추출한다."""
+    tagged = [
+        line.strip()[len(DIALOGUE_TAG) :].strip()
+        for line in script.splitlines()
+        if line.strip().startswith(DIALOGUE_TAG)
+        and line.strip()[len(DIALOGUE_TAG) :].strip()
+    ]
+    quoted = [
+        match.group(1).strip()
+        for pattern in DIALOGUE_PATTERNS
+        for match in pattern.finditer(script)
+        if match.group(1).strip()
+    ]
+    return unique_strings(tagged + quoted)
+
+
+def number_elements(script: str) -> list[str]:
+    """Final Script에 명시된 고유 숫자 문자열을 추출한다."""
+    return unique_strings(NUMBER_PATTERN.findall(script))
+
+
+def beat_sequence_elements(beat_sheet: Mapping[str, object]) -> list[str]:
+    """Beat Sheet의 순서를 하나의 Canonical Sequence로 추출한다."""
+    records = require_record_list(beat_sheet, "beats", "beat_sheet")
+    beat_types: list[str] = []
+    for record in records:
+        beat_type = record.get("type")
+        if not isinstance(beat_type, str):
+            raise ConfigurationError("Beat type 문자열이 필요합니다.")
+        beat_types.append(beat_type)
+    return [" -> ".join(beat_types)] if beat_types else []
+
+
+def build_story_element_profile(
+    project_id: str,
+    story_document: Mapping[str, object],
+    case_input: Mapping[str, object],
+    characters: Mapping[str, object],
+    relationships: Mapping[str, object],
+    actual_timeline: Mapping[str, object],
+    clue_matrix: Mapping[str, object],
+    causal_graph: Mapping[str, object],
+    beat_sheet: Mapping[str, object],
+    final_script: str,
+) -> dict[str, object]:
+    """Policy가 금지한 14개 Story Content Category를 Project에서 추출한다."""
+    names, names_by_id, role_victims = character_elements(characters)
+    clues, clue_objects = clue_and_object_elements(clue_matrix)
+    causal_fingerprint = require_mapping(
+        causal_graph,
+        "fingerprint",
+        "causal_graph",
+    )
+    incidents = [
+        value
+        for key in ("incident_type", "central_mystery", "final_truth", "causal_truth")
+        for value in optional_string(case_input, key)
+    ]
+    victims = role_victims + optional_string(case_input, "victim")
+    methods = optional_string(case_input, "method") + optional_string(
+        causal_fingerprint,
+        "mechanism",
+    )
+    objects = clue_objects + optional_string_list(case_input, "unique_objects")
+    story_content = {
+        "CHARACTERS": names,
+        "CHARACTER_RELATIONSHIPS": relationship_elements(
+            relationships,
+            names_by_id,
+        ),
+        "LOCATIONS": location_elements(actual_timeline),
+        "INCIDENTS": unique_strings(incidents),
+        "CULPRIT": unique_strings(optional_string(case_input, "culprit")),
+        "VICTIM": unique_strings(victims),
+        "MOTIVE": unique_strings(optional_string(case_input, "culprit_motive")),
+        "METHOD": unique_strings(methods),
+        "CLUES": clues,
+        "TWISTS": twist_elements(story_document),
+        "UNIQUE_DIALOGUE": dialogue_elements(final_script),
+        "UNIQUE_NUMBERS": number_elements(final_script),
+        "UNIQUE_OBJECTS": unique_strings(objects),
+        "BEAT_SEQUENCE": beat_sequence_elements(beat_sheet),
+    }
+    if tuple(story_content) != REFERENCE_STORY_CATEGORIES:
+        raise ConfigurationError("Reference Story Category 순서가 Policy 계약과 다릅니다.")
+    return {"project_id": project_id, "story_content": story_content}
+
+
 def validate_reference_collision(
     candidate_script: str,
     candidate_story_elements: Mapping[str, object],
@@ -181,6 +427,14 @@ def validate_reference_collision(
             "reference_policy",
         )
     )
+    missing_candidate_categories = sorted(
+        prohibited_categories - set(candidate_elements)
+    )
+    if missing_candidate_categories:
+        raise ConfigurationError(
+            "Candidate Story Element Profile에 Policy Category가 누락되었습니다: "
+            f"categories={missing_candidate_categories}"
+        )
     matched_categories = sorted(
         category
         for category in prohibited_categories

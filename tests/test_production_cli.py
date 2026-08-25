@@ -298,3 +298,62 @@ def test_failed_project_compatibility_blocks_variations(tmp_path: Path) -> None:
     assert report["compatibility"] == "FAIL"
     assert state["state"] == "BLOCKED"
     assert state["current_gate"] == "NONE"
+
+
+def test_user_case_locked_values_flow_into_cli_variations(tmp_path: Path) -> None:
+    """CLI Variation은 Production Config의 USER_CASE LOCKED 값을 보존해야 한다."""
+    projects_root = tmp_path / "projects"
+    assert run_cli(
+        [
+            "init",
+            "PRJ-007",
+            "--projects-root",
+            str(projects_root),
+            "--created-at",
+            "2026-08-25T00:00:00Z",
+        ]
+    ) == 0
+    project_path = projects_root / "PRJ-007"
+    manifest_path = project_path / "00_PROJECT" / "project_manifest.json"
+    config_path = project_path / "00_PROJECT" / "production_config.json"
+    story_path = project_path / "00_PROJECT" / "story_dna.json"
+    manifest = load_json_object(manifest_path)
+    production_config = load_json_object(config_path)
+    story_document = load_json_object(story_path)
+    manifest["story_source_mode"] = "USER_CASE"
+    production_config["story_source_mode"] = "USER_CASE"
+    production_config["user_case_constraints"] = [
+        {"field": "protagonist_role", "value": "REPORTER", "status": "LOCKED"},
+        {"field": "incident_type", "value": "DISAPPEARANCE", "status": "LOCKED"},
+        {"field": "setting", "value": "FACTORY", "status": "FLEXIBLE"},
+        {"field": "primary_twist", "value": None, "status": "UNKNOWN"},
+    ]
+    story_document["story_source_mode"] = "USER_CASE"
+    write_json_object(manifest_path, manifest)
+    write_json_object(config_path, production_config)
+    write_json_object(story_path, story_document)
+
+    assert run_cli(["compat", str(project_path)]) == 0
+    assert run_cli(
+        [
+            "variations",
+            str(project_path),
+            "--seed",
+            "사용자가 정한 실종 사건",
+            "--count",
+            "5",
+        ]
+    ) == 0
+    candidates = load_json_object(
+        project_path / "00_PROJECT" / "variation_candidates.json"
+    )
+    records = candidates.get("candidates")
+    assert isinstance(records, list)
+
+    assert all(
+        isinstance(record, dict)
+        and isinstance(record.get("selection"), dict)
+        and record["selection"]["protagonist_role"] == "REPORTER"
+        and record["selection"]["incident_type"] == "DISAPPEARANCE"
+        for record in records
+    )

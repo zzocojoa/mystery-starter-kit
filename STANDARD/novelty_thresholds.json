@@ -13,11 +13,15 @@
     "protagonist_role": 8,
     "primary_twist": 15,
     "timeline_style": 7,
+    "incident_type": 8,
+    "setting": 8,
     "culprit_structure": 8,
     "setting_logic": 8,
     "information_mechanism": 8,
     "relationship_engine": 8,
     "pressure_engine": 8,
-    "dramatic_engine": 8
+    "dramatic_engine": 8,
+    "beat_signature": 15,
+    "causal": 20
   }
 }

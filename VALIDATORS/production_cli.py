@@ -31,7 +31,11 @@ from VALIDATORS.reference_validation import sanitize_reference_profile
 from VALIDATORS.scaffold import create_project_scaffold
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.state_machine import GATES, advance_gate, gate_index
-from VALIDATORS.variation import approve_variation_candidate, generate_variation_candidates
+from VALIDATORS.variation import (
+    apply_user_case_constraints,
+    approve_variation_candidate,
+    generate_variation_candidates,
+)
 
 ROOT = Path.cwd().resolve()
 NOVELTY_CODES = {"CAUSAL_HARD_COLLISION", "STORY_SIMILARITY_EXCEEDED"}
@@ -607,6 +611,10 @@ def run_variations(args: argparse.Namespace) -> int:
         args.seed,
         args.count,
         catalog,
+    )
+    candidates = apply_user_case_constraints(
+        candidates,
+        load_json_object(args.project_path / "00_PROJECT" / "production_config.json"),
     )
     output_path = args.project_path / "00_PROJECT" / "variation_candidates.json"
     write_json_object(output_path, candidates)

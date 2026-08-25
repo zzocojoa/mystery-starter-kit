@@ -27,7 +27,7 @@
     "story_architect": {
       "prompt_file": "story_architect.md",
       "stage": 2,
-      "reads": ["variation_candidates", "story_dna", "viewer_timeline", "clue_matrix"],
+      "reads": ["production_config", "variation_candidates", "story_dna", "viewer_timeline", "clue_matrix"],
       "writes": ["story_dna", "case_input", "facts", "beat_sheet", "retention_plan"],
       "gates": ["GATE-02", "GATE-03", "GATE-06"],
       "requires_agents": ["variation_designer"],

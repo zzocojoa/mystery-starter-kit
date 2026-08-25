@@ -18,11 +18,15 @@ from VALIDATORS.novelty import (
     evaluate_novelty,
     variation_precheck_source_hash,
 )
-from VALIDATORS.reference_validation import validate_reference_collision
+from VALIDATORS.reference_validation import (
+    build_story_element_profile,
+    validate_reference_collision,
+)
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.story_validation import (
     validate_reference_profile_alignment,
     validate_story_dna_semantics,
+    validate_user_case_constraints,
 )
 
 ArtifactContent = Mapping[str, object] | str
@@ -408,46 +412,6 @@ def validate_fingerprint_current(
     ]
 
 
-def story_element_profile(
-    project_id: object,
-    characters: Mapping[str, object],
-    case_input: Mapping[str, object],
-    actual_timeline: Mapping[str, object],
-) -> dict[str, object]:
-    """Reference Collision에 필요한 금지 Story Element를 Project에서 추출한다."""
-    character_records = characters.get("characters")
-    timeline_events = actual_timeline.get("events")
-    names = [
-        record.get("name")
-        for record in character_records
-        if isinstance(record, Mapping) and isinstance(record.get("name"), str)
-    ] if isinstance(character_records, list) else []
-    locations = [
-        event.get("location_id")
-        for event in timeline_events
-        if isinstance(event, Mapping) and isinstance(event.get("location_id"), str)
-    ] if isinstance(timeline_events, list) else []
-    incidents = [
-        value
-        for value in (case_input.get("central_mystery"), case_input.get("final_truth"))
-        if isinstance(value, str)
-    ]
-    culprit = case_input.get("culprit")
-    culprits = [culprit] if isinstance(culprit, str) else []
-    motive = case_input.get("culprit_motive")
-    motives = [motive] if isinstance(motive, str) else []
-    return {
-        "project_id": project_id,
-        "story_content": {
-            "CHARACTERS": names,
-            "LOCATIONS": locations,
-            "INCIDENTS": incidents,
-            "CULPRIT": culprits,
-            "MOTIVE": motives,
-        },
-    }
-
-
 def validate_reference_gate(
     story_document: Mapping[str, object],
     final_script: str,
@@ -567,6 +531,7 @@ def run_production_validation(
     gate_02 = [
         *schema_issues(story_document, story_schema, "00_PROJECT/story_dna.json"),
         *validate_story_dna_semantics(story_document, reference_policy),
+        *validate_user_case_constraints(production_config, story_document),
         *validate_reference_profile_alignment(story_document, reference_profile),
         *validate_variation_alignment(variation_candidates, story_document),
     ]
@@ -711,7 +676,18 @@ def run_production_validation(
         ),
         *list(novelty_issues),
     ]
-    elements = story_element_profile(project_id, characters, case_input, actual_timeline)
+    elements = build_story_element_profile(
+        project_id,
+        story_document,
+        case_input,
+        characters,
+        relationships,
+        actual_timeline,
+        clue_matrix,
+        causal_graph,
+        beat_sheet,
+        final_script,
+    )
     gate_11 = validate_reference_gate(
         story_document,
         final_script,

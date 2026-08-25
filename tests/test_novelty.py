@@ -3,11 +3,15 @@
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
+
 from VALIDATORS.io import load_json_object
 from VALIDATORS.novelty import (
     build_story_fingerprint,
     evaluate_novelty,
     evaluate_variation_precheck,
+    similarity_components,
+    similarity_score,
 )
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.variation import (
@@ -117,6 +121,30 @@ def test_distinct_story_and_causal_fingerprint_passes() -> None:
 
     assert report["result"] == "PASS"
     assert report["issues"] == []
+
+
+def test_similarity_uses_jaccard_beat_sequence_and_causal_structure() -> None:
+    """List, Beat, Causal Dimension은 각 구조에 맞는 부분 유사도를 사용해야 한다."""
+    candidate = make_fingerprint()
+    existing = deepcopy(candidate)
+    existing_story = existing.get("story")
+    existing_causal = existing.get("causal")
+    assert isinstance(existing_story, dict)
+    assert isinstance(existing_causal, dict)
+    existing_story["setting_logic"] = ["MACHINE_LOG", "OTHER"]
+    existing["beat_signature"] = ["HOOK", "DISCOVERY", "REVEAL"]
+    existing_causal["resolution"] = "ARREST"
+    thresholds = load_json_object(THRESHOLDS_PATH)
+    weights = thresholds.get("weights")
+    assert isinstance(weights, dict)
+
+    components = similarity_components(candidate, existing, weights)
+    score = similarity_score(candidate, existing, weights)
+
+    assert components["setting_logic"] == pytest.approx(0.25)
+    assert components["beat_signature"] == pytest.approx(2 / 3)
+    assert components["causal"] == pytest.approx(0.8)
+    assert 0 < score < 100
 
 
 def test_approved_variation_precheck_passes_schema_without_history() -> None:

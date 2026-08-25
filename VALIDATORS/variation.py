@@ -8,6 +8,7 @@ from hashlib import sha256
 from VALIDATORS.exceptions import ConfigurationError
 
 PROJECT_ID_PATTERN = re.compile(r"^PRJ-[0-9]{3,}$")
+USER_CASE_STATUSES = {"LOCKED", "FLEXIBLE", "UNKNOWN"}
 
 
 def require_dimensions(catalog: Mapping[str, object]) -> dict[str, list[str]]:
@@ -112,6 +113,105 @@ def generate_variation_candidates(
         "approved_candidate_id": None,
         "override": None,
     }
+
+
+def require_user_case_constraints(
+    production_config: Mapping[str, object],
+) -> list[Mapping[str, object]]:
+    """USER_CASE의 Field, Value, Status 계약을 엄격하게 읽는다."""
+    source_mode = production_config.get("story_source_mode")
+    constraints = production_config.get("user_case_constraints")
+    if source_mode != "USER_CASE":
+        if constraints is not None:
+            raise ConfigurationError(
+                "USER_CASE가 아닌 Production Config에는 user_case_constraints를 둘 수 없습니다."
+            )
+        return []
+    if not isinstance(constraints, list) or not constraints or not all(
+        isinstance(constraint, Mapping) for constraint in constraints
+    ):
+        raise ConfigurationError(
+            "USER_CASE에는 하나 이상의 user_case_constraints 객체가 필요합니다."
+        )
+
+    fields: list[str] = []
+    for constraint in constraints:
+        field = constraint.get("field")
+        status = constraint.get("status")
+        value = constraint.get("value")
+        if not isinstance(field, str) or not field:
+            raise ConfigurationError("USER_CASE Constraint field 문자열이 필요합니다.")
+        if status not in USER_CASE_STATUSES:
+            raise ConfigurationError(
+                f"USER_CASE Constraint status가 올바르지 않습니다: field={field}, status={status!r}"
+            )
+        if status == "UNKNOWN" and value is not None:
+            raise ConfigurationError(
+                f"UNKNOWN Constraint value는 null이어야 합니다: field={field}"
+            )
+        if status != "UNKNOWN" and (not isinstance(value, str) or not value):
+            raise ConfigurationError(
+                f"LOCKED/FLEXIBLE Constraint value 문자열이 필요합니다: field={field}"
+            )
+        fields.append(field)
+    duplicate_fields = sorted({field for field in fields if fields.count(field) > 1})
+    if duplicate_fields:
+        raise ConfigurationError(
+            f"USER_CASE Constraint field가 중복됩니다: fields={duplicate_fields}"
+        )
+    return list(constraints)
+
+
+def apply_user_case_constraints(
+    candidates_document: Mapping[str, object],
+    production_config: Mapping[str, object],
+) -> dict[str, object]:
+    """USER_CASE의 LOCKED 값을 모든 후보에 적용하고 Signature를 다시 계산한다."""
+    constraints = require_user_case_constraints(production_config)
+    if not constraints:
+        return deepcopy(dict(candidates_document))
+    next_document = deepcopy(dict(candidates_document))
+    candidates = next_document.get("candidates")
+    if not isinstance(candidates, list) or not all(
+        isinstance(candidate, dict) for candidate in candidates
+    ):
+        raise ConfigurationError("Variation Candidate 객체 배열이 필요합니다.")
+
+    signatures: set[str] = set()
+    for candidate in candidates:
+        selection = candidate.get("selection")
+        if not isinstance(selection, dict) or not all(
+            isinstance(field, str) and isinstance(value, str)
+            for field, value in selection.items()
+        ):
+            raise ConfigurationError("Variation Candidate selection 문자열 객체가 필요합니다.")
+        missing_fields = sorted(
+            field
+            for constraint in constraints
+            if isinstance((field := constraint.get("field")), str)
+            and field not in selection
+        )
+        if missing_fields:
+            raise ConfigurationError(
+                "USER_CASE Constraint가 Variation Catalog Dimension에 없습니다: "
+                f"fields={missing_fields}"
+            )
+        for constraint in constraints:
+            field = constraint.get("field")
+            value = constraint.get("value")
+            if constraint.get("status") == "LOCKED":
+                if not isinstance(field, str) or not isinstance(value, str):
+                    raise ConfigurationError("검증된 LOCKED Constraint 형식이 손상됐습니다.")
+                selection[field] = value
+        signature = candidate_signature(selection)
+        if signature in signatures:
+            raise ConfigurationError(
+                "USER_CASE LOCKED 값 적용 후 Variation 후보가 충돌했습니다: "
+                f"candidate_id={candidate.get('candidate_id')!r}"
+            )
+        signatures.add(signature)
+        candidate["signature"] = signature
+    return next_document
 
 
 def approve_variation_candidate(

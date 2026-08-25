@@ -5,6 +5,7 @@ from collections.abc import Mapping
 from VALIDATORS.models import ValidationIssue
 
 CAUSAL_STRUCTURES = {"NO_CULPRIT", "SYSTEMIC_CAUSE", "ACCIDENTAL"}
+USER_CASE_STATUSES = {"LOCKED", "FLEXIBLE", "UNKNOWN"}
 
 
 def make_story_issue(
@@ -37,11 +38,115 @@ def make_reference_profile_issue(
     )
 
 
+def make_production_config_issue(
+    code: str,
+    message: str,
+    context: dict[str, object],
+) -> ValidationIssue:
+    """Production Config의 USER_CASE 계약 문제를 생성한다."""
+    return ValidationIssue(
+        severity="ERROR",
+        code=code,
+        message=message,
+        artifact="00_PROJECT/production_config.json",
+        context=context,
+    )
+
+
 def string_set(value: object) -> set[str]:
     """문자열 배열을 집합으로 변환하고 다른 형식은 빈 집합으로 처리한다."""
     if not isinstance(value, list):
         return set()
     return {item for item in value if isinstance(item, str)}
+
+
+def story_constraint_value(story_dna: Mapping[str, object], field: str) -> object:
+    """USER_CASE Constraint가 비교하는 Story DNA 값을 읽는다."""
+    value = story_dna.get(field)
+    if not isinstance(value, Mapping):
+        return value
+    if field == "pressure_engine":
+        return value.get("source")
+    return value.get("primary")
+
+
+def validate_user_case_constraints(
+    production_config: Mapping[str, object],
+    story_document: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """USER_CASE 입력 상태와 LOCKED Story Dimension을 검증한다."""
+    source_mode = production_config.get("story_source_mode")
+    constraints = production_config.get("user_case_constraints")
+    if source_mode != "USER_CASE":
+        if constraints is None:
+            return []
+        return [
+            make_production_config_issue(
+                "USER_CASE_CONSTRAINTS_NOT_ALLOWED",
+                "USER_CASE가 아닌 Project에는 사용자 Case Constraint를 둘 수 없습니다.",
+                {"story_source_mode": source_mode},
+            )
+        ]
+    if not isinstance(constraints, list) or not constraints or not all(
+        isinstance(constraint, Mapping) for constraint in constraints
+    ):
+        return [
+            make_production_config_issue(
+                "USER_CASE_CONSTRAINTS_REQUIRED",
+                "USER_CASE에는 하나 이상의 사용자 입력 Constraint가 필요합니다.",
+                {},
+            )
+        ]
+
+    fields = [
+        constraint.get("field")
+        for constraint in constraints
+        if isinstance(constraint.get("field"), str)
+    ]
+    duplicate_fields = sorted({field for field in fields if fields.count(field) > 1})
+    issues: list[ValidationIssue] = []
+    if duplicate_fields:
+        issues.append(
+            make_production_config_issue(
+                "USER_CASE_CONSTRAINT_DUPLICATED",
+                "USER_CASE Constraint Field는 한 번만 선언해야 합니다.",
+                {"fields": duplicate_fields},
+            )
+        )
+
+    story_dna = story_document.get("story_dna")
+    if not isinstance(story_dna, Mapping):
+        return issues
+    locked_mismatches = sorted(
+        field
+        for constraint in constraints
+        if constraint.get("status") == "LOCKED"
+        and isinstance((field := constraint.get("field")), str)
+        and story_constraint_value(story_dna, field) != constraint.get("value")
+    )
+    if locked_mismatches:
+        issues.append(
+            make_story_issue(
+                "USER_CASE_LOCKED_VALUE_CHANGED",
+                "LOCKED 사용자 입력은 Story DNA에서 변경할 수 없습니다.",
+                {"fields": locked_mismatches},
+            )
+        )
+    invalid_status_fields = sorted(
+        field
+        for constraint in constraints
+        if isinstance((field := constraint.get("field")), str)
+        and constraint.get("status") not in USER_CASE_STATUSES
+    )
+    if invalid_status_fields:
+        issues.append(
+            make_production_config_issue(
+                "USER_CASE_CONSTRAINT_STATUS_INVALID",
+                "USER_CASE Constraint Status가 올바르지 않습니다.",
+                {"fields": invalid_status_fields},
+            )
+        )
+    return issues
 
 
 def validate_story_dna_semantics(

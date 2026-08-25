@@ -6,7 +6,8 @@
 | Compatibility Contract | Standard가 Channel에 요구하는 최소 Interface | 독립 Version |
 | Channel DNA | 장르, Tone, 표현, 관객 경험 정책 | Channel 단위 |
 | Story DNA | Episode의 구조, Source Mode, Engine을 정의하는 실행 인스턴스 | Project 단위 |
-| Story Source Mode | Original, Reference, True Story의 입력 경계 | Project 단위 |
+| Story Source Mode | Original, User Case, Reference, True Story의 입력 경계 | Project 단위 |
+| User Case Constraint | 사용자 설정의 `LOCKED`, `FLEXIBLE`, `UNKNOWN` 변경 상태 | Project 단위 |
 | Variation Candidate | 대본 전 단계의 다축 구조 후보 | 승인 전 임시 |
 | Relationship Engine | 주인공과 Counterpart 사이의 변화 동력 | Story 단위 |
 | Pressure Engine | 시간·사회·법·자원 압박의 상승 구조 | Story 단위 |
@@ -16,7 +17,7 @@
 | Audience Belief Timeline | 공개 정보에 따른 관객 가설 변화 | Project 단위 |
 | Knowledge Matrix | Character가 Fact를 언제 알게 되는지 기록한 경계 | Project 단위 |
 | Causal Graph | Root Cause에서 Resolution까지의 방향 비순환 그래프 | Project 단위 |
-| Story Fingerprint | Story Dimension과 Beat Signature를 합친 구조 서명 | 영구 History |
+| Story Fingerprint | Story Dimension, Beat Sequence, Causal Structure를 합친 구조 서명 | 영구 History |
 | Causal Fingerprint | Root Cause, Mechanism, Concealment, Discovery, Resolution | 영구 History |
 | Hard Collision | 다섯 Causal Dimension이 모두 같은 즉시 실패 | QA 실행마다 |
 | Reference Firewall | Style만 보존하고 Story Content와 원문을 격리하는 경계 | Reference Project |

@@ -1,5 +1,6 @@
 """Project Manifest와 Production Config 구조 계약 검증."""
 
+from copy import deepcopy
 from pathlib import Path
 
 from VALIDATORS.io import load_json_object
@@ -24,3 +25,26 @@ def test_production_config_template_passes_schema() -> None:
     schema = load_json_object(SCHEMA_ROOT / "production_config.schema.json")
 
     assert collect_schema_errors(document, schema, "production_config") == []
+
+
+def test_user_case_config_requires_explicit_constraint_statuses() -> None:
+    """USER_CASE는 LOCKED, FLEXIBLE, UNKNOWN 입력 상태를 구조적으로 보존해야 한다."""
+    config_template = load_json_object(TEMPLATE_ROOT / "production_config.json")
+    config = deepcopy(config_template)
+    config["story_source_mode"] = "USER_CASE"
+    config["user_case_constraints"] = [
+        {"field": "protagonist_role", "value": "REPORTER", "status": "LOCKED"},
+        {"field": "incident_type", "value": "DISAPPEARANCE", "status": "FLEXIBLE"},
+        {"field": "primary_twist", "value": None, "status": "UNKNOWN"},
+    ]
+    manifest = load_json_object(TEMPLATE_ROOT / "project_manifest.json")
+    manifest["story_source_mode"] = "USER_CASE"
+    story = load_json_object(ROOT / "EXAMPLES" / "story_dna.example.json")
+    story["story_source_mode"] = "USER_CASE"
+    config_schema = load_json_object(SCHEMA_ROOT / "production_config.schema.json")
+    manifest_schema = load_json_object(SCHEMA_ROOT / "project_manifest.schema.json")
+    story_schema = load_json_object(SCHEMA_ROOT / "story_dna.schema.json")
+
+    assert collect_schema_errors(config, config_schema, "user_case_config") == []
+    assert collect_schema_errors(manifest, manifest_schema, "user_case_manifest") == []
+    assert collect_schema_errors(story, story_schema, "user_case_story") == []

@@ -3,6 +3,7 @@
 import json
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
+from difflib import SequenceMatcher
 from hashlib import sha256
 from typing import cast
 
@@ -10,6 +11,7 @@ from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.models import ValidationIssue
 
 CAUSAL_FIELDS = ("root_cause", "mechanism", "concealment", "discovery_path", "resolution")
+LIST_STORY_FIELDS = {"setting_logic", "information_mechanism"}
 
 
 def make_novelty_issue(
@@ -78,6 +80,8 @@ def build_story_fingerprint(
         "protagonist_role": story_dna.get("protagonist_role", ""),
         "primary_twist": story_dna.get("primary_twist", ""),
         "timeline_style": story_dna.get("timeline_style", ""),
+        "incident_type": story_dna.get("incident_type", ""),
+        "setting": story_dna.get("setting", ""),
         "culprit_structure": story_dna.get("culprit_structure", ""),
         "setting_logic": deepcopy(story_dna.get("setting_logic", [])),
         "information_mechanism": deepcopy(story_dna.get("information_mechanism", [])),
@@ -95,16 +99,143 @@ def build_story_fingerprint(
     }
 
 
-def normalized_value(value: object) -> object:
-    """Fingerprint의 배열 값을 순서 독립 비교 형식으로 변환한다."""
-    if isinstance(value, list):
-        return tuple(sorted(str(item) for item in value))
-    return value
-
-
 def has_comparable_value(value: object) -> bool:
     """비어 있지 않은 Fingerprint Dimension만 유사도 일치 대상으로 인정한다."""
-    return value not in (None, "", [], ())
+    if value is None or value == "":
+        return False
+    if isinstance(value, Mapping | list | tuple | set):
+        return bool(value)
+    return True
+
+
+def require_string_sequence(value: object, source: str) -> list[str]:
+    """유사도 입력을 문자열 배열로 엄격하게 읽는다."""
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise ConfigurationError(f"문자열 배열이 필요합니다: source={source}")
+    return list(value)
+
+
+def jaccard_similarity(candidate: object, existing: object, field: str) -> float:
+    """순서와 무관한 Story Dimension 배열의 Jaccard 유사도를 계산한다."""
+    candidate_values = set(
+        require_string_sequence(candidate, f"candidate_fingerprint.story.{field}")
+    )
+    existing_values = set(
+        require_string_sequence(existing, f"existing_fingerprint.story.{field}")
+    )
+    union = candidate_values | existing_values
+    if not union:
+        raise ConfigurationError(f"Jaccard 비교 배열은 비어 있을 수 없습니다: field={field}")
+    return len(candidate_values & existing_values) / len(union)
+
+
+def sequence_similarity(candidate: object, existing: object) -> float:
+    """Beat 순서를 보존하는 Sequence 유사도를 계산한다."""
+    candidate_beats = require_string_sequence(
+        candidate,
+        "candidate_fingerprint.beat_signature",
+    )
+    existing_beats = require_string_sequence(
+        existing,
+        "existing_fingerprint.beat_signature",
+    )
+    if not candidate_beats or not existing_beats:
+        raise ConfigurationError("Beat Signature는 하나 이상의 Beat가 필요합니다.")
+    return SequenceMatcher(
+        None,
+        candidate_beats,
+        existing_beats,
+        autojunk=False,
+    ).ratio()
+
+
+def causal_structure_similarity(candidate: object, existing: object) -> float:
+    """Causal 다섯 Dimension의 부분 구조 일치율을 계산한다."""
+    if not isinstance(candidate, Mapping) or not isinstance(existing, Mapping):
+        raise ConfigurationError("Causal Fingerprint 객체가 필요합니다.")
+    invalid_fields = [
+        field
+        for field in CAUSAL_FIELDS
+        if not isinstance(candidate.get(field), str)
+        or not candidate.get(field)
+        or not isinstance(existing.get(field), str)
+        or not existing.get(field)
+    ]
+    if invalid_fields:
+        raise ConfigurationError(
+            f"Causal 유사도 필드가 누락되었습니다: fields={invalid_fields}"
+        )
+    matches = sum(
+        1 for field in CAUSAL_FIELDS if candidate.get(field) == existing.get(field)
+    )
+    return matches / len(CAUSAL_FIELDS)
+
+
+def fingerprint_component(
+    fingerprint: Mapping[str, object],
+    story: Mapping[str, object],
+    field: str,
+) -> object:
+    """Weight 이름에 해당하는 Story 또는 구조 Fingerprint 값을 읽는다."""
+    if field in {"beat_signature", "causal"}:
+        return fingerprint.get(field)
+    return story.get(field)
+
+
+def component_similarity(
+    field: str,
+    candidate_value: object,
+    existing_value: object,
+) -> float:
+    """Dimension 종류별 Exact, Jaccard, Sequence, Structural 유사도를 적용한다."""
+    if field in LIST_STORY_FIELDS:
+        return jaccard_similarity(candidate_value, existing_value, field)
+    if field == "beat_signature":
+        return sequence_similarity(candidate_value, existing_value)
+    if field == "causal":
+        return causal_structure_similarity(candidate_value, existing_value)
+    if not isinstance(candidate_value, str) or not isinstance(existing_value, str):
+        raise ConfigurationError(
+            f"Exact 유사도 Dimension은 문자열이어야 합니다: field={field}"
+        )
+    return 1.0 if candidate_value == existing_value else 0.0
+
+
+def similarity_components(
+    candidate: Mapping[str, object],
+    existing: Mapping[str, object],
+    weights: Mapping[str, object],
+) -> dict[str, float]:
+    """비교 가능한 모든 가중 Dimension의 개별 유사도를 반환한다."""
+    candidate_story = require_mapping_value(candidate, "story", "candidate_fingerprint")
+    existing_story = require_mapping_value(existing, "story", "existing_fingerprint")
+    numeric_weights = {
+        field: float(weight)
+        for field, weight in weights.items()
+        if isinstance(field, str)
+        and isinstance(weight, int | float)
+        and not isinstance(weight, bool)
+        and weight > 0
+    }
+    if not numeric_weights:
+        raise ConfigurationError("Novelty Weight가 하나 이상 필요합니다.")
+
+    components: dict[str, float] = {}
+    for field in numeric_weights:
+        candidate_value = fingerprint_component(candidate, candidate_story, field)
+        existing_value = fingerprint_component(existing, existing_story, field)
+        if not has_comparable_value(candidate_value) or not has_comparable_value(
+            existing_value
+        ):
+            continue
+        components[field] = component_similarity(
+            field,
+            candidate_value,
+            existing_value,
+        )
+    if not components:
+        raise ConfigurationError("비교 가능한 Novelty Dimension이 하나 이상 필요합니다.")
+    return components
 
 
 def similarity_score(
@@ -112,24 +243,20 @@ def similarity_score(
     existing: Mapping[str, object],
     weights: Mapping[str, object],
 ) -> float:
-    """Story Fingerprint의 가중 일치율을 0부터 100 사이로 계산한다."""
-    candidate_story = require_mapping_value(candidate, "story", "candidate_fingerprint")
-    existing_story = require_mapping_value(existing, "story", "existing_fingerprint")
+    """Story, Beat, Causal Fingerprint의 가중 유사도를 계산한다."""
     numeric_weights = {
         field: float(weight)
         for field, weight in weights.items()
-        if isinstance(weight, int | float) and weight > 0
+        if isinstance(field, str)
+        and isinstance(weight, int | float)
+        and not isinstance(weight, bool)
+        and weight > 0
     }
-    if not numeric_weights:
-        raise ConfigurationError("Novelty Weight가 하나 이상 필요합니다.")
-    total_weight = sum(numeric_weights.values())
+    components = similarity_components(candidate, existing, weights)
+    total_weight = sum(numeric_weights[field] for field in components)
     matched_weight = sum(
-        weight
-        for field, weight in numeric_weights.items()
-        if has_comparable_value(normalized_value(candidate_story.get(field)))
-        and has_comparable_value(normalized_value(existing_story.get(field)))
-        and normalized_value(candidate_story.get(field))
-        == normalized_value(existing_story.get(field))
+        numeric_weights[field] * similarity
+        for field, similarity in components.items()
     )
     return round((matched_weight / total_weight) * 100, 2)
 
@@ -170,6 +297,7 @@ def evaluate_novelty(
     history_count = len(history)
     for index, existing in enumerate(history):
         score = similarity_score(candidate, existing, weights)
+        components = similarity_components(candidate, existing, weights)
         distance_from_latest = history_count - index
         threshold_key = (
             "recent_5_max"
@@ -185,6 +313,10 @@ def evaluate_novelty(
             {
                 "project_id": project_id,
                 "similarity": score,
+                "components": {
+                    field: round(component * 100, 2)
+                    for field, component in components.items()
+                },
                 "threshold": maximum,
                 "causal_hard_collision": hard_collision,
             }
@@ -279,10 +411,19 @@ def evaluate_variation_precheck(
             )
             maximum = threshold_value(thresholds, threshold_key)
             score = similarity_score({"story": dict(selection)}, existing, weights)
+            components = similarity_components(
+                {"story": dict(selection)},
+                existing,
+                weights,
+            )
             comparisons.append(
                 {
                     "project_id": existing.get("project_id", ""),
                     "similarity": score,
+                    "components": {
+                        field: round(component * 100, 2)
+                        for field, component in components.items()
+                    },
                     "threshold": maximum,
                     "exceeded": score > maximum,
                 }

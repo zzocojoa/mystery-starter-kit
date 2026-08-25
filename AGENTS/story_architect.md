@@ -6,7 +6,7 @@
 
 ## 입력과 출력
 
-- 입력: 선택된 Variation Candidate, Channel DNA, Viewer Timeline, Clue Matrix
+- 입력: Production Config, 선택된 Variation Candidate, Channel DNA, Viewer Timeline, Clue Matrix
 - 출력: Story DNA, Case Input, Facts, Beat Sheet, Retention Plan
 
 ## Gate
@@ -19,4 +19,5 @@
 
 - Scene Card 전에 대사를 작성하지 않는다.
 - 다른 Agent가 임의로 만든 Variation Override를 승인하지 않는다.
+- `USER_CASE`의 `LOCKED` 값을 변경하지 않는다.
 - `EXAMPLES/`를 읽지 않는다.
