@@ -21,6 +21,7 @@ from VALIDATORS.pipeline import (
     validate_fingerprint_current,
     validate_project_configuration,
     validate_project_ids,
+    validate_project_setup,
     validate_reference_gate,
     validate_variation_alignment,
     validate_variation_gate,
@@ -74,13 +75,7 @@ def validate_gate(
     reference_material: Mapping[str, object] | None,
 ) -> list[ValidationIssue]:
     """요청 Gate까지만 필요한 기존 Validator를 실행한다."""
-    manifest = artifact_document(artifacts, "project_manifest")
-    compatibility = artifact_document(artifacts, "compatibility_report")
     production_config = artifact_document(artifacts, "production_config")
-    reference_profile = artifact_document(artifacts, "reference_profile")
-    variations = artifact_document(artifacts, "variation_candidates")
-    precheck = artifact_document(artifacts, "novelty_precheck")
-    story = artifact_document(artifacts, "story_dna")
     project_id = production_config.get("project_id")
     if not isinstance(project_id, str):
         return [
@@ -93,24 +88,34 @@ def validate_gate(
             )
         ]
     if gate_id == "GATE-00":
+        manifest = artifact_document(artifacts, "project_manifest")
+        compatibility = artifact_document(artifacts, "compatibility_report")
         return [
             *validate_compatibility_gate(compatibility),
             *validate_project_ids(artifacts, project_id),
-            *validate_project_configuration(manifest, production_config, story, channel),
+            *validate_project_setup(manifest, production_config, channel),
         ]
     if gate_id == "GATE-01":
+        variations = artifact_document(artifacts, "variation_candidates")
+        precheck = artifact_document(artifacts, "novelty_precheck")
         return [
             *validate_variation_gate(variations, channel),
             *validate_variation_precheck(variations, precheck),
         ]
     if gate_id == "GATE-02":
+        manifest = artifact_document(artifacts, "project_manifest")
+        reference_profile = artifact_document(artifacts, "reference_profile")
+        variations = artifact_document(artifacts, "variation_candidates")
+        story = artifact_document(artifacts, "story_dna")
         return [
             *schema_issues(story, story_schema, "00_PROJECT/story_dna.json"),
+            *validate_project_configuration(manifest, production_config, story, channel),
             *validate_story_dna_semantics(story, reference_policy),
             *validate_user_case_constraints(production_config, story),
             *validate_reference_profile_alignment(story, reference_profile),
             *validate_variation_alignment(variations, story),
         ]
+    story = artifact_document(artifacts, "story_dna")
     case_input = artifact_document(artifacts, "case_input")
     facts = artifact_document(artifacts, "facts")
     sources = artifact_document(artifacts, "sources")

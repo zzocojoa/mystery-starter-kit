@@ -1,0 +1,190 @@
+{
+  "schema_family": "reaction-segments",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-001",
+  "reaction_segments": [
+    {
+      "reaction_segment_id": "RSEG-001",
+      "after_scene_id": "SCN-01",
+      "order": 1,
+      "start_sec": 170,
+      "duration_sec": 40,
+      "panelist_id": "PANEL-03",
+      "function": "HYPOTHESIS_GENERATION",
+      "evidence_ids": [
+        "CLUE-01"
+      ],
+      "known_fact_ids": [
+        "FACT-01"
+      ],
+      "hypothesis_before": "21시 49분 이후 한준호가 방파제로 나갔다.",
+      "spoken_line": "21시 49분이 실제 발신 시각이라는 확인부터 필요합니다. 표시가 늦게 붙은 것이라면 방파제 수색은 출발점부터 틀릴 수 있어요.",
+      "hypothesis_after": "표시 시각이 실제 사건 시각과 다를 수 있으므로 건물 내부 가설도 남겨 둔다.",
+      "tone": "SKEPTICAL"
+    },
+    {
+      "reaction_segment_id": "RSEG-002",
+      "after_scene_id": "SCN-02",
+      "order": 2,
+      "start_sec": 345,
+      "duration_sec": 45,
+      "panelist_id": "PANEL-02",
+      "function": "EMOTIONAL_REACTION",
+      "evidence_ids": [
+        "CLUE-02"
+      ],
+      "known_fact_ids": [
+        "FACT-01"
+      ],
+      "hypothesis_before": "눈에 보이는 장화 자국이 가장 믿을 만한 방향이다.",
+      "spoken_line": "장화 자국은 당장 따라가고 싶게 만들지만, 오미라의 경고는 오래 겪은 사람만 아는 위험이죠. 둘 중 하나를 너무 빨리 버리면 사람이 지워질 수 있습니다.",
+      "hypothesis_after": "장화 자국과 현장 기억을 동시에 검증해야 한다.",
+      "tone": "CONCERNED"
+    },
+    {
+      "reaction_segment_id": "RSEG-003",
+      "after_scene_id": "SCN-03",
+      "order": 3,
+      "start_sec": 535,
+      "duration_sec": 45,
+      "panelist_id": "PANEL-01",
+      "function": "ANOMALY_DETECTION",
+      "evidence_ids": [
+        "CLUE-03"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04"
+      ],
+      "hypothesis_before": "통신이 끊겼으므로 건물에서는 어떤 신호도 나올 수 없다.",
+      "spoken_line": "주 회선은 끊겼는데 별도 회로의 펄스는 반복됩니다. 폭우가 원인이라면 왜 같은 간격이 되풀이되는지 설명해야 합니다.",
+      "hypothesis_after": "건물 안의 독립 회로가 의도된 신호를 전달했을 가능성이 있다.",
+      "tone": "ANALYTICAL"
+    },
+    {
+      "reaction_segment_id": "RSEG-004",
+      "after_scene_id": "SCN-04",
+      "order": 4,
+      "start_sec": 700,
+      "duration_sec": 50,
+      "panelist_id": "PANEL-03",
+      "function": "CONTRADICTION_DETECTION",
+      "evidence_ids": [
+        "CLUE-01"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-04"
+      ],
+      "hypothesis_before": "21시 49분의 무전이 한준호의 마지막 위치를 증명한다.",
+      "spoken_line": "이제 21시 49분은 사람의 시간이 아니라 시스템이 재생한 시간입니다. 그렇다면 그 시각 뒤의 동선을 찾는 수색 논리는 성립하지 않아요.",
+      "hypothesis_after": "21시 42분 전후의 건물 내부 사건부터 다시 구성해야 한다.",
+      "tone": "CHALLENGING"
+    },
+    {
+      "reaction_segment_id": "RSEG-005",
+      "after_scene_id": "SCN-05",
+      "order": 5,
+      "start_sec": 880,
+      "duration_sec": 50,
+      "panelist_id": "PANEL-01",
+      "function": "HYPOTHESIS_REVISION",
+      "evidence_ids": [
+        "CLUE-02",
+        "CLUE-03",
+        "CLUE-04"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07"
+      ],
+      "hypothesis_before": "장화 자국과 펄스는 서로 무관한 두 개의 현상이다.",
+      "spoken_line": "장화 자국은 박대식의 것이고, 펄스와 타격음은 같은 리듬입니다. 이제 가장 적은 가정은 누군가 지하 설비 구역에서 두 경로로 신호를 보냈다는 쪽입니다.",
+      "hypothesis_after": "한준호가 건물 지하에 고립돼 독립 회로와 배관으로 구조 신호를 보냈다.",
+      "tone": "DECISIVE"
+    },
+    {
+      "reaction_segment_id": "RSEG-006",
+      "after_scene_id": "SCN-06",
+      "order": 6,
+      "start_sec": 1100,
+      "duration_sec": 35,
+      "panelist_id": "PANEL-02",
+      "function": "EXPECTATION_BUILDING",
+      "evidence_ids": [
+        "CLUE-04"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07"
+      ],
+      "hypothesis_before": "지하 고립 가능성은 높지만 구조 성공 여부는 알 수 없다.",
+      "spoken_line": "위치는 좁혀졌지만 해일과 정전이 동시에 다가옵니다. 지금부터는 추리의 정답보다 해치를 제시간에 여는지가 더 중요해졌어요.",
+      "hypothesis_after": "점검 해치를 열 수 있는 150초가 생존을 결정한다.",
+      "tone": "URGENT"
+    },
+    {
+      "reaction_segment_id": "RSEG-007",
+      "after_scene_id": "SCN-07",
+      "order": 7,
+      "start_sec": 1295,
+      "duration_sec": 30,
+      "panelist_id": "PANEL-02",
+      "function": "TENSION_RELEASE",
+      "evidence_ids": [
+        "CLUE-03",
+        "CLUE-04"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07"
+      ],
+      "hypothesis_before": "두 신호가 생존자의 것인지 마지막까지 확정되지 않았다.",
+      "spoken_line": "한준호가 살아 있고 두 신호의 주체도 확인됐습니다. 이제 안도할 수 있지만, 왜 구조가 늦어졌는지는 아직 남아 있어요.",
+      "hypothesis_after": "생존은 확인됐고 남은 질문은 시스템 오독과 판단 책임이다.",
+      "tone": "RELIEVED"
+    },
+    {
+      "reaction_segment_id": "RSEG-008",
+      "after_scene_id": "SCN-08",
+      "order": 8,
+      "start_sec": 1470,
+      "duration_sec": 30,
+      "panelist_id": "PANEL-03",
+      "function": "MORAL_REACTION",
+      "evidence_ids": [
+        "CLUE-01",
+        "CLUE-02",
+        "CLUE-03",
+        "CLUE-04"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07"
+      ],
+      "hypothesis_before": "구조 성공으로 사건을 종결하면 충분하다.",
+      "spoken_line": "결과가 좋았다는 이유로 최초 분류를 남겨 두면 같은 숫자가 다음 사람도 잘못된 곳으로 보냅니다. 기록의 정정까지가 이번 구조의 끝입니다.",
+      "hypothesis_after": "구조 결과뿐 아니라 오독의 원인과 판단 경로까지 공식 기록으로 바로잡아야 한다.",
+      "tone": "FIRM"
+    }
+  ]
+}

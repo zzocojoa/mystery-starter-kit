@@ -1,0 +1,45 @@
+{
+  "schema_family": "panel-cast",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-001",
+  "panelists": [
+    {
+      "panelist_id": "PANEL-01",
+      "display_name": "기록 분석 패널",
+      "persona": "LOGIC_ANALYST",
+      "voice_style": "시간과 증거의 연결을 짧고 차분하게 검증한다.",
+      "allowed_functions": [
+        "ANOMALY_DETECTION",
+        "HYPOTHESIS_REVISION",
+        "CONTRADICTION_DETECTION"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    },
+    {
+      "panelist_id": "PANEL-02",
+      "display_name": "현장 공감 패널",
+      "persona": "EMOTIONAL_PROXY",
+      "voice_style": "인물의 책임과 감정을 읽되 공개된 현장 정보에만 근거한다.",
+      "allowed_functions": [
+        "EMOTIONAL_REACTION",
+        "EXPECTATION_BUILDING",
+        "TENSION_RELEASE",
+        "MORAL_REACTION"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    },
+    {
+      "panelist_id": "PANEL-03",
+      "display_name": "반대 가설 패널",
+      "persona": "SKEPTIC",
+      "voice_style": "우세한 해석을 의심하고 검증 가능한 대안 가설을 제시한다.",
+      "allowed_functions": [
+        "HYPOTHESIS_GENERATION",
+        "CONTRADICTION_DETECTION",
+        "SUSPECT_DISCUSSION",
+        "MORAL_REACTION"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    }
+  ]
+}

@@ -1,13 +1,37 @@
 {
   "project_id": "PRJ-001",
   "checkpoints": [
-    {"checkpoint_id": "RET-01", "scene_order": 1, "type": "QUESTION", "device": "21시 49분 마지막 무전 직후 텅 빈 중계실을 공개한다."},
-    {"checkpoint_id": "RET-02", "scene_order": 2, "type": "PARTIAL_ANSWER", "device": "방파제로 향하는 장화 자국으로 첫 답을 제시한다."},
-    {"checkpoint_id": "RET-03", "scene_order": 3, "type": "CONTRADICTION", "device": "통신 두절 뒤에도 살아 있는 우량계 펄스로 바다 실족설을 흔든다."},
-    {"checkpoint_id": "RET-04", "scene_order": 4, "type": "UPDATED_QUESTION", "device": "무전 시각이 8분 어긋났음을 보여 주고 사건의 기준 시간을 바꾼다."},
-    {"checkpoint_id": "RET-05", "scene_order": 5, "type": "CONTRADICTION", "device": "장화 자국의 주인을 밝히는 동시에 배관 타격음을 들려준다."},
-    {"checkpoint_id": "RET-06", "scene_order": 6, "type": "QUESTION", "device": "해일 4분 전 카운트다운과 잠긴 해치를 병치한다."},
-    {"checkpoint_id": "RET-07", "scene_order": 7, "type": "PARTIAL_ANSWER", "device": "한준호를 발견하지만 사고를 만든 연쇄 원인은 아직 설명하지 않는다."},
-    {"checkpoint_id": "RET-08", "scene_order": 8, "type": "UPDATED_QUESTION", "device": "사건 분류 정정으로 권한과 데이터 신뢰의 질문을 남긴다."}
+    {
+      "scene_id": "SCN-01",
+      "function": "QUESTION_TIMESTAMP_CONFLICT"
+    },
+    {
+      "scene_id": "SCN-02",
+      "function": "PARTIAL_ANSWER_BREAKWATER_TRACE"
+    },
+    {
+      "scene_id": "SCN-03",
+      "function": "CONTRADICTION_UNKNOWN_PULSE"
+    },
+    {
+      "scene_id": "SCN-04",
+      "function": "UPDATED_QUESTION_PACKET_TIME"
+    },
+    {
+      "scene_id": "SCN-05",
+      "function": "MIDPOINT_REFRAME_DUAL_SIGNAL"
+    },
+    {
+      "scene_id": "SCN-06",
+      "function": "COUNTDOWN_LOCKED_HATCH"
+    },
+    {
+      "scene_id": "SCN-07",
+      "function": "PAYOFF_RESCUE"
+    },
+    {
+      "scene_id": "SCN-08",
+      "function": "FINAL_REFRAME_2203_CORRECTION"
+    }
   ]
 }

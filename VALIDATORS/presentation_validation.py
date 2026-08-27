@@ -1168,10 +1168,23 @@ def rescue_timeline_minute(actual_timeline: Mapping[str, object]) -> float | Non
         start_minute = event.get("start_minute")
         if (
             isinstance(description, str)
-            and "구조" in description
+            and "구조 완료" in description
             and isinstance(start_minute, int | float)
             and not isinstance(start_minute, bool)
         ):
+            return float(start_minute)
+    completion_pattern = re.compile(
+        r"구조(?:한다|했다|된다|됐다|되었다|되었다고|함(?:\.|$))"
+    )
+    for event in mapping_items(actual_timeline, "events"):
+        description = event.get("description")
+        start_minute = event.get("start_minute")
+        end_minute = event.get("end_minute")
+        if not isinstance(description, str) or completion_pattern.search(description) is None:
+            continue
+        if isinstance(end_minute, int | float) and not isinstance(end_minute, bool):
+            return float(end_minute)
+        if isinstance(start_minute, int | float) and not isinstance(start_minute, bool):
             return float(start_minute)
     return None
 
