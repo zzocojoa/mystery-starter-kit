@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/runtime/model-routes-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "profiles", "budget_profiles", "retry_policies"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "model-routes"},
+    "schema_version": {"type": "string"},
+    "profiles": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/profile"}},
+    "budget_profiles": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/budget"}},
+    "retry_policies": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/retry"}}
+  },
+  "$defs": {
+    "stringList": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "profile": {"type": "object", "additionalProperties": false, "required": ["required_capabilities", "preferred_capabilities", "routes"], "properties": {"required_capabilities": {"$ref": "#/$defs/stringList"}, "preferred_capabilities": {"$ref": "#/$defs/stringList"}, "routes": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["provider_id", "model_ref"], "properties": {"provider_id": {"type": "string", "minLength": 1}, "model_ref": {"type": "string", "minLength": 1}}}}}},
+    "budget": {"type": "object", "additionalProperties": false, "required": ["max_input_tokens", "max_output_tokens", "max_attempts"], "properties": {"max_input_tokens": {"type": "integer", "minimum": 1}, "max_output_tokens": {"type": "integer", "minimum": 1}, "max_attempts": {"type": "integer", "minimum": 1}}},
+    "retry": {"type": "object", "additionalProperties": false, "required": ["transport_attempts", "format_attempts", "semantic_attempts"], "properties": {"transport_attempts": {"type": "integer", "minimum": 1}, "format_attempts": {"type": "integer", "minimum": 1}, "semantic_attempts": {"type": "integer", "minimum": 1}}}
+  }
+}

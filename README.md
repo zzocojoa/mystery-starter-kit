@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml)
 
-Channel의 정체성을 유지하면서 Story 구조와 인과를 반복하지 않도록 설계한 미스터리 제작 Starter Kit다. Compatibility Negotiation, Full Story DNA, 10개 Agent Contract, Artifact Dependency Invalidation, Continuity/Causal/Novelty/Reference/Channel QA, 14개 Production Gate를 실행 코드로 제공한다.
+Channel의 정체성을 유지하면서 Story 구조와 인과를 반복하지 않도록 설계한 미스터리 제작 Starter Kit다. Compatibility Negotiation, Full Story DNA, 10개 Agent Contract, Provider 독립 LLM Agent Runtime v1.0, Artifact Dependency Invalidation, Continuity/Causal/Novelty/Reference/Channel QA, 14개 Production Gate를 실행 코드로 제공한다.
 
 ## 빠른 시작
 
@@ -13,6 +13,30 @@ python -m venv .venv
 
 # 아래 명령은 저장소 Root에서 실행한다.
 .venv/bin/mystery-kit init PRJ-002
+.venv/bin/mystery-runtime doctor
+.venv/bin/mystery-runtime plan PROJECTS/PRJ-002
+.venv/bin/mystery-runtime run PROJECTS/PRJ-002 --to GATE-13
+```
+
+기본 Provider는 외부 API를 호출하지 않는 결정론적 `fake` Adapter다. 따라서 위 Golden Path는 새 Project의 14개 Gate, Staging, Schema 검증, 원자 Commit, Provenance를 로컬과 CI에서 재현한다. 실제 모델은 `RUNTIME/contracts/provider_registry.json`과 `model_routes.json`만 바꾸고 공통 In-process 또는 Sidecar Adapter를 연결한다.
+
+중단된 Run은 Run ID로 조회·승인·재개하거나 취소할 수 있다.
+
+```bash
+.venv/bin/mystery-runtime status PROJECTS/PRJ-002
+.venv/bin/mystery-runtime approve RUN-... variation.generate \
+  --actor reviewer@example.com \
+  --reason "후보 구조와 신규성을 검토함"
+.venv/bin/mystery-runtime resume RUN-...
+.venv/bin/mystery-runtime cancel RUN-...
+.venv/bin/mystery-runtime providers
+```
+
+Runtime 종료 코드는 성공 `0`, Runtime·입력·구성 오류 `2`다. Gate 또는 Provider 실패는 구조화 오류로 `run.json`과 `events.jsonl`에 남고 Canonical Artifact는 마지막 통과 Gate 상태를 유지한다.
+
+기존 수동 제작 흐름도 유지한다.
+
+```bash
 .venv/bin/mystery-kit compat PROJECTS/PRJ-002
 .venv/bin/mystery-kit variations PROJECTS/PRJ-002 \
   --seed "공장 교대 중 사라진 작업자" \
@@ -40,7 +64,7 @@ Reference 기반 Project는 후보 생성 전에 원문 JSON을 Project 밖에 �
 
 사용자가 주인공·사건 같은 일부 설정을 제공하는 경우 `production_config.json`의 `story_source_mode`를 `USER_CASE`로 설정하고 각 `user_case_constraints`를 `LOCKED`, `FLEXIBLE`, `UNKNOWN`으로 선언한다. `LOCKED` 값은 Variation과 Story DNA에서 변경할 수 없다.
 
-`AGENTS/`는 10개 Agent의 입출력·선행 단계·Gate 계약을 제공한다. 외부 LLM을 호출해 Artifact를 자동 생성하는 Agent Runtime은 현재 범위에 포함하지 않는다.
+`AGENTS/`는 10개 Agent의 최대 입출력·선행 단계·Gate 계약을 제공한다. `RUNTIME/contracts/runtime_tasks.json`은 이를 확장할 수 없는 실제 호출 단위로 좁히며, Runtime은 LLM 응답을 Canonical 파일에 직접 쓰지 않고 Schema 검증된 Staging Overlay만 Gate 단위로 Commit한다.
 
 ## Compatibility 단독 진단
 
@@ -64,16 +88,18 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 - `AGENTS/`: 10개 Agent Prompt와 계약 Manifest
 - `TEMPLATES/PROJECT/`: `00_PROJECT`~`09_PRODUCTION` Scaffold
 - `VALIDATORS/`: CLI, 상태 머신, Pipeline과 QA Engine
+- `RUNTIME/`: Provider 독립 실행 엔진, 계약, Schema, Adapter, 보안 경계
+- `RUNTIME_ADAPTERS/`: In-process·Sidecar Provider 구현 가이드
 - `STORY_LIBRARY/`: Production Ready Story/Causal Fingerprint History
 - `tests/`: 정상·실패·경계·Disk E2E 자동 검증
 
-상세 규칙은 [Production Standard](STANDARD/mystery_production_standard_v1.3.md), 구현 증거는 [v1.3 구현 매트릭스](docs/01-plan/v1.3-implementation-matrix.md)에서 확인할 수 있다.
+상세 규칙은 [Production Standard](STANDARD/mystery_production_standard_v1.3.md), [Runtime v1.0 설계](docs/02-design/llm-agent-runtime-v1.md), 구현 증거는 [v1.3 구현 매트릭스](docs/01-plan/v1.3-implementation-matrix.md)에서 확인할 수 있다.
 
 ## 로컬 품질 검사
 
 ```bash
 .venv/bin/python -m pytest
-.venv/bin/mypy VALIDATORS tests
+.venv/bin/mypy VALIDATORS RUNTIME tests
 .venv/bin/ruff check .
 .venv/bin/python -m build
 .venv/bin/python -m pip_audit

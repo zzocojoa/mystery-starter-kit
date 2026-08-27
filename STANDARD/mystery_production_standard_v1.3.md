@@ -96,9 +96,13 @@ Variation Designer는 Story 문장을 쓰기 전에 최소 5개 구조 후보를
 | `novelty_auditor` | 구조/Beat/Causal 중복 검사 | Story Fingerprint, Novelty Report |
 | `reference_auditor` | Reference 정제와 사실/충돌 검사 | Reference, Evidence, Collision Report |
 
-`AGENTS/manifest.json`이 읽기·쓰기 Artifact, 선행 Agent, Gate, Prompt를 소유한다. Agent는 선언되지 않은 Project Artifact와 `EXAMPLES/`를 읽을 수 없다.
+`AGENTS/manifest.json`이 Agent별 최대 읽기·쓰기 Artifact, 선행 Agent, Gate, Prompt를 소유한다. `RUNTIME/contracts/runtime_tasks.json`의 실제 Task 권한은 이 최대 권한의 부분집합이어야 하며 Dependency Graph의 Artifact Owner를 바꿀 수 없다. Agent는 선언되지 않은 Project Artifact와 `EXAMPLES/`를 읽을 수 없다.
 
-이 저장소가 구현한 범위는 Agent의 입출력·순서·Gate 계약이다. 외부 LLM을 호출해 10개 Agent가 Artifact를 자동 작성하는 Runtime은 포함하지 않으며, 현재 CLI는 Scaffold, Validator, Gate Engine을 실행한다.
+LLM Agent Runtime v1.0은 Provider SDK에 종속되지 않는 Request/Response Interface를 사용한다. Model Profile은 필요한 Capability와 Route 순서만 정의하고 Provider 이름·Credential 환경 변수 참조·Data Egress 정책은 별도 Registry가 소유한다. In-process Plugin과 HTTP Sidecar가 같은 Descriptor·Request·Response Schema를 구현하므로 Provider 교체는 Runtime Core 변경 없이 구성으로 수행한다.
+
+LLM은 Canonical Project 파일, Project State, Gate 상태를 직접 변경할 수 없다. 응답은 Agent Result Envelope, Run·Task·Agent·Attempt Identity, Task writes 소유권, Artifact별 JSON Schema·Media Type·크기 제한을 통과해야 한다. Gate의 여러 Artifact는 격리된 Staging Overlay에서 함께 검증한 후 Write-ahead Transaction으로 전부 Commit하거나 전부 복구한다.
+
+Run과 Task 상태, 입력·Prompt·Schema Hash, Provider·Model·Token 사용량, Event, Attempt Request/Response, Artifact Provenance를 `.runtime/`에 기록한다. 재개 시 Canonical Project의 다음 Gate부터 실행하며, Commit 직전 입력 Hash가 바뀌면 `INPUT_HASH_CHANGED`로 거부한다. Transport 오류만 제한적으로 Route 전환할 수 있고 Provider Refusal, Data Policy, 권한, Schema 오류에는 임의 Fallback을 사용하지 않는다.
 
 ## 7. Project Scaffold와 Artifact Chain
 
@@ -194,6 +198,8 @@ Genre, 금지 Tone, 필수 Presentation Mode, Reaction Ratio를 Channel DNA와 �
 - 검증 불가능한 실화 주장을 사실로 사용하려는 경우
 - 승인 Variation과 다른 구조를 Override하면서 제작 방향이 달라지는 경우
 
+Runtime의 Human Approval은 Run ID, Task ID, 현재 입력 Artifact Hash에 결합한다. 입력이 바뀐 승인은 자동으로 무효이며 Actor와 비어 있지 않은 Reason이 없으면 기록할 수 없다.
+
 ## 12. 실행 인터페이스
 
 ```bash
@@ -205,9 +211,18 @@ mystery-kit precheck PROJECTS/PRJ-002
 mystery-kit reference-profile PROJECTS/PRJ-002 /secure/reference-source.json
 mystery-kit validate PROJECTS/PRJ-002
 mystery-kit register PROJECTS/PRJ-002
+
+mystery-runtime doctor
+mystery-runtime plan PROJECTS/PRJ-002
+mystery-runtime run PROJECTS/PRJ-002 --from GATE-00 --to GATE-13
+mystery-runtime status PROJECTS/PRJ-002
+mystery-runtime approve RUN-... variation.generate --actor reviewer --reason "검토 완료"
+mystery-runtime resume RUN-...
+mystery-runtime cancel RUN-...
+mystery-runtime providers
 ```
 
-종료 코드는 `PASS=0`, 검증 실패 `=1`, 입력·구성 오류 `=2`다. `register`는 `PRODUCTION_READY`가 아닌 Project를 거부한다.
+`mystery-kit` 종료 코드는 `PASS=0`, 검증 실패 `=1`, 입력·구성 오류 `=2`다. `mystery-runtime`은 성공 `0`, 구조화 Runtime 오류 `2`를 사용한다. `register`는 `PRODUCTION_READY`가 아닌 Project를 거부한다.
 
 ## 13. Version 정책
 

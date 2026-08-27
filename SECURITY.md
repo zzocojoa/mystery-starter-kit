@@ -14,3 +14,11 @@
 - 알고 있는 완화 방법
 
 비밀값, 접근 토큰, 실제 개인정보는 보고서와 로그에 포함하지 않는다.
+
+## Runtime 보안 경계
+
+- Provider Credential은 `provider_registry.json`에 값을 저장하지 않고 환경 변수 이름만 참조한다.
+- Reference 원문과 `EXAMPLES/`는 Provider Context에 포함하지 않는다.
+- Provider는 Canonical 파일, Project State, 임의 Shell·파일 쓰기·Network 도구에 직접 접근하지 않는다.
+- 모든 Agent 출력은 Task 소유권과 Artifact Schema를 통과한 뒤 Staging에 기록한다.
+- Run Event와 오류에는 Provider 원문 예외, Credential, Raw Reference를 기록하지 않는다.

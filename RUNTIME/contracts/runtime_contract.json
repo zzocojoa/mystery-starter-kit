@@ -1,0 +1,36 @@
+{
+  "$schema": "../schemas/runtime_contract.schema.json",
+  "schema_family": "agent-runtime-contract",
+  "schema_version": "1.0.0",
+  "supported_contracts": {
+    "agent_manifest": {
+      "schema_family": "agent-manifest",
+      "min_inclusive": "1.0.0",
+      "max_exclusive": "2.0.0"
+    },
+    "dependency_graph": {
+      "schema_family": "dependency-graph",
+      "min_inclusive": "1.0.0",
+      "max_exclusive": "2.0.0"
+    },
+    "project_state": {
+      "schema_family": "project-state",
+      "min_inclusive": "1.0.0",
+      "max_exclusive": "2.0.0"
+    },
+    "provider_interface": {
+      "schema_family": "provider-interface",
+      "min_inclusive": "1.0.0",
+      "max_exclusive": "2.0.0"
+    }
+  },
+  "policies": {
+    "unknown_optional_fields": "IGNORE",
+    "unknown_required_fields": "FAIL",
+    "task_may_widen_agent_reads": false,
+    "task_may_widen_agent_writes": false,
+    "provider_may_write_files": false,
+    "provider_may_set_gate_status": false,
+    "provider_may_modify_project_state": false
+  }
+}

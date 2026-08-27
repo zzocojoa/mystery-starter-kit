@@ -1,0 +1,31 @@
+{
+  "$schema": "../schemas/model_routes.schema.json",
+  "schema_family": "model-routes",
+  "schema_version": "1.0.0",
+  "profiles": {
+    "STRUCTURED_CREATIVE": {
+      "required_capabilities": ["TEXT_GENERATION"],
+      "preferred_capabilities": ["JSON_SCHEMA_OUTPUT"],
+      "routes": [
+        {"provider_id": "fake", "model_ref": "fake-structured-v1"}
+      ]
+    },
+    "LONGFORM_SCRIPT": {
+      "required_capabilities": ["TEXT_GENERATION"],
+      "preferred_capabilities": ["STREAMING"],
+      "routes": [
+        {"provider_id": "fake", "model_ref": "fake-longform-v1"}
+      ]
+    }
+  },
+  "budget_profiles": {
+    "SMALL": {"max_input_tokens": 16000, "max_output_tokens": 4000, "max_attempts": 2},
+    "MEDIUM": {"max_input_tokens": 48000, "max_output_tokens": 12000, "max_attempts": 3},
+    "LONGFORM": {"max_input_tokens": 64000, "max_output_tokens": 24000, "max_attempts": 3}
+  },
+  "retry_policies": {
+    "CORE": {"transport_attempts": 1, "format_attempts": 1, "semantic_attempts": 1},
+    "CREATIVE_STRUCTURED": {"transport_attempts": 3, "format_attempts": 2, "semantic_attempts": 3},
+    "LONGFORM": {"transport_attempts": 3, "format_attempts": 2, "semantic_attempts": 3}
+  }
+}

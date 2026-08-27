@@ -7,7 +7,7 @@
     "orchestrator": {
       "prompt_file": "orchestrator.md",
       "stage": 0,
-      "reads": ["compatibility_report", "validation_report", "final_script", "presentation_plan", "retention_plan"],
+      "reads": ["project_manifest", "compatibility_report", "production_config", "reference_profile", "variation_candidates", "novelty_precheck", "story_dna", "story_fingerprint", "case_input", "facts", "sources", "claim_evidence", "characters", "relationships", "knowledge_matrix", "actual_timeline", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "causal_graph", "beat_sheet", "retention_plan", "scene_cards", "presentation_plan", "draft_script", "final_script", "continuity_report", "novelty_report", "reference_collision_report", "channel_consistency_report", "validation_report", "shooting_script", "narration", "subtitle_script", "edit_script"],
       "writes": ["project_manifest", "compatibility_report", "production_config", "validation_report", "shooting_script", "narration", "subtitle_script", "edit_script"],
       "gates": ["GATE-00", "GATE-12", "GATE-13"],
       "requires_agents": [],
@@ -27,7 +27,7 @@
     "story_architect": {
       "prompt_file": "story_architect.md",
       "stage": 2,
-      "reads": ["production_config", "variation_candidates", "story_dna", "viewer_timeline", "clue_matrix"],
+      "reads": ["production_config", "reference_profile", "variation_candidates", "story_dna", "viewer_timeline", "clue_matrix"],
       "writes": ["story_dna", "case_input", "facts", "beat_sheet", "retention_plan"],
       "gates": ["GATE-02", "GATE-03", "GATE-06"],
       "requires_agents": ["variation_designer"],
@@ -77,7 +77,7 @@
     "continuity_critic": {
       "prompt_file": "continuity_critic.md",
       "stage": 8,
-      "reads": ["final_script", "actual_timeline", "viewer_timeline", "knowledge_matrix", "clue_matrix", "presentation_plan"],
+      "reads": ["production_config", "story_dna", "final_script", "actual_timeline", "viewer_timeline", "characters", "facts", "knowledge_matrix", "clue_matrix", "beat_sheet", "scene_cards", "presentation_plan"],
       "writes": ["continuity_report", "channel_consistency_report"],
       "gates": ["GATE-09", "GATE-12"],
       "requires_agents": ["script_writer"],
@@ -97,7 +97,7 @@
     "reference_auditor": {
       "prompt_file": "reference_auditor.md",
       "stage": 1,
-      "reads": ["production_config", "reference_profile", "sources", "claim_evidence", "final_script"],
+      "reads": ["production_config", "reference_profile", "sources", "claim_evidence", "story_dna", "case_input", "characters", "relationships", "actual_timeline", "clue_matrix", "causal_graph", "beat_sheet", "final_script"],
       "writes": ["reference_profile", "sources", "claim_evidence", "reference_collision_report"],
       "gates": ["GATE-01", "GATE-03", "GATE-11"],
       "requires_agents": [],

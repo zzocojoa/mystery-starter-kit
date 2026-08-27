@@ -45,10 +45,13 @@ jobs:
         run: python -m ruff check .
 
       - name: CLI 설치 확인
-        run: mystery-kit --help
+        run: |
+          mystery-kit --help
+          mystery-runtime --help
+          mystery-runtime doctor
 
       - name: 타입 검사
-        run: python -m mypy VALIDATORS tests
+        run: python -m mypy VALIDATORS RUNTIME tests
 
       - name: 테스트
         run: python -m pytest

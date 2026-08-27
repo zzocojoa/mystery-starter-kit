@@ -24,9 +24,14 @@ dev = [
 [project.scripts]
 mystery-compat = "VALIDATORS.cli:main"
 mystery-kit = "VALIDATORS.production_cli:main"
+mystery-runtime = "RUNTIME.cli:main"
 
 [tool.setuptools]
-packages = ["VALIDATORS"]
+packages = ["VALIDATORS", "RUNTIME", "RUNTIME.providers", "RUNTIME.tools"]
+include-package-data = false
+
+[tool.setuptools.package-data]
+RUNTIME = ["contracts/*.json", "schemas/*.json"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
@@ -35,7 +40,7 @@ testpaths = ["tests"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
-packages = ["VALIDATORS"]
+packages = ["VALIDATORS", "RUNTIME"]
 
 [tool.ruff]
 line-length = 100

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/runtime/llm-request-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["request_id", "idempotency_key", "model_ref", "messages", "output_contract", "generation", "tools", "deadline_ms", "metadata", "extensions"],
+  "properties": {
+    "request_id": {"type": "string", "minLength": 1},
+    "idempotency_key": {"type": "string", "minLength": 1},
+    "model_ref": {"type": "string", "minLength": 1},
+    "messages": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["role", "content"], "properties": {"role": {"enum": ["system", "user", "assistant", "tool"]}, "content": {"type": "string"}}}},
+    "output_contract": {"type": "object", "additionalProperties": false, "required": ["mode", "name", "json_schema"], "properties": {"mode": {"enum": ["TEXT", "JSON_OBJECT", "JSON_SCHEMA"]}, "name": {"type": "string", "minLength": 1}, "json_schema": {"type": ["object", "null"]}}},
+    "generation": {"type": "object", "additionalProperties": false, "required": ["max_output_tokens", "temperature", "top_p", "seed", "stop"], "properties": {"max_output_tokens": {"type": "integer", "minimum": 1}, "temperature": {"type": ["number", "null"], "minimum": 0}, "top_p": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "seed": {"type": ["integer", "null"]}, "stop": {"type": "array", "items": {"type": "string"}}}},
+    "tools": {"type": "array", "items": {"type": "object"}},
+    "deadline_ms": {"type": ["integer", "null"], "minimum": 1},
+    "metadata": {"type": "object", "additionalProperties": {"type": "string"}},
+    "extensions": {"type": "object"}
+  }
+}

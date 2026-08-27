@@ -1,0 +1,17 @@
+{
+  "$schema": "../schemas/provider_registry.schema.json",
+  "schema_family": "provider-registry",
+  "schema_version": "1.0.0",
+  "providers": {
+    "fake": {
+      "adapter_type": "IN_PROCESS_PLUGIN",
+      "adapter_entry_point": "builtin:fake",
+      "enabled": true,
+      "credential_env": null,
+      "endpoint": null,
+      "data_policy": {
+        "allowed_classes": ["PUBLIC", "INTERNAL", "REFERENCE_SANITIZED"]
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/runtime/runtime-contract-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "supported_contracts", "policies"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "agent-runtime-contract"},
+    "schema_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "supported_contracts": {
+      "type": "object",
+      "minProperties": 4,
+      "additionalProperties": {"$ref": "#/$defs/versionRange"}
+    },
+    "policies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unknown_optional_fields", "unknown_required_fields", "task_may_widen_agent_reads", "task_may_widen_agent_writes", "provider_may_write_files", "provider_may_set_gate_status", "provider_may_modify_project_state"],
+      "properties": {
+        "unknown_optional_fields": {"const": "IGNORE"},
+        "unknown_required_fields": {"const": "FAIL"},
+        "task_may_widen_agent_reads": {"const": false},
+        "task_may_widen_agent_writes": {"const": false},
+        "provider_may_write_files": {"const": false},
+        "provider_may_set_gate_status": {"const": false},
+        "provider_may_modify_project_state": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "versionRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_family", "min_inclusive", "max_exclusive"],
+      "properties": {
+        "schema_family": {"type": "string", "minLength": 1},
+        "min_inclusive": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "max_exclusive": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      }
+    }
+  }
+}
