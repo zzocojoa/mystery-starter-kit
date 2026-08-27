@@ -51,7 +51,7 @@ jobs:
           mystery-runtime doctor
 
       - name: 타입 검사
-        run: python -m mypy VALIDATORS RUNTIME tests
+        run: python -m mypy VALIDATORS RUNTIME RUNTIME_ADAPTERS tests
 
       - name: 테스트
         run: python -m pytest
