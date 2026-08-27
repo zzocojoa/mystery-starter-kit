@@ -16,6 +16,15 @@ from VALIDATORS.schema_validation import collect_schema_errors
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def make_empty_library() -> dict[str, object]:
+    """등록 동작을 독립적으로 검증할 빈 Story Library를 생성한다."""
+    return {
+        "schema_family": "story-library",
+        "schema_version": "1.0.0",
+        "fingerprints": [],
+    }
+
+
 def make_ready_state() -> ProjectState:
     """Library 등록 테스트용 Production Ready 상태를 만든다."""
     graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
@@ -25,8 +34,8 @@ def make_ready_state() -> ProjectState:
     return state
 
 
-def test_empty_story_library_passes_schema() -> None:
-    """초기 Story Library는 자체 Schema를 통과해야 한다."""
+def test_story_library_passes_schema() -> None:
+    """현재 Story Library는 등록 건수와 무관하게 자체 Schema를 통과해야 한다."""
     library = load_json_object(ROOT / "STORY_LIBRARY" / "story_fingerprints.json")
     schema = load_json_object(ROOT / "STANDARD" / "schemas" / "story_library.schema.json")
 
@@ -35,7 +44,7 @@ def test_empty_story_library_passes_schema() -> None:
 
 def test_production_ready_fingerprint_can_be_registered() -> None:
     """Production Ready Project의 Fingerprint는 Library에 한 번 등록할 수 있다."""
-    library = load_json_object(ROOT / "STORY_LIBRARY" / "story_fingerprints.json")
+    library = make_empty_library()
     fingerprint = make_complete_project_artifacts()["story_fingerprint"]
     assert isinstance(fingerprint, dict)
 
@@ -51,7 +60,7 @@ def test_production_ready_fingerprint_can_be_registered() -> None:
 
 def test_non_ready_and_duplicate_registration_are_rejected() -> None:
     """미완료 Project와 동일 Project의 중복 등록을 모두 차단해야 한다."""
-    library = load_json_object(ROOT / "STORY_LIBRARY" / "story_fingerprints.json")
+    library = make_empty_library()
     fingerprint = make_complete_project_artifacts()["story_fingerprint"]
     assert isinstance(fingerprint, dict)
     not_ready = deepcopy(make_ready_state())

@@ -285,6 +285,16 @@ def threshold_value(thresholds: Mapping[str, object], key: str) -> float:
     return float(value)
 
 
+def history_for_other_projects(
+    project_id: object,
+    history: Sequence[Mapping[str, object]],
+) -> list[Mapping[str, object]]:
+    """현재 Project를 제외한 신규성 비교 History를 반환한다."""
+    if not isinstance(project_id, str) or not project_id:
+        raise ConfigurationError("신규성 비교에는 Candidate Project ID가 필요합니다.")
+    return [record for record in history if record.get("project_id") != project_id]
+
+
 def evaluate_novelty(
     candidate: Mapping[str, object],
     history: Sequence[Mapping[str, object]],
@@ -294,8 +304,9 @@ def evaluate_novelty(
     weights = require_mapping_value(thresholds, "weights", "novelty_thresholds")
     comparisons: list[dict[str, object]] = []
     issues: list[ValidationIssue] = []
-    history_count = len(history)
-    for index, existing in enumerate(history):
+    comparable_history = history_for_other_projects(candidate.get("project_id"), history)
+    history_count = len(comparable_history)
+    for index, existing in enumerate(comparable_history):
         score = similarity_score(candidate, existing, weights)
         components = similarity_components(candidate, existing, weights)
         distance_from_latest = history_count - index
@@ -391,7 +402,11 @@ def evaluate_variation_precheck(
         raise ConfigurationError("Novelty Precheck 전에 Variation 승인이 필요합니다.")
 
     weights = require_mapping_value(thresholds, "weights", "novelty_thresholds")
-    history_count = len(history)
+    comparable_history = history_for_other_projects(
+        candidates_document.get("project_id"),
+        history,
+    )
+    history_count = len(comparable_history)
     candidate_results: list[dict[str, object]] = []
     issues: list[ValidationIssue] = []
     for candidate in candidates:
@@ -400,7 +415,7 @@ def evaluate_variation_precheck(
         if not isinstance(candidate_id, str) or not isinstance(selection, Mapping):
             raise ConfigurationError("Variation Candidate ID와 selection 객체가 필요합니다.")
         comparisons: list[dict[str, object]] = []
-        for index, existing in enumerate(history):
+        for index, existing in enumerate(comparable_history):
             distance_from_latest = history_count - index
             threshold_key = (
                 "recent_5_max"

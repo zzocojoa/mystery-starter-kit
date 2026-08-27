@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object
 from VALIDATORS.novelty import (
     build_story_fingerprint,
@@ -72,14 +73,38 @@ def test_novelty_thresholds_pass_schema() -> None:
 def test_causal_fingerprint_exact_match_is_hard_collision() -> None:
     """Causal 다섯 요소가 모두 같으면 유사도와 무관하게 차단해야 한다."""
     fingerprint = make_fingerprint()
+    existing = deepcopy(fingerprint)
+    existing["project_id"] = "PRJ-099"
     thresholds = load_json_object(THRESHOLDS_PATH)
 
-    report = evaluate_novelty(fingerprint, [deepcopy(fingerprint)], thresholds)
+    report = evaluate_novelty(fingerprint, [existing], thresholds)
 
     assert report["result"] == "FAIL"
     issues = report["issues"]
     assert isinstance(issues, list)
     assert [issue["code"] for issue in issues] == ["CAUSAL_HARD_COLLISION"]
+
+
+def test_registered_project_does_not_collide_with_itself() -> None:
+    """등록 후 재검증할 때 동일 Project History는 신규성 비교에서 제외해야 한다."""
+    fingerprint = make_fingerprint()
+    thresholds = load_json_object(THRESHOLDS_PATH)
+
+    report = evaluate_novelty(fingerprint, [deepcopy(fingerprint)], thresholds)
+
+    assert report["result"] == "PASS"
+    assert report["comparisons"] == []
+    assert report["issues"] == []
+
+
+def test_novelty_requires_candidate_project_id() -> None:
+    """자기 비교 제외가 모호해지지 않도록 Candidate Project ID를 필수로 요구한다."""
+    fingerprint = make_fingerprint()
+    del fingerprint["project_id"]
+    thresholds = load_json_object(THRESHOLDS_PATH)
+
+    with pytest.raises(ConfigurationError, match="Candidate Project ID"):
+        evaluate_novelty(fingerprint, [], thresholds)
 
 
 def test_distinct_story_and_causal_fingerprint_passes() -> None:
@@ -183,3 +208,23 @@ def test_approved_variation_collision_fails_precheck() -> None:
     assert [issue["code"] for issue in issues] == [
         "APPROVED_VARIATION_SIMILARITY_EXCEEDED"
     ]
+
+
+def test_approved_variation_precheck_ignores_same_project_history() -> None:
+    """등록된 동일 Project를 다시 사전검사해도 자기 자신과 충돌하지 않아야 한다."""
+    catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
+    candidates = generate_variation_candidates("PRJ-002", "seed", 5, catalog)
+    approved = approve_variation_candidate(candidates, "VAR-01")
+    records = approved["candidates"]
+    assert isinstance(records, list)
+    first = records[0]
+    assert isinstance(first, dict)
+    selection = first["selection"]
+    assert isinstance(selection, dict)
+    history = [{"project_id": "PRJ-002", "story": deepcopy(selection)}]
+    thresholds = load_json_object(THRESHOLDS_PATH)
+
+    report = evaluate_variation_precheck(approved, history, thresholds)
+
+    assert report["result"] == "PASS"
+    assert report["issues"] == []
