@@ -9,7 +9,7 @@
 ## 검증
 
 - [ ] `.venv/bin/python -m pytest`를 통과했습니다.
-- [ ] `.venv/bin/mypy VALIDATORS tests`를 통과했습니다.
+- [ ] `.venv/bin/mypy VALIDATORS RUNTIME RUNTIME_ADAPTERS tests`를 통과했습니다.
 - [ ] `.venv/bin/ruff check .`를 통과했습니다.
 - [ ] `.venv/bin/python -m build`와 `.venv/bin/python -m pip_audit`를 통과했습니다.
 - [ ] 관련 JSON 문서와 Schema의 호환성을 확인했습니다.
