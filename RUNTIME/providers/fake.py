@@ -3,7 +3,7 @@
 import json
 from collections.abc import Mapping
 from copy import deepcopy
-from typing import cast
+from typing import TypeAlias, cast
 
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.models import (
@@ -12,6 +12,16 @@ from RUNTIME.models import (
     ProviderDescriptor,
     TokenUsage,
 )
+
+PresentationDefinition: TypeAlias = tuple[
+    str,
+    str,
+    str,
+    float,
+    str | None,
+    str,
+    list[str],
+]
 
 
 def approved_selection(metadata: Mapping[str, str]) -> dict[str, str]:
@@ -68,6 +78,278 @@ def target_runtime_seconds(metadata: Mapping[str, str]) -> int:
             {"target_runtime_minutes": minutes},
         )
     return minutes * 60
+
+
+def broadcast_marker(
+    segment_id: str,
+    segment_type: str,
+    scene_id: str,
+    duration_sec: float,
+    body: str,
+) -> str:
+    """Fake Broadcast Segment를 표준 Marker 형식으로 만든다."""
+    duration_text = f"{duration_sec:g}"
+    return (
+        f"<!-- SEGMENT:{segment_id} TYPE:{segment_type} "
+        f"SCENE:{scene_id} DURATION:{duration_text} -->\n"
+        f"{body}\n"
+        f"<!-- END_SEGMENT:{segment_id} -->"
+    )
+
+
+def fake_presentation_plan(project_id: str, total_seconds: int) -> dict[str, object]:
+    """Panel 비율이 정확히 20%인 결정론적 Presentation Plan을 만든다."""
+    reaction_duration = float(total_seconds) / 15.0
+    main_duration = float(total_seconds) * 4.0 / 15.0
+    definitions: tuple[PresentationDefinition, ...] = (
+        ("SEG-001", "DRAMA", "SCN-01", main_duration, None, "drama_script", ["FACT-01"]),
+        (
+            "SEG-002",
+            "PANEL_REACTION",
+            "SCN-01",
+            reaction_duration,
+            "RSEG-001",
+            "panel_reaction_script",
+            [],
+        ),
+        (
+            "SEG-003",
+            "NARRATION",
+            "SCN-01",
+            main_duration,
+            None,
+            "narration_script",
+            [],
+        ),
+        (
+            "SEG-004",
+            "PANEL_REACTION",
+            "SCN-01",
+            reaction_duration,
+            "RSEG-002",
+            "panel_reaction_script",
+            [],
+        ),
+        ("SEG-005", "DRAMA", "SCN-02", main_duration, None, "drama_script", ["FACT-02"]),
+        (
+            "SEG-006",
+            "PANEL_REACTION",
+            "SCN-02",
+            reaction_duration,
+            "RSEG-003",
+            "panel_reaction_script",
+            [],
+        ),
+    )
+    start_sec = 0.0
+    segments: list[dict[str, object]] = []
+    for (
+        segment_id,
+        segment_type,
+        scene_id,
+        duration_sec,
+        reaction_segment_id,
+        source_artifact,
+        fact_ids,
+    ) in definitions:
+        segment: dict[str, object] = {
+            "segment_id": segment_id,
+            "segment_type": segment_type,
+            "scene_id": scene_id,
+            "start_sec": start_sec,
+            "duration_sec": duration_sec,
+            "source_artifact": source_artifact,
+            "revealed_fact_ids": fact_ids,
+            "revealed_clue_ids": [],
+        }
+        if reaction_segment_id is not None:
+            segment["reaction_segment_id"] = reaction_segment_id
+        segments.append(segment)
+        start_sec += duration_sec
+    return {
+        "schema_family": "presentation-plan",
+        "schema_version": "2.0.0",
+        "project_id": project_id,
+        "modes": ["DRAMA", "NARRATION", "PANEL_REACTION"],
+        "segments": segments,
+    }
+
+
+def fake_panel_cast(project_id: str) -> dict[str, object]:
+    """서로 다른 추리 기능을 가진 세 Panelist Fixture를 만든다."""
+    return {
+        "schema_family": "panel-cast",
+        "schema_version": "2.0.0",
+        "project_id": project_id,
+        "panelists": [
+            {
+                "panelist_id": "PANEL-01",
+                "display_name": "논리 패널",
+                "persona": "LOGIC_ANALYST",
+                "voice_style": "차분하고 근거 중심",
+                "allowed_functions": [
+                    "ANOMALY_DETECTION",
+                    "HYPOTHESIS_GENERATION",
+                    "HYPOTHESIS_REVISION",
+                ],
+                "knowledge_scope": "REVEALED_INFORMATION_ONLY",
+            },
+            {
+                "panelist_id": "PANEL-02",
+                "display_name": "감정 패널",
+                "persona": "EMOTIONAL_PROXY",
+                "voice_style": "인물의 감정 변화를 세심하게 읽음",
+                "allowed_functions": ["EMOTIONAL_REACTION", "TENSION_RELEASE"],
+                "knowledge_scope": "REVEALED_INFORMATION_ONLY",
+            },
+            {
+                "panelist_id": "PANEL-03",
+                "display_name": "반론 패널",
+                "persona": "SKEPTIC",
+                "voice_style": "주요 가설에 근거 있는 반론을 제시함",
+                "allowed_functions": [
+                    "CONTRADICTION_DETECTION",
+                    "HYPOTHESIS_REVISION",
+                ],
+                "knowledge_scope": "REVEALED_INFORMATION_ONLY",
+            },
+        ],
+    }
+
+
+def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, object]:
+    """가설 생성·이상 탐지·수정을 포함한 Reaction Fixture를 만든다."""
+    reaction_duration = float(total_seconds) / 15.0
+    main_duration = float(total_seconds) * 4.0 / 15.0
+    return {
+        "schema_family": "reaction-segments",
+        "schema_version": "2.0.0",
+        "project_id": project_id,
+        "reaction_segments": [
+            {
+                "reaction_segment_id": "RSEG-001",
+                "after_scene_id": "SCN-01",
+                "order": 1,
+                "start_sec": main_duration,
+                "duration_sec": reaction_duration,
+                "panelist_id": "PANEL-01",
+                "function": "HYPOTHESIS_GENERATION",
+                "evidence_ids": ["CLUE-01"],
+                "known_fact_ids": ["FACT-01"],
+                "hypothesis_before": "작업자가 자발적으로 이탈했다.",
+                "spoken_line": "7분의 공백이 이탈의 증거인지부터 확인해야 합니다.",
+                "hypothesis_after": "기계 기록이 실제 동선과 다를 수 있다.",
+                "tone": "SUSPICIOUS",
+            },
+            {
+                "reaction_segment_id": "RSEG-002",
+                "after_scene_id": "SCN-01",
+                "order": 2,
+                "start_sec": main_duration * 2.0 + reaction_duration,
+                "duration_sec": reaction_duration,
+                "panelist_id": "PANEL-03",
+                "function": "CONTRADICTION_DETECTION",
+                "evidence_ids": ["CLUE-01"],
+                "known_fact_ids": ["FACT-01"],
+                "hypothesis_before": "공백 동안 작업자가 이동했다.",
+                "spoken_line": "이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.",
+                "hypothesis_after": "센서 공백과 작업자 이동은 별개일 수 있다.",
+                "tone": "ANALYTICAL",
+            },
+            {
+                "reaction_segment_id": "RSEG-003",
+                "after_scene_id": "SCN-02",
+                "order": 3,
+                "start_sec": main_duration * 3.0 + reaction_duration * 2.0,
+                "duration_sec": reaction_duration,
+                "panelist_id": "PANEL-01",
+                "function": "HYPOTHESIS_REVISION",
+                "evidence_ids": ["CLUE-01", "CLUE-02"],
+                "known_fact_ids": ["FACT-01", "FACT-02"],
+                "hypothesis_before": "작업자가 기록 공백을 이용해 이탈했다.",
+                "spoken_line": "안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.",
+                "hypothesis_after": "센서 차단이 작업자의 위치를 숨겼다.",
+                "tone": "RECONSIDERING",
+            },
+        ],
+    }
+
+
+def fake_script_layers(total_seconds: int) -> dict[str, str]:
+    """Presentation Plan과 정확히 일치하는 세 Script Layer를 만든다."""
+    reaction_duration = float(total_seconds) / 15.0
+    main_duration = float(total_seconds) * 4.0 / 15.0
+    return {
+        "drama_script": "\n\n".join(
+            (
+                broadcast_marker(
+                    "SEG-001",
+                    "DRAMA",
+                    "SCN-01",
+                    main_duration,
+                    "[FACT:FACT-01] 지안은 기계 로그에서 7분의 공백을 발견한다.",
+                ),
+                broadcast_marker(
+                    "SEG-005",
+                    "DRAMA",
+                    "SCN-02",
+                    main_duration,
+                    "[FACT:FACT-02] 점검 모드였던 안전 센서가 화면에 표시된다.",
+                ),
+            )
+        ),
+        "narration_script": broadcast_marker(
+            "SEG-003",
+            "NARRATION",
+            "SCN-01",
+            main_duration,
+            "지안은 기록의 공백을 사람의 선택으로 해석하고 있었다.",
+        ),
+        "panel_reaction_script": "\n\n".join(
+            (
+                broadcast_marker(
+                    "SEG-002",
+                    "PANEL_REACTION",
+                    "SCN-01",
+                    reaction_duration,
+                    "[RSEG-001] [PANEL-01] [HYPOTHESIS_GENERATION]\n"
+                    "7분의 공백이 이탈의 증거인지부터 확인해야 합니다.",
+                ),
+                broadcast_marker(
+                    "SEG-004",
+                    "PANEL_REACTION",
+                    "SCN-01",
+                    reaction_duration,
+                    "[RSEG-002] [PANEL-03] [CONTRADICTION_DETECTION]\n"
+                    "이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.",
+                ),
+                broadcast_marker(
+                    "SEG-006",
+                    "PANEL_REACTION",
+                    "SCN-02",
+                    reaction_duration,
+                    "[RSEG-003] [PANEL-01] [HYPOTHESIS_REVISION]\n"
+                    "안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.",
+                ),
+            )
+        ),
+    }
+
+
+def fake_broadcast_master(total_seconds: int) -> str:
+    """세 Layer Segment를 방송 시간순으로 통합한다."""
+    layers = fake_script_layers(total_seconds)
+    layer_segments: dict[str, str] = {}
+    for content in layers.values():
+        for segment_id in ("SEG-001", "SEG-002", "SEG-003", "SEG-004", "SEG-005", "SEG-006"):
+            start = content.find(f"<!-- SEGMENT:{segment_id} ")
+            if start < 0:
+                continue
+            end_marker = f"<!-- END_SEGMENT:{segment_id} -->"
+            end = content.find(end_marker, start)
+            if end >= 0:
+                layer_segments[segment_id] = content[start : end + len(end_marker)]
+    return "\n\n".join(layer_segments[f"SEG-{index:03d}"] for index in range(1, 7))
 
 
 def story_document(
@@ -334,7 +616,22 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "media_type": "application/json",
                 "content": {
                     "project_id": project_id,
-                    "reveals": [{"reveal_id": "REV-01", "scene_id": "SCN-01"}],
+                    "reveals": [
+                        {
+                            "reveal_id": "REV-01",
+                            "scene_id": "SCN-01",
+                            "fact_id": "FACT-01",
+                            "information": "기계 로그의 7분 공백",
+                            "effect": "작업자 이탈 가능성을 의심한다.",
+                        },
+                        {
+                            "reveal_id": "REV-02",
+                            "scene_id": "SCN-02",
+                            "fact_id": "FACT-02",
+                            "information": "안전 센서의 점검 모드",
+                            "effect": "기록 공백을 시스템 오류로 재해석한다.",
+                        },
+                    ],
                 },
             },
             {
@@ -342,7 +639,22 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "media_type": "application/json",
                 "content": {
                     "project_id": project_id,
-                    "belief_states": [{"scene_id": "SCN-01", "belief": "누군가 은폐했다."}],
+                    "belief_states": [
+                        {
+                            "scene_id": "SCN-01",
+                            "belief": "작업자가 기록 공백을 이용해 이탈했다.",
+                            "confidence": 0.65,
+                            "known_fact_ids": ["FACT-01"],
+                            "active_hypothesis_ids": ["HYP-01"],
+                        },
+                        {
+                            "scene_id": "SCN-02",
+                            "belief": "센서 차단이 작업자의 위치를 숨겼다.",
+                            "confidence": 0.9,
+                            "known_fact_ids": ["FACT-01", "FACT-02"],
+                            "active_hypothesis_ids": [],
+                        },
+                    ],
                 },
             },
             {
@@ -459,31 +771,57 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             {
                 "artifact_name": "presentation_plan",
                 "media_type": "application/json",
-                "content": {
-                    "project_id": project_id,
-                    "modes": ["DRAMA", "NARRATION", "REACTION"],
-                    "reaction_ratio": 0.2,
-                    "scene_presentations": [
-                        {"scene_id": "SCN-01", "mode": "DRAMA"},
-                        {"scene_id": "SCN-02", "mode": "NARRATION"},
-                    ],
-                },
+                "content": fake_presentation_plan(
+                    project_id,
+                    target_runtime_seconds(metadata),
+                ),
             },
         ]
-    if task_id == "script.write":
+    if task_id == "scene.design_reactions":
+        total_seconds = target_runtime_seconds(metadata)
+        return [
+            {
+                "artifact_name": "panel_cast",
+                "media_type": "application/json",
+                "content": fake_panel_cast(project_id),
+            },
+            {
+                "artifact_name": "reaction_segments",
+                "media_type": "application/json",
+                "content": fake_reaction_segments(project_id, total_seconds),
+            },
+            {
+                "artifact_name": "presentation_plan",
+                "media_type": "application/json",
+                "content": fake_presentation_plan(project_id, total_seconds),
+            },
+        ]
+    if task_id == "script.write_layers":
+        layer_scripts = fake_script_layers(target_runtime_seconds(metadata))
+        return [
+            {
+                "artifact_name": artifact_name,
+                "media_type": "text/markdown",
+                "content": content,
+            }
+            for artifact_name, content in layer_scripts.items()
+        ]
+    if task_id == "script.integrate":
+        broadcast_master = fake_broadcast_master(target_runtime_seconds(metadata))
         return [
             {
                 "artifact_name": "draft_script",
                 "media_type": "text/markdown",
-                "content": "[DRAMA] 지안은 7분의 공백을 발견한다.",
+                "content": broadcast_master,
             },
             {
                 "artifact_name": "final_script",
                 "media_type": "text/markdown",
-                "content": "[NARRATION] 실종은 누군가의 계획이 아니라 연쇄된 안전 실패였다.",
+                "content": broadcast_master,
             },
         ]
     if task_id == "production.package":
+        segment_ids = " ".join(f"SEG-{index:03d}" for index in range(1, 7))
         return [
             {
                 "artifact_name": "shooting_script",
@@ -496,6 +834,15 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "content": "실종은 연쇄된 안전 실패였다.",
             },
             {
+                "artifact_name": "production_panel_reaction_script",
+                "media_type": "text/markdown",
+                "content": (
+                    "RSEG-001 논리 패널 추리 Cue\n"
+                    "RSEG-002 반론 패널 모순 탐지 Cue\n"
+                    "RSEG-003 논리 패널 가설 수정 Cue"
+                ),
+            },
+            {
                 "artifact_name": "subtitle_script",
                 "media_type": "text/markdown",
                 "content": "00:00 지안은 7분의 공백을 발견한다.",
@@ -503,7 +850,10 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             {
                 "artifact_name": "edit_script",
                 "media_type": "text/markdown",
-                "content": "SCN-01에서 로그를 제시하고 SCN-02에서 인과를 재구성한다.",
+                "content": (
+                    f"{segment_ids}\n"
+                    "SCN-01에서 로그를 제시하고 SCN-02에서 인과를 재구성한다."
+                ),
             },
         ]
     raise RuntimeExecutionError(

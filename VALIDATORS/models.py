@@ -22,6 +22,7 @@ ProjectStatus = Literal[
     "SCRIPT_WRITTEN",
     "QA_PASSED",
     "PRODUCTION_READY",
+    "PRESENTATION_MIGRATION_REQUIRED",
     "BLOCKED",
 ]
 

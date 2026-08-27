@@ -3,6 +3,13 @@
 from copy import deepcopy
 from pathlib import Path
 
+from RUNTIME.providers.fake import (
+    fake_broadcast_master,
+    fake_panel_cast,
+    fake_presentation_plan,
+    fake_reaction_segments,
+    fake_script_layers,
+)
 from VALIDATORS.io import load_json_object
 from VALIDATORS.novelty import build_story_fingerprint, evaluate_variation_precheck
 from VALIDATORS.pipeline import ArtifactContent
@@ -58,7 +65,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
 
     production_config: dict[str, object] = {
         "project_id": project_id,
-        "standard_version": "1.3.0",
+        "standard_version": "1.3.1",
         "channel_id": "MYSTERY_MAIN",
         "approval_policy": "AUTO_CONTINUE",
         "story_source_mode": "ORIGINAL",
@@ -213,10 +220,13 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         ],
     }
     fingerprint = build_story_fingerprint(story_document, beat_sheet, causal_graph)
+    total_seconds = 120
+    layer_scripts = fake_script_layers(total_seconds)
+    broadcast_master = fake_broadcast_master(total_seconds)
     return {
         "project_manifest": {
             "project_id": project_id,
-            "standard_version": "1.3.0",
+            "standard_version": "1.3.1",
             "channel_id": "MYSTERY_MAIN",
             "story_source_mode": "ORIGINAL",
         },
@@ -243,11 +253,37 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "actual_timeline": actual_timeline,
         "viewer_timeline": {
             "project_id": project_id,
-            "reveals": [{"reveal_id": "REV-01", "scene_id": "SCN-01"}],
+            "reveals": [
+                {
+                    "reveal_id": "REV-01",
+                    "scene_id": "SCN-01",
+                    "fact_id": "FACT-01",
+                },
+                {
+                    "reveal_id": "REV-02",
+                    "scene_id": "SCN-02",
+                    "fact_id": "FACT-02",
+                },
+            ],
         },
         "audience_belief": {
             "project_id": project_id,
-            "belief_states": [{"scene_id": "SCN-01", "belief": "누군가 은폐했다."}],
+            "belief_states": [
+                {
+                    "scene_id": "SCN-01",
+                    "belief": "작업자가 기록 공백을 이용해 이탈했다.",
+                    "confidence": 0.65,
+                    "known_fact_ids": ["FACT-01"],
+                    "active_hypothesis_ids": ["HYP-01"],
+                },
+                {
+                    "scene_id": "SCN-02",
+                    "belief": "센서 차단이 작업자의 위치를 숨겼다.",
+                    "confidence": 0.9,
+                    "known_fact_ids": ["FACT-01", "FACT-02"],
+                    "active_hypothesis_ids": [],
+                },
+            ],
         },
         "clue_matrix": clue_matrix,
         "hypothesis_ledger": {
@@ -261,19 +297,22 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "checkpoints": [{"scene_id": "SCN-01", "function": "QUESTION"}],
         },
         "scene_cards": scene_cards,
-        "presentation_plan": {
-            "project_id": project_id,
-            "modes": ["DRAMA", "NARRATION", "REACTION"],
-            "reaction_ratio": 0.2,
-            "scene_presentations": [
-                {"scene_id": "SCN-01", "mode": "DRAMA"},
-                {"scene_id": "SCN-02", "mode": "NARRATION"},
-            ],
-        },
-        "draft_script": "[DRAMA] 지안은 7분의 공백을 발견한다.",
-        "final_script": "[NARRATION] 실종은 누군가의 계획이 아니라 연쇄된 안전 실패였다.",
+        "panel_cast": fake_panel_cast(project_id),
+        "reaction_segments": fake_reaction_segments(project_id, total_seconds),
+        "presentation_plan": fake_presentation_plan(project_id, total_seconds),
+        **layer_scripts,
+        "draft_script": broadcast_master,
+        "final_script": broadcast_master,
         "shooting_script": "SCN-01 통제실 와이드. SCN-02 이송 설비 클로즈업.",
         "narration": "실종은 연쇄된 안전 실패였다.",
+        "production_panel_reaction_script": (
+            "RSEG-001 논리 패널 Cue\n"
+            "RSEG-002 반론 패널 Cue\n"
+            "RSEG-003 논리 패널 Cue"
+        ),
         "subtitle_script": "00:00 지안은 7분의 공백을 발견한다.",
-        "edit_script": "SCN-01에서 로그를 제시하고 SCN-02에서 인과를 재구성한다.",
+        "edit_script": (
+            "SEG-001 SEG-002 SEG-003 SEG-004 SEG-005 SEG-006\n"
+            "SCN-01에서 로그를 제시하고 SCN-02에서 인과를 재구성한다."
+        ),
     }

@@ -7,8 +7,8 @@
     "orchestrator": {
       "prompt_file": "orchestrator.md",
       "stage": 0,
-      "reads": ["project_manifest", "compatibility_report", "production_config", "reference_profile", "variation_candidates", "novelty_precheck", "story_dna", "story_fingerprint", "case_input", "facts", "sources", "claim_evidence", "characters", "relationships", "knowledge_matrix", "actual_timeline", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "causal_graph", "beat_sheet", "retention_plan", "scene_cards", "presentation_plan", "draft_script", "final_script", "continuity_report", "novelty_report", "reference_collision_report", "channel_consistency_report", "validation_report", "shooting_script", "narration", "subtitle_script", "edit_script"],
-      "writes": ["project_manifest", "compatibility_report", "production_config", "validation_report", "shooting_script", "narration", "subtitle_script", "edit_script"],
+      "reads": ["project_manifest", "compatibility_report", "production_config", "reference_profile", "variation_candidates", "novelty_precheck", "story_dna", "story_fingerprint", "case_input", "facts", "sources", "claim_evidence", "characters", "relationships", "knowledge_matrix", "actual_timeline", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "causal_graph", "beat_sheet", "retention_plan", "scene_cards", "panel_cast", "reaction_segments", "presentation_plan", "drama_script", "narration_script", "panel_reaction_script", "draft_script", "final_script", "continuity_report", "novelty_report", "reference_collision_report", "channel_consistency_report", "validation_report", "shooting_script", "narration", "production_panel_reaction_script", "subtitle_script", "edit_script"],
+      "writes": ["project_manifest", "compatibility_report", "production_config", "validation_report", "shooting_script", "narration", "production_panel_reaction_script", "subtitle_script", "edit_script"],
       "gates": ["GATE-00", "GATE-12", "GATE-13"],
       "requires_agents": [],
       "resources": [],
@@ -57,8 +57,8 @@
     "scene_designer": {
       "prompt_file": "scene_designer.md",
       "stage": 6,
-      "reads": ["beat_sheet", "retention_plan", "clue_matrix", "production_config"],
-      "writes": ["scene_cards", "presentation_plan"],
+      "reads": ["beat_sheet", "retention_plan", "scene_cards", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "production_config"],
+      "writes": ["scene_cards", "panel_cast", "reaction_segments", "presentation_plan"],
       "gates": ["GATE-07"],
       "requires_agents": ["story_architect", "mystery_designer"],
       "resources": [],
@@ -67,8 +67,8 @@
     "script_writer": {
       "prompt_file": "script_writer.md",
       "stage": 7,
-      "reads": ["scene_cards", "presentation_plan", "knowledge_matrix", "clue_matrix"],
-      "writes": ["draft_script", "final_script"],
+      "reads": ["scene_cards", "presentation_plan", "panel_cast", "reaction_segments", "viewer_timeline", "audience_belief", "knowledge_matrix", "clue_matrix", "drama_script", "narration_script", "panel_reaction_script"],
+      "writes": ["drama_script", "narration_script", "panel_reaction_script", "draft_script", "final_script"],
       "gates": ["GATE-08"],
       "requires_agents": ["scene_designer"],
       "resources": [],
@@ -77,7 +77,7 @@
     "continuity_critic": {
       "prompt_file": "continuity_critic.md",
       "stage": 8,
-      "reads": ["production_config", "story_dna", "final_script", "actual_timeline", "viewer_timeline", "characters", "facts", "knowledge_matrix", "clue_matrix", "beat_sheet", "scene_cards", "presentation_plan"],
+      "reads": ["production_config", "story_dna", "final_script", "actual_timeline", "viewer_timeline", "audience_belief", "characters", "facts", "knowledge_matrix", "clue_matrix", "hypothesis_ledger", "beat_sheet", "scene_cards", "panel_cast", "reaction_segments", "presentation_plan", "drama_script", "narration_script", "panel_reaction_script"],
       "writes": ["continuity_report", "channel_consistency_report"],
       "gates": ["GATE-09", "GATE-12"],
       "requires_agents": ["script_writer"],

@@ -1,3 +1,3 @@
 # PRJ-000 Final Script
 
-Continuity, Novelty, Reference, Channel QA를 통과한 대본만 이 파일에 기록한다.
+모든 Presentation Segment Marker를 정확히 한 번 포함한 Broadcast Master만 기록한다.

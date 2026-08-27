@@ -164,7 +164,11 @@ def test_failed_validation_marks_problem_artifact_invalid(tmp_path: Path) -> Non
     artifacts = make_complete_project_artifacts()
     presentation = artifacts["presentation_plan"]
     assert isinstance(presentation, dict)
-    presentation["reaction_ratio"] = 0.9
+    segments = presentation["segments"]
+    assert isinstance(segments, list)
+    first_segment = segments[0]
+    assert isinstance(first_segment, dict)
+    first_segment["duration_sec"] = 1
     write_complete_artifacts(project_path, artifacts)
 
     result = run_cli(["validate", str(project_path)])
@@ -174,9 +178,108 @@ def test_failed_validation_marks_problem_artifact_invalid(tmp_path: Path) -> Non
 
     assert result == 1
     assert state["state"] == "BLOCKED"
-    assert state["current_gate"] == "GATE-11"
+    assert state["current_gate"] == "GATE-06"
     assert states["presentation_plan"]["status"] == "INVALID"
     assert states["edit_script"]["status"] == "DIRTY"
+
+
+def test_legacy_presentation_requires_explicit_v2_migration(tmp_path: Path) -> None:
+    """v1 Presentation Project는 기존 내용을 보존한 채 GATE-05 재생성 상태가 된다."""
+    projects_root = tmp_path / "projects"
+    assert run_cli(
+        [
+            "init",
+            "PRJ-005",
+            "--projects-root",
+            str(projects_root),
+            "--created-at",
+            "2026-08-25T00:00:00Z",
+        ]
+    ) == 0
+    project_path = projects_root / "PRJ-005"
+    artifacts = make_complete_project_artifacts()
+    manifest = artifacts["project_manifest"]
+    production = artifacts["production_config"]
+    assert isinstance(manifest, dict)
+    assert isinstance(production, dict)
+    manifest["project_id"] = "PRJ-005"
+    production["project_id"] = "PRJ-005"
+    write_complete_artifacts(project_path, artifacts)
+    state_path = project_path / "00_PROJECT" / "project_state.json"
+    prior_state = load_json_object(state_path)
+    prior_state["state"] = "PRODUCTION_READY"
+    prior_state["current_gate"] = "GATE-13"
+    write_json_object(state_path, prior_state)
+    legacy_script = "# 기존 최종 대본\n\nSCN-08 정정된 사건"
+    legacy_plan = {
+        "project_id": "PRJ-005",
+        "modes": ["DRAMA", "NARRATION", "REACTION"],
+        "reaction_ratio": 0.2,
+        "scene_presentations": [{"scene_id": "SCN-08", "mode": "DRAMA"}],
+    }
+    write_json_object(project_path / "06_SCENE" / "presentation_plan.json", legacy_plan)
+    (project_path / "07_SCRIPT" / "final_script.md").write_text(
+        legacy_script,
+        encoding="utf-8",
+    )
+    (project_path / "06_SCENE" / "panel_cast.json").unlink()
+
+    result = run_cli(["validate", str(project_path)])
+    state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
+    report = load_json_object(project_path / "08_QA" / "validation_report.json")
+    preserved_script = (project_path / "07_SCRIPT" / "final_script.md").read_text(
+        encoding="utf-8"
+    )
+    states = state["artifacts"]
+    assert isinstance(states, dict)
+    gate_results = report["gate_results"]
+    issues = report["issues"]
+    assert isinstance(gate_results, dict)
+    assert isinstance(issues, list)
+    first_issue = issues[0]
+    assert isinstance(first_issue, dict)
+
+    assert result == 1
+    assert state["state"] == "PRESENTATION_MIGRATION_REQUIRED"
+    assert state["current_gate"] == "GATE-04"
+    assert gate_results["GATE-05"] == "FAIL"
+    assert first_issue["code"] == "PRESENTATION_MIGRATION_REQUIRED"
+    assert states["panel_cast"]["status"] == "MISSING"
+    assert states["presentation_plan"]["status"] == "INVALID"
+    assert states["final_script"]["status"] == "INVALID"
+    assert preserved_script == legacy_script
+
+
+def test_presentation_migration_never_advances_incomplete_project_gate(tmp_path: Path) -> None:
+    """미완성 v1 Project의 Migration은 검증되지 않은 Gate를 PASS 처리하지 않는다."""
+    projects_root = tmp_path / "projects"
+    assert run_cli(
+        [
+            "init",
+            "PRJ-006",
+            "--projects-root",
+            str(projects_root),
+            "--created-at",
+            "2026-08-25T00:00:00Z",
+        ]
+    ) == 0
+    project_path = projects_root / "PRJ-006"
+    (project_path / "06_SCENE" / "panel_cast.json").unlink()
+    state_path = project_path / "00_PROJECT" / "project_state.json"
+    initial_state = load_json_object(state_path)
+    initial_gate = initial_state["current_gate"]
+
+    result = run_cli(["validate", str(project_path)])
+    state = load_json_object(state_path)
+    report = load_json_object(project_path / "08_QA" / "validation_report.json")
+    gate_results = report["gate_results"]
+    assert isinstance(gate_results, dict)
+
+    assert result == 1
+    assert state["state"] == "PRESENTATION_MIGRATION_REQUIRED"
+    assert state["current_gate"] == initial_gate
+    assert gate_results["GATE-01"] == "NOT_RUN"
+    assert gate_results["GATE-05"] == "NOT_RUN"
 
 
 def test_variation_approval_and_precheck_commands_form_gate_one(tmp_path: Path) -> None:

@@ -64,12 +64,23 @@ GATES: tuple[GateDefinition, ...] = (
     },
     {
         "gate_id": "GATE-07",
-        "required_artifacts": ("scene_cards", "presentation_plan"),
+        "required_artifacts": (
+            "scene_cards",
+            "panel_cast",
+            "reaction_segments",
+            "presentation_plan",
+        ),
         "target_state": "SCENES_DESIGNED",
     },
     {
         "gate_id": "GATE-08",
-        "required_artifacts": ("draft_script", "final_script"),
+        "required_artifacts": (
+            "drama_script",
+            "narration_script",
+            "panel_reaction_script",
+            "draft_script",
+            "final_script",
+        ),
         "target_state": "SCRIPT_WRITTEN",
     },
     {
@@ -97,6 +108,7 @@ GATES: tuple[GateDefinition, ...] = (
         "required_artifacts": (
             "shooting_script",
             "narration",
+            "production_panel_reaction_script",
             "subtitle_script",
             "edit_script",
         ),

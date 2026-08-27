@@ -2,7 +2,7 @@
   "$schema": "../../STANDARD/schemas/channel_dna.schema.json",
   "schema_family": "channel-dna",
   "schema_version": "1.0.0",
-  "content_version": "1.0.0",
+  "content_version": "1.1.0",
   "channel_id": "MYSTERY_MAIN",
   "identity": {
     "statement": "현실적인 일상 미스터리를 재연 드라마로 체험하게 하고 Narration과 Reaction을 교차시켜 관객이 가설을 갱신하며 진실에 접근하게 한다.",
@@ -59,12 +59,12 @@
       "modes": [
         "DRAMA",
         "NARRATION",
-        "REACTION"
+        "PANEL_REACTION"
       ],
       "audience_position": "CO_INVESTIGATOR",
       "information_cycle": [
         "DRAMA",
-        "REACTION",
+        "PANEL_REACTION",
         "INFORMATION",
         "HYPOTHESIS_UPDATE"
       ],
@@ -123,11 +123,20 @@
         "max": 0.3
       },
       "functions": [
-        "EMOTION",
-        "SUSPICION",
-        "HYPOTHESIS",
+        "EMOTIONAL_REACTION",
+        "ANOMALY_DETECTION",
+        "HYPOTHESIS_GENERATION",
         "HYPOTHESIS_REVISION",
+        "CONTRADICTION_DETECTION",
         "TENSION_RELEASE"
+      ],
+      "required_functions": [
+        "HYPOTHESIS_GENERATION",
+        "HYPOTHESIS_REVISION"
+      ],
+      "required_function_any_of": [
+        "ANOMALY_DETECTION",
+        "CONTRADICTION_DETECTION"
       ]
     },
     "HUMOR_POLICY": {

@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../STANDARD/schemas/reaction_segments.schema.json",
+  "schema_family": "reaction-segments",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-000",
+  "reaction_segments": []
+}

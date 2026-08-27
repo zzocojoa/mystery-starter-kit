@@ -221,6 +221,15 @@
               "maximum": 1
             }
           }
+        },
+        "functions": {
+          "$ref": "#/$defs/enumList"
+        },
+        "required_functions": {
+          "$ref": "#/$defs/enumList"
+        },
+        "required_function_any_of": {
+          "$ref": "#/$defs/enumList"
         }
       }
     },

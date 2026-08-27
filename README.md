@@ -1,8 +1,8 @@
-# Mystery Starter Kit v1.3
+# Mystery Starter Kit v1.3.1
 
 [![CI](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml)
 
-Channel의 정체성을 유지하면서 Story 구조와 인과를 반복하지 않도록 설계한 미스터리 제작 Starter Kit다. Compatibility Negotiation, Full Story DNA, 10개 Agent Contract, Provider 독립 LLM Agent Runtime v1.0, Artifact Dependency Invalidation, Continuity/Causal/Novelty/Reference/Channel QA, 14개 Production Gate를 실행 코드로 제공한다.
+Channel의 정체성을 유지하면서 Story 구조와 인과를 반복하지 않도록 설계한 미스터리 제작 Starter Kit다. Compatibility Negotiation, Full Story DNA, Presentation Contract v2, 10개 Agent Contract, Provider 독립 LLM Agent Runtime v1.0, Artifact Dependency Invalidation, Continuity/Causal/Novelty/Reference/Channel QA, 14개 Production Gate를 실행 코드로 제공한다.
 
 ## Codex App 운영 모드
 
@@ -42,7 +42,9 @@ Codex가 `01_CASE`부터 `09_PRODUCTION`까지 Artifact를 순차적으로 작�
 .venv/bin/mystery-kit register PROJECTS/PRJ-002
 ```
 
-`validate`는 `08_QA`의 개별 보고서와 통합 보고서, `00_PROJECT/project_state.json`, Change Log를 갱신한다. `register`는 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 `PASS=0`, Gate 실패 `=1`, 입력·구성 오류 `=2`다.
+`validate`는 `08_QA`의 개별 보고서와 통합 보고서, `00_PROJECT/project_state.json`, Change Log를 갱신한다. Presentation 1.x Project는 조용히 통과하지 않고 `PRESENTATION_MIGRATION_REQUIRED`와 `GATE-04`로 전환되어 GATE-05 이후 재생성을 요구한다. `register`는 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 `PASS=0`, Gate 실패 `=1`, 입력·구성 오류 `=2`다.
+
+Presentation Contract v2는 `panel_cast.json`, `reaction_segments.json`, Drama/Narration/Panel Reaction Layer Script를 별도 Artifact로 유지한다. `final_script.md`는 모든 Segment를 방송 순서대로 한 번씩 포함한 Marker 기반 Broadcast Master다. Panel Reaction 비율은 선언값이 아니라 Segment `duration_sec` 합으로 계산한다.
 
 ## Runtime Core 회귀 모드
 
@@ -109,7 +111,7 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 
 ## 구조
 
-- `STANDARD/`: v1.3 표준, Contract, Policy, Catalog, Dependency Graph, JSON Schema
+- `STANDARD/`: v1.3.1 표준, Contract, Policy, Catalog, Dependency Graph, JSON Schema
 - `CHANNELS/`: 독립 Version의 Channel DNA
 - `AGENTS/`: 10개 Agent Prompt와 계약 Manifest
 - `TEMPLATES/PROJECT/`: `00_PROJECT`~`09_PRODUCTION` Scaffold

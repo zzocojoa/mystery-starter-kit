@@ -7,6 +7,7 @@ from pathlib import Path
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.models import ArtifactContract, LLMResponse, RuntimeTask
 from VALIDATORS.io import load_json_object
+from VALIDATORS.presentation_validation import script_has_complete_segment_markers
 from VALIDATORS.schema_validation import collect_schema_errors
 
 
@@ -170,16 +171,27 @@ def validate_text_artifact(
             artifact_name,
             {},
         )
-    if "SCRIPT_INTEGRITY" in validators and "\x00" in content:
-        raise RuntimeExecutionError(
-            "OUTPUT_SCHEMA_ERROR",
-            False,
-            "TASK_ATTEMPT",
-            "Script Artifact에 Null Byte가 포함되었습니다.",
-            task_id,
-            artifact_name,
-            {},
-        )
+    if "SCRIPT_INTEGRITY" in validators:
+        if "\x00" in content:
+            raise RuntimeExecutionError(
+                "OUTPUT_SCHEMA_ERROR",
+                False,
+                "TASK_ATTEMPT",
+                "Script Artifact에 Null Byte가 포함되었습니다.",
+                task_id,
+                artifact_name,
+                {},
+            )
+        if not script_has_complete_segment_markers(content):
+            raise RuntimeExecutionError(
+                "OUTPUT_SCHEMA_ERROR",
+                True,
+                "TASK_ATTEMPT",
+                "Script Artifact가 완전한 Broadcast Segment Marker를 갖지 않습니다.",
+                task_id,
+                artifact_name,
+                {},
+            )
 
 
 def validate_artifact_content(

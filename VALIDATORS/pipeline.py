@@ -18,6 +18,11 @@ from VALIDATORS.novelty import (
     evaluate_novelty,
     variation_precheck_source_hash,
 )
+from VALIDATORS.presentation_validation import (
+    validate_presentation_design,
+    validate_production_presentation,
+    validate_script_integrity_v2,
+)
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
     validate_reference_collision,
@@ -446,11 +451,12 @@ def validate_reference_gate(
 def production_text_issues(
     artifacts: Mapping[str, ArtifactContent],
 ) -> list[ValidationIssue]:
-    """네 가지 Production 인계 문서가 실제 내용을 갖는지 검사한다."""
+    """다섯 가지 Production 인계 문서가 실제 내용을 갖는지 검사한다."""
     issues: list[ValidationIssue] = []
     for artifact_name in (
         "shooting_script",
         "narration",
+        "production_panel_reaction_script",
         "subtitle_script",
         "edit_script",
     ):
@@ -477,6 +483,7 @@ def run_production_validation(
     channel: Mapping[str, object],
     story_schema: Mapping[str, object],
     fingerprint_schema: Mapping[str, object],
+    presentation_schemas: Mapping[str, Mapping[str, object]],
     reference_policy: Mapping[str, object],
     novelty_thresholds: Mapping[str, object],
     story_history: Sequence[Mapping[str, object]],
@@ -507,7 +514,12 @@ def run_production_validation(
     beat_sheet = artifact_document(artifacts, "beat_sheet")
     retention_plan = artifact_document(artifacts, "retention_plan")
     scene_cards = artifact_document(artifacts, "scene_cards")
+    panel_cast = artifact_document(artifacts, "panel_cast")
+    reaction_segments = artifact_document(artifacts, "reaction_segments")
     presentation_plan = artifact_document(artifacts, "presentation_plan")
+    drama_script = artifact_text(artifacts, "drama_script")
+    narration_script = artifact_text(artifacts, "narration_script")
+    panel_reaction_script = artifact_text(artifacts, "panel_reaction_script")
     draft_script = artifact_text(artifacts, "draft_script")
     final_script = artifact_text(artifacts, "final_script")
     project_id = production_config.get("project_id")
@@ -612,38 +624,46 @@ def run_production_validation(
     ]
     gate_07 = [
         *nonempty_list_issues(scene_cards, "scenes", "06_SCENE/scene_cards.json"),
-        *nonempty_list_issues(
+        *schema_issues(
+            panel_cast,
+            presentation_schemas["panel_cast"],
+            "06_SCENE/panel_cast.json",
+        ),
+        *schema_issues(
+            reaction_segments,
+            presentation_schemas["reaction_segments"],
+            "06_SCENE/reaction_segments.json",
+        ),
+        *schema_issues(
             presentation_plan,
-            "scene_presentations",
+            presentation_schemas["presentation_plan"],
             "06_SCENE/presentation_plan.json",
         ),
-    ]
-    gate_08 = [
-        *(
-            []
-            if draft_script.strip()
-            else [
-                make_pipeline_issue(
-                    "DRAFT_SCRIPT_EMPTY",
-                    "Draft Script가 비어 있습니다.",
-                    "07_SCRIPT/draft_v01.md",
-                    {},
-                )
-            ]
-        ),
-        *(
-            []
-            if final_script.strip()
-            else [
-                make_pipeline_issue(
-                    "FINAL_SCRIPT_EMPTY",
-                    "Final Script가 비어 있습니다.",
-                    "07_SCRIPT/final_script.md",
-                    {},
-                )
-            ]
+        *validate_presentation_design(
+            panel_cast,
+            reaction_segments,
+            presentation_plan,
+            scene_cards,
+            viewer_timeline,
+            facts,
+            clue_matrix,
+            channel,
+            production_config,
         ),
     ]
+    gate_08 = validate_script_integrity_v2(
+        presentation_plan,
+        reaction_segments,
+        scene_cards,
+        viewer_timeline,
+        audience_belief,
+        actual_timeline,
+        drama_script,
+        narration_script,
+        panel_reaction_script,
+        draft_script,
+        final_script,
+    )
     continuity_report = validate_continuity(
         production_config,
         characters,
@@ -701,7 +721,15 @@ def run_production_validation(
         production_config,
         presentation_plan,
     )
-    gate_13 = production_text_issues(artifacts)
+    gate_13 = [
+        *production_text_issues(artifacts),
+        *validate_production_presentation(
+            presentation_plan,
+            reaction_segments,
+            artifact_text(artifacts, "production_panel_reaction_script"),
+            artifact_text(artifacts, "edit_script"),
+        ),
+    ]
     gate_groups = (
         gate_00,
         gate_01,

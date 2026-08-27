@@ -95,13 +95,13 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "reveals"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "reveals": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["reveal_id", "scene_id"], "properties": {"reveal_id": {"$ref": "#/$defs/canonicalId"}, "scene_id": {"$ref": "#/$defs/canonicalId"}, "fact_id": {"$ref": "#/$defs/canonicalId"}}}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "reveals": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["reveal_id", "fact_id"], "properties": {"reveal_id": {"$ref": "#/$defs/canonicalId"}, "scene_id": {"$ref": "#/$defs/canonicalId"}, "scene_order": {"type": "integer", "minimum": 1}, "fact_id": {"$ref": "#/$defs/canonicalId"}, "information": {"type": "string"}, "effect": {"type": "string"}}, "anyOf": [{"required": ["scene_id"]}, {"required": ["scene_order"]}]}}}
     },
     "audienceBelief": {
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "belief_states"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "belief_states": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["scene_id", "belief"], "properties": {"scene_id": {"$ref": "#/$defs/canonicalId"}, "belief": {"$ref": "#/$defs/nonEmptyString"}}}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "belief_states": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["belief", "confidence", "known_fact_ids", "active_hypothesis_ids"], "properties": {"scene_id": {"$ref": "#/$defs/canonicalId"}, "scene_order": {"type": "integer", "minimum": 1}, "belief": {"$ref": "#/$defs/nonEmptyString"}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}, "known_fact_ids": {"$ref": "#/$defs/stringList"}, "active_hypothesis_ids": {"$ref": "#/$defs/stringList"}}, "anyOf": [{"required": ["scene_id"]}, {"required": ["scene_order"]}]}}}
     },
     "clueMatrix": {
       "type": "object",
@@ -136,8 +136,14 @@
     "presentationPlan": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["project_id", "modes", "reaction_ratio", "scene_presentations"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "modes": {"$ref": "#/$defs/nonEmptyStringList"}, "reaction_ratio": {"type": "number", "minimum": 0, "maximum": 1}, "scene_presentations": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["scene_id", "mode"], "properties": {"scene_id": {"$ref": "#/$defs/canonicalId"}, "mode": {"$ref": "#/$defs/nonEmptyString"}}}}}
+      "required": ["schema_family", "schema_version", "project_id", "modes", "segments"],
+      "properties": {
+        "schema_family": {"const": "presentation-plan"},
+        "schema_version": {"const": "2.0.0"},
+        "project_id": {"$ref": "#/$defs/projectId"},
+        "modes": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"enum": ["DRAMA", "NARRATION", "PANEL_REACTION", "AUDIENCE_PROMPT"]}},
+        "segments": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["segment_id", "segment_type", "scene_id", "start_sec", "duration_sec", "source_artifact", "revealed_fact_ids", "revealed_clue_ids"], "properties": {"segment_id": {"type": "string", "pattern": "^SEG-[0-9]{3,}$"}, "segment_type": {"enum": ["DRAMA", "NARRATION", "PANEL_REACTION", "AUDIENCE_PROMPT"]}, "scene_id": {"$ref": "#/$defs/canonicalId"}, "reaction_segment_id": {"type": "string", "pattern": "^RSEG-[0-9]{3,}$"}, "start_sec": {"type": "number", "minimum": 0}, "duration_sec": {"type": "number", "exclusiveMinimum": 0}, "source_artifact": {"enum": ["drama_script", "narration_script", "panel_reaction_script"]}, "revealed_fact_ids": {"$ref": "#/$defs/stringList"}, "revealed_clue_ids": {"$ref": "#/$defs/stringList"}}}}
+      }
     },
     "issue": {
       "type": "object",

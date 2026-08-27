@@ -18,8 +18,12 @@ def make_project_inputs() -> tuple[dict[str, object], dict[str, object], dict[st
         "tones": ["GROUNDED", "SUSPENSEFUL"],
     }
     presentation: dict[str, object] = {
-        "modes": ["DRAMA", "NARRATION", "REACTION"],
-        "reaction_ratio": 0.2,
+        "modes": ["DRAMA", "NARRATION", "PANEL_REACTION"],
+        "segments": [
+            {"segment_type": "DRAMA", "duration_sec": 60},
+            {"segment_type": "NARRATION", "duration_sec": 20},
+            {"segment_type": "PANEL_REACTION", "duration_sec": 20},
+        ],
     }
     return story, production, presentation
 
@@ -45,7 +49,10 @@ def test_genre_tone_and_presentation_violations_fail() -> None:
     production["genre"] = "ROMANCE"
     production["tones"] = ["COMEDIC"]
     presentation["modes"] = ["DRAMA"]
-    presentation["reaction_ratio"] = 0.8
+    presentation["segments"] = [
+        {"segment_type": "DRAMA", "duration_sec": 20},
+        {"segment_type": "PANEL_REACTION", "duration_sec": 80},
+    ]
 
     issues = validate_channel_consistency(
         changed_channel,
@@ -59,5 +66,5 @@ def test_genre_tone_and_presentation_violations_fail() -> None:
         "CHANNEL_GENRE_VIOLATION",
         "CHANNEL_TONE_VIOLATION",
         "CHANNEL_PRESENTATION_VIOLATION",
-        "CHANNEL_REACTION_RATIO_VIOLATION",
+        "PANEL_REACTION_RATIO_OUT_OF_RANGE",
     }
