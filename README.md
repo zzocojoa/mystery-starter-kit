@@ -18,7 +18,7 @@ python -m venv .venv
 .venv/bin/mystery-runtime run PROJECTS/PRJ-002 --to GATE-13
 ```
 
-기본 Provider는 외부 API를 호출하지 않는 결정론적 `fake` Adapter다. 따라서 위 Golden Path는 새 Project의 14개 Gate, Staging, Schema 검증, 원자 Commit, Provenance를 로컬과 CI에서 재현한다. 실제 모델은 `RUNTIME/contracts/provider_registry.json`과 `model_routes.json`만 바꾸고 공통 In-process 또는 Sidecar Adapter를 연결한다.
+기본 Provider는 외부 API를 호출하지 않는 결정론적 `fake` Adapter다. 따라서 위 Golden Path는 새 Project의 14개 Gate, Staging, Schema 검증, 원자 Commit, Provenance를 로컬과 CI에서 재현한다. 실제 모델용 `openai-responses` In-process Plugin도 포함되어 있으며 기본값은 비활성화다. `OPENAI_API_KEY`를 환경 변수로 주입하고 `RUNTIME/contracts/provider_registry.json`의 `openai.enabled`만 `true`로 바꾸면 우선 Route의 `gpt-5.4-mini`를 사용한다. Secret 값은 저장소 파일에 기록하지 않는다.
 
 중단된 Run은 Run ID로 조회·승인·재개하거나 취소할 수 있다.
 
@@ -89,7 +89,7 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 - `TEMPLATES/PROJECT/`: `00_PROJECT`~`09_PRODUCTION` Scaffold
 - `VALIDATORS/`: CLI, 상태 머신, Pipeline과 QA Engine
 - `RUNTIME/`: Provider 독립 실행 엔진, 계약, Schema, Adapter, 보안 경계
-- `RUNTIME_ADAPTERS/`: In-process·Sidecar Provider 구현 가이드
+- `RUNTIME_ADAPTERS/`: OpenAI Responses API Plugin과 In-process·Sidecar Provider 구현 가이드
 - `STORY_LIBRARY/`: Production Ready Story/Causal Fingerprint History
 - `tests/`: 정상·실패·경계·Disk E2E 자동 검증
 
@@ -99,7 +99,7 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 
 ```bash
 .venv/bin/python -m pytest
-.venv/bin/mypy VALIDATORS RUNTIME tests
+.venv/bin/mypy VALIDATORS RUNTIME RUNTIME_ADAPTERS tests
 .venv/bin/ruff check .
 .venv/bin/python -m build
 .venv/bin/python -m pip_audit

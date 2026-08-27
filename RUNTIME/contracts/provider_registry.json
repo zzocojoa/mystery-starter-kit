@@ -3,6 +3,16 @@
   "schema_family": "provider-registry",
   "schema_version": "1.0.0",
   "providers": {
+    "openai": {
+      "adapter_type": "IN_PROCESS_PLUGIN",
+      "adapter_entry_point": "openai-responses",
+      "enabled": false,
+      "credential_env": "OPENAI_API_KEY",
+      "endpoint": null,
+      "data_policy": {
+        "allowed_classes": ["PUBLIC", "INTERNAL", "REFERENCE_SANITIZED"]
+      }
+    },
     "fake": {
       "adapter_type": "IN_PROCESS_PLUGIN",
       "adapter_entry_point": "builtin:fake",

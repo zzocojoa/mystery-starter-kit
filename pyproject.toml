@@ -26,8 +26,18 @@ mystery-compat = "VALIDATORS.cli:main"
 mystery-kit = "VALIDATORS.production_cli:main"
 mystery-runtime = "RUNTIME.cli:main"
 
+[project.entry-points."mystery_runtime.providers"]
+openai-responses = "RUNTIME_ADAPTERS.openai_responses:create_provider"
+
 [tool.setuptools]
-packages = ["VALIDATORS", "RUNTIME", "RUNTIME.providers", "RUNTIME.tools"]
+packages = [
+  "VALIDATORS",
+  "RUNTIME",
+  "RUNTIME.providers",
+  "RUNTIME.tools",
+  "RUNTIME_ADAPTERS",
+  "RUNTIME_ADAPTERS.openai_responses",
+]
 include-package-data = false
 
 [tool.setuptools.package-data]
@@ -40,7 +50,7 @@ testpaths = ["tests"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
-packages = ["VALIDATORS", "RUNTIME"]
+packages = ["VALIDATORS", "RUNTIME", "RUNTIME_ADAPTERS"]
 
 [tool.ruff]
 line-length = 100
