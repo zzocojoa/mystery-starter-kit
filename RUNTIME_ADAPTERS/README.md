@@ -1,5 +1,7 @@
 # Runtime Provider Adapter Guide
 
+현재 배포 구성은 Built-in FakeProvider만 사용한다. 이 문서는 Provider-independent Runtime의 선택적 확장 경계를 정의하며, Codex App 중심 작품 제작에 외부 Provider 구현을 요구하지 않는다.
+
 ## 공통 Interface
 
 Provider Adapter는 `RUNTIME.models.LLMProvider` Protocol을 구현하고 Vendor SDK 객체를 Runtime Core로 노출하지 않는다.
@@ -49,19 +51,4 @@ Sidecar는 Request ID를 Response에 그대로 보존한다. HTTP 429, 408/504, 
 }
 ```
 
-실제 Secret 값은 JSON에 넣지 않는다. 등록 후 `mystery-runtime providers`와 `mystery-runtime doctor`로 Descriptor, Health, Credential 참조, Data Policy를 검증한다. 새 Adapter는 In-process 또는 Sidecar Conformance Test를 추가해야 한다.
-
-## OpenAI Responses Plugin
-
-`openai-responses` Entry Point는 Python 표준 HTTP Client만 사용해 [OpenAI Responses API](https://developers.openai.com/api/reference/resources/responses/methods/create)를 호출한다. Runtime Core에는 Vendor SDK 객체나 OpenAI 전용 요청 형식을 노출하지 않는다. Text, JSON Object, JSON Schema Output, System Message, Usage Reporting만 Capability로 선언하며 Tool Calling, Streaming, Cancellation은 구현하지 않는다.
-
-기본 Registry의 `openai` 정의는 비활성화되어 Fake Provider Golden Path를 바꾸지 않는다. 실제 연결 시 Secret을 파일에 쓰지 말고 Process 환경에만 주입한 뒤 정의를 활성화한다.
-
-```bash
-export OPENAI_API_KEY='...'
-# RUNTIME/contracts/provider_registry.json에서 openai.enabled를 true로 변경한다.
-.venv/bin/mystery-runtime doctor
-.venv/bin/mystery-runtime providers
-```
-
-기본 Route는 Responses API와 Structured Outputs를 지원하는 [`gpt-5.4-mini`](https://developers.openai.com/api/docs/models/gpt-5.4-mini)다. HTTP 429, 408/504, 409, 5xx와 연결 오류는 Runtime 재시도가 가능한 공통 오류로 정규화한다. 인증·권한·그 밖의 4xx, 잘못된 응답 JSON, 거부 응답은 재시도하지 않는다.
+실제 Secret 값은 JSON에 넣지 않는다. 등록 후 `mystery-runtime providers`와 `mystery-runtime doctor`로 Descriptor, Health, Credential 참조, Data Policy를 검증한다. 새 Adapter는 별도 변경으로 도입하고 In-process 또는 Sidecar Conformance Test를 추가해야 한다.

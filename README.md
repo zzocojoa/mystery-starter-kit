@@ -4,7 +4,13 @@
 
 Channel의 정체성을 유지하면서 Story 구조와 인과를 반복하지 않도록 설계한 미스터리 제작 Starter Kit다. Compatibility Negotiation, Full Story DNA, 10개 Agent Contract, Provider 독립 LLM Agent Runtime v1.0, Artifact Dependency Invalidation, Continuity/Causal/Novelty/Reference/Channel QA, 14개 Production Gate를 실행 코드로 제공한다.
 
-## 빠른 시작
+## Codex App 운영 모드
+
+실제 작품 제작의 기본 실행자는 저장소 내부 Provider가 아니라 Codex App이다. [공식 데스크톱 앱 안내](https://learn.chatgpt.com/docs/app)에 따라 ChatGPT 계정으로 로그인하고 이 저장소 폴더를 연다. Codex는 [공식 AGENTS.md 동작](https://learn.chatgpt.com/docs/agent-configuration/agents-md)에 따라 루트 `AGENTS.md`를 Project Context로 읽고, `AGENTS/manifest.json`의 역할·권한과 Artifact Schema에 맞춰 Project 파일을 작성한다.
+
+저장소에는 API Key나 외부 LLM Provider 설정이 필요하지 않다. App의 계정 인증과 저장소의 Runtime Provider는 별도 경계다.
+
+### 1. 저장소 준비
 
 ```bash
 python -m venv .venv
@@ -14,16 +20,45 @@ python -m venv .venv
 # 아래 명령은 저장소 Root에서 실행한다.
 .venv/bin/mystery-kit init PRJ-002
 .venv/bin/mystery-runtime doctor
-.venv/bin/mystery-runtime plan PROJECTS/PRJ-002
-.venv/bin/mystery-runtime run PROJECTS/PRJ-002 --to GATE-13
 ```
 
-기본 Provider는 외부 API를 호출하지 않는 결정론적 `fake` Adapter다. 따라서 위 Golden Path는 새 Project의 14개 Gate, Staging, Schema 검증, 원자 Commit, Provenance를 로컬과 CI에서 재현한다. 실제 모델용 `openai-responses` In-process Plugin도 포함되어 있으며 기본값은 비활성화다. `OPENAI_API_KEY`를 환경 변수로 주입하고 `RUNTIME/contracts/provider_registry.json`의 `openai.enabled`만 `true`로 바꾸면 우선 Route의 `gpt-5.4-mini`를 사용한다. Secret 값은 저장소 파일에 기록하지 않는다.
+### 2. Codex에 제작 요청
+
+Codex App에서 다음 범위가 명확한 요청으로 시작한다.
+
+```text
+루트 AGENTS.md와 저장소 Contract, Schema를 먼저 읽어라.
+PROJECTS/PRJ-002의 현재 Gate부터 다음 Gate까지 필요한 Artifact를 작성하라.
+Agent Manifest의 reads와 writes를 확장하지 말고, Project State는 직접 수정하지 마라.
+작성 후 관련 Validator를 실행하고 실패 원인을 수정하라.
+```
+
+Codex가 `01_CASE`부터 `09_PRODUCTION`까지 Artifact를 순차적으로 작성하더라도, 모든 결과는 Validator가 통과하기 전까지 후보 상태다.
+
+### 3. 전체 Gate 검증과 등록
+
+```bash
+.venv/bin/mystery-kit validate PROJECTS/PRJ-002
+.venv/bin/mystery-kit register PROJECTS/PRJ-002
+```
+
+`validate`는 `08_QA`의 개별 보고서와 통합 보고서, `00_PROJECT/project_state.json`, Change Log를 갱신한다. `register`는 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 `PASS=0`, Gate 실패 `=1`, 입력·구성 오류 `=2`다.
+
+## Runtime Core 회귀 모드
+
+Built-in `fake` Adapter는 외부 서비스를 호출하지 않는 결정론적 Test Double이다. `mystery-runtime`의 14개 Gate, Staging, Schema 검증, 원자 Commit, Provenance를 로컬과 CI에서 재현하지만 실제 Story·Character·Script를 제작하는 용도가 아니다.
+
+격리된 Test Project에서만 다음 Golden Path를 사용한다.
+
+```bash
+.venv/bin/mystery-runtime plan PROJECTS/PRJ-RUNTIME-TEST
+.venv/bin/mystery-runtime run PROJECTS/PRJ-RUNTIME-TEST --to GATE-13
+```
 
 중단된 Run은 Run ID로 조회·승인·재개하거나 취소할 수 있다.
 
 ```bash
-.venv/bin/mystery-runtime status PROJECTS/PRJ-002
+.venv/bin/mystery-runtime status PROJECTS/PRJ-RUNTIME-TEST
 .venv/bin/mystery-runtime approve RUN-... variation.generate \
   --actor reviewer@example.com \
   --reason "후보 구조와 신규성을 검토함"
@@ -34,7 +69,7 @@ python -m venv .venv
 
 Runtime 종료 코드는 성공 `0`, Runtime·입력·구성 오류 `2`다. Gate 또는 Provider 실패는 구조화 오류로 `run.json`과 `events.jsonl`에 남고 Canonical Artifact는 마지막 통과 Gate 상태를 유지한다.
 
-기존 수동 제작 흐름도 유지한다.
+Codex App이 필요에 따라 호출할 수 있는 결정론적 제작 보조 명령도 유지한다.
 
 ```bash
 .venv/bin/mystery-kit compat PROJECTS/PRJ-002
@@ -50,15 +85,6 @@ Reference 기반 Project는 후보 생성 전에 원문 JSON을 Project 밖에 �
 ```bash
 .venv/bin/mystery-kit reference-profile PROJECTS/PRJ-002 /secure/reference-source.json
 ```
-
-승인 후보를 바탕으로 `01_CASE`부터 `09_PRODUCTION`까지 Artifact를 작성한 뒤 전체 Gate를 실행한다.
-
-```bash
-.venv/bin/mystery-kit validate PROJECTS/PRJ-002
-.venv/bin/mystery-kit register PROJECTS/PRJ-002
-```
-
-`validate`는 `08_QA`의 개별 보고서와 통합 보고서, `00_PROJECT/project_state.json`, Change Log를 갱신한다. `register`는 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 `PASS=0`, Gate 실패 `=1`, 입력·구성 오류 `=2`다.
 
 `compat`는 Project ID가 포함된 Compatibility Report를 만들고 `GATE-00`을 통과시킨다. Compatibility와 `GATE-00`이 모두 PASS가 아니면 `variations`는 실행되지 않는다.
 
@@ -89,7 +115,7 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 - `TEMPLATES/PROJECT/`: `00_PROJECT`~`09_PRODUCTION` Scaffold
 - `VALIDATORS/`: CLI, 상태 머신, Pipeline과 QA Engine
 - `RUNTIME/`: Provider 독립 실행 엔진, 계약, Schema, Adapter, 보안 경계
-- `RUNTIME_ADAPTERS/`: OpenAI Responses API Plugin과 In-process·Sidecar Provider 구현 가이드
+- `RUNTIME_ADAPTERS/`: 선택적 In-process·Sidecar Provider 확장 Interface 가이드
 - `STORY_LIBRARY/`: Production Ready Story/Causal Fingerprint History
 - `tests/`: 정상·실패·경계·Disk E2E 자동 검증
 

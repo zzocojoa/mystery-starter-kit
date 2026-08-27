@@ -36,19 +36,45 @@ def test_runtime_has_no_provider_sdk_imports() -> None:
     """Provider 독립 Core와 Adapter 패키지는 특정 Vendor SDK를 직접 Import하지 않는다."""
     forbidden_roots = {"anthropic", "boto3", "cohere", "google", "openai", "vertexai"}
     violations: list[str] = []
-    for source_path in sorted((ROOT / "RUNTIME").rglob("*.py")):
-        tree = ast.parse(source_path.read_text(encoding="utf-8"), filename=str(source_path))
-        for node in ast.walk(tree):
-            imported: list[str] = []
-            if isinstance(node, ast.Import):
-                imported = [alias.name for alias in node.names]
-            elif isinstance(node, ast.ImportFrom) and node.module is not None:
-                imported = [node.module]
-            for module_name in imported:
-                if module_name.split(".", maxsplit=1)[0] in forbidden_roots:
-                    violations.append(f"{source_path}:{module_name}")
+    source_roots = (ROOT / "RUNTIME", ROOT / "RUNTIME_ADAPTERS")
+    for source_root in source_roots:
+        for source_path in sorted(source_root.rglob("*.py")):
+            tree = ast.parse(source_path.read_text(encoding="utf-8"), filename=str(source_path))
+            for node in ast.walk(tree):
+                imported: list[str] = []
+                if isinstance(node, ast.Import):
+                    imported = [alias.name for alias in node.names]
+                elif isinstance(node, ast.ImportFrom) and node.module is not None:
+                    imported = [node.module]
+                for module_name in imported:
+                    if module_name.split(".", maxsplit=1)[0] in forbidden_roots:
+                        violations.append(f"{source_path}:{module_name}")
 
     assert violations == []
+
+
+def test_default_distribution_routes_only_to_fake_provider() -> None:
+    """기본 배포는 외부 Credential이나 Vendor Route 없이 FakeProvider만 사용한다."""
+    registry = load_provider_registry(ROOT)
+    providers = registry.get("providers")
+    assert isinstance(providers, dict)
+    assert set(providers) == {"fake"}
+
+    model_routes = load_model_routes(ROOT)
+    profiles = model_routes.get("profiles")
+    assert isinstance(profiles, dict)
+    route_provider_ids: set[str] = set()
+    for profile in profiles.values():
+        assert isinstance(profile, dict)
+        routes = profile.get("routes")
+        assert isinstance(routes, list)
+        for route in routes:
+            assert isinstance(route, dict)
+            provider_id = route.get("provider_id")
+            assert isinstance(provider_id, str)
+            route_provider_ids.add(provider_id)
+
+    assert route_provider_ids == {"fake"}
 
 
 def test_context_builder_rejects_example_resources(tmp_path: Path) -> None:

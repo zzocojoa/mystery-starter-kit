@@ -2,6 +2,16 @@
 
 이 저장소에서 작업하는 Agent는 긴 대화 Prompt보다 저장소의 Version 관리 파일을 단일 진실 공급원으로 사용한다.
 
+## 기본 운영 모드
+
+Codex App은 저장소 내부 `LLMProvider`가 아니라 저장소를 직접 다루는 상위 제작 Agent다. ChatGPT 계정으로 App에 로그인하고 이 저장소 폴더를 연 뒤, 이 파일과 Agent Manifest, Runtime Task, Artifact Schema를 읽어 Project Artifact 후보를 작성한다.
+
+- Codex는 Agent Manifest의 역할과 reads, writes, gates를 순서대로 지킨다.
+- Codex는 Project State나 Gate 결과를 직접 PASS로 바꾸지 않는다. Artifact 작성 후 `mystery-kit validate`가 판정한다.
+- Production Ready 등록은 전체 검증 후 `mystery-kit register`로만 수행한다.
+- 저장소의 실제 작품 제작에는 API Key나 외부 LLM Provider 구성이 필요하지 않다.
+- Built-in FakeProvider는 Runtime 회귀 테스트와 Golden Path 검증 전용이며 실제 작품 생성기로 사용하지 않는다.
+
 ## 진실 공급원
 
 충돌이 없도록 다음 순서로 계약을 읽는다.
@@ -22,7 +32,7 @@
 
 - Runtime Core는 Provider에 독립적이어야 하며 Vendor SDK 객체를 노출하지 않는다.
 - Provider Adapter는 공통 `LLMRequest`와 `LLMResponse`만 사용하고 Credential 값, Project State, Gate 상태, Canonical Artifact를 읽거나 쓰지 않는다.
-- LLM 결과는 후보 데이터다. Output Gateway의 소유권·Schema 검증과 Gate Validator를 모두 통과한 Staging Overlay만 원자적으로 Commit한다.
+- Runtime Provider의 LLM 결과는 후보 데이터다. Output Gateway의 소유권·Schema 검증과 Gate Validator를 모두 통과한 Staging Overlay만 원자적으로 Commit한다.
 - Project State와 Runtime Run State를 분리한다. 실행 실패나 재시도 중에는 마지막 통과 Gate의 Canonical Artifact를 유지한다.
 - Agent Manifest는 최대 권한, Runtime Task는 최소 권한이다. Task가 Agent의 reads, writes, gates, tools를 확장해서는 안 된다.
 - `REFERENCE_RAW`, `EXAMPLES/`, 허용 Data Class 밖의 정보는 Provider로 전송하지 않는다.

@@ -26,9 +26,6 @@ mystery-compat = "VALIDATORS.cli:main"
 mystery-kit = "VALIDATORS.production_cli:main"
 mystery-runtime = "RUNTIME.cli:main"
 
-[project.entry-points."mystery_runtime.providers"]
-openai-responses = "RUNTIME_ADAPTERS.openai_responses:create_provider"
-
 [tool.setuptools]
 packages = [
   "VALIDATORS",
@@ -36,7 +33,6 @@ packages = [
   "RUNTIME.providers",
   "RUNTIME.tools",
   "RUNTIME_ADAPTERS",
-  "RUNTIME_ADAPTERS.openai_responses",
 ]
 include-package-data = false
 
