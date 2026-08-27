@@ -10,3 +10,4 @@
 {"occurred_at": "2026-08-27T14:12:00.283366Z", "event": "PRODUCTION_VALIDATED", "detail": {"result": "FAIL", "state": "BLOCKED"}}
 {"occurred_at": "2026-08-27T14:12:48.135338Z", "event": "PRODUCTION_VALIDATED", "detail": {"result": "FAIL", "state": "BLOCKED"}}
 {"occurred_at": "2026-08-27T14:12:58.030344Z", "event": "PRODUCTION_VALIDATED", "detail": {"result": "PASS", "state": "PRODUCTION_READY"}}
+{"occurred_at": "2026-08-27T16:23:40.888887Z", "event": "PRESENTATION_MIGRATION_REQUIRED", "detail": {"schema_version": "2.0.0", "resume_from_gate": "GATE-05"}}
