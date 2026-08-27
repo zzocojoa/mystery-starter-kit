@@ -1,0 +1,12 @@
+
+{"occurred_at": "2026-08-27T08:30:23Z", "event": "PROJECT_INITIALIZED", "detail": {"project_id": "PRJ-001"}}
+{"occurred_at": "2026-08-27T08:30:35.326143Z", "event": "PROJECT_COMPATIBILITY_EVALUATED", "detail": {"compatibility": "PASS", "error_count": 0, "current_gate": "GATE-00"}}
+{"occurred_at": "2026-08-27T08:30:35.446205Z", "event": "VARIATIONS_GENERATED", "detail": {"candidate_count": 5}}
+{"occurred_at": "2026-08-27T08:30:56.566375Z", "event": "VARIATION_APPROVED", "detail": {"candidate_id": "VAR-02"}}
+{"occurred_at": "2026-08-27T08:30:56.683983Z", "event": "VARIATION_NOVELTY_PRECHECKED", "detail": {"result": "PASS"}}
+{"occurred_at": "2026-08-27T08:41:56.971958Z", "event": "PRODUCTION_VALIDATED", "detail": {"result": "PASS", "state": "PRODUCTION_READY"}}
+{"occurred_at": "2026-08-27T08:42:10.283262Z", "event": "STORY_LIBRARY_REGISTERED", "detail": {"library": "/Users/beatlefeed/Documents/ChatGPT/유튜브_V2/STORY_LIBRARY/story_fingerprints.json"}}
+{"occurred_at": "2026-08-27T14:10:28.563775Z", "event": "PRODUCTION_VALIDATED", "detail": {"result": "FAIL", "state": "BLOCKED"}}
+{"occurred_at": "2026-08-27T14:12:00.283366Z", "event": "PRODUCTION_VALIDATED", "detail": {"result": "FAIL", "state": "BLOCKED"}}
+{"occurred_at": "2026-08-27T14:12:48.135338Z", "event": "PRODUCTION_VALIDATED", "detail": {"result": "FAIL", "state": "BLOCKED"}}
+{"occurred_at": "2026-08-27T14:12:58.030344Z", "event": "PRODUCTION_VALIDATED", "detail": {"result": "PASS", "state": "PRODUCTION_READY"}}

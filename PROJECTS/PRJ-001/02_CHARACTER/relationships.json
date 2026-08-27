@@ -1,0 +1,33 @@
+{
+  "project_id": "PRJ-001",
+  "relationships": [
+    {
+      "relationship_id": "REL-01",
+      "from": "CHAR-01",
+      "to": "CHAR-02",
+      "engine": "DEPENDENCY",
+      "description": "윤서하는 한준호의 센서 지식에, 한준호는 윤서하의 구조 결정에 의존한다."
+    },
+    {
+      "relationship_id": "REL-02",
+      "from": "CHAR-01",
+      "to": "CHAR-03",
+      "engine": "AUTHORITY_TO_MUTUAL_RELIANCE",
+      "description": "윤서하는 오미라의 비공식 기억을 의심하지만 결국 공식 데이터와 결합한다."
+    },
+    {
+      "relationship_id": "REL-03",
+      "from": "CHAR-01",
+      "to": "CHAR-04",
+      "engine": "COMMAND_TRUST",
+      "description": "원격 지휘와 현장 판단의 긴장이 구조 과정에서 상호 신뢰로 바뀐다."
+    },
+    {
+      "relationship_id": "REL-04",
+      "from": "CHAR-03",
+      "to": "CHAR-02",
+      "engine": "PROTECTIVE_MEMORY",
+      "description": "오미라는 한준호에게 건물의 옛 배관 신호를 알려 준 기억으로 위치를 추론한다."
+    }
+  ]
+}

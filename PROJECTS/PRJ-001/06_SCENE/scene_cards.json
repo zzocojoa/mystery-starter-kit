@@ -1,0 +1,134 @@
+{
+  "project_id": "PRJ-001",
+  "scenes": [
+    {
+      "scene_id": "SCN-01",
+      "order": 1,
+      "beat_id": "BEAT-01",
+      "title": "마지막 무전",
+      "location_id": "LOC-DISASTER-CONTROL",
+      "estimated_seconds": 180,
+      "objective": "21시 49분 마지막 무전과 빈 중계실을 제시한다.",
+      "conflict": "윤서하는 표시 시각을 실제 사건 시각으로 단정한다.",
+      "turn": "한준호 시점에서 방화문이 닫히는 소리만 들린다.",
+      "clue_ids": ["CLUE-01"],
+      "knowledge_claims": [
+        {"character_id": "CHAR-01", "fact_id": "FACT-01"},
+        {"character_id": "CHAR-02", "fact_id": "FACT-03"}
+      ]
+    },
+    {
+      "scene_id": "SCN-02",
+      "order": 2,
+      "beat_id": "BEAT-02",
+      "title": "두 개의 수색",
+      "location_id": "LOC-GUESTHOUSE-EXTERIOR",
+      "estimated_seconds": 180,
+      "objective": "방파제와 건물 내부의 이중 조사를 시작한다.",
+      "conflict": "박대식은 장화 자국을, 오미라는 지하 방화문을 우선하라고 주장한다.",
+      "turn": "윤서하는 공식 흔적을 따라 방파제 수색을 승인한다.",
+      "clue_ids": ["CLUE-02"],
+      "knowledge_claims": [
+        {"character_id": "CHAR-04", "fact_id": "FACT-07"},
+        {"character_id": "CHAR-03", "fact_id": "FACT-03"}
+      ]
+    },
+    {
+      "scene_id": "SCN-03",
+      "order": 3,
+      "beat_id": "BEAT-03",
+      "title": "죽지 않은 펄스",
+      "location_id": "LOC-GUESTHOUSE-OFFICE",
+      "estimated_seconds": 180,
+      "objective": "통신 두절 뒤의 센서 신호를 발견한다.",
+      "conflict": "윤서하는 센서 오류로, 오미라는 사람이 만든 신호로 본다.",
+      "turn": "펄스 간격이 반복되며 단순 접점 오류 가능성이 낮아진다.",
+      "clue_ids": ["CLUE-03"],
+      "knowledge_claims": [
+        {"character_id": "CHAR-01", "fact_id": "FACT-04"},
+        {"character_id": "CHAR-03", "fact_id": "FACT-05"}
+      ]
+    },
+    {
+      "scene_id": "SCN-04",
+      "order": 4,
+      "beat_id": "BEAT-04",
+      "title": "8분의 거짓말",
+      "location_id": "LOC-DISASTER-CONTROL",
+      "estimated_seconds": 180,
+      "objective": "표시 시각과 패킷 생성 시각의 차이를 확인한다.",
+      "conflict": "윤서하는 자신의 최초 판단이 수색을 잘못 이끌었음을 인정해야 한다.",
+      "turn": "마지막 무전은 정전 이전에 만들어졌고 한준호가 밖으로 나갔다는 증거가 사라진다.",
+      "clue_ids": ["CLUE-01"],
+      "knowledge_claims": [
+        {"character_id": "CHAR-01", "fact_id": "FACT-02"},
+        {"character_id": "CHAR-03", "fact_id": "FACT-03"}
+      ]
+    },
+    {
+      "scene_id": "SCN-05",
+      "order": 5,
+      "beat_id": "BEAT-05",
+      "title": "건물 안의 대답",
+      "location_id": "LOC-BOILER-ROOM",
+      "estimated_seconds": 180,
+      "objective": "가설을 방파제 실종에서 지하 갇힘으로 바꾼다.",
+      "conflict": "박대식의 흔적 해석과 오미라의 건물 기억이 충돌한다.",
+      "turn": "장화 자국의 주인이 박대식으로 확인되는 순간 통기관에서 규칙적 타격음이 들린다.",
+      "clue_ids": ["CLUE-02", "CLUE-03", "CLUE-04"],
+      "knowledge_claims": [
+        {"character_id": "CHAR-01", "fact_id": "FACT-02"},
+        {"character_id": "CHAR-01", "fact_id": "FACT-05"},
+        {"character_id": "CHAR-03", "fact_id": "FACT-06"}
+      ]
+    },
+    {
+      "scene_id": "SCN-06",
+      "order": 6,
+      "beat_id": "BEAT-06",
+      "title": "해일 4분 전",
+      "location_id": "LOC-BOILER-ROOM",
+      "estimated_seconds": 180,
+      "objective": "구조팀이 저류조 점검 해치에 접근한다.",
+      "conflict": "부식된 해치와 상승하는 수위가 진입을 늦춘다.",
+      "turn": "박대식이 통기관 방향으로 구조 위치를 확정한다.",
+      "clue_ids": ["CLUE-04"],
+      "knowledge_claims": [
+        {"character_id": "CHAR-04", "fact_id": "FACT-05"},
+        {"character_id": "CHAR-04", "fact_id": "FACT-06"}
+      ]
+    },
+    {
+      "scene_id": "SCN-07",
+      "order": 7,
+      "beat_id": "BEAT-07",
+      "title": "사라지지 않은 사람",
+      "location_id": "LOC-CISTERN-CHAMBER",
+      "estimated_seconds": 180,
+      "objective": "한준호를 구조하고 모든 핵심 단서를 회수한다.",
+      "conflict": "문을 연 뒤에도 급류와 정전이 탈출을 막는다.",
+      "turn": "한준호가 자신이 우량계와 배관을 이용해 신호를 만들었다고 확인한다.",
+      "clue_ids": ["CLUE-03", "CLUE-04"],
+      "knowledge_claims": [
+        {"character_id": "CHAR-01", "fact_id": "FACT-06"},
+        {"character_id": "CHAR-02", "fact_id": "FACT-06"}
+      ]
+    },
+    {
+      "scene_id": "SCN-08",
+      "order": 8,
+      "beat_id": "BEAT-08",
+      "title": "정정된 사건",
+      "location_id": "LOC-GUESTHOUSE-LOBBY",
+      "estimated_seconds": 180,
+      "objective": "사건의 성격과 윤서하의 권한 정체성을 재정의한다.",
+      "conflict": "상황실은 최초 실종 분류를 유지해 판단 오류를 감추려 한다.",
+      "turn": "윤서하는 기록을 시스템 오독 구조 사고로 정정하고 현장 교차 확인 절차를 남긴다.",
+      "clue_ids": ["CLUE-01", "CLUE-02", "CLUE-03", "CLUE-04"],
+      "knowledge_claims": [
+        {"character_id": "CHAR-01", "fact_id": "FACT-02"},
+        {"character_id": "CHAR-01", "fact_id": "FACT-05"}
+      ]
+    }
+  ]
+}

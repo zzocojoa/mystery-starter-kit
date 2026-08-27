@@ -1,0 +1,12 @@
+{
+  "project_id": "PRJ-001",
+  "reveals": [
+    {"reveal_id": "REV-01", "scene_order": 1, "information": "마지막 무전 표시 시각은 21시 49분이다.", "effect": "QUESTION"},
+    {"reveal_id": "REV-02", "scene_order": 2, "information": "젖은 장화 자국이 방파제로 향한다.", "effect": "PARTIAL_ANSWER"},
+    {"reveal_id": "REV-03", "scene_order": 3, "information": "끊긴 통신망 밖에서 우량계 펄스가 계속된다.", "effect": "CONTRADICTION"},
+    {"reveal_id": "REV-04", "scene_order": 4, "information": "음성 패킷 생성 시각은 21시 41분이다.", "effect": "UPDATED_QUESTION"},
+    {"reveal_id": "REV-05", "scene_order": 5, "information": "방파제 자국은 박대식의 것이며 배관에서 규칙적 타격음이 난다.", "effect": "MIDPOINT_REFRAME"},
+    {"reveal_id": "REV-06", "scene_order": 7, "information": "한준호가 저류조 점검실에서 발견된다.", "effect": "RESOLUTION"},
+    {"reveal_id": "REV-07", "scene_order": 8, "information": "사건 분류가 실종에서 시스템 오독 구조 사고로 바뀐다.", "effect": "FINAL_REFRAME"}
+  ]
+}

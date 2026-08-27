@@ -1,0 +1,15 @@
+{
+  "project_id": "PRJ-001",
+  "modes": ["DRAMA", "NARRATION", "REACTION"],
+  "reaction_ratio": 0.2,
+  "scene_presentations": [
+    {"scene_id": "SCN-01", "primary_mode": "DRAMA", "secondary_mode": "NARRATION", "reaction_focus": "윤서하가 마지막 무전 시각을 고정하는 순간"},
+    {"scene_id": "SCN-02", "primary_mode": "DRAMA", "secondary_mode": "REACTION", "reaction_focus": "오미라의 경고가 수색 우선순위에서 밀리는 순간"},
+    {"scene_id": "SCN-03", "primary_mode": "NARRATION", "secondary_mode": "REACTION", "reaction_focus": "반복 펄스를 본 윤서하의 의심"},
+    {"scene_id": "SCN-04", "primary_mode": "NARRATION", "secondary_mode": "DRAMA", "reaction_focus": "8분 차이를 인정하는 윤서하"},
+    {"scene_id": "SCN-05", "primary_mode": "DRAMA", "secondary_mode": "REACTION", "reaction_focus": "박대식이 자신의 장화 자국을 알아보는 순간"},
+    {"scene_id": "SCN-06", "primary_mode": "DRAMA", "secondary_mode": "NARRATION", "reaction_focus": "통기관 끝에서 타격음을 확인한 구조팀"},
+    {"scene_id": "SCN-07", "primary_mode": "DRAMA", "secondary_mode": "REACTION", "reaction_focus": "한준호와 윤서하가 처음 시선을 맞추는 순간"},
+    {"scene_id": "SCN-08", "primary_mode": "NARRATION", "secondary_mode": "REACTION", "reaction_focus": "사건 분류를 직접 정정하는 윤서하"}
+  ]
+}
