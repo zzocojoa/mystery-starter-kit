@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/runtime/agent-result-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "run_id", "task_id", "agent_id", "attempt", "status", "artifacts", "assumptions", "warnings", "change_summary"],
+  "properties": {
+    "schema_family": {"const": "agent-result"},
+    "schema_version": {"const": "1.0.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "agent_id": {"type": "string", "minLength": 1},
+    "attempt": {"type": "integer", "minimum": 1},
+    "status": {"enum": ["SUCCEEDED", "NEEDS_REVISION", "NEEDS_HUMAN", "REFUSED", "FAILED"]},
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+    "assumptions": {"type": "array", "items": {"type": "string"}},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "change_summary": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_name", "media_type", "content"],
+      "properties": {
+        "artifact_name": {"type": "string", "pattern": "^[a-z][a-z0-9_]+$"},
+        "media_type": {"enum": ["application/json", "text/markdown"]},
+        "content": {"type": ["object", "string"]}
+      }
+    }
+  }
+}

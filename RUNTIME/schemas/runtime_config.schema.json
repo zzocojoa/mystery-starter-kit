@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/runtime/runtime-config-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["route_profile", "provider_registry", "model_routes", "task_catalog", "artifact_contracts"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "route_profile": {"type": "string", "minLength": 1},
+    "provider_registry": {"type": "string", "minLength": 1},
+    "model_routes": {"type": "string", "minLength": 1},
+    "task_catalog": {"type": "string", "minLength": 1},
+    "artifact_contracts": {"type": "string", "minLength": 1}
+  }
+}

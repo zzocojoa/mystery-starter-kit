@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/runtime/runtime-approval-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "approval_id", "run_id", "task_id", "decision", "actor", "reason", "bound_input_hashes", "created_at"],
+  "properties": {
+    "schema_family": {"const": "runtime-approval"},
+    "schema_version": {"const": "1.0.0"},
+    "approval_id": {"type": "string", "pattern": "^APR-[A-F0-9]{12}$"},
+    "run_id": {"type": "string", "minLength": 1},
+    "task_id": {"type": "string", "minLength": 1},
+    "decision": {"enum": ["APPROVED", "REJECTED"]},
+    "actor": {"type": "string", "minLength": 1},
+    "reason": {"type": "string", "minLength": 1},
+    "bound_input_hashes": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^[a-f0-9]{64}$"}},
+    "created_at": {"type": "string", "minLength": 1}
+  }
+}

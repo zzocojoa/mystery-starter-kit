@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/runtime/provider-descriptor-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["interface_version", "provider_id", "adapter_id", "adapter_version", "capabilities", "max_context_tokens", "max_output_tokens"],
+  "properties": {
+    "interface_version": {"const": "1.0.0"},
+    "provider_id": {"type": "string", "minLength": 1},
+    "adapter_id": {"type": "string", "minLength": 1},
+    "adapter_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "capabilities": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["TEXT_GENERATION", "JSON_OBJECT", "JSON_SCHEMA_OUTPUT", "TOOL_CALLING", "STREAMING", "SYSTEM_MESSAGES", "CANCELLATION", "USAGE_REPORTING"]}},
+    "max_context_tokens": {"type": ["integer", "null"], "minimum": 1},
+    "max_output_tokens": {"type": ["integer", "null"], "minimum": 1}
+  }
+}

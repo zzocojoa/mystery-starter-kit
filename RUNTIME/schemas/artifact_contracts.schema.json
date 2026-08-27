@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/runtime/artifact-contracts-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "artifacts"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "artifact-contracts"},
+    "schema_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "artifacts": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["media_type", "schema", "validators", "commit_policy", "max_bytes"],
+        "properties": {
+          "media_type": {"enum": ["application/json", "text/markdown"]},
+          "schema": {"type": ["string", "null"]},
+          "validators": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+          "commit_policy": {"enum": ["ATOMIC_ON_PASS", "ALWAYS_DIAGNOSTIC", "EPHEMERAL"]},
+          "max_bytes": {"type": "integer", "minimum": 1}
+        }
+      }
+    }
+  }
+}

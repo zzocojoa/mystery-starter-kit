@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/runtime/project-artifacts-1.0.0.json",
+  "$defs": {
+    "projectId": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "canonicalId": {"type": "string", "pattern": "^[A-Z]+-[0-9]{2,}$"},
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "stringList": {"type": "array", "items": {"type": "string"}},
+    "nonEmptyStringList": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "compatibilityReport": {
+      "type": "object",
+      "required": ["project_id", "compatibility", "errors"],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/projectId"},
+        "compatibility": {"enum": ["PASS", "FAIL"]},
+        "errors": {"type": "array"}
+      }
+    },
+    "caseInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "title_working", "source_type", "central_mystery", "final_truth", "causal_truth", "culprit", "culprit_motive", "restrictions"],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/projectId"},
+        "title_working": {"$ref": "#/$defs/nonEmptyString"},
+        "source_type": {"enum": ["FICTION", "USER_CASE", "TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"]},
+        "central_mystery": {"$ref": "#/$defs/nonEmptyString"},
+        "final_truth": {"$ref": "#/$defs/nonEmptyString"},
+        "causal_truth": {"$ref": "#/$defs/nonEmptyString"},
+        "incident_type": {"type": "string"},
+        "victim": {"type": ["string", "null"]},
+        "method": {"type": ["string", "null"]},
+        "unique_objects": {"$ref": "#/$defs/stringList"},
+        "culprit": {"type": ["string", "null"]},
+        "culprit_motive": {"type": ["string", "null"]},
+        "restrictions": {"$ref": "#/$defs/stringList"}
+      }
+    },
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact_id", "statement"],
+      "properties": {
+        "fact_id": {"$ref": "#/$defs/canonicalId"},
+        "statement": {"$ref": "#/$defs/nonEmptyString"},
+        "classification": {"enum": ["FACT", "INFERENCE", "DRAMATIZATION"]},
+        "source_ids": {"$ref": "#/$defs/nonEmptyStringList"},
+        "basis_fact_ids": {"$ref": "#/$defs/nonEmptyStringList"},
+        "presented_as_fact": {"type": "boolean"}
+      }
+    },
+    "facts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "facts"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "facts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/fact"}}}
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "sources"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "sources": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["source_id", "url"], "properties": {"source_id": {"$ref": "#/$defs/canonicalId"}, "url": {"$ref": "#/$defs/nonEmptyString"}, "title": {"type": "string"}}}}}
+    },
+    "claimEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "claims"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "claims": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["fact_id", "evidence_source_ids"], "properties": {"fact_id": {"$ref": "#/$defs/canonicalId"}, "evidence_source_ids": {"$ref": "#/$defs/nonEmptyStringList"}}}}}
+    },
+    "characters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "characters"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "characters": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["character_id", "name", "role"], "properties": {"character_id": {"$ref": "#/$defs/canonicalId"}, "name": {"$ref": "#/$defs/nonEmptyString"}, "role": {"$ref": "#/$defs/nonEmptyString"}, "goal": {"type": "string"}, "secret": {"type": "string"}}}}}
+    },
+    "relationships": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "relationships"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "relationships": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["relationship_id", "from", "to", "engine"], "properties": {"relationship_id": {"$ref": "#/$defs/canonicalId"}, "from": {"$ref": "#/$defs/canonicalId"}, "to": {"$ref": "#/$defs/canonicalId"}, "engine": {"$ref": "#/$defs/nonEmptyString"}}}}}
+    },
+    "knowledgeMatrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "knowledge_events"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "knowledge_events": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["character_id", "fact_id", "learned_scene_order"], "properties": {"character_id": {"$ref": "#/$defs/canonicalId"}, "fact_id": {"$ref": "#/$defs/canonicalId"}, "learned_scene_order": {"type": "integer", "minimum": 1}}}}}
+    },
+    "actualTimeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "events"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "events": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["event_id", "start_minute", "end_minute", "location_id", "participant_ids"], "properties": {"event_id": {"$ref": "#/$defs/canonicalId"}, "start_minute": {"type": "number", "minimum": 0}, "end_minute": {"type": "number", "exclusiveMinimum": 0}, "location_id": {"$ref": "#/$defs/nonEmptyString"}, "participant_ids": {"$ref": "#/$defs/nonEmptyStringList"}, "description": {"type": "string"}}}}}
+    },
+    "viewerTimeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "reveals"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "reveals": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["reveal_id", "scene_id"], "properties": {"reveal_id": {"$ref": "#/$defs/canonicalId"}, "scene_id": {"$ref": "#/$defs/canonicalId"}, "fact_id": {"$ref": "#/$defs/canonicalId"}}}}}
+    },
+    "audienceBelief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "belief_states"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "belief_states": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["scene_id", "belief"], "properties": {"scene_id": {"$ref": "#/$defs/canonicalId"}, "belief": {"$ref": "#/$defs/nonEmptyString"}}}}}
+    },
+    "clueMatrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "clues"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "clues": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["clue_id", "role", "introduced_scene_order", "introduced_scene_id"], "properties": {"clue_id": {"$ref": "#/$defs/canonicalId"}, "role": {"enum": ["CORE", "RED_HERRING", "SUPPORTING"]}, "introduced_scene_order": {"type": "integer", "minimum": 1}, "introduced_scene_id": {"$ref": "#/$defs/canonicalId"}, "resolved_scene_order": {"type": ["integer", "null"], "minimum": 1}, "resolved_scene_id": {"type": ["string", "null"]}, "description": {"type": "string"}, "content": {"type": "string"}, "mechanism": {"type": "string"}, "first_interpretation": {"type": "string"}, "true_meaning": {"type": "string"}, "object": {"type": "string"}, "object_name": {"type": "string"}, "evidence_object": {"type": "string"}}}}}
+    },
+    "hypothesisLedger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "hypotheses"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "hypotheses": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["hypothesis_id", "status"], "properties": {"hypothesis_id": {"$ref": "#/$defs/canonicalId"}, "status": {"enum": ["ACTIVE", "SUPPORTED", "REJECTED", "CONFIRMED"]}, "claim": {"type": "string"}}}}}
+    },
+    "beatSheet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "architecture", "beats"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "architecture": {"$ref": "#/$defs/nonEmptyString"}, "beats": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["beat_id", "type"], "properties": {"beat_id": {"$ref": "#/$defs/canonicalId"}, "type": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}, "purpose": {"type": "string"}}}}}
+    },
+    "retentionPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "checkpoints"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "checkpoints": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["scene_id", "function"], "properties": {"scene_id": {"$ref": "#/$defs/canonicalId"}, "function": {"$ref": "#/$defs/nonEmptyString"}}}}}
+    },
+    "sceneCards": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "scenes"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "scenes": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["scene_id", "order", "beat_id", "estimated_seconds", "clue_ids", "knowledge_claims"], "properties": {"scene_id": {"$ref": "#/$defs/canonicalId"}, "order": {"type": "integer", "minimum": 1}, "beat_id": {"$ref": "#/$defs/canonicalId"}, "estimated_seconds": {"type": "number", "exclusiveMinimum": 0}, "clue_ids": {"$ref": "#/$defs/stringList"}, "knowledge_claims": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["character_id", "fact_id"], "properties": {"character_id": {"$ref": "#/$defs/canonicalId"}, "fact_id": {"$ref": "#/$defs/canonicalId"}}}}, "summary": {"type": "string"}}}}}
+    },
+    "presentationPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "modes", "reaction_ratio", "scene_presentations"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "modes": {"$ref": "#/$defs/nonEmptyStringList"}, "reaction_ratio": {"type": "number", "minimum": 0, "maximum": 1}, "scene_presentations": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["scene_id", "mode"], "properties": {"scene_id": {"$ref": "#/$defs/canonicalId"}, "mode": {"$ref": "#/$defs/nonEmptyString"}}}}}
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "code", "message", "artifact", "context"],
+      "properties": {"severity": {"enum": ["ERROR", "WARN", "INFO"]}, "code": {"type": "string", "minLength": 1}, "message": {"type": "string", "minLength": 1}, "artifact": {"type": "string", "minLength": 1}, "context": {"type": "object"}}
+    },
+    "qaReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "result", "issues"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "result": {"enum": ["PASS", "FAIL"]}, "issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}}}
+    },
+    "noveltyReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "result", "comparisons", "hard_collisions", "issues"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "result": {"enum": ["PASS", "FAIL"]}, "comparisons": {"type": "array", "items": {"type": "object"}}, "hard_collisions": {"type": "array", "items": {"type": "string"}}, "issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}}}
+    },
+    "referenceReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "reference_id", "result", "lexical_collision_count", "matched_story_element_categories", "issues"],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/projectId"},
+        "reference_id": {"type": ["string", "null"]},
+        "result": {"enum": ["PASS", "FAIL"]},
+        "lexical_collision_count": {"type": "integer", "minimum": 0},
+        "matched_story_element_categories": {"type": "array", "items": {"type": "string"}},
+        "issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}}
+      }
+    }
+  }
+}

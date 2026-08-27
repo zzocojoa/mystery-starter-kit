@@ -11,6 +11,9 @@
 | Dependency Graph | Artifact 이름 | `schema_version` | 경로·의존성·Owner |
 | Project State | `project_id` | `schema_version` | Gate와 Artifact Hash/상태 |
 | Story Library | `project_id` | `schema_version` | Production Ready Fingerprint History |
+| Runtime Task Catalog | Task ID | `schema_version` | 실제 호출의 최소 읽기·쓰기·Gate·Retry 권한 |
+| Provider Interface | `provider_id` | `interface_version` | SDK 비종속 Capability와 Request/Response Wire 경계 |
+| Runtime Run/Event | `run_id` | `schema_version` | 재개 가능한 상태와 Append-only 감사 기록 |
 
 Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json`은 `capabilities` 객체에 Required 목록을 중복하지 않고 개별 Capability 형상만 검증한다.
 
@@ -37,6 +40,17 @@ Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json
 | `project_state.schema.json` | 상태와 Hash 기반 무효화 |
 | `validation_report.schema.json` | 14 Gate 통합 결과 |
 | `story_library.schema.json` | 등록된 Fingerprint 집합 |
+| `runtime_task_catalog.schema.json` | Agent 권한의 부분집합인 실행 Task Catalog |
+| `runtime_config.schema.json` | 활성 Route Profile과 계약 파일 경로 |
+| `artifact_contracts.schema.json` | 출력별 Media Type, Schema, 크기, Commit 정책 |
+| `provider_registry.schema.json` | Adapter, Credential 환경 참조, Data Egress 정책 |
+| `provider_descriptor.schema.json` | Provider Capability와 Token Limit |
+| `llm_request.schema.json` | Provider 독립 Prompt·출력·도구·감사 요청 |
+| `llm_response.schema.json` | Provider 독립 상태·출력·사용량 응답 |
+| `agent_result.schema.json` | Task Identity와 Artifact 후보 Envelope |
+| `runtime_run.schema.json` | Run·Task 상태, 시도, 입력·Prompt Hash |
+| `runtime_event.schema.json` | Append-only 운영 Event |
+| `approval.schema.json` | Actor·Reason·입력 Hash 결합 승인 |
 
 ## 의미 규칙
 
@@ -53,6 +67,10 @@ JSON Schema가 구조를 검증하고 Validator가 다음 교차 규칙을 검�
 - Reference Lexical/14개 Story Element Category Collision
 - Channel Genre/Tone/Presentation/Reaction 일치
 - Production Ready에서만 Story Library 등록
+- Runtime Task 권한은 Agent Manifest보다 넓을 수 없음
+- Provider 출력 Identity와 Task writes가 정확히 일치해야 함
+- Raw Reference, EXAMPLES, 비허용 Data Class의 Provider Egress 금지
+- Gate Commit 직전 Canonical Input Hash 불변성과 단일 Writer Lock
 
 ## Artifact 유효성
 

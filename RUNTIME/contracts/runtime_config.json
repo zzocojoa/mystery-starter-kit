@@ -1,0 +1,8 @@
+{
+  "$schema": "../schemas/runtime_config.schema.json",
+  "route_profile": "default",
+  "provider_registry": "RUNTIME/contracts/provider_registry.json",
+  "model_routes": "RUNTIME/contracts/model_routes.json",
+  "task_catalog": "RUNTIME/contracts/runtime_tasks.json",
+  "artifact_contracts": "RUNTIME/contracts/artifact_contracts.json"
+}

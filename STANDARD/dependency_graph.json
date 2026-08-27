@@ -35,7 +35,7 @@
     },
     "story_dna": {
       "path": "00_PROJECT/story_dna.json",
-      "depends_on": ["variation_candidates", "novelty_precheck"],
+      "depends_on": ["reference_profile", "variation_candidates", "novelty_precheck"],
       "owner_agent": "story_architect"
     },
     "story_fingerprint": {

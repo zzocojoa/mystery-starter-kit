@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/runtime/runtime-event-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "event_id", "run_id", "event_type", "occurred_at", "task_id", "safe_context"],
+  "properties": {
+    "schema_family": {"const": "runtime-event"},
+    "schema_version": {"const": "1.0.0"},
+    "event_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "event_type": {"enum": ["RUN_CREATED", "PLAN_CREATED", "TASK_READY", "TASK_STARTED", "PROVIDER_SELECTED", "PROVIDER_REQUESTED", "PROVIDER_RESPONDED", "TOOL_CALLED", "OUTPUT_PARSED", "OUTPUT_VALIDATED", "REVISION_REQUESTED", "ARTIFACT_STAGED", "ARTIFACT_COMMITTED", "GATE_PASSED", "GATE_FAILED", "HUMAN_REVIEW_REQUIRED", "HUMAN_APPROVED", "RUN_COMPLETED", "RUN_FAILED", "RUN_CANCELLED"]},
+    "occurred_at": {"type": "string", "minLength": 1},
+    "task_id": {"type": ["string", "null"]},
+    "safe_context": {"type": "object"}
+  }
+}
