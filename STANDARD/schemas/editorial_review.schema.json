@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/editorial-review-1.0.0.json",
+  "title": "Editorial Review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "project_id", "result", "checks", "issues"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_family": {
+      "const": "editorial-review"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^PRJ-[0-9]{3,}$"
+    },
+    "result": {
+      "enum": ["PENDING", "PASS", "FAIL"]
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["broadcast_format", "absolute_time", "dialogue_naturalness", "panel_reaction_function", "audience_belief", "shootability", "victim_dignity"],
+      "properties": {
+        "broadcast_format": {"enum": ["PENDING", "PASS", "FAIL"]},
+        "absolute_time": {"enum": ["PENDING", "PASS", "FAIL"]},
+        "dialogue_naturalness": {"enum": ["PENDING", "PASS", "FAIL"]},
+        "panel_reaction_function": {"enum": ["PENDING", "PASS", "FAIL"]},
+        "audience_belief": {"enum": ["PENDING", "PASS", "FAIL"]},
+        "shootability": {"enum": ["PENDING", "PASS", "FAIL"]},
+        "victim_dignity": {"enum": ["PENDING", "PASS", "FAIL"]}
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "severity", "message", "owner_agent"],
+        "properties": {
+          "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+          "severity": {"enum": ["ERROR", "WARN", "INFO"]},
+          "message": {"type": "string", "minLength": 1},
+          "owner_agent": {"enum": ["script_writer", "scene_designer", "orchestrator"]}
+        }
+      }
+    }
+  }
+}

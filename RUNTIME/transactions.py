@@ -525,6 +525,7 @@ def commit_gate_transaction(
     outputs: Mapping[str, object],
     dependency_graph: Mapping[str, object],
     next_state: ProjectState,
+    additional_targets: Mapping[str, bytes],
 ) -> str:
     """Gate 출력과 Project State를 Write-ahead 기록 후 전부 반영하거나 복구한다."""
     transaction_id = f"TX-{uuid4().hex[:16].upper()}"
@@ -554,6 +555,33 @@ def commit_gate_transaction(
     target_specs.append(
         (project_path / "00_PROJECT" / "project_state.json", state_bytes, "project_state")
     )
+    existing_targets = {target.resolve() for target, _content, _name in target_specs}
+    for relative_path, intended_bytes in additional_targets.items():
+        target_path = (project_path / relative_path).resolve()
+        try:
+            target_path.relative_to(project_path.resolve())
+        except ValueError as error:
+            raise RuntimeExecutionError(
+                "TRANSACTION_ERROR",
+                False,
+                "TRANSACTION",
+                "추가 Transaction Target이 Project 밖을 참조합니다.",
+                None,
+                None,
+                {"path": relative_path},
+            ) from error
+        if target_path in existing_targets:
+            raise RuntimeExecutionError(
+                "TRANSACTION_ERROR",
+                False,
+                "TRANSACTION",
+                "추가 Transaction Target이 기존 Target과 중복됩니다.",
+                None,
+                None,
+                {"path": relative_path},
+            )
+        target_specs.append((target_path, intended_bytes, relative_path))
+        existing_targets.add(target_path)
     targets: list[dict[str, object]] = []
     for index, (target_path, intended_bytes, artifact_name) in enumerate(target_specs):
         backup_path = backup_root / f"{index:03d}-{target_path.name}"

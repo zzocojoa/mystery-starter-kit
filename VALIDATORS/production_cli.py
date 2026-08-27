@@ -8,7 +8,10 @@ from copy import deepcopy
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
+from uuid import uuid4
 
+from RUNTIME.errors import RuntimeExecutionError
+from RUNTIME.transactions import acquire_project_lock, release_project_lock
 from VALIDATORS.cli import (
     evaluate_compatibility_documents,
     raise_for_configuration_schema_errors,
@@ -21,16 +24,26 @@ from VALIDATORS.dependency import (
     mark_artifact_clean,
     transitive_dependents,
 )
-from VALIDATORS.exceptions import ConfigurationError, StarterKitError
+from VALIDATORS.editorial import approve_editorial_review, finalize_production_ready
+from VALIDATORS.exceptions import (
+    ConfigurationError,
+    GateTransactionError,
+    StarterKitError,
+)
+from VALIDATORS.gate_transaction import (
+    audit_project,
+    full_validation_report,
+    process_conformance,
+    task_abort,
+    task_open,
+    task_status,
+    task_submit,
+    trace_records,
+)
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.library import make_history_record, register_story_fingerprint
-from VALIDATORS.models import GateStatus, ProductionValidationReport, ProjectState, ValidationIssue
+from VALIDATORS.models import ProjectState, ValidationIssue
 from VALIDATORS.novelty import evaluate_variation_precheck
-from VALIDATORS.pipeline import load_project_artifacts, run_production_validation
-from VALIDATORS.presentation_migration import (
-    mark_presentation_migration_required,
-    presentation_migration_required,
-)
 from VALIDATORS.reference_validation import sanitize_reference_profile
 from VALIDATORS.scaffold import create_project_scaffold
 from VALIDATORS.schema_validation import collect_schema_errors
@@ -130,6 +143,73 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=ROOT / "STORY_LIBRARY" / "story_history.jsonl",
     )
+
+    task_open_parser = subparsers.add_parser(
+        "task-open",
+        help="현재 Gate의 격리 Task Workspace를 엽니다.",
+    )
+    task_open_parser.add_argument("project_path", type=Path)
+    task_open_parser.add_argument("gate_id")
+
+    task_status_parser = subparsers.add_parser(
+        "task-status",
+        help="현재 Gate Transaction 상태를 출력합니다.",
+    )
+    task_status_parser.add_argument("project_path", type=Path)
+
+    task_submit_parser = subparsers.add_parser(
+        "task-submit",
+        help="현재 Gate Workspace를 검증하고 원자 Commit합니다.",
+    )
+    task_submit_parser.add_argument("project_path", type=Path)
+    task_submit_parser.add_argument("gate_id")
+    task_submit_parser.add_argument("--reference-source", type=Path)
+
+    task_abort_parser = subparsers.add_parser(
+        "task-abort",
+        help="현재 Gate Transaction을 Canonical 변경 없이 중단합니다.",
+    )
+    task_abort_parser.add_argument("project_path", type=Path)
+    task_abort_parser.add_argument("gate_id")
+
+    audit_parser = subparsers.add_parser(
+        "audit",
+        help="Project State를 변경하지 않고 Artifact와 Process를 감사합니다.",
+    )
+    audit_parser.add_argument("project_path", type=Path)
+    audit_parser.add_argument(
+        "--channel",
+        type=Path,
+        default=ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json",
+    )
+    audit_parser.add_argument("--reference-source", type=Path)
+
+    rebuild_parser = subparsers.add_parser(
+        "rebuild-state",
+        help="명시적 복구 시에만 Project State를 재구성합니다.",
+    )
+    rebuild_parser.add_argument("project_path", type=Path)
+    rebuild_parser.add_argument(
+        "--channel",
+        type=Path,
+        default=ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json",
+    )
+    rebuild_parser.add_argument("--reference-source", type=Path)
+    rebuild_parser.add_argument("--force", action="store_true")
+
+    editorial_parser = subparsers.add_parser(
+        "editorial-approve",
+        help="Human Editorial Approval을 기록합니다.",
+    )
+    editorial_parser.add_argument("project_path", type=Path)
+    editorial_parser.add_argument("--actor", required=True)
+    editorial_parser.add_argument("--reason", required=True)
+
+    finalize_parser = subparsers.add_parser(
+        "production-finalize",
+        help="승인 완료 Project를 Production Ready로 전이합니다.",
+    )
+    finalize_parser.add_argument("project_path", type=Path)
     return parser
 
 
@@ -450,6 +530,14 @@ def synchronize_project_state(
     )
     state["state"] = "INITIALIZED"
     state["current_gate"] = "NONE"
+    process_start_gate = state["readiness"]["process_start_gate"]
+    state["readiness"] = {
+        "artifact_status": "INCOMPLETE",
+        "contract_status": "UNVALIDATED",
+        "process_status": "NONCONFORMANT",
+        "editorial_status": "NOT_REVIEWED",
+        "process_start_gate": process_start_gate,
+    }
     for gate in GATES:
         gate_id = gate["gate_id"]
         passed = gate_results.get(gate_id) == "PASS"
@@ -640,112 +728,20 @@ def run_variations(args: argparse.Namespace) -> int:
 
 
 def run_validate(args: argparse.Namespace) -> int:
-    """전체 Production Gate 검증과 상태 동기화를 실행한다."""
-    dependency_graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
-    project_id = project_id_from_manifest(args.project_path)
-    if presentation_migration_required(args.project_path):
-        migrated_at = utc_now()
-        previous_state = load_project_state(args.project_path)
-        migration_state = mark_presentation_migration_required(
-            args.project_path,
-            dependency_graph,
-            previous_state,
-            migrated_at,
-        )
-        write_json_object(
-            args.project_path / "00_PROJECT" / "project_state.json",
-            migration_state,
-        )
-        issue = ValidationIssue(
-            severity="ERROR",
-            code="PRESENTATION_MIGRATION_REQUIRED",
-            message="Presentation Contract v1 Project는 v2 Artifact 재생성이 필요합니다.",
-            artifact="06_SCENE/presentation_plan.json",
-            context={"required_schema_version": "2.0.0"},
-        )
-        resume_gate = migration_state["current_gate"]
-        resume_index = -1 if resume_gate == "NONE" else gate_index(resume_gate)
-        migration_gate_results: dict[str, GateStatus] = {}
-        for index in range(14):
-            gate_id = f"GATE-{index:02d}"
-            if index <= resume_index:
-                migration_gate_results[gate_id] = "PASS"
-            elif index == gate_index("GATE-05") and resume_index == gate_index("GATE-04"):
-                migration_gate_results[gate_id] = "FAIL"
-            else:
-                migration_gate_results[gate_id] = "NOT_RUN"
-        migration_report = ProductionValidationReport(
-            schema_family="validation-report",
-            schema_version="1.0.0",
-            project_id=project_id,
-            result="FAIL",
-            gate_results=migration_gate_results,
-            issues=[issue],
-        )
-        write_json_object(
-            args.project_path / "08_QA" / "validation_report.json",
-            migration_report,
-        )
-        if previous_state["state"] != "PRESENTATION_MIGRATION_REQUIRED":
-            append_change_log(
-                args.project_path,
-                "PRESENTATION_MIGRATION_REQUIRED",
-                {
-                    "schema_version": "2.0.0",
-                    "resume_from_gate": f"GATE-{resume_index + 1:02d}",
-                },
-                migrated_at,
-            )
-        print(json.dumps(migration_report, ensure_ascii=False, indent=2))
-        return 1
-    artifacts = load_project_artifacts(args.project_path, dependency_graph)
-    reference_material = (
-        load_json_object(args.reference_source)
-        if isinstance(args.reference_source, Path)
-        else None
+    """전체 Artifact를 진단하되 Project State를 재구성하지 않는다."""
+    audited_at = utc_now()
+    report = audit_project(
+        ROOT,
+        args.project_path,
+        args.reference_source if isinstance(args.reference_source, Path) else None,
+        args.channel if isinstance(args.channel, Path) else None,
+        audited_at,
     )
-    report = run_production_validation(
-        artifacts,
-        load_json_object(args.channel),
-        load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
-        ),
-        {
-            "panel_cast": load_json_object(
-                ROOT / "STANDARD" / "schemas" / "panel_cast.schema.json"
-            ),
-            "reaction_segments": load_json_object(
-                ROOT / "STANDARD" / "schemas" / "reaction_segments.schema.json"
-            ),
-            "presentation_plan": load_json_object(
-                ROOT / "STANDARD" / "schemas" / "presentation_plan.schema.json"
-            ),
-        },
-        load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
-        load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
-        load_story_history(ROOT / "STORY_LIBRARY" / "story_fingerprints.json"),
-        reference_material,
-    )
-    project_id = report["project_id"]
-    write_qa_reports(args.project_path, project_id, report["issues"])
-    report_path = args.project_path / "08_QA" / "validation_report.json"
+    report_path = args.project_path / "08_QA" / "audit_report.json"
     write_json_object(report_path, report)
-    state = synchronize_project_state(
-        args.project_path,
-        dependency_graph,
-        report["gate_results"],
-        report["issues"],
-        utc_now(),
-    )
-    append_change_log(
-        args.project_path,
-        "PRODUCTION_VALIDATED",
-        {"result": report["result"], "state": state["state"]},
-        utc_now(),
-    )
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    return 0 if report["result"] == "PASS" else 1
+    validation = cast(Mapping[str, object], report["validation"])
+    return 0 if validation["result"] == "PASS" else 1
 
 
 def run_approve(args: argparse.Namespace) -> int:
@@ -865,6 +861,200 @@ def run_register(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_task_open(args: argparse.Namespace) -> int:
+    """현재 Gate의 Codex Task Workspace를 연다."""
+    gate_index(args.gate_id)
+    record = task_open(ROOT, args.project_path, args.gate_id, utc_now())
+    print(json.dumps(record, ensure_ascii=False, indent=2))
+    return 0
+
+
+def run_task_status(args: argparse.Namespace) -> int:
+    """현재 또는 최근 Codex Gate Task 상태를 출력한다."""
+    status = task_status(ROOT, args.project_path)
+    print(json.dumps(status, ensure_ascii=False, indent=2))
+    return 0
+
+
+def run_task_submit(args: argparse.Namespace) -> int:
+    """Gate Workspace를 검증하고 원자 Commit한다."""
+    gate_index(args.gate_id)
+    submitted_at = utc_now()
+    result = task_submit(
+        ROOT,
+        args.project_path,
+        args.gate_id,
+        submitted_at,
+        args.reference_source if isinstance(args.reference_source, Path) else None,
+    )
+    append_change_log(
+        args.project_path,
+        "CODEX_GATE_TRANSACTION_COMMITTED",
+        {
+            "gate_id": args.gate_id,
+            "transaction_id": result["transaction_id"],
+            "runtime_transaction_id": result["runtime_transaction_id"],
+            "commit_sha": result["commit_sha"],
+        },
+        submitted_at,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
+def run_task_abort(args: argparse.Namespace) -> int:
+    """현재 Gate Workspace를 Canonical 변경 없이 중단한다."""
+    gate_index(args.gate_id)
+    record = task_abort(ROOT, args.project_path, args.gate_id, utc_now())
+    print(json.dumps(record, ensure_ascii=False, indent=2))
+    return 0
+
+
+def run_audit(args: argparse.Namespace) -> int:
+    """Project State를 바꾸지 않는 전체 Artifact와 Process 감사를 실행한다."""
+    report = audit_project(
+        ROOT,
+        args.project_path,
+        args.reference_source if isinstance(args.reference_source, Path) else None,
+        args.channel if isinstance(args.channel, Path) else None,
+        utc_now(),
+    )
+    write_json_object(args.project_path / "08_QA" / "audit_report.json", report)
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return 0 if report["result"] == "PASS" else 1
+
+
+def run_rebuild_state(args: argparse.Namespace) -> int:
+    """명시적 Force가 있을 때만 현재 Artifact에서 Project State를 복구한다."""
+    if args.force is not True:
+        raise ConfigurationError(
+            "rebuild-state는 명시적 Human Confirmation인 --force가 필요합니다."
+        )
+    dependency_graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
+    report = full_validation_report(
+        ROOT,
+        args.project_path,
+        args.reference_source if isinstance(args.reference_source, Path) else None,
+        args.channel if isinstance(args.channel, Path) else None,
+    )
+    rebuilt_at = utc_now()
+    write_qa_reports(args.project_path, report["project_id"], report["issues"])
+    write_json_object(
+        args.project_path / "08_QA" / "validation_report.json",
+        report,
+    )
+    state = synchronize_project_state(
+        args.project_path,
+        dependency_graph,
+        report["gate_results"],
+        report["issues"],
+        rebuilt_at,
+    )
+    conformant, _missing = process_conformance(
+        trace_records(ROOT, args.project_path),
+        state["readiness"]["process_start_gate"],
+        "GATE-13",
+    )
+    state["readiness"]["process_status"] = (
+        "PROCESS_CONFORMANT"
+        if conformant and state["current_gate"] == "GATE-13"
+        else "NONCONFORMANT"
+    )
+    write_json_object(
+        args.project_path / "00_PROJECT" / "project_state.json",
+        state,
+    )
+    append_change_log(
+        args.project_path,
+        "PROJECT_STATE_REBUILT",
+        {
+            "result": report["result"],
+            "current_gate": state["current_gate"],
+            "process_conformant": state["readiness"]["process_status"]
+            == "PROCESS_CONFORMANT",
+        },
+        rebuilt_at,
+    )
+    print(json.dumps(state, ensure_ascii=False, indent=2))
+    return 0 if report["result"] == "PASS" else 1
+
+
+def run_editorial_approve(args: argparse.Namespace) -> int:
+    """Human Editorial Approval을 Actor와 Reason과 함께 기록한다."""
+    run_id = f"EDITORIAL-{uuid4().hex[:16].upper()}"
+    lock_path = acquire_project_lock(args.project_path, run_id)
+    try:
+        state = load_project_state(args.project_path)
+        review = load_json_object(args.project_path / "08_QA" / "editorial_review.json")
+        approved_at = utc_now()
+        approved = approve_editorial_review(
+            state,
+            review,
+            args.actor,
+            args.reason,
+            approved_at,
+        )
+        write_json_object(
+            args.project_path / "00_PROJECT" / "project_state.json",
+            approved,
+        )
+        append_change_log(
+            args.project_path,
+            "EDITORIAL_APPROVED",
+            {"actor": args.actor, "reason": args.reason},
+            approved_at,
+        )
+    finally:
+        release_project_lock(lock_path, run_id)
+    print(json.dumps(approved, ensure_ascii=False, indent=2))
+    return 0
+
+
+def run_production_finalize(args: argparse.Namespace) -> int:
+    """모든 독립 준비 조건이 충족된 Project를 Production Ready로 전이한다."""
+    run_id = f"FINALIZE-{uuid4().hex[:16].upper()}"
+    lock_path = acquire_project_lock(args.project_path, run_id)
+    try:
+        finalized_at = utc_now()
+        state = load_project_state(args.project_path)
+        trace_conformant, missing_traces = process_conformance(
+            trace_records(ROOT, args.project_path),
+            state["readiness"]["process_start_gate"],
+            "GATE-13",
+        )
+        if (
+            state["readiness"]["process_status"] != "PROCESS_CONFORMANT"
+            or not trace_conformant
+        ):
+            raise GateTransactionError(
+                "PROCESS_TRACE_MISSING",
+                "Production Ready 전이에 필요한 Process Trace가 완전하지 않습니다.",
+                {
+                    "process_start_gate": state["readiness"]["process_start_gate"],
+                    "current_gate": state["current_gate"],
+                    "missing_gate_traces": missing_traces,
+                },
+            )
+        finalized = finalize_production_ready(
+            state,
+            finalized_at,
+        )
+        write_json_object(
+            args.project_path / "00_PROJECT" / "project_state.json",
+            finalized,
+        )
+        append_change_log(
+            args.project_path,
+            "PRODUCTION_READY_FINALIZED",
+            {"current_gate": finalized["current_gate"]},
+            finalized_at,
+        )
+    finally:
+        release_project_lock(lock_path, run_id)
+    print(json.dumps(finalized, ensure_ascii=False, indent=2))
+    return 0
+
+
 def run_cli(argv: Sequence[str]) -> int:
     """테스트 가능한 인자 배열로 통합 CLI를 실행한다."""
     parser = build_parser()
@@ -886,9 +1076,31 @@ def run_cli(argv: Sequence[str]) -> int:
             return run_precheck(args)
         if args.command == "register":
             return run_register(args)
+        if args.command == "task-open":
+            return run_task_open(args)
+        if args.command == "task-status":
+            return run_task_status(args)
+        if args.command == "task-submit":
+            return run_task_submit(args)
+        if args.command == "task-abort":
+            return run_task_abort(args)
+        if args.command == "audit":
+            return run_audit(args)
+        if args.command == "rebuild-state":
+            return run_rebuild_state(args)
+        if args.command == "editorial-approve":
+            return run_editorial_approve(args)
+        if args.command == "production-finalize":
+            return run_production_finalize(args)
         raise ConfigurationError(f"알 수 없는 명령입니다: command={args.command}")
     except StarterKitError as error:
         print(f"ERROR: {error}", file=sys.stderr)
+        return 2
+    except RuntimeExecutionError as error:
+        print(
+            f"ERROR: {error.code}: {error}; context={error.safe_context}",
+            file=sys.stderr,
+        )
         return 2
 
 

@@ -31,6 +31,13 @@ def make_ready_state() -> ProjectState:
     state = build_initial_project_state(graph, "PRJ-002", "2026-08-25T00:00:00Z")
     state["state"] = "PRODUCTION_READY"
     state["current_gate"] = "GATE-13"
+    state["readiness"] = {
+        "artifact_status": "ARTIFACT_COMPLETE",
+        "contract_status": "CONTRACT_VALIDATED",
+        "process_status": "PROCESS_CONFORMANT",
+        "editorial_status": "EDITORIAL_APPROVED",
+        "process_start_gate": "GATE-00",
+    }
     return state
 
 

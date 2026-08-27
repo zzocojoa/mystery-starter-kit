@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/process-trace-1.0.0.json",
+  "title": "Codex App Gate Process Trace",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "trace_id",
+    "project_id",
+    "task_id",
+    "agent_id",
+    "gate_id",
+    "input_hashes",
+    "changed_paths",
+    "validator_version",
+    "gate_result",
+    "commit_sha",
+    "started_at",
+    "completed_at"
+  ],
+  "properties": {
+    "trace_id": {
+      "type": "string",
+      "pattern": "^TRACE-[A-F0-9]{16}$"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^PRJ-[0-9]{3,}$"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "agent_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "gate_id": {
+      "type": "string",
+      "pattern": "^GATE-(0[0-9]|1[0-3])$"
+    },
+    "input_hashes": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    },
+    "changed_paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^(00_PROJECT|01_CASE|02_CHARACTER|03_TIMELINE|04_MYSTERY|05_STORY|06_SCENE|07_SCRIPT|08_QA|09_PRODUCTION)/.+"
+      }
+    },
+    "validator_version": {
+      "const": "1.0.0"
+    },
+    "gate_result": {
+      "const": "PASS"
+    },
+    "commit_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

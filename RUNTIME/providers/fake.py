@@ -856,6 +856,29 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 ),
             },
         ]
+    if task_id == "editorial.review":
+        return [
+            {
+                "artifact_name": "editorial_review",
+                "media_type": "application/json",
+                "content": {
+                    "schema_family": "editorial-review",
+                    "schema_version": "1.0.0",
+                    "project_id": project_id,
+                    "result": "PASS",
+                    "checks": {
+                        "broadcast_format": "PASS",
+                        "absolute_time": "PASS",
+                        "dialogue_naturalness": "PASS",
+                        "panel_reaction_function": "PASS",
+                        "audience_belief": "PASS",
+                        "shootability": "PASS",
+                        "victim_dignity": "PASS",
+                    },
+                    "issues": [],
+                },
+            }
+        ]
     raise RuntimeExecutionError(
         "RUNTIME_CONFIGURATION_ERROR",
         False,

@@ -1,0 +1,17 @@
+{
+  "$schema": "../../../STANDARD/schemas/editorial_review.schema.json",
+  "schema_family": "editorial-review",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-000",
+  "result": "PENDING",
+  "checks": {
+    "broadcast_format": "PENDING",
+    "absolute_time": "PENDING",
+    "dialogue_naturalness": "PENDING",
+    "panel_reaction_function": "PENDING",
+    "audience_belief": "PENDING",
+    "shootability": "PENDING",
+    "victim_dignity": "PENDING"
+  },
+  "issues": []
+}

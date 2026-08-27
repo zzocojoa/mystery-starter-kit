@@ -24,8 +24,8 @@ def make_clean_state() -> ProjectState:
     return state
 
 
-def test_all_fourteen_gates_reach_production_ready() -> None:
-    """GATE-00부터 GATE-13까지 순서대로 통과하면 Production Ready가 된다."""
+def test_all_fourteen_gates_require_editorial_review() -> None:
+    """GATE-13 통과 뒤에도 Human Editorial 승인이 별도로 필요하다."""
     state = make_clean_state()
     for definition in GATES:
         state = advance_gate(
@@ -35,8 +35,11 @@ def test_all_fourteen_gates_reach_production_ready() -> None:
             "2026-08-25T00:01:00Z",
         )
 
-    assert state["state"] == "PRODUCTION_READY"
+    assert state["state"] == "EDITORIAL_REVIEW_REQUIRED"
     assert state["current_gate"] == "GATE-13"
+    assert state["readiness"]["artifact_status"] == "ARTIFACT_COMPLETE"
+    assert state["readiness"]["contract_status"] == "CONTRACT_VALIDATED"
+    assert state["readiness"]["editorial_status"] == "EDITORIAL_REVIEW_REQUIRED"
 
 
 def test_out_of_order_gate_is_rejected() -> None:

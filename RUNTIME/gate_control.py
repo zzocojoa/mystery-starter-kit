@@ -5,6 +5,7 @@ from collections.abc import Mapping, Sequence
 from VALIDATORS.causal_validation import validate_causal_graph
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.continuity import validate_continuity
+from VALIDATORS.editorial import validate_editorial_review
 from VALIDATORS.fact_validation import validate_fact_integrity
 from VALIDATORS.models import GateStatus, ProductionValidationReport, ValidationIssue
 from VALIDATORS.novelty import evaluate_novelty
@@ -270,6 +271,10 @@ def validate_gate(
                 reaction_segments,
                 artifact_text(artifacts, "production_panel_reaction_script"),
                 artifact_text(artifacts, "edit_script"),
+            ),
+            *validate_editorial_review(
+                artifact_document(artifacts, "editorial_review"),
+                project_id,
             ),
         ]
     raise ValueError(f"알 수 없는 Gate입니다: {gate_id}")

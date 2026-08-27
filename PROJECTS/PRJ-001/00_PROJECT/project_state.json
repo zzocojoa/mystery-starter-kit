@@ -1,10 +1,17 @@
 {
   "schema_family": "project-state",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "project_id": "PRJ-001",
   "state": "PRESENTATION_MIGRATION_REQUIRED",
   "current_gate": "GATE-04",
   "updated_at": "2026-08-27T16:23:40.888887Z",
+  "readiness": {
+    "artifact_status": "INCOMPLETE",
+    "contract_status": "UNVALIDATED",
+    "process_status": "NONCONFORMANT",
+    "editorial_status": "NOT_REVIEWED",
+    "process_start_gate": "GATE-05"
+  },
   "artifacts": {
     "project_manifest": {
       "status": "CLEAN",
@@ -256,6 +263,11 @@
       "invalidated_by": []
     },
     "production_panel_reaction_script": {
+      "status": "MISSING",
+      "content_hash": null,
+      "invalidated_by": []
+    },
+    "editorial_review": {
       "status": "MISSING",
       "content_hash": null,
       "invalidated_by": []

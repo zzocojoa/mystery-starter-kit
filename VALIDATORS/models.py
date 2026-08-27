@@ -21,9 +21,19 @@ ProjectStatus = Literal[
     "SCENES_DESIGNED",
     "SCRIPT_WRITTEN",
     "QA_PASSED",
+    "EDITORIAL_REVIEW_REQUIRED",
+    "EDITORIAL_APPROVED",
     "PRODUCTION_READY",
     "PRESENTATION_MIGRATION_REQUIRED",
     "BLOCKED",
+]
+ArtifactCompletionStatus = Literal["INCOMPLETE", "ARTIFACT_COMPLETE"]
+ContractValidationStatus = Literal["UNVALIDATED", "CONTRACT_VALIDATED"]
+ProcessConformanceStatus = Literal["NONCONFORMANT", "PROCESS_CONFORMANT"]
+EditorialStatus = Literal[
+    "NOT_REVIEWED",
+    "EDITORIAL_REVIEW_REQUIRED",
+    "EDITORIAL_APPROVED",
 ]
 
 
@@ -90,6 +100,16 @@ class ArtifactState(TypedDict):
     invalidated_by: list[str]
 
 
+class ProjectReadiness(TypedDict):
+    """Artifact, 계약, 실행 절차, 편집 승인을 서로 분리한 준비 상태."""
+
+    artifact_status: ArtifactCompletionStatus
+    contract_status: ContractValidationStatus
+    process_status: ProcessConformanceStatus
+    editorial_status: EditorialStatus
+    process_start_gate: str
+
+
 class ProjectState(TypedDict):
     """프로젝트 전체 상태와 Artifact 상태 집합."""
 
@@ -99,6 +119,7 @@ class ProjectState(TypedDict):
     state: ProjectStatus
     current_gate: str
     updated_at: str
+    readiness: ProjectReadiness
     artifacts: dict[str, ArtifactState]
 
 

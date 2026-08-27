@@ -22,17 +22,17 @@ Write-ahead Transaction → Canonical Artifacts + Project State
 
 ```text
 Codex App
-    ↓ reads
+    ↓ task-open / reads
 AGENTS.md + Agent Manifest + Contract + Schema
-    ↓ writes candidates
-Project Artifacts
-    ↓
-mystery-kit validate → 14 Gate / QA / Project State
-    ↓ PASS
-mystery-kit register → Story Library
+    ↓ writes allowed candidates
+Gate Staging Workspace
+    ↓ task-submit PASS
+Atomic Canonical Commit + Project State + Process Trace
+    ↓ GATE-13 / Human Editorial Approval
+Production Ready → Story Library
 ```
 
-이 운영 모드에는 외부 LLM Provider가 필요하지 않다. Built-in FakeProvider는 Provider-independent Runtime의 Staging, Transaction, Hash Drift, Retry, Provenance를 재현하는 CI·E2E Test Double로만 사용한다. 따라서 `mystery-runtime run`의 Fake 출력은 실제 작품 결과로 취급하지 않는다.
+Codex App은 Canonical Project를 직접 편집하지 않는다. `task-open`이 현재 Gate의 Agent, reads, writes, 입력 Hash, 금지 경로와 Staging Workspace를 고정하고 `task-submit`이 Future Artifact, 권한, Drift, Schema와 현재 Gate를 검사한다. 이 운영 모드에는 외부 LLM Provider가 필요하지 않다. Built-in FakeProvider는 Provider-independent Runtime의 Staging, Transaction, Hash Drift, Retry, Provenance를 재현하는 CI·E2E Test Double로만 사용한다. 따라서 `mystery-runtime run`의 Fake 출력은 실제 작품 결과로 취급하지 않는다.
 
 ## 계약
 
@@ -48,6 +48,8 @@ Runtime 시작 시 JSON Schema뿐 아니라 Task가 Agent Manifest 권한을 넓
 ## 실행과 원자성
 
 한 Gate의 Task 출력은 메모리에서 결합한 뒤 Canonical Project를 복제한 Staging Overlay에 기록한다. 기존 Gate Validator가 Overlay 전체를 통과시킨 경우에만 Transaction Record를 `PREPARED`로 남기고 Artifact와 Project State를 교체한다. 중간 교체가 실패하면 모든 백업을 복구해 `ROLLED_BACK`으로 기록한다. Process가 Commit 도중 종료돼 `PREPARED`가 남으면 다음 Run 시작 시 먼저 복구한다. 복구 경로는 Canonical Project와 해당 Transaction의 백업 디렉터리 내부로 제한한다.
+
+Codex Gate Transaction도 이 Overlay와 Write-ahead Commit을 재사용한다. 차이는 Provider 응답 대신 Codex가 Workspace를 편집한다는 점뿐이다. Commit 대상에는 Gate 출력과 Project State뿐 아니라 누적 `process_trace.jsonl`도 포함되므로 세 결과는 함께 반영되거나 함께 복구된다.
 
 Project별 Exclusive Lock은 동시에 하나의 Writer만 허용하며, 종료된 Process의 PID가 남긴 Lock만 Inode 재확인 후 회수한다. Provider 호출 전에 캡처한 Canonical 입력 Hash를 Commit 직전에 다시 계산하므로 실행 중 사용자나 다른 Process가 입력을 바꾸면 Commit하지 않는다.
 
@@ -76,8 +78,10 @@ Prompt 우선순위는 Runtime System Rule, Agent Contract, Task Contract, 비�
 - `transactions/<transaction-id>/`: Write-ahead Record와 Canonical 백업
 - `provenance/<artifact>.json`: Content·Input·Prompt·Schema Hash, Provider·Model, Attempt, Transaction
 
+Canonical `00_PROJECT/process_trace.jsonl`은 Runtime과 Codex 양쪽의 Gate별 PASS 증거다. `.runtime/codex_tasks/<transaction-id>/task.json`은 Open/Committed/Aborted 권한 Snapshot을 보존한다. `validate`와 `audit`는 이 이력을 재구성하지 않는다.
+
 운영 파일은 Project 결과물이 아니므로 Git에서 제외한다.
 
 ## 검증 범위
 
-`tests/runtime/`은 Fake Provider 전체 Gate E2E, 정제 Reference만 Provider로 전달되는 E2E, 권한 밖 출력 시 Canonical 불변성, Retry 소진 시 `BLOCKED`, Format Retry, Human 승인·재개, Active·Stale Lock, Input Drift, Transaction Rollback·Crash Recovery·경로 격리, EXAMPLES·Raw Reference·Tool 차단, In-process와 Sidecar Conformance를 검증한다. `tests/test_production_cli.py`는 Codex가 작성한 것과 같은 Disk Artifact를 전체 Gate로 검증하고 등록하는 운영 경계를 검증한다. CI는 Python 3.11과 3.14에서 기존 Validator 회귀 테스트와 함께 실행한다.
+`tests/runtime/`은 Fake Provider 전체 Gate E2E, 정제 Reference만 Provider로 전달되는 E2E, 권한 밖 출력 시 Canonical 불변성, Retry 소진 시 `BLOCKED`, Format Retry, Human 승인·재개, Active·Stale Lock, Input Drift, Transaction Rollback·Crash Recovery·경로 격리, EXAMPLES·Raw Reference·Tool 차단, In-process와 Sidecar Conformance를 검증한다. `tests/test_gate_transaction.py`는 Codex Workspace의 정상 Commit, Future/권한/Drift 차단, Trace, 상태 비변경 Audit과 Editorial 분리를 검증한다. CI는 Python 3.11과 3.14에서 기존 Validator 회귀 테스트와 함께 실행한다.

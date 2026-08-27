@@ -20,7 +20,9 @@ flowchart TD
     Y --> A[Continuity / Novelty / Reference / Channel QA]
     F --> A
     A -->|PASS| P[Production Package]
-    P -->|GATE-13| Z[Production Ready]
+    P --> E[Editorial Review]
+    E -->|GATE-13 PASS| H[Human Editorial Approval]
+    H --> Z[Production Ready]
     Z --> L
 ```
 
@@ -36,3 +38,15 @@ flowchart LR
 ```
 
 Compatibility Contract는 Required Capability 이름을 소유하고 Channel Schema는 그 내부 형상을 소유한다. Dependency Graph는 Artifact 경로와 Owner Agent를 연결하며 Project State는 현재 Hash와 Gate를 기록한다.
+
+```mermaid
+flowchart LR
+    O[task-open] --> W[격리 Workspace]
+    W --> A[Allowlist / Future / Owner / Input Hash]
+    A --> G[현재 Gate Validator]
+    G -->|PASS| C[Atomic Commit]
+    C --> T[Process Trace]
+    T --> N[다음 Gate Task]
+```
+
+`audit`는 Canonical Artifact와 Process Trace를 읽어 Report만 만들며 Project State를 갱신하지 않는다.

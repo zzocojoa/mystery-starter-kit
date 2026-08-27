@@ -27,6 +27,23 @@ def validate_registration_state(
             "Production Ready Project만 Story Library에 등록할 수 있습니다: "
             f"state={project_state['state']}"
         )
+    readiness = project_state["readiness"]
+    readiness_values: Mapping[str, object] = readiness
+    expected = {
+        "artifact_status": "ARTIFACT_COMPLETE",
+        "contract_status": "CONTRACT_VALIDATED",
+        "process_status": "PROCESS_CONFORMANT",
+        "editorial_status": "EDITORIAL_APPROVED",
+    }
+    mismatches = {
+        field: {"expected": value, "actual": readiness_values[field]}
+        for field, value in expected.items()
+        if readiness_values[field] != value
+    }
+    if mismatches:
+        raise StoryLibraryError(
+            f"Production Ready 세부 조건이 충족되지 않았습니다: mismatches={mismatches}"
+        )
     project_id = fingerprint.get("project_id")
     if not isinstance(project_id, str):
         raise StoryLibraryError("story_fingerprint.project_id 문자열이 필요합니다.")

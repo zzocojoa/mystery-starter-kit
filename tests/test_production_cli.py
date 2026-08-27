@@ -1,5 +1,6 @@
 """통합 CLI의 실제 디렉터리 E2E 검증."""
 
+from collections.abc import Mapping
 from pathlib import Path
 
 from project_factory import make_complete_project_artifacts
@@ -31,8 +32,8 @@ def write_complete_artifacts(
             write_json_object(path, content)
 
 
-def test_readme_golden_path_reaches_production_ready(tmp_path: Path) -> None:
-    """README 명령 순서 전체가 실제 디스크에서 Production Ready에 도달해야 한다."""
+def test_validate_audits_without_reconstructing_state(tmp_path: Path) -> None:
+    """전체 Artifact PASS도 Validate 단독으로 State나 Library를 승인하지 않는다."""
     projects_root = tmp_path / "projects"
     init_code = run_cli(
         [
@@ -66,10 +67,12 @@ def test_readme_golden_path_reaches_production_ready(tmp_path: Path) -> None:
     ):
         del artifacts[generated_artifact]
     write_complete_artifacts(project_path, artifacts)
+    state_path = project_path / "00_PROJECT" / "project_state.json"
+    state_before = state_path.read_bytes()
 
     validate_code = run_cli(["validate", str(project_path)])
-    state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
-    report = load_json_object(project_path / "08_QA" / "validation_report.json")
+    state = load_json_object(state_path)
+    report = load_json_object(project_path / "08_QA" / "audit_report.json")
     library_path = tmp_path / "story_fingerprints.json"
     history_path = tmp_path / "story_history.jsonl"
     write_json_object(
@@ -98,14 +101,23 @@ def test_readme_golden_path_reaches_production_ready(tmp_path: Path) -> None:
     assert approve_code == 0
     assert precheck_code == 0
     assert validate_code == 0
-    assert register_code == 0
-    assert report["result"] == "PASS"
-    assert state["state"] == "PRODUCTION_READY"
-    assert state["current_gate"] == "GATE-13"
+    assert register_code == 2
+    validation = report["validation"]
+    process_issues = report["process_issues"]
+    assert isinstance(validation, Mapping)
+    assert isinstance(process_issues, list)
+    assert process_issues
+    process_issue = process_issues[0]
+    assert isinstance(process_issue, Mapping)
+    assert validation["result"] == "PASS"
+    assert report["result"] == "FAIL"
+    assert process_issue["code"] == "PROCESS_TRACE_MISSING"
+    assert state_path.read_bytes() == state_before
+    assert state["state"] != "PRODUCTION_READY"
     fingerprints = library["fingerprints"]
     assert isinstance(fingerprints, list)
-    assert len(fingerprints) == 1
-    assert history_path.read_text(encoding="utf-8").strip()
+    assert fingerprints == []
+    assert not history_path.exists()
 
 
 def test_reference_profile_command_never_copies_raw_story_content(tmp_path: Path) -> None:
@@ -147,8 +159,8 @@ def test_reference_profile_command_never_copies_raw_story_content(tmp_path: Path
     assert collect_schema_errors(profile, schema, "sanitized_profile") == []
 
 
-def test_failed_validation_marks_problem_artifact_invalid(tmp_path: Path) -> None:
-    """Gate 실패 원인이 된 Artifact는 Project State에서 INVALID로 표시되어야 한다."""
+def test_failed_validation_preserves_project_state(tmp_path: Path) -> None:
+    """진단 실패는 문제를 보고하되 Project State를 재구성하지 않는다."""
     projects_root = tmp_path / "projects"
     assert run_cli(
         [
@@ -170,21 +182,27 @@ def test_failed_validation_marks_problem_artifact_invalid(tmp_path: Path) -> Non
     assert isinstance(first_segment, dict)
     first_segment["duration_sec"] = 1
     write_complete_artifacts(project_path, artifacts)
+    state_path = project_path / "00_PROJECT" / "project_state.json"
+    state_before = state_path.read_bytes()
 
     result = run_cli(["validate", str(project_path)])
-    state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
-    states = state["artifacts"]
-    assert isinstance(states, dict)
+    report = load_json_object(project_path / "08_QA" / "audit_report.json")
+    validation = report["validation"]
+    assert isinstance(validation, dict)
+    issues = validation["issues"]
+    assert isinstance(issues, list)
 
     assert result == 1
-    assert state["state"] == "BLOCKED"
-    assert state["current_gate"] == "GATE-06"
-    assert states["presentation_plan"]["status"] == "INVALID"
-    assert states["edit_script"]["status"] == "DIRTY"
+    assert state_path.read_bytes() == state_before
+    assert any(
+        isinstance(issue, dict)
+        and issue.get("code") == "PRESENTATION_SEGMENT_ORDER_MISMATCH"
+        for issue in issues
+    )
 
 
-def test_legacy_presentation_requires_explicit_v2_migration(tmp_path: Path) -> None:
-    """v1 Presentation Project는 기존 내용을 보존한 채 GATE-05 재생성 상태가 된다."""
+def test_validate_never_migrates_missing_presentation_artifacts(tmp_path: Path) -> None:
+    """Validate는 누락 파일을 복구하거나 기존 Script와 State를 변경하지 않는다."""
     projects_root = tmp_path / "projects"
     assert run_cli(
         [
@@ -223,35 +241,21 @@ def test_legacy_presentation_requires_explicit_v2_migration(tmp_path: Path) -> N
         encoding="utf-8",
     )
     (project_path / "06_SCENE" / "panel_cast.json").unlink()
+    state_before = state_path.read_bytes()
 
     result = run_cli(["validate", str(project_path)])
-    state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
-    report = load_json_object(project_path / "08_QA" / "validation_report.json")
     preserved_script = (project_path / "07_SCRIPT" / "final_script.md").read_text(
         encoding="utf-8"
     )
-    states = state["artifacts"]
-    assert isinstance(states, dict)
-    gate_results = report["gate_results"]
-    issues = report["issues"]
-    assert isinstance(gate_results, dict)
-    assert isinstance(issues, list)
-    first_issue = issues[0]
-    assert isinstance(first_issue, dict)
 
-    assert result == 1
-    assert state["state"] == "PRESENTATION_MIGRATION_REQUIRED"
-    assert state["current_gate"] == "GATE-04"
-    assert gate_results["GATE-05"] == "FAIL"
-    assert first_issue["code"] == "PRESENTATION_MIGRATION_REQUIRED"
-    assert states["panel_cast"]["status"] == "MISSING"
-    assert states["presentation_plan"]["status"] == "INVALID"
-    assert states["final_script"]["status"] == "INVALID"
+    assert result == 2
+    assert state_path.read_bytes() == state_before
+    assert not (project_path / "06_SCENE" / "panel_cast.json").exists()
     assert preserved_script == legacy_script
 
 
-def test_presentation_migration_never_advances_incomplete_project_gate(tmp_path: Path) -> None:
-    """미완성 v1 Project의 Migration은 검증되지 않은 Gate를 PASS 처리하지 않는다."""
+def test_rebuild_state_requires_explicit_force(tmp_path: Path) -> None:
+    """Project State 복구는 명시적 Force 없이 실행되지 않는다."""
     projects_root = tmp_path / "projects"
     assert run_cli(
         [
@@ -264,22 +268,13 @@ def test_presentation_migration_never_advances_incomplete_project_gate(tmp_path:
         ]
     ) == 0
     project_path = projects_root / "PRJ-006"
-    (project_path / "06_SCENE" / "panel_cast.json").unlink()
     state_path = project_path / "00_PROJECT" / "project_state.json"
-    initial_state = load_json_object(state_path)
-    initial_gate = initial_state["current_gate"]
+    state_before = state_path.read_bytes()
 
-    result = run_cli(["validate", str(project_path)])
-    state = load_json_object(state_path)
-    report = load_json_object(project_path / "08_QA" / "validation_report.json")
-    gate_results = report["gate_results"]
-    assert isinstance(gate_results, dict)
+    result = run_cli(["rebuild-state", str(project_path)])
 
-    assert result == 1
-    assert state["state"] == "PRESENTATION_MIGRATION_REQUIRED"
-    assert state["current_gate"] == initial_gate
-    assert gate_results["GATE-01"] == "NOT_RUN"
-    assert gate_results["GATE-05"] == "NOT_RUN"
+    assert result == 2
+    assert state_path.read_bytes() == state_before
 
 
 def test_variation_approval_and_precheck_commands_form_gate_one(tmp_path: Path) -> None:

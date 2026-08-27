@@ -1,4 +1,4 @@
-# 단편 미스터리 반복 제작 표준 제작체계 v1.3.1
+# 단편 미스터리 반복 제작 표준 제작체계 v1.3.2
 
 ## 1. 목적과 완료 정의
 
@@ -92,7 +92,7 @@ Variation Designer는 Story 문장을 쓰기 전에 최소 5개 구조 후보를
 | `mystery_designer` | 실제/시청 Timeline과 추리 구조 | Timelines, Clues, Hypotheses, Causal Graph |
 | `scene_designer` | Scene과 외부 Panel 추리 흐름을 설계 | Scene Cards, Panel Cast, Reaction Segments, Presentation Plan |
 | `script_writer` | 세 Script Layer를 Broadcast Master로 통합 | Drama, Narration, Panel Reaction, Draft, Final Script |
-| `continuity_critic` | 시간·공간·지식·단서·채널 검사 | Continuity, Channel Report |
+| `continuity_critic` | 시간·공간·지식·단서·채널·최종 편집 검사 | Continuity, Channel, Editorial Review |
 | `novelty_auditor` | 구조/Beat/Causal 중복 검사 | Story Fingerprint, Novelty Report |
 | `reference_auditor` | Reference 정제와 사실/충돌 검사 | Reference, Evidence, Collision Report |
 
@@ -107,7 +107,7 @@ Run과 Task 상태, 입력·Prompt·Schema Hash, Provider·Model·Token 사용�
 ## 7. Project Scaffold와 Artifact Chain
 
 ```text
-00_PROJECT   설정, 호환성, 후보, Story DNA, Fingerprint, State, Change Log
+00_PROJECT   설정, 호환성, 후보, Story DNA, Fingerprint, State, Change Log, Process Trace
 01_CASE      Case Input, Facts, Sources, Claim-Evidence
 02_CHARACTER Characters, Relationships, Knowledge Matrix
 03_TIMELINE  Actual, Viewer, Audience Belief Timeline
@@ -115,7 +115,7 @@ Run과 Task 상태, 입력·Prompt·Schema Hash, Provider·Model·Token 사용�
 05_STORY     Beat Sheet, Retention Plan
 06_SCENE     Scene Cards, Panel Cast, Reaction Segments, Presentation Plan
 07_SCRIPT    Drama, Narration, Panel Reaction Layer, Draft, Final Script
-08_QA        Continuity, Novelty, Reference, Channel, 통합 Validation
+08_QA        Continuity, Novelty, Reference, Channel, 통합 Validation, Editorial Review
 09_PRODUCTION Shooting, Narration, Panel Reaction Cue, Subtitle, Edit Script
 ```
 
@@ -127,7 +127,7 @@ Compatibility → Variations/Approval → Story DNA/Fingerprint
 → Actual/Viewer/Audience Timeline → Clues/Hypotheses/Causal Graph
 → Beats/Retention → Scenes/Panel/Presentation → 세 Script Layer → Broadcast Master
 → Continuity/Causal/Novelty/Reference/Channel QA
-→ Shooting/Narration/Subtitle/Edit Package → Story Library
+→ Shooting/Narration/Subtitle/Edit Package → Editorial Review/Approval → Story Library
 ```
 
 ## 8. GATE-00부터 GATE-13
@@ -147,9 +147,25 @@ Compatibility → Variations/Approval → Story DNA/Fingerprint
 | `GATE-10` | 최종 Fingerprint 현재성과 Novelty QA | `SCRIPT_WRITTEN` |
 | `GATE-11` | Reference QA | `SCRIPT_WRITTEN` |
 | `GATE-12` | Channel QA와 통합 Validation | `QA_PASSED` |
-| `GATE-13` | Panel Reaction Cue를 포함한 다섯 Production Artifact | `PRODUCTION_READY` |
+| `GATE-13` | 다섯 Production Artifact와 Editorial Review PASS | `EDITORIAL_REVIEW_REQUIRED` |
 
 Gate는 순서를 건너뛸 수 없다. 필수 Artifact는 모두 `CLEAN`이어야 하며 실패하면 마지막 통과 Gate를 유지한 채 `BLOCKED`가 된다.
+
+Codex App 작업은 Gate마다 `task-open → 격리 Workspace 작성 → task-submit`을 반복한다. Task Record가 Agent, reads, writes, 입력 Hash와 금지 경로를 고정한다. Submit은 현재 Gate 일치, Future Gate 수정, writes와 Owner, 입력 Drift, Schema, 필수 Artifact와 현재 Gate Validator를 검사한다. PASS Bundle만 기존 Write-ahead Transaction으로 Canonical Artifact, Project State, `process_trace.jsonl`에 원자 Commit한다.
+
+Trace가 없는 Gate는 Process Conformance를 충족하지 않는다. `AUTO_CONTINUE`는 현재 Gate PASS 뒤 다음 Gate Task를 추가 확인 없이 열 수 있다는 의미일 뿐 일괄 Artifact 생성이나 사후 State 재구성을 허용하지 않는다.
+
+Project 준비 상태는 다음 독립 조건으로 관리한다.
+
+```text
+ARTIFACT_COMPLETE
++ CONTRACT_VALIDATED
++ PROCESS_CONFORMANT
++ EDITORIAL_APPROVED
+= PRODUCTION_READY
+```
+
+GATE-13의 Critic은 최종 Script와 Production Package를 읽고 방송 형식, 절대시간, 대사 자연스러움, Panel Reaction 기능, Audience Belief, 촬영 가능성, 피해자 존엄을 `editorial_review.json`에 판정한다. Critic은 Script를 수정하지 않는다. Review PASS 뒤에도 Human Actor와 Reason을 기록한 별도 승인이 필요하다.
 
 ## 9. QA 규칙
 
@@ -198,16 +214,17 @@ Genre, 금지 Tone, 필수 Presentation Mode, Reaction Ratio를 Channel DNA와 �
 
 `STANDARD/dependency_graph.json`은 각 Artifact의 경로, 선행 Artifact, Owner Agent를 정의한다. 상위 Artifact Hash가 바뀌면 모든 Transitive Dependent를 `DIRTY`로 만들고 `invalidated_by`를 기록한다. 입력 객체는 수정하지 않고 새 Project State를 반환한다.
 
-`00_PROJECT/change_log.jsonl`은 초기화, Variation 생성/승인, 전체 검증, Story Library 등록을 시간과 함께 기록한다. Production Ready Fingerprint만 Story Library에 등록할 수 있으며 동일 Project의 중복 등록은 실패한다.
+`00_PROJECT/change_log.jsonl`은 초기화, Variation 생성/승인, Gate Transaction Commit, 명시적 State 복구, Editorial 승인, Production 확정, Story Library 등록을 시간과 함께 기록한다. `process_trace.jsonl`은 Gate별 Task, Agent, 입력 Hash, 변경 경로, Validator, 결과, Commit SHA와 시각을 보존한다. Production Ready Fingerprint만 Story Library에 등록할 수 있으며 동일 Project의 중복 등록은 실패한다.
 
 ## 11. 승인 정책
 
-기본값 `AUTO_CONTINUE`는 Gate PASS 뒤의 단순 단계 전환에 추가 승인을 요구하지 않는다. 다음 경우에는 Human Review가 필요하다.
+기본값 `AUTO_CONTINUE`는 Gate PASS 뒤 다음 Gate Task를 여는 데 추가 승인을 요구하지 않는다. 다음 경우에는 Human Review가 필요하다.
 
 - Novelty 실패를 예외 승인하려는 경우
 - Fact와 Dramatization이 충돌하는 경우
 - 검증 불가능한 실화 주장을 사실로 사용하려는 경우
 - 승인 Variation과 다른 구조를 Override하면서 제작 방향이 달라지는 경우
+- 최종 Editorial Review를 승인하고 Production Ready를 확정하는 경우
 
 Runtime의 Human Approval은 Run ID, Task ID, 현재 입력 Artifact Hash에 결합한다. 입력이 바뀐 승인은 자동으로 무효이며 Actor와 비어 있지 않은 Reason이 없으면 기록할 수 없다.
 
@@ -221,6 +238,14 @@ mystery-kit approve PROJECTS/PRJ-002 VAR-03
 mystery-kit precheck PROJECTS/PRJ-002
 mystery-kit reference-profile PROJECTS/PRJ-002 /secure/reference-source.json
 mystery-kit validate PROJECTS/PRJ-002
+mystery-kit task-open PROJECTS/PRJ-002 GATE-05
+mystery-kit task-status PROJECTS/PRJ-002
+mystery-kit task-submit PROJECTS/PRJ-002 GATE-05
+mystery-kit task-abort PROJECTS/PRJ-002 GATE-05
+mystery-kit audit PROJECTS/PRJ-002
+mystery-kit rebuild-state PROJECTS/PRJ-002 --force
+mystery-kit editorial-approve PROJECTS/PRJ-002 --actor reviewer --reason "검토 완료"
+mystery-kit production-finalize PROJECTS/PRJ-002
 mystery-kit register PROJECTS/PRJ-002
 
 mystery-runtime doctor
@@ -233,9 +258,9 @@ mystery-runtime cancel RUN-...
 mystery-runtime providers
 ```
 
-기본 배포의 FakeProvider Runtime 명령은 격리된 회귀 Project에서만 사용한다. 실제 작품 제작은 Codex App이 계약에 맞춰 Artifact를 작성하고 `mystery-kit validate`와 `register`로 검증·등록한다.
+기본 배포의 FakeProvider Runtime 명령은 격리된 회귀 Project에서만 사용한다. 실제 작품 제작은 Codex App이 Gate Task Workspace에 Artifact를 작성하고 `task-submit`으로 순서대로 검증·Commit한다. `validate`와 `audit`는 상태를 바꾸지 않는 진단이며 `rebuild-state --force`만 명시적 복구를 수행한다.
 
-`mystery-kit` 종료 코드는 `PASS=0`, 검증 실패 `=1`, 입력·구성 오류 `=2`다. `mystery-runtime`은 성공 `0`, 구조화 Runtime 오류 `2`를 사용한다. `register`는 `PRODUCTION_READY`가 아닌 Project를 거부한다.
+`mystery-kit` 종료 코드는 `PASS=0`, 검증 실패 `=1`, 입력·구성·Transaction 오류 `=2`다. `mystery-runtime`은 성공 `0`, 구조화 Runtime 오류 `2`를 사용한다. `production-finalize`와 `register`는 네 준비 조건을 모두 충족하지 않은 Project를 거부한다.
 
 ## 13. Version 정책
 
@@ -246,3 +271,5 @@ mystery-runtime providers
 - Standard, Schema, Agent Contract, Validator, Test가 바뀌면 구현 매트릭스와 문서를 같은 Pull Request에서 갱신한다.
 
 Presentation Artifact는 1.x에서 2.0.0으로 Breaking Change되었다. 기존 Project는 대본을 자동 창작해 통과시키지 않으며 `PRESENTATION_MIGRATION_REQUIRED`로 전환하고 기존 파일을 보존한다. GATE-05 이후 Artifact는 `DIRTY`, 기존 Presentation Plan과 Draft/Final Script는 `INVALID`, 새 v2 Artifact는 `MISSING`으로 기록한 뒤 GATE-05부터 재생성한다.
+
+Project State 1.1.0은 Artifact, Contract, Process, Editorial 준비 상태와 `process_start_gate`를 추가한다. 기존 Project는 보유 Artifact를 삭제하지 않지만 과거 Gate Trace를 추정하지 않으며, 재생성 시작 Gate부터 실제 Trace를 쌓기 전까지 `PROCESS_CONFORMANT`, `EDITORIAL_APPROVED`, `PRODUCTION_READY`로 인정하지 않는다.

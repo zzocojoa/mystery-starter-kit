@@ -1,4 +1,4 @@
-# v1.3.1 스키마와 Artifact 계약
+# v1.3.2 스키마와 Artifact 계약
 
 ## 독립 Version 경계
 
@@ -14,6 +14,8 @@
 | Runtime Task Catalog | Task ID | `schema_version` | 실제 호출의 최소 읽기·쓰기·Gate·Retry 권한 |
 | Provider Interface | `provider_id` | `interface_version` | SDK 비종속 Capability와 Request/Response Wire 경계 |
 | Runtime Run/Event | `run_id` | `schema_version` | 재개 가능한 상태와 Append-only 감사 기록 |
+| Gate Transaction | `transaction_id` | `schema_version` | Codex Task의 Gate·권한·Workspace·Hash Snapshot |
+| Process Trace | `trace_id` | `schema_version` | Gate별 Task·Agent·변경·검증·Commit 증거 |
 
 Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json`은 `capabilities` 객체에 Required 목록을 중복하지 않고 개별 Capability 형상만 검증한다.
 
@@ -41,6 +43,9 @@ Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json
 | `agent_manifest.schema.json` | 10개 Agent 실행 계약 |
 | `dependency_graph.schema.json` | Artifact DAG |
 | `project_state.schema.json` | 상태와 Hash 기반 무효화 |
+| `gate_transaction.schema.json` | Codex Gate Task 권한과 실행 상태 |
+| `process_trace.schema.json` | Gate별 Process Conformance 증거 |
+| `editorial_review.schema.json` | 최종 방송·서사·제작 적합성 Critic 판정 |
 | `validation_report.schema.json` | 14 Gate 통합 결과 |
 | `story_library.schema.json` | 등록된 Fingerprint 집합 |
 | `runtime_task_catalog.schema.json` | Agent 권한의 부분집합인 실행 Task Catalog |
@@ -72,14 +77,18 @@ JSON Schema가 구조를 검증하고 Validator가 다음 교차 규칙을 검�
 - Timeline, Knowledge, Clue, Runtime, ID 참조
 - Reference Lexical/14개 Story Element Category Collision
 - Channel Genre/Tone/Presentation/Reaction 일치
-- Production Ready에서만 Story Library 등록
+- Artifact, Contract, Process, Editorial 조건을 모두 충족한 Production Ready에서만 Story Library 등록
 - Runtime Task 권한은 Agent Manifest보다 넓을 수 없음
 - Provider 출력 Identity와 Task writes가 정확히 일치해야 함
 - Raw Reference, EXAMPLES, 비허용 Data Class의 Provider Egress 금지
 - Gate Commit 직전 Canonical Input Hash 불변성과 단일 Writer Lock
+- Current Gate보다 뒤의 Artifact 수정과 Task writes 밖 변경 차단
+- Gate별 PASS Process Trace 완전성과 Human Editorial 승인 분리
 
 ## Artifact 유효성
 
 각 Artifact는 `MISSING`, `DIRTY`, `INVALID`, `CLEAN` 중 하나다. 파일이 존재한다는 사실만으로 `CLEAN`이 되지 않는다. 검증된 현재 Hash와 일치해야 하며 상위 Artifact가 바뀌면 Dependency Graph를 따라 하위 Artifact가 `DIRTY`가 된다.
+
+Project State 1.1.0은 Artifact 상태와 별도로 `artifact_status`, `contract_status`, `process_status`, `editorial_status`, `process_start_gate`를 유지한다. `validate`와 `audit`는 이 값을 바꾸지 않으며 `rebuild-state --force`도 존재하지 않는 Trace나 Human Approval을 합성하지 않는다.
 
 Presentation Schema 1.x는 2.0.0과 호환되지 않는다. 기존 Project는 `PRESENTATION_MIGRATION_REQUIRED`로 전환하며 GATE-05 이후 Artifact를 재생성하기 전에는 Production Ready로 복귀할 수 없다.

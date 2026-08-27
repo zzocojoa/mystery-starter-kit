@@ -1,4 +1,4 @@
-# Mystery Starter Kit v1.3.1
+# Mystery Starter Kit v1.3.2
 
 [![CI](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml)
 
@@ -28,21 +28,37 @@ Codex App에서 다음 범위가 명확한 요청으로 시작한다.
 
 ```text
 루트 AGENTS.md와 저장소 Contract, Schema를 먼저 읽어라.
-PROJECTS/PRJ-002의 현재 Gate부터 다음 Gate까지 필요한 Artifact를 작성하라.
-Agent Manifest의 reads와 writes를 확장하지 말고, Project State는 직접 수정하지 마라.
-작성 후 관련 Validator를 실행하고 실패 원인을 수정하라.
+PROJECTS/PRJ-002의 현재 Gate Task를 열어 격리 Workspace에서만 작업하라.
+Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State를 직접 수정하지 마라.
+현재 Gate Validator를 통과한 뒤 Task를 제출하고 Process Trace를 확인하라.
 ```
 
-Codex가 `01_CASE`부터 `09_PRODUCTION`까지 Artifact를 순차적으로 작성하더라도, 모든 결과는 Validator가 통과하기 전까지 후보 상태다.
+각 Gate는 다음 Transaction으로 실행한다. `task-open`이 출력한 `workspace`에서 허용 파일만 수정한 뒤 같은 Gate로 제출한다.
 
-### 3. 전체 Gate 검증과 등록
+```bash
+.venv/bin/mystery-kit task-open PROJECTS/PRJ-002 GATE-05
+.venv/bin/mystery-kit task-status PROJECTS/PRJ-002
+# 출력된 Staging Workspace의 allowed_writes만 Codex가 편집한다.
+.venv/bin/mystery-kit task-submit PROJECTS/PRJ-002 GATE-05
+```
+
+제출은 현재 Gate, writes Allowlist, Artifact Owner, Future Gate 수정, 입력 Hash Drift, Schema와 현재 Gate Validator를 검사한다. PASS일 때만 Artifact·Project State·`00_PROJECT/process_trace.jsonl`을 기존 Write-ahead Transaction으로 함께 Commit한다. 작업을 폐기하려면 `task-abort`를 사용한다. `AUTO_CONTINUE`는 PASS 뒤 다음 Gate Task를 사용자 재확인 없이 열 수 있다는 뜻이며 여러 Gate를 한꺼번에 작성한다는 뜻이 아니다.
+
+### 3. 감사, Editorial 승인과 등록
 
 ```bash
 .venv/bin/mystery-kit validate PROJECTS/PRJ-002
+.venv/bin/mystery-kit audit PROJECTS/PRJ-002
+.venv/bin/mystery-kit editorial-approve PROJECTS/PRJ-002 \
+  --actor reviewer@example.com \
+  --reason "최종 방송 적합성 검토 완료"
+.venv/bin/mystery-kit production-finalize PROJECTS/PRJ-002
 .venv/bin/mystery-kit register PROJECTS/PRJ-002
 ```
 
-`validate`는 `08_QA`의 개별 보고서와 통합 보고서, `00_PROJECT/project_state.json`, Change Log를 갱신한다. Presentation 1.x Project는 조용히 통과하지 않고 `PRESENTATION_MIGRATION_REQUIRED`와 `GATE-04`로 전환되어 GATE-05 이후 재생성을 요구한다. `register`는 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 `PASS=0`, Gate 실패 `=1`, 입력·구성 오류 `=2`다.
+`validate`는 현재 파일 집합의 14개 Gate 정합성을 진단하고 `audit_report.json`만 기록한다. `audit`는 같은 Artifact 검증에 Gate별 Process Trace 완전성을 더해 판정한다. 둘 다 `current_gate`, Project Status, Artifact `CLEAN` 상태나 기존 실행 이력을 바꾸지 않는다. 손상된 State를 Artifact에서 명시적으로 복구할 때만 `rebuild-state PROJECT --force`를 사용하며, 이 명령도 Process Trace나 Human Editorial 승인을 만들어 내지 않는다.
+
+GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Continuity Critic의 `editorial_review.json`이 PASS여도 Human Actor와 Reason을 기록한 `editorial-approve` 전에는 승인되지 않는다. `production-finalize`는 `ARTIFACT_COMPLETE + CONTRACT_VALIDATED + PROCESS_CONFORMANT + EDITORIAL_APPROVED`를 모두 요구한다. `register`는 이 조건으로 확정된 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 성공 `0`, 검증 실패 `1`, 입력·구성·Transaction 오류 `2`다.
 
 Presentation Contract v2는 `panel_cast.json`, `reaction_segments.json`, Drama/Narration/Panel Reaction Layer Script를 별도 Artifact로 유지한다. `final_script.md`는 모든 Segment를 방송 순서대로 한 번씩 포함한 Marker 기반 Broadcast Master다. Panel Reaction 비율은 선언값이 아니라 Segment `duration_sec` 합으로 계산한다.
 
@@ -111,7 +127,7 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 
 ## 구조
 
-- `STANDARD/`: v1.3.1 표준, Contract, Policy, Catalog, Dependency Graph, JSON Schema
+- `STANDARD/`: v1.3.2 표준, Contract, Policy, Catalog, Dependency Graph, JSON Schema
 - `CHANNELS/`: 독립 Version의 Channel DNA
 - `AGENTS/`: 10개 Agent Prompt와 계약 Manifest
 - `TEMPLATES/PROJECT/`: `00_PROJECT`~`09_PRODUCTION` Scaffold

@@ -212,6 +212,11 @@
       "path": "09_PRODUCTION/edit_script.md",
       "depends_on": ["shooting_script", "presentation_plan", "retention_plan", "production_panel_reaction_script"],
       "owner_agent": "orchestrator"
+    },
+    "editorial_review": {
+      "path": "08_QA/editorial_review.json",
+      "depends_on": ["final_script", "viewer_timeline", "audience_belief", "reaction_segments", "presentation_plan", "shooting_script", "narration", "production_panel_reaction_script", "subtitle_script", "edit_script"],
+      "owner_agent": "continuity_critic"
     }
   }
 }
