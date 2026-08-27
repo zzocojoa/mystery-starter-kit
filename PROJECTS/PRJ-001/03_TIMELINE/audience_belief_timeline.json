@@ -1,0 +1,12 @@
+{
+  "project_id": "PRJ-001",
+  "belief_states": [
+    {"scene_order": 1, "belief": "한준호는 마지막 무전 뒤 건물을 나갔다.", "confidence": 0.75},
+    {"scene_order": 2, "belief": "그는 방파제에서 사고를 당했다.", "confidence": 0.9},
+    {"scene_order": 3, "belief": "건물 안의 누군가 또는 무언가가 센서를 움직이고 있다.", "confidence": 0.55},
+    {"scene_order": 4, "belief": "마지막 무전의 시각이 틀렸으므로 퇴실 경로도 다시 봐야 한다.", "confidence": 0.8},
+    {"scene_order": 5, "belief": "한준호는 지하 설비 구역에 갇혀 있다.", "confidence": 0.9},
+    {"scene_order": 7, "belief": "범죄가 아닌 연쇄 설비 장애가 실종 오인을 만들었다.", "confidence": 1.0},
+    {"scene_order": 8, "belief": "공식 데이터의 정확성은 현장 맥락과 함께 검증돼야 한다.", "confidence": 1.0}
+  ]
+}
