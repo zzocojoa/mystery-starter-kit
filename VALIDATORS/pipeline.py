@@ -9,6 +9,7 @@ from VALIDATORS.causal_validation import validate_causal_graph
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.dependency import dependency_artifacts
+from VALIDATORS.editorial import validate_editorial_review
 from VALIDATORS.exceptions import ConfigurationError, InputFileReadError
 from VALIDATORS.fact_validation import validate_fact_integrity
 from VALIDATORS.io import load_json_object
@@ -522,6 +523,7 @@ def run_production_validation(
     panel_reaction_script = artifact_text(artifacts, "panel_reaction_script")
     draft_script = artifact_text(artifacts, "draft_script")
     final_script = artifact_text(artifacts, "final_script")
+    editorial_review = artifact_document(artifacts, "editorial_review")
     project_id = production_config.get("project_id")
     if not isinstance(project_id, str):
         raise ConfigurationError("production_config.project_id 문자열이 필요합니다.")
@@ -729,6 +731,7 @@ def run_production_validation(
             artifact_text(artifacts, "production_panel_reaction_script"),
             artifact_text(artifacts, "edit_script"),
         ),
+        *validate_editorial_review(editorial_review, project_id),
     ]
     gate_groups = (
         gate_00,

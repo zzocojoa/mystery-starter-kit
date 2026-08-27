@@ -49,6 +49,20 @@ class StateTransitionError(StarterKitError):
     """Project Gate 순서 또는 Artifact 상태가 전이 조건을 충족하지 못한 오류."""
 
 
+class GateTransactionError(StarterKitError):
+    """Codex Gate Transaction의 순서, 권한 또는 무결성 오류."""
+
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        context: dict[str, object],
+    ) -> None:
+        super().__init__(f"{code}: {message}; context={context}")
+        self.code = code
+        self.context = context.copy()
+
+
 class StoryLibraryError(StarterKitError):
     """Production Ready Story Library 등록 조건을 충족하지 못한 오류."""
 

@@ -94,8 +94,15 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
     events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines()]
 
     assert run["status"] == "COMPLETED"
-    assert state["state"] == "PRODUCTION_READY"
+    assert state["state"] == "EDITORIAL_REVIEW_REQUIRED"
     assert state["current_gate"] == "GATE-13"
+    assert state["readiness"] == {
+        "artifact_status": "ARTIFACT_COMPLETE",
+        "contract_status": "CONTRACT_VALIDATED",
+        "process_status": "PROCESS_CONFORMANT",
+        "editorial_status": "EDITORIAL_REVIEW_REQUIRED",
+        "process_start_gate": "GATE-00",
+    }
     assert report["result"] == "PASS"
     assert set(gate_results.values()) == {"PASS"}
     assert provenance["content_hash"] == sha256(story_path.read_bytes()).hexdigest()
@@ -110,6 +117,10 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
     assert usage["cached_tokens"] == 0
     assert any(event["event_type"] == "RUN_COMPLETED" for event in events)
     assert len(list((project_path / ".runtime" / "transactions").glob("*/transaction.json"))) == 14
+    trace_lines = (
+        project_path / "00_PROJECT" / "process_trace.jsonl"
+    ).read_text(encoding="utf-8").splitlines()
+    assert len(trace_lines) == 22
 
 
 def test_unauthorized_provider_output_never_changes_canonical_artifact(tmp_path: Path) -> None:

@@ -272,6 +272,36 @@ def validate_artifact_content(
         )
 
 
+def validate_core_outputs(
+    repository_root: Path,
+    task_id: str,
+    task: RuntimeTask,
+    outputs: Mapping[str, object],
+    artifact_contracts: Mapping[str, ArtifactContract],
+) -> None:
+    """CORE Task에도 Provider와 같은 Artifact 계약을 적용한다."""
+    if set(outputs) != set(task["writes"]):
+        raise RuntimeExecutionError(
+            "UNAUTHORIZED_ARTIFACT",
+            False,
+            "TASK",
+            "CORE Task 출력과 writes 계약이 다릅니다.",
+            task_id,
+            None,
+            {"expected": sorted(task["writes"]), "actual": sorted(outputs)},
+        )
+    for artifact_name, content in outputs.items():
+        contract = artifact_contracts[artifact_name]
+        validate_artifact_content(
+            repository_root,
+            task_id,
+            artifact_name,
+            contract["media_type"],
+            content,
+            contract,
+        )
+
+
 def validate_agent_result(
     repository_root: Path,
     response: LLMResponse,

@@ -111,8 +111,9 @@ GATES: tuple[GateDefinition, ...] = (
             "production_panel_reaction_script",
             "subtitle_script",
             "edit_script",
+            "editorial_review",
         ),
-        "target_state": "PRODUCTION_READY",
+        "target_state": "EDITORIAL_REVIEW_REQUIRED",
     },
 )
 
@@ -174,4 +175,8 @@ def advance_gate(
         )
     next_state["current_gate"] = gate_id
     next_state["state"] = gate["target_state"]
+    if gate_id == "GATE-13":
+        next_state["readiness"]["artifact_status"] = "ARTIFACT_COMPLETE"
+        next_state["readiness"]["contract_status"] = "CONTRACT_VALIDATED"
+        next_state["readiness"]["editorial_status"] = "EDITORIAL_REVIEW_REQUIRED"
     return next_state

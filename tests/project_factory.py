@@ -65,7 +65,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
 
     production_config: dict[str, object] = {
         "project_id": project_id,
-        "standard_version": "1.3.1",
+        "standard_version": "1.3.2",
         "channel_id": "MYSTERY_MAIN",
         "approval_policy": "AUTO_CONTINUE",
         "story_source_mode": "ORIGINAL",
@@ -226,7 +226,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     return {
         "project_manifest": {
             "project_id": project_id,
-            "standard_version": "1.3.1",
+            "standard_version": "1.3.2",
             "channel_id": "MYSTERY_MAIN",
             "story_source_mode": "ORIGINAL",
         },
@@ -315,4 +315,20 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "SEG-001 SEG-002 SEG-003 SEG-004 SEG-005 SEG-006\n"
             "SCN-01에서 로그를 제시하고 SCN-02에서 인과를 재구성한다."
         ),
+        "editorial_review": {
+            "schema_family": "editorial-review",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "result": "PASS",
+            "checks": {
+                "broadcast_format": "PASS",
+                "absolute_time": "PASS",
+                "dialogue_naturalness": "PASS",
+                "panel_reaction_function": "PASS",
+                "audience_belief": "PASS",
+                "shootability": "PASS",
+                "victim_dignity": "PASS",
+            },
+            "issues": [],
+        },
     }

@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/project-state-1.0.0.json",
+  "$id": "https://example.local/schemas/project-state-1.1.0.json",
   "title": "Project State and Artifact Validity",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_family", "schema_version", "project_id", "state", "current_gate", "updated_at", "artifacts"],
+  "required": ["schema_family", "schema_version", "project_id", "state", "current_gate", "updated_at", "readiness", "artifacts"],
   "properties": {
     "$schema": {
       "type": "string"
@@ -33,6 +33,8 @@
         "SCENES_DESIGNED",
         "SCRIPT_WRITTEN",
         "QA_PASSED",
+        "EDITORIAL_REVIEW_REQUIRED",
+        "EDITORIAL_APPROVED",
         "PRODUCTION_READY",
         "PRESENTATION_MIGRATION_REQUIRED",
         "BLOCKED"
@@ -45,6 +47,29 @@
     "updated_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_status", "contract_status", "process_status", "editorial_status", "process_start_gate"],
+      "properties": {
+        "artifact_status": {
+          "enum": ["INCOMPLETE", "ARTIFACT_COMPLETE"]
+        },
+        "contract_status": {
+          "enum": ["UNVALIDATED", "CONTRACT_VALIDATED"]
+        },
+        "process_status": {
+          "enum": ["NONCONFORMANT", "PROCESS_CONFORMANT"]
+        },
+        "editorial_status": {
+          "enum": ["NOT_REVIEWED", "EDITORIAL_REVIEW_REQUIRED", "EDITORIAL_APPROVED"]
+        },
+        "process_start_gate": {
+          "type": "string",
+          "pattern": "^GATE-(0[0-9]|1[0-3])$"
+        }
+      }
     },
     "artifacts": {
       "type": "object",

@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/gate-transaction-1.0.0.json",
+  "title": "Codex App Gate Transaction",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "transaction_id",
+    "project_id",
+    "gate_id",
+    "task_ids",
+    "agent_ids",
+    "allowed_reads",
+    "allowed_writes",
+    "input_hashes",
+    "canonical_hashes",
+    "workspace_hashes",
+    "forbidden_paths",
+    "workspace",
+    "status",
+    "changed_paths",
+    "commit_sha",
+    "started_at",
+    "completed_at"
+  ],
+  "properties": {
+    "schema_family": {
+      "const": "gate-transaction"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "transaction_id": {
+      "type": "string",
+      "pattern": "^CODEX-TASK-[A-F0-9]{16}$"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^PRJ-[0-9]{3,}$"
+    },
+    "gate_id": {
+      "type": "string",
+      "pattern": "^GATE-(0[0-9]|1[0-3])$"
+    },
+    "task_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "agent_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      }
+    },
+    "allowed_reads": {
+      "$ref": "#/$defs/artifactNames"
+    },
+    "allowed_writes": {
+      "$ref": "#/$defs/artifactNames"
+    },
+    "input_hashes": {
+      "$ref": "#/$defs/hashMap"
+    },
+    "canonical_hashes": {
+      "$ref": "#/$defs/pathHashMap"
+    },
+    "workspace_hashes": {
+      "$ref": "#/$defs/pathHashMap"
+    },
+    "forbidden_paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "workspace": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": ["OPEN", "COMMITTED", "ABORTED"]
+    },
+    "changed_paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "commit_sha": {
+      "type": ["string", "null"],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "artifactNames": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      }
+    },
+    "hashMap": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    },
+    "pathHashMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    }
+  }
+}

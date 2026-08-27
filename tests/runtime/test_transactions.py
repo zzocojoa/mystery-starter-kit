@@ -118,6 +118,7 @@ def test_transaction_failure_restores_every_canonical_target(
             },
             dependency_graph,
             cast(ProjectState, load_json_object(state_path)),
+            {},
         )
 
     assert error_info.value.code == "TRANSACTION_ERROR"
@@ -152,6 +153,7 @@ def test_prepared_transaction_is_recovered_after_crash(tmp_path: Path) -> None:
             ProjectState,
             load_json_object(project_path / "00_PROJECT" / "project_state.json"),
         ),
+        {},
     )
     record_path = (
         project_path / ".runtime" / "transactions" / transaction_id / "transaction.json"

@@ -42,6 +42,7 @@
     "narration": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "production_panel_reaction_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "subtitle_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
-    "edit_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152}
+    "edit_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
+    "editorial_review": {"media_type": "application/json", "schema": "STANDARD/schemas/editorial_review.schema.json", "validators": [], "commit_policy": "ALWAYS_DIAGNOSTIC", "max_bytes": 524288}
   }
 }

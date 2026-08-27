@@ -82,11 +82,18 @@ def build_initial_project_state(
     }
     return ProjectState(
         schema_family="project-state",
-        schema_version="1.0.0",
+        schema_version="1.1.0",
         project_id=project_id,
         state="INITIALIZED",
         current_gate="NONE",
         updated_at=updated_at,
+        readiness={
+            "artifact_status": "INCOMPLETE",
+            "contract_status": "UNVALIDATED",
+            "process_status": "NONCONFORMANT",
+            "editorial_status": "NOT_REVIEWED",
+            "process_start_gate": "GATE-00",
+        },
         artifacts=artifacts,
     )
 

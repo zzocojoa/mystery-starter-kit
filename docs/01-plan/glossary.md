@@ -22,4 +22,9 @@
 | Hard Collision | 다섯 Causal Dimension이 모두 같은 즉시 실패 | QA 실행마다 |
 | Reference Firewall | Style만 보존하고 Story Content와 원문을 격리하는 경계 | Reference Project |
 | Artifact State | MISSING, DIRTY, INVALID, CLEAN 상태와 Hash | 변경마다 |
-| Production Ready | 14개 Gate와 Production Package가 모두 통과한 최종 상태 | Project 완료 |
+| Gate Transaction | 한 Gate의 권한 Snapshot, 격리 작성, 검증, 원자 Commit 단위 | Gate마다 |
+| Process Trace | Task·Agent·입력 Hash·변경 경로·검증·Commit SHA 증거 | Gate마다 영구 |
+| Process Conformant | 재생성 범위의 모든 Gate PASS Trace가 순서대로 존재하는 상태 | Project 실행마다 |
+| Editorial Review | Critic이 Script를 수정하지 않고 최종 방송·서사·제작 적합성을 판정한 Artifact | GATE-13 |
+| Editorial Approved | Review PASS를 Human Actor와 Reason으로 승인한 상태 | 최종 승인 |
+| Production Ready | Artifact Complete, Contract Validated, Process Conformant, Editorial Approved를 모두 충족한 최종 상태 | Project 완료 |

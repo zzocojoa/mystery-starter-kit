@@ -40,7 +40,6 @@ from RUNTIME.event_store import (
 )
 from RUNTIME.gate_control import validate_gate
 from RUNTIME.models import (
-    ArtifactContract,
     ContextItem,
     GenerationOptions,
     LLMMessage,
@@ -58,7 +57,7 @@ from RUNTIME.models import (
 from RUNTIME.output_gateway import (
     encoded_artifact,
     validate_agent_result,
-    validate_artifact_content,
+    validate_core_outputs,
 )
 from RUNTIME.planner import (
     build_execution_plan,
@@ -82,12 +81,20 @@ from RUNTIME.transactions import (
     verify_artifact_hashes,
 )
 from VALIDATORS.agent_validation import manifest_agents
-from VALIDATORS.dependency import artifact_hash
+from VALIDATORS.change_log import append_change_log
+from VALIDATORS.dependency import artifact_hash, dependency_artifacts
 from VALIDATORS.exceptions import StarterKitError
+from VALIDATORS.gate_transaction import (
+    PROCESS_TRACE_PATH,
+    build_gate_traces,
+    gate_commit_sha,
+    process_conformance,
+    process_trace_bytes,
+    trace_records,
+)
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.models import ProjectState, ValidationIssue
 from VALIDATORS.pipeline import load_project_artifacts
-from VALIDATORS.production_cli import append_change_log
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.state_machine import gate_index
 
@@ -620,36 +627,6 @@ async def execute_llm_task(
     )
 
 
-def validate_core_outputs(
-    repository_root: Path,
-    task_id: str,
-    task: RuntimeTask,
-    outputs: Mapping[str, object],
-    artifact_contracts: Mapping[str, ArtifactContract],
-) -> None:
-    """CORE Task도 Provider와 동일한 Artifact Schema와 권한을 적용한다."""
-    if set(outputs) != set(task["writes"]):
-        raise RuntimeExecutionError(
-            "UNAUTHORIZED_ARTIFACT",
-            False,
-            "TASK",
-            "CORE Task 출력과 writes 계약이 다릅니다.",
-            task_id,
-            None,
-            {"expected": sorted(task["writes"]), "actual": sorted(outputs)},
-        )
-    for artifact_name, content in outputs.items():
-        contract = artifact_contracts[artifact_name]
-        validate_artifact_content(
-            repository_root,
-            task_id,
-            artifact_name,
-            contract["media_type"],
-            content,
-            contract,
-        )
-
-
 def gate_canonical_inputs(
     ordered_task_ids: Sequence[str],
     tasks: Mapping[str, RuntimeTask],
@@ -777,6 +754,7 @@ async def execute_existing_run(
             thresholds,
         ) = runtime_validation_inputs(repository_root)
         for gate_id in gate_ids(from_gate, current_run["to_gate"]):
+            gate_started_at = utc_now()
             latest_run = load_run(project_path, current_run["run_id"])
             if latest_run["cancel_requested"]:
                 raise RuntimeExecutionError(
@@ -1020,6 +998,61 @@ async def execute_existing_run(
                     dependency_graph,
                     utc_now(),
                 )
+                artifact_definitions = dependency_artifacts(dependency_graph)
+                changed_artifacts = {
+                    cast(str, artifact_definitions[artifact_name]["path"]): artifact_name
+                    for artifact_name in gate_outputs
+                }
+                commit_sha = gate_commit_sha(gate_outputs, artifact_contracts)
+                trace_context: dict[str, object] = {
+                    "project_id": next_state["project_id"],
+                    "gate_id": gate_id,
+                    "input_hashes": captured_hashes,
+                    "started_at": gate_started_at,
+                }
+                completed_at = utc_now()
+                gate_tasks = {
+                    task_id: ranged_tasks[task_id]
+                    for task_id in gate_task_ids
+                    if task_condition_matches(
+                        ranged_tasks[task_id]["condition"],
+                        source_mode,
+                    )
+                }
+                traces = build_gate_traces(
+                    trace_context,
+                    gate_tasks,
+                    changed_artifacts,
+                    commit_sha,
+                    completed_at,
+                )
+                existing_traces = trace_records(repository_root, project_path)
+                conformant, missing_traces = process_conformance(
+                    [*existing_traces, *traces],
+                    next_state["readiness"]["process_start_gate"],
+                    gate_id,
+                )
+                if not conformant:
+                    raise RuntimeExecutionError(
+                        "PROCESS_TRACE_MISSING",
+                        False,
+                        "GATE",
+                        "현재 Gate까지의 Process Trace가 완전하지 않습니다.",
+                        None,
+                        None,
+                        {
+                            "process_start_gate": next_state["readiness"][
+                                "process_start_gate"
+                            ],
+                            "through_gate": gate_id,
+                            "missing_gate_traces": missing_traces,
+                        },
+                    )
+                next_state["readiness"]["process_status"] = (
+                    "PROCESS_CONFORMANT"
+                    if conformant and gate_id == "GATE-13"
+                    else "NONCONFORMANT"
+                )
                 transaction_id = commit_gate_transaction(
                     project_path,
                     current_run["run_id"],
@@ -1028,6 +1061,7 @@ async def execute_existing_run(
                     gate_outputs,
                     dependency_graph,
                     next_state,
+                    {PROCESS_TRACE_PATH: process_trace_bytes(project_path, traces)},
                 )
                 for artifact_name, content in gate_outputs.items():
                     provenance = output_provenance[artifact_name]
