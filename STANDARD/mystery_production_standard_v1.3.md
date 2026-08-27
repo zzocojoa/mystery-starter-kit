@@ -213,14 +213,16 @@ mystery-kit validate PROJECTS/PRJ-002
 mystery-kit register PROJECTS/PRJ-002
 
 mystery-runtime doctor
-mystery-runtime plan PROJECTS/PRJ-002
-mystery-runtime run PROJECTS/PRJ-002 --from GATE-00 --to GATE-13
-mystery-runtime status PROJECTS/PRJ-002
+mystery-runtime plan PROJECTS/PRJ-RUNTIME-TEST
+mystery-runtime run PROJECTS/PRJ-RUNTIME-TEST --from GATE-00 --to GATE-13
+mystery-runtime status PROJECTS/PRJ-RUNTIME-TEST
 mystery-runtime approve RUN-... variation.generate --actor reviewer --reason "검토 완료"
 mystery-runtime resume RUN-...
 mystery-runtime cancel RUN-...
 mystery-runtime providers
 ```
+
+기본 배포의 FakeProvider Runtime 명령은 격리된 회귀 Project에서만 사용한다. 실제 작품 제작은 Codex App이 계약에 맞춰 Artifact를 작성하고 `mystery-kit validate`와 `register`로 검증·등록한다.
 
 `mystery-kit` 종료 코드는 `PASS=0`, 검증 실패 `=1`, 입력·구성 오류 `=2`다. `mystery-runtime`은 성공 `0`, 구조화 Runtime 오류 `2`를 사용한다. `register`는 `PRODUCTION_READY`가 아닌 Project를 거부한다.
 

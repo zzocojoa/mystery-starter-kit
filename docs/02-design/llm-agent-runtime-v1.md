@@ -16,6 +16,24 @@ Output Gateway → Staging Overlay → Gate Validator
 Write-ahead Transaction → Canonical Artifacts + Project State
 ```
 
+## Codex App 운영 경계
+
+실제 작품 제작에서는 Codex App이 저장소를 여는 상위 제작 Agent다. Codex는 루트 `AGENTS.md`, Agent Manifest, Task Contract, Artifact Schema를 읽고 권한 범위 안의 Project Artifact 후보를 작성한다. Codex App은 `LLMProvider` 구현이나 Runtime의 HTTP Backend가 아니며, App의 계정 인증을 Provider Credential로 전달하지 않는다.
+
+```text
+Codex App
+    ↓ reads
+AGENTS.md + Agent Manifest + Contract + Schema
+    ↓ writes candidates
+Project Artifacts
+    ↓
+mystery-kit validate → 14 Gate / QA / Project State
+    ↓ PASS
+mystery-kit register → Story Library
+```
+
+이 운영 모드에는 외부 LLM Provider가 필요하지 않다. Built-in FakeProvider는 Provider-independent Runtime의 Staging, Transaction, Hash Drift, Retry, Provenance를 재현하는 CI·E2E Test Double로만 사용한다. 따라서 `mystery-runtime run`의 Fake 출력은 실제 작품 결과로 취급하지 않는다.
+
 ## 계약
 
 - `runtime_tasks.json`: Task ID, Agent, Executor, Gate, reads, writes, 의존성, Model·Retry·Budget Profile
@@ -62,4 +80,4 @@ Prompt 우선순위는 Runtime System Rule, Agent Contract, Task Contract, 비�
 
 ## 검증 범위
 
-`tests/runtime/`은 Fake Provider 전체 Gate E2E, 정제 Reference만 Provider로 전달되는 E2E, 권한 밖 출력 시 Canonical 불변성, Retry 소진 시 `BLOCKED`, Format Retry, Human 승인·재개, Active·Stale Lock, Input Drift, Transaction Rollback·Crash Recovery·경로 격리, EXAMPLES·Raw Reference·Tool 차단, In-process와 Sidecar Conformance를 검증한다. CI는 Python 3.11과 3.14에서 기존 Validator 회귀 테스트와 함께 실행한다.
+`tests/runtime/`은 Fake Provider 전체 Gate E2E, 정제 Reference만 Provider로 전달되는 E2E, 권한 밖 출력 시 Canonical 불변성, Retry 소진 시 `BLOCKED`, Format Retry, Human 승인·재개, Active·Stale Lock, Input Drift, Transaction Rollback·Crash Recovery·경로 격리, EXAMPLES·Raw Reference·Tool 차단, In-process와 Sidecar Conformance를 검증한다. `tests/test_production_cli.py`는 Codex가 작성한 것과 같은 Disk Artifact를 전체 Gate로 검증하고 등록하는 운영 경계를 검증한다. CI는 Python 3.11과 3.14에서 기존 Validator 회귀 테스트와 함께 실행한다.

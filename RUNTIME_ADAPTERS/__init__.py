@@ -1,1 +1,1 @@
-"""Runtime Core와 분리된 외부 Provider 플러그인."""
+"""Runtime Core와 분리된 선택적 Provider 확장 Namespace."""

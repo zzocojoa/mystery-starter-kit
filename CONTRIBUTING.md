@@ -14,7 +14,7 @@
 .venv/bin/python -m pip install 'pip>=26.2' 'setuptools>=83'
 .venv/bin/python -m pip install '.[dev]'
 .venv/bin/python -m pytest
-.venv/bin/mypy VALIDATORS RUNTIME tests
+.venv/bin/mypy VALIDATORS RUNTIME RUNTIME_ADAPTERS tests
 .venv/bin/ruff check .
 .venv/bin/python -m build
 .venv/bin/python -m pip_audit
