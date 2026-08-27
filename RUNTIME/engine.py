@@ -81,6 +81,7 @@ from RUNTIME.transactions import (
     verify_artifact_hashes,
 )
 from VALIDATORS.agent_validation import manifest_agents
+from VALIDATORS.change_log import append_change_log
 from VALIDATORS.dependency import artifact_hash, dependency_artifacts
 from VALIDATORS.exceptions import StarterKitError
 from VALIDATORS.gate_transaction import (
@@ -94,7 +95,6 @@ from VALIDATORS.gate_transaction import (
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.models import ProjectState, ValidationIssue
 from VALIDATORS.pipeline import load_project_artifacts
-from VALIDATORS.production_cli import append_change_log
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.state_machine import gate_index
 
