@@ -3,15 +3,15 @@
   "schema_family": "editorial-review",
   "schema_version": "1.0.0",
   "project_id": "PRJ-001",
-  "result": "PENDING",
+  "result": "PASS",
   "checks": {
-    "broadcast_format": "PENDING",
-    "absolute_time": "PENDING",
-    "dialogue_naturalness": "PENDING",
-    "panel_reaction_function": "PENDING",
-    "audience_belief": "PENDING",
-    "shootability": "PENDING",
-    "victim_dignity": "PENDING"
+    "broadcast_format": "PASS",
+    "absolute_time": "PASS",
+    "dialogue_naturalness": "PASS",
+    "panel_reaction_function": "PASS",
+    "audience_belief": "PASS",
+    "shootability": "PASS",
+    "victim_dignity": "PASS"
   },
   "issues": []
 }

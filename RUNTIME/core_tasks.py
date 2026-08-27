@@ -15,7 +15,7 @@ from VALIDATORS.novelty import (
     evaluate_novelty,
     evaluate_variation_precheck,
 )
-from VALIDATORS.pipeline import ArtifactContent, load_project_artifacts
+from VALIDATORS.pipeline import ArtifactContent, load_existing_project_artifacts
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
     sanitize_reference_profile,
@@ -34,7 +34,7 @@ def combined_artifacts(
     overlay: Mapping[str, object],
 ) -> dict[str, ArtifactContent]:
     """Canonical Artifact 위에 현재 Gate의 검증 전 출력을 겹친다."""
-    artifacts = load_project_artifacts(project_path, dependency_graph)
+    artifacts = load_existing_project_artifacts(project_path, dependency_graph)
     for artifact_name, content in overlay.items():
         if not isinstance(content, Mapping | str):
             raise RuntimeExecutionError(

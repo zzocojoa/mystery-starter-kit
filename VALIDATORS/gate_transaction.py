@@ -36,7 +36,11 @@ from VALIDATORS.dependency import artifact_hash, dependency_artifacts
 from VALIDATORS.exceptions import ConfigurationError, GateTransactionError
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.models import ProductionValidationReport, ProjectState
-from VALIDATORS.pipeline import load_project_artifacts, run_production_validation
+from VALIDATORS.pipeline import (
+    load_project_artifacts,
+    load_selected_project_artifacts,
+    run_production_validation,
+)
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.state_machine import expected_gate, gate_index
 
@@ -291,10 +295,12 @@ def task_open_unlocked(
         repository_root / "STANDARD" / "dependency_graph.json"
     )
     allowed_reads = string_union(tasks, "reads")
+    gate_writes = string_union(tasks, "writes")
     allowed_writes = string_union(tasks_for_executor(tasks, "LLM"), "writes")
+    external_reads = sorted(set(allowed_reads) - set(gate_writes))
     input_hashes = capture_artifact_hashes(
         project_path,
-        allowed_reads,
+        external_reads,
         dependency_graph,
     )
     transaction_id = f"CODEX-TASK-{uuid4().hex[:16].upper()}"
@@ -457,7 +463,7 @@ def verify_canonical_snapshot(
     path_map = artifact_path_map(dependency_graph)
     gate_map = artifact_gate_map(catalog)
     gate_id = cast(str, record["gate_id"])
-    input_names = set(cast(list[str], record["allowed_reads"]))
+    input_names = set(cast(Mapping[str, str], record["input_hashes"]))
     for path in changed:
         artifact_name = path_map.get(path)
         target_gate = None if artifact_name is None else gate_map.get(artifact_name)
@@ -726,7 +732,20 @@ def validate_gate_overlay(
     reference_source: Path | None,
 ) -> None:
     """Workspace에서 현재 Gate Validator만 실행한다."""
-    artifacts = load_project_artifacts(workspace, dependency_graph)
+    catalog = load_task_catalog(repository_root)
+    required_artifacts: set[str] = set()
+    for task in catalog.values():
+        if gate_index(task["target_gate"]) > gate_index(gate_id):
+            continue
+        if not task_condition_matches(task["condition"], source_mode(workspace)):
+            continue
+        required_artifacts.update(task["reads"])
+        required_artifacts.update(task["writes"])
+    artifacts = load_selected_project_artifacts(
+        workspace,
+        dependency_graph,
+        sorted(required_artifacts),
+    )
     (
         channel,
         story_schema,

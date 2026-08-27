@@ -5,130 +5,171 @@
       "scene_id": "SCN-01",
       "order": 1,
       "beat_id": "BEAT-01",
-      "title": "마지막 무전",
-      "location_id": "LOC-DISASTER-CONTROL",
-      "estimated_seconds": 180,
-      "objective": "21시 49분 마지막 무전과 빈 중계실을 제시한다.",
-      "conflict": "윤서하는 표시 시각을 실제 사건 시각으로 단정한다.",
-      "turn": "한준호 시점에서 방화문이 닫히는 소리만 들린다.",
-      "clue_ids": ["CLUE-01"],
+      "estimated_seconds": 210,
+      "clue_ids": [
+        "CLUE-01"
+      ],
       "knowledge_claims": [
-        {"character_id": "CHAR-01", "fact_id": "FACT-01"},
-        {"character_id": "CHAR-02", "fact_id": "FACT-03"}
-      ]
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-01"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-03"
+        }
+      ],
+      "summary": "21시 42분 업링크 단절과 21시 49분 마지막 무전 표시가 충돌한다. 윤서하는 더 늦은 표시 시각을 기준으로 수색을 시작하지만, 관객은 한준호의 위치나 지연 패킷의 의미를 아직 알지 못한다."
     },
     {
       "scene_id": "SCN-02",
       "order": 2,
       "beat_id": "BEAT-02",
-      "title": "두 개의 수색",
-      "location_id": "LOC-GUESTHOUSE-EXTERIOR",
       "estimated_seconds": 180,
-      "objective": "방파제와 건물 내부의 이중 조사를 시작한다.",
-      "conflict": "박대식은 장화 자국을, 오미라는 지하 방화문을 우선하라고 주장한다.",
-      "turn": "윤서하는 공식 흔적을 따라 방파제 수색을 승인한다.",
-      "clue_ids": ["CLUE-02"],
+      "clue_ids": [
+        "CLUE-02"
+      ],
       "knowledge_claims": [
-        {"character_id": "CHAR-04", "fact_id": "FACT-07"},
-        {"character_id": "CHAR-03", "fact_id": "FACT-03"}
-      ]
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-07"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-03"
+        }
+      ],
+      "summary": "방파제 방향 장화 자국과 오미라의 지하 방화문 경고가 서로 다른 수색 경로를 만든다. 흔적은 강하지만 그 주인은 공개되지 않는다."
     },
     {
       "scene_id": "SCN-03",
       "order": 3,
       "beat_id": "BEAT-03",
-      "title": "죽지 않은 펄스",
-      "location_id": "LOC-GUESTHOUSE-OFFICE",
-      "estimated_seconds": 180,
-      "objective": "통신 두절 뒤의 센서 신호를 발견한다.",
-      "conflict": "윤서하는 센서 오류로, 오미라는 사람이 만든 신호로 본다.",
-      "turn": "펄스 간격이 반복되며 단순 접점 오류 가능성이 낮아진다.",
-      "clue_ids": ["CLUE-03"],
+      "estimated_seconds": 190,
+      "clue_ids": [
+        "CLUE-03"
+      ],
       "knowledge_claims": [
-        {"character_id": "CHAR-01", "fact_id": "FACT-04"},
-        {"character_id": "CHAR-03", "fact_id": "FACT-05"}
-      ]
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-04"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-05"
+        }
+      ],
+      "summary": "주 통신망과 분리된 우량계 회로에서 규칙적인 펄스가 발견된다. 신호의 주체와 정확한 발신 위치는 숨긴 채 센서 오류와 생존 신호 가설을 경쟁시킨다."
     },
     {
       "scene_id": "SCN-04",
       "order": 4,
       "beat_id": "BEAT-04",
-      "title": "8분의 거짓말",
-      "location_id": "LOC-DISASTER-CONTROL",
-      "estimated_seconds": 180,
-      "objective": "표시 시각과 패킷 생성 시각의 차이를 확인한다.",
-      "conflict": "윤서하는 자신의 최초 판단이 수색을 잘못 이끌었음을 인정해야 한다.",
-      "turn": "마지막 무전은 정전 이전에 만들어졌고 한준호가 밖으로 나갔다는 증거가 사라진다.",
-      "clue_ids": ["CLUE-01"],
+      "estimated_seconds": 170,
+      "clue_ids": [
+        "CLUE-01"
+      ],
       "knowledge_claims": [
-        {"character_id": "CHAR-01", "fact_id": "FACT-02"},
-        {"character_id": "CHAR-03", "fact_id": "FACT-03"}
-      ]
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-02"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-03"
+        }
+      ],
+      "summary": "음성 파일이 21시 41분에 생성되고 21시 49분에 재생됐음이 드러난다. 윤서하는 자신의 최초 판단을 철회하지만 아직 한준호가 어디에 있는지는 확정하지 못한다."
     },
     {
       "scene_id": "SCN-05",
       "order": 5,
       "beat_id": "BEAT-05",
-      "title": "건물 안의 대답",
-      "location_id": "LOC-BOILER-ROOM",
       "estimated_seconds": 180,
-      "objective": "가설을 방파제 실종에서 지하 갇힘으로 바꾼다.",
-      "conflict": "박대식의 흔적 해석과 오미라의 건물 기억이 충돌한다.",
-      "turn": "장화 자국의 주인이 박대식으로 확인되는 순간 통기관에서 규칙적 타격음이 들린다.",
-      "clue_ids": ["CLUE-02", "CLUE-03", "CLUE-04"],
+      "clue_ids": [
+        "CLUE-02",
+        "CLUE-03",
+        "CLUE-04"
+      ],
       "knowledge_claims": [
-        {"character_id": "CHAR-01", "fact_id": "FACT-02"},
-        {"character_id": "CHAR-01", "fact_id": "FACT-05"},
-        {"character_id": "CHAR-03", "fact_id": "FACT-06"}
-      ]
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-02"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-05"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-06"
+        }
+      ],
+      "summary": "장화 자국의 주인이 박대식으로 확인되고, 우량계 펄스와 통기관 타격음이 같은 지하 설비 구역을 가리킨다. 관객의 가설은 방파제 실종에서 건물 내부 고립으로 수정된다."
     },
     {
       "scene_id": "SCN-06",
       "order": 6,
       "beat_id": "BEAT-06",
-      "title": "해일 4분 전",
-      "location_id": "LOC-BOILER-ROOM",
-      "estimated_seconds": 180,
-      "objective": "구조팀이 저류조 점검 해치에 접근한다.",
-      "conflict": "부식된 해치와 상승하는 수위가 진입을 늦춘다.",
-      "turn": "박대식이 통기관 방향으로 구조 위치를 확정한다.",
-      "clue_ids": ["CLUE-04"],
+      "estimated_seconds": 205,
+      "clue_ids": [
+        "CLUE-04"
+      ],
       "knowledge_claims": [
-        {"character_id": "CHAR-04", "fact_id": "FACT-05"},
-        {"character_id": "CHAR-04", "fact_id": "FACT-06"}
-      ]
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-05"
+        },
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-06"
+        }
+      ],
+      "summary": "구조팀이 옛 보일러실 점검 해치를 찾고 해일과 전력 상실의 제한 시간 안에 절단을 시작한다. 구조 가능성은 커지지만 정확한 위치와 생존 여부는 아직 화면에 나오지 않는다."
     },
     {
       "scene_id": "SCN-07",
       "order": 7,
       "beat_id": "BEAT-07",
-      "title": "사라지지 않은 사람",
-      "location_id": "LOC-CISTERN-CHAMBER",
-      "estimated_seconds": 180,
-      "objective": "한준호를 구조하고 모든 핵심 단서를 회수한다.",
-      "conflict": "문을 연 뒤에도 급류와 정전이 탈출을 막는다.",
-      "turn": "한준호가 자신이 우량계와 배관을 이용해 신호를 만들었다고 확인한다.",
-      "clue_ids": ["CLUE-03", "CLUE-04"],
+      "estimated_seconds": 190,
+      "clue_ids": [
+        "CLUE-03",
+        "CLUE-04"
+      ],
       "knowledge_claims": [
-        {"character_id": "CHAR-01", "fact_id": "FACT-06"},
-        {"character_id": "CHAR-02", "fact_id": "FACT-06"}
-      ]
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-06"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-06"
+        }
+      ],
+      "summary": "저류조 점검실에서 한준호를 발견하고 구조한다. 그가 우량계 시험 레버와 배관을 이용해 두 신호를 만들었다는 사실이 이 장면에서 처음 확정된다."
     },
     {
       "scene_id": "SCN-08",
       "order": 8,
       "beat_id": "BEAT-08",
-      "title": "정정된 사건",
-      "location_id": "LOC-GUESTHOUSE-LOBBY",
-      "estimated_seconds": 180,
-      "objective": "사건의 성격과 윤서하의 권한 정체성을 재정의한다.",
-      "conflict": "상황실은 최초 실종 분류를 유지해 판단 오류를 감추려 한다.",
-      "turn": "윤서하는 기록을 시스템 오독 구조 사고로 정정하고 현장 교차 확인 절차를 남긴다.",
-      "clue_ids": ["CLUE-01", "CLUE-02", "CLUE-03", "CLUE-04"],
+      "estimated_seconds": 175,
+      "clue_ids": [
+        "CLUE-01",
+        "CLUE-02",
+        "CLUE-03",
+        "CLUE-04"
+      ],
       "knowledge_claims": [
-        {"character_id": "CHAR-01", "fact_id": "FACT-02"},
-        {"character_id": "CHAR-01", "fact_id": "FACT-05"}
-      ]
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-02"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-05"
+        }
+      ],
+      "summary": "22시 03분 구조 완료 뒤 사건 기록을 실종에서 시스템 오독 구조 사고로 정정한다. 윤서하는 화면의 시간과 현장의 시간을 교차 확인하는 절차를 남긴다."
     }
   ]
 }

@@ -1,5 +1,7 @@
 {
   "project_id": "PRJ-001",
   "result": "PASS",
+  "comparisons": [],
+  "hard_collisions": [],
   "issues": []
 }

@@ -393,3 +393,87 @@ def test_core_outputs_are_generated_by_runtime_and_not_editable_by_codex(
     assert trace_records(repository_root, project_path)[0]["changed_paths"] == [
         "00_PROJECT/compatibility_report.json"
     ]
+
+
+def test_current_gate_submit_does_not_require_missing_future_artifacts(
+    tmp_path: Path,
+) -> None:
+    """Migration Project의 아직 생성되지 않은 미래 Artifact가 현재 Gate를 막지 않는다."""
+    repository_root, project_path, golden_path = prepare_gate_five_projects(tmp_path)
+    for relative_path in (
+        "06_SCENE/panel_cast.json",
+        "06_SCENE/reaction_segments.json",
+        "07_SCRIPT/drama_script.md",
+        "07_SCRIPT/narration_script.md",
+        "07_SCRIPT/panel_reaction_script.md",
+        "09_PRODUCTION/panel_reaction_script.md",
+    ):
+        path = project_path / relative_path
+        if path.exists():
+            path.unlink()
+
+    record = task_open(
+        repository_root,
+        project_path,
+        "GATE-05",
+        OPENED_AT,
+    )
+    copy_allowed_outputs(repository_root, golden_path, record)
+    result = task_submit(
+        repository_root,
+        project_path,
+        "GATE-05",
+        COMPLETED_AT,
+        None,
+    )
+
+    assert result["status"] == "COMMITTED"
+    assert result["current_gate"] == "GATE-05"
+
+
+def test_task_open_excludes_same_gate_outputs_from_input_hashes(
+    tmp_path: Path,
+) -> None:
+    """같은 Gate의 선행 Task 출력은 Canonical 입력 Hash를 요구하지 않는다."""
+    repository_root = create_runtime_repository(tmp_path)
+    project_path = create_runtime_project(repository_root, "PRJ-965")
+    asyncio.run(
+        execute_run(
+            repository_root,
+            project_path,
+            "GATE-00",
+            "GATE-07",
+            "default",
+            None,
+            None,
+        )
+    )
+    for relative_path in (
+        "07_SCRIPT/drama_script.md",
+        "07_SCRIPT/narration_script.md",
+        "07_SCRIPT/panel_reaction_script.md",
+    ):
+        path = project_path / relative_path
+        if path.exists():
+            path.unlink()
+
+    record = task_open(
+        repository_root,
+        project_path,
+        "GATE-08",
+        OPENED_AT,
+    )
+
+    input_hashes = record["input_hashes"]
+    assert isinstance(input_hashes, Mapping)
+    assert "drama_script" not in input_hashes
+    assert "narration_script" not in input_hashes
+    assert "panel_reaction_script" not in input_hashes
+    assert "scene_cards" in input_hashes
+    assert record["allowed_writes"] == [
+        "draft_script",
+        "drama_script",
+        "final_script",
+        "narration_script",
+        "panel_reaction_script",
+    ]

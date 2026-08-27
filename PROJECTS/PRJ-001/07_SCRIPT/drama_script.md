@@ -1,10 +1,4 @@
-# PRJ-001 Broadcast Master — 폭풍이 꺼지기 23분 전
-
-<!-- SEGMENT:SEG-001 TYPE:NARRATION SCENE:SCN-01 DURATION:50 -->
-[NARRATION] 폭풍이 섬의 전원을 끊은 밤, 윤서하에게 사람의 위치는 화면 속 숫자로 먼저 도착했다. 한쪽 기록은 통신이 끊겼다고 말했고, 더 늦게 뜬 다른 기록은 음성이 남아 있었다고 말했다. 그녀는 두 기록이 같은 시간을 가리킨다고 믿었다. 그 믿음이 첫 수색 방향을 만들었고, 아직 누구도 늦게 도착한 정보와 늦게 일어난 사건을 구분하지 못했다.
-
-[AUDIO] 낮은 바람 소리 위로 저장 음성의 끝부분이 멀어지고, 짧은 정적이 남는다.
-<!-- END_SEGMENT:SEG-001 -->
+# PRJ-001 Drama Layer — 폭풍이 꺼지기 23분 전
 
 <!-- SEGMENT:SEG-002 TYPE:DRAMA SCENE:SCN-01 DURATION:120 -->
 [VIDEO] 폭풍우가 폐업한 해풍 게스트하우스의 외벽을 때린다. 옥상 중계 안테나는 바람에 흔들리고, 군 재난상황실의 다중 화면 중 하나가 붉게 점멸한다.
@@ -34,14 +28,6 @@
 [SFX] 멀리서 금속문이 닫히는 듯한 둔탁한 소리. 출처는 확인되지 않는다.
 <!-- END_SEGMENT:SEG-002 -->
 
-<!-- SEGMENT:SEG-003 TYPE:PANEL_REACTION SCENE:SCN-01 DURATION:40 -->
-[RSEG-001] [PANEL-03] [HYPOTHESIS_GENERATION]
-
-[PANEL-03 · 반대 가설 패널] “21시 49분이 실제 발신 시각이라는 확인부터 필요합니다. 표시가 늦게 붙은 것이라면 방파제 수색은 출발점부터 틀릴 수 있어요.”
-
-[PANEL NOTE] 우세 가설을 확정하지 않고, 표시 시각 오독과 건물 내부 가능성을 관객의 대안으로 남긴다.
-<!-- END_SEGMENT:SEG-003 -->
-
 <!-- SEGMENT:SEG-004 TYPE:DRAMA SCENE:SCN-02 DURATION:135 -->
 [VIDEO] 박대식과 두 구조대원이 게스트하우스 현관에 도착한다. 탐조등 아래 큰 장화 자국이 빗물 사이로 이어져 방파제 쪽에서 사라진다.
 
@@ -66,20 +52,6 @@
 [CHARACTER_REACTION] 오미라는 반박하려다 말을 삼킨다. 윤서하는 그 정적을 듣지만 지시를 바꾸지 않는다.
 <!-- END_SEGMENT:SEG-004 -->
 
-<!-- SEGMENT:SEG-005 TYPE:PANEL_REACTION SCENE:SCN-02 DURATION:45 -->
-[RSEG-002] [PANEL-02] [EMOTIONAL_REACTION]
-
-[PANEL-02 · 현장 공감 패널] “장화 자국은 당장 따라가고 싶게 만들지만, 오미라의 경고는 오래 겪은 사람만 아는 위험이죠. 둘 중 하나를 너무 빨리 버리면 사람이 지워질 수 있습니다.”
-
-[PANEL NOTE] 물리 흔적과 현장 기억의 신뢰를 경쟁시키며, 초기 판단에서 배제되는 사람의 감정을 짚는다.
-<!-- END_SEGMENT:SEG-005 -->
-
-<!-- SEGMENT:SEG-006 TYPE:NARRATION SCENE:SCN-03 DURATION:45 -->
-[NARRATION] 수색이 바다 쪽으로 멀어질수록 건물 안의 작은 기록은 더 이상해졌다. 끊어진 주 회선과 살아 있는 보조 회로, 비와 맞지 않는 반복 간격. 윤서하는 그것을 오류라고 부르면 판단을 유지할 수 있었고, 신호라고 부르면 지금까지의 지시를 되돌려야 했다. 관객에게도 남은 질문은 같았다. 이 규칙성은 고장인가, 누군가의 의도인가.
-
-[AUDIO] 기계 릴레이의 건조한 클릭이 질문 뒤에 일정한 간격으로 남는다.
-<!-- END_SEGMENT:SEG-006 -->
-
 <!-- SEGMENT:SEG-007 TYPE:DRAMA SCENE:SCN-03 DURATION:100 -->
 [VIDEO] 중계실 장비 랙은 대부분 꺼져 있다. 구석의 아날로그 우량계 릴레이에만 작은 녹색 불이 켜졌다 꺼진다.
 
@@ -101,14 +73,6 @@
 
 [윤서하] “오류로 닫지 마세요. 반복 주기를 저장하고, 같은 리듬이 현장에 있는지 찾습니다.”
 <!-- END_SEGMENT:SEG-007 -->
-
-<!-- SEGMENT:SEG-008 TYPE:PANEL_REACTION SCENE:SCN-03 DURATION:45 -->
-[RSEG-003] [PANEL-01] [ANOMALY_DETECTION]
-
-[PANEL-01 · 기록 분석 패널] “주 회선은 끊겼는데 별도 회로의 펄스는 반복됩니다. 폭우가 원인이라면 왜 같은 간격이 되풀이되는지 설명해야 합니다.”
-
-[PANEL NOTE] 펄스의 주체를 단정하지 않고, 센서 오류 가설이 설명하지 못하는 반복 간격만 분리한다.
-<!-- END_SEGMENT:SEG-008 -->
 
 <!-- SEGMENT:SEG-009 TYPE:DRAMA SCENE:SCN-04 DURATION:120 -->
 [VIDEO] 상황실. 윤서하가 음성 파일 상세 창을 열고 원본 헤더와 백업 게이트웨이 기록을 나란히 띄운다.
@@ -136,14 +100,6 @@
 [윤서하] “공식 도면과 오미라 씨 메모를 겹쳐 주세요. 표시되지 않은 공간부터 찾겠습니다.”
 <!-- END_SEGMENT:SEG-009 -->
 
-<!-- SEGMENT:SEG-010 TYPE:PANEL_REACTION SCENE:SCN-04 DURATION:50 -->
-[RSEG-004] [PANEL-03] [CONTRADICTION_DETECTION]
-
-[PANEL-03 · 반대 가설 패널] “이제 21시 49분은 사람의 시간이 아니라 시스템이 재생한 시간입니다. 그렇다면 그 시각 뒤의 동선을 찾는 수색 논리는 성립하지 않아요.”
-
-[PANEL NOTE] 방파제 가설의 전제를 폐기하고, 정전 전후 건물 내부 사건을 다시 구성하도록 관객의 질문을 바꾼다.
-<!-- END_SEGMENT:SEG-010 -->
-
 <!-- SEGMENT:SEG-011 TYPE:DRAMA SCENE:SCN-05 DURATION:130 -->
 [VIDEO] 방파제 끝. 박대식이 빈 구명환만 확인한다. 대원이 장화 자국 확대 사진을 보여 준다. 밑창 오른쪽 모서리에 반달 모양의 결손이 있다.
 
@@ -169,20 +125,6 @@
 
 [박대식·무전] “복귀 1분. 해치 절단 장비 준비합니다.”
 <!-- END_SEGMENT:SEG-011 -->
-
-<!-- SEGMENT:SEG-012 TYPE:PANEL_REACTION SCENE:SCN-05 DURATION:50 -->
-[RSEG-005] [PANEL-01] [HYPOTHESIS_REVISION]
-
-[PANEL-01 · 기록 분석 패널] “장화 자국은 박대식의 것이고, 펄스와 타격음은 같은 리듬입니다. 이제 가장 적은 가정은 누군가 지하 설비 구역에서 두 경로로 신호를 보냈다는 쪽입니다.”
-
-[PANEL NOTE] 서로 무관하다고 보였던 흔적을 결합해, 관객 가설을 해안 실종에서 지하 고립으로 명시적으로 수정한다.
-<!-- END_SEGMENT:SEG-012 -->
-
-<!-- SEGMENT:SEG-013 TYPE:NARRATION SCENE:SCN-06 DURATION:40 -->
-[NARRATION] 단서들이 처음으로 한 방향을 가리키자 사건은 추리에서 구조로 바뀌었다. 그러나 위치가 좁혀졌다는 말은 문이 열린다는 뜻이 아니었다. 해일과 정전은 설명을 기다려 주지 않았다. 공식 도면, 오래된 기억, 원격 지휘가 같은 통로를 선택해야만 남은 시간을 사람에게 돌려줄 수 있었다.
-
-[AUDIO] 박동처럼 낮아지는 경보음이 절단기 시동음으로 이어진다.
-<!-- END_SEGMENT:SEG-013 -->
 
 <!-- SEGMENT:SEG-014 TYPE:DRAMA SCENE:SCN-06 DURATION:130 -->
 [VIDEO] 박대식이 보일러실에 합류한다. 구조대원이 철판 틈에 지렛대를 넣지만 부식된 경첩은 움직이지 않는다.
@@ -211,14 +153,6 @@
 
 [SFX] 전력 잔여 경보. 카운트다운이 시작된다.
 <!-- END_SEGMENT:SEG-014 -->
-
-<!-- SEGMENT:SEG-015 TYPE:PANEL_REACTION SCENE:SCN-06 DURATION:35 -->
-[RSEG-006] [PANEL-02] [EXPECTATION_BUILDING]
-
-[PANEL-02 · 현장 공감 패널] “위치는 좁혀졌지만 해일과 정전이 동시에 다가옵니다. 지금부터는 추리의 정답보다 해치를 제시간에 여는지가 더 중요해졌어요.”
-
-[PANEL NOTE] 정보 질문을 생존 시간의 질문으로 전환해 구조 장면의 기대와 압박을 높인다.
-<!-- END_SEGMENT:SEG-015 -->
 
 <!-- SEGMENT:SEG-016 TYPE:DRAMA SCENE:SCN-07 DURATION:160 -->
 [VIDEO] 박대식이 로프를 매고 점검 해치 아래로 내려간다. 물이 허벅지까지 차오른 통로에서 왼쪽 턱을 넘는다. 통기관 끝에서 약한 타격음이 한 번 들린다.
@@ -258,20 +192,6 @@
 [CHARACTER_REACTION] 서하는 안도하면서도 최초 분류 화면을 닫지 않는다. 구조 완료 도장 옆에 `기록 정정 필요` 표시를 남긴다.
 <!-- END_SEGMENT:SEG-016 -->
 
-<!-- SEGMENT:SEG-017 TYPE:PANEL_REACTION SCENE:SCN-07 DURATION:30 -->
-[RSEG-007] [PANEL-02] [TENSION_RELEASE]
-
-[PANEL-02 · 현장 공감 패널] “한준호가 살아 있고 두 신호의 주체도 확인됐습니다. 이제 안도할 수 있지만, 왜 구조가 늦어졌는지는 아직 남아 있어요.”
-
-[PANEL NOTE] 생존 확인으로 긴장을 풀되, 시스템 오독과 판단 책임을 마지막 질문으로 보존한다.
-<!-- END_SEGMENT:SEG-017 -->
-
-<!-- SEGMENT:SEG-018 TYPE:NARRATION SCENE:SCN-08 DURATION:55 -->
-[NARRATION] 구조가 끝난 뒤에도 사건은 저절로 바로잡히지 않았다. 낙뢰는 전원을 끊었고, 방화문은 규칙대로 닫혔으며, 저장된 음성은 시스템이 허용한 순간에 재생됐다. 각각의 장치는 자기 방식으로만 사실을 남겼다. 오류는 그 조각들을 하나의 확정된 이야기로 너무 빨리 묶은 데서 생겼다. 윤서하가 배운 권한은 답을 먼저 선언하는 힘이 아니라, 서로 다른 기록이 같은 사람을 가리킬 때까지 질문을 멈추지 않는 책임이었다.
-
-[AUDIO] 폭풍 소리는 낮아지고, 종이에 펜이 닿는 소리가 가까워진다.
-<!-- END_SEGMENT:SEG-018 -->
-
 <!-- SEGMENT:SEG-019 TYPE:DRAMA SCENE:SCN-08 DURATION:90 -->
 [VIDEO] 게스트하우스 로비의 비상등 아래 네 사람이 모여 있다. 구급대가 한준호를 보온포로 감싼다. 상황실 담당자가 사건 종료 창을 띄운다.
 
@@ -299,11 +219,3 @@
 
 [SFX] 화면이 검게 전환된 뒤 우량계 펄스가 짧게 세 번, 길게 두 번 울리고 멈춘다.
 <!-- END_SEGMENT:SEG-019 -->
-
-<!-- SEGMENT:SEG-020 TYPE:PANEL_REACTION SCENE:SCN-08 DURATION:30 -->
-[RSEG-008] [PANEL-03] [MORAL_REACTION]
-
-[PANEL-03 · 반대 가설 패널] “결과가 좋았다는 이유로 최초 분류를 남겨 두면 같은 숫자가 다음 사람도 잘못된 곳으로 보냅니다. 기록의 정정까지가 이번 구조의 끝입니다.”
-
-[PANEL NOTE] 구조 성공만으로 종결하려는 관점을 반박하고, 공식 기록과 판단 경로의 정정을 책임의 일부로 정의한다.
-<!-- END_SEGMENT:SEG-020 -->

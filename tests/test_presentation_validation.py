@@ -277,6 +277,41 @@ def test_absolute_time_monotonicity_and_timeline_alignment_fail() -> None:
     } <= codes
 
 
+def test_rescue_completion_uses_action_end_not_rescue_team_start() -> None:
+    """구조팀 준비가 아니라 실제 구조 행동의 종료 시각을 기준으로 삼는다."""
+    timeline: dict[str, object] = {
+        "events": [
+            {
+                "start_minute": 0,
+                "end_minute": 2,
+                "description": "21시 41분 점검 무전을 보낸다.",
+            },
+            {
+                "start_minute": 16,
+                "end_minute": 19,
+                "description": "구조팀이 점검 해치를 찾는다.",
+            },
+            {
+                "start_minute": 19,
+                "end_minute": 23,
+                "description": "구조팀이 고립자를 구조한다.",
+            },
+            {
+                "start_minute": 23,
+                "end_minute": 25,
+                "description": "22시 03분 구조 사고로 정정한다.",
+            },
+        ]
+    }
+
+    issues = absolute_time_issues(
+        "구조 완료 시각은 22시 03분입니다.",
+        timeline,
+    )
+
+    assert issues == []
+
+
 def test_production_cues_must_preserve_reaction_and_segment_ids() -> None:
     """Production Panel Cue와 Edit Script에서 계약 ID 누락을 차단한다."""
     artifacts = make_complete_project_artifacts()

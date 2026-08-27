@@ -129,6 +129,62 @@ def test_transaction_failure_restores_every_canonical_target(
     assert load_json_object(records[0])["status"] == "ROLLED_BACK"
 
 
+def test_transaction_failure_removes_new_canonical_target(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """신규 Artifact 반영 뒤 실패하면 원래 없던 Canonical 파일을 제거한다."""
+    repository_root = create_runtime_repository(tmp_path)
+    project_path = create_runtime_project(repository_root, "PRJ-933")
+    dependency_graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
+    panel_path = project_path / "06_SCENE" / "panel_cast.json"
+    panel_path.unlink()
+    original_replace = os.replace
+    calls = 0
+
+    def fail_second_replace(source: Path, target: Path) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise OSError("의도한 두 번째 Replace 실패")
+        original_replace(source, target)
+
+    monkeypatch.setattr("RUNTIME.transactions.os.replace", fail_second_replace)
+
+    with pytest.raises(RuntimeExecutionError) as error_info:
+        commit_gate_transaction(
+            project_path,
+            "RUN-NEW-ROLLBACK",
+            "GATE-07",
+            project_path,
+            {
+                "panel_cast": {
+                    "schema_family": "panel-cast",
+                    "schema_version": "2.0.0",
+                    "project_id": "PRJ-933",
+                    "panelists": [],
+                }
+            },
+            dependency_graph,
+            cast(
+                ProjectState,
+                load_json_object(project_path / "00_PROJECT" / "project_state.json"),
+            ),
+            {},
+        )
+
+    assert error_info.value.code == "TRANSACTION_ERROR"
+    assert not panel_path.exists()
+    records = sorted((project_path / ".runtime" / "transactions").glob("*/transaction.json"))
+    assert len(records) == 1
+    record = load_json_object(records[0])
+    assert record["status"] == "ROLLED_BACK"
+    targets = record["targets"]
+    assert isinstance(targets, list)
+    assert targets[0]["existed_before"] is False
+    assert targets[0]["backup_path"] is None
+
+
 def test_prepared_transaction_is_recovered_after_crash(tmp_path: Path) -> None:
     """Commit 완료 표시 전 중단된 Transaction은 다음 Run에서 백업으로 복구한다."""
     repository_root = create_runtime_repository(tmp_path)

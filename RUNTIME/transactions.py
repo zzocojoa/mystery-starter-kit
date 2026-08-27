@@ -489,7 +489,8 @@ def restore_transaction_backups(
     for target in reversed(targets):
         target_path_value = target.get("target_path")
         backup_path_value = target.get("backup_path")
-        if not isinstance(target_path_value, str) or not isinstance(backup_path_value, str):
+        existed_before = target.get("existed_before", True)
+        if not isinstance(target_path_value, str) or not isinstance(existed_before, bool):
             raise RuntimeExecutionError(
                 "TRANSACTION_ERROR",
                 False,
@@ -500,6 +501,30 @@ def restore_transaction_backups(
                 {},
             )
         target_path = transaction_member_path(target_path_value, project_path, "target_path")
+        if not existed_before:
+            try:
+                target_path.unlink(missing_ok=True)
+            except OSError as error:
+                raise RuntimeExecutionError(
+                    "TRANSACTION_ERROR",
+                    False,
+                    "TRANSACTION",
+                    "Prepared Transaction 신규 Artifact 제거에 실패했습니다.",
+                    None,
+                    None,
+                    {"target_path": str(target_path)},
+                ) from error
+            continue
+        if not isinstance(backup_path_value, str):
+            raise RuntimeExecutionError(
+                "TRANSACTION_ERROR",
+                False,
+                "TRANSACTION",
+                "Transaction 백업 경로가 손상되었습니다.",
+                None,
+                None,
+                {"target_path": str(target_path)},
+            )
         backup_path = transaction_member_path(backup_path_value, backup_root, "backup_path")
         temporary_path = target_path.with_name(f".{target_path.name}.rollback.tmp")
         try:
@@ -585,24 +610,32 @@ def commit_gate_transaction(
     targets: list[dict[str, object]] = []
     for index, (target_path, intended_bytes, artifact_name) in enumerate(target_specs):
         backup_path = backup_root / f"{index:03d}-{target_path.name}"
-        try:
-            shutil.copy2(target_path, backup_path)
-        except OSError as error:
-            raise RuntimeExecutionError(
-                "TRANSACTION_ERROR",
-                False,
-                "TRANSACTION",
-                "Canonical Artifact 백업에 실패했습니다.",
-                None,
-                artifact_name,
-                {"target_path": str(target_path)},
-            ) from error
+        existed_before = target_path.exists()
+        before_hash: str | None = None
+        backup_path_value: str | None = None
+        if existed_before:
+            try:
+                before_bytes = target_path.read_bytes()
+                shutil.copy2(target_path, backup_path)
+            except OSError as error:
+                raise RuntimeExecutionError(
+                    "TRANSACTION_ERROR",
+                    False,
+                    "TRANSACTION",
+                    "Canonical Artifact 백업에 실패했습니다.",
+                    None,
+                    artifact_name,
+                    {"target_path": str(target_path)},
+                ) from error
+            before_hash = artifact_hash(before_bytes)
+            backup_path_value = str(backup_path)
         targets.append(
             {
                 "artifact_name": artifact_name,
                 "target_path": str(target_path),
-                "backup_path": str(backup_path),
-                "before_hash": artifact_hash(target_path.read_bytes()),
+                "backup_path": backup_path_value,
+                "existed_before": existed_before,
+                "before_hash": before_hash,
                 "after_hash": artifact_hash(intended_bytes),
             }
         )

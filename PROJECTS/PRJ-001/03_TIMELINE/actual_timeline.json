@@ -6,7 +6,9 @@
       "start_minute": 0,
       "end_minute": 2,
       "location_id": "LOC-RELAY-ROOM",
-      "participant_ids": ["CHAR-02"],
+      "participant_ids": [
+        "CHAR-02"
+      ],
       "description": "한준호가 21시 41분 점검 무전을 보내고 낙뢰로 업링크가 끊긴다."
     },
     {
@@ -14,15 +16,19 @@
       "start_minute": 2,
       "end_minute": 19,
       "location_id": "LOC-CISTERN-CHAMBER",
-      "participant_ids": ["CHAR-02"],
-      "description": "방화문이 닫히며 한준호가 저류조 점검실에 갇혀 우량계 회로와 배관으로 신호를 보낸다."
+      "participant_ids": [
+        "CHAR-02"
+      ],
+      "description": "21시 42분 방화문이 닫히며 한준호가 저류조 점검실에 갇히고, 이후 우량계 회로와 배관으로 신호를 보낸다."
     },
     {
       "event_id": "EVT-03",
       "start_minute": 7,
       "end_minute": 11,
       "location_id": "LOC-DISASTER-CONTROL",
-      "participant_ids": ["CHAR-01"],
+      "participant_ids": [
+        "CHAR-01"
+      ],
       "description": "백업 게이트웨이가 지연 음성을 21시 49분 시각으로 재생하고 윤서하가 실종 대응을 시작한다."
     },
     {
@@ -30,7 +36,9 @@
       "start_minute": 11,
       "end_minute": 16,
       "location_id": "LOC-BREAKWATER",
-      "participant_ids": ["CHAR-04"],
+      "participant_ids": [
+        "CHAR-04"
+      ],
       "description": "박대식이 젖은 장화 자국을 따라 방파제를 수색한다."
     },
     {
@@ -38,7 +46,10 @@
       "start_minute": 11,
       "end_minute": 16,
       "location_id": "LOC-GUESTHOUSE-OFFICE",
-      "participant_ids": ["CHAR-01", "CHAR-03"],
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
       "description": "윤서하와 오미라가 센서 로그와 옛 배관 구조를 대조한다."
     },
     {
@@ -46,7 +57,11 @@
       "start_minute": 16,
       "end_minute": 19,
       "location_id": "LOC-BOILER-ROOM",
-      "participant_ids": ["CHAR-01", "CHAR-03", "CHAR-04"],
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03",
+        "CHAR-04"
+      ],
       "description": "세 사람이 통기관의 타격음을 확인하고 저류조 점검 해치를 찾는다."
     },
     {
@@ -54,7 +69,12 @@
       "start_minute": 19,
       "end_minute": 23,
       "location_id": "LOC-CISTERN-CHAMBER",
-      "participant_ids": ["CHAR-01", "CHAR-02", "CHAR-03", "CHAR-04"],
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
       "description": "구조팀이 침수 직전 한준호를 저류조 점검실에서 구조한다."
     },
     {
@@ -62,8 +82,13 @@
       "start_minute": 23,
       "end_minute": 25,
       "location_id": "LOC-GUESTHOUSE-LOBBY",
-      "participant_ids": ["CHAR-01", "CHAR-02", "CHAR-03", "CHAR-04"],
-      "description": "윤서하가 사건을 실종이 아닌 시스템 오독에 따른 구조 사고로 정정한다."
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "22시 03분 윤서하가 사건을 실종이 아닌 시스템 오독에 따른 구조 사고로 정정한다."
     }
   ]
 }

@@ -69,8 +69,27 @@ def load_project_artifacts(
     dependency_graph: Mapping[str, object],
 ) -> dict[str, ArtifactContent]:
     """Dependency Graph에 선언된 모든 Project Artifact를 디스크에서 읽는다."""
+    return load_selected_project_artifacts(
+        project_path,
+        dependency_graph,
+        list(dependency_artifacts(dependency_graph)),
+    )
+
+
+def load_selected_project_artifacts(
+    project_path: Path,
+    dependency_graph: Mapping[str, object],
+    artifact_names: Sequence[str],
+) -> dict[str, ArtifactContent]:
+    """지정된 Project Artifact만 디스크에서 엄격하게 읽는다."""
+    definitions = dependency_artifacts(dependency_graph)
     artifacts: dict[str, ArtifactContent] = {}
-    for artifact_name, definition in dependency_artifacts(dependency_graph).items():
+    for artifact_name in artifact_names:
+        definition = definitions.get(artifact_name)
+        if definition is None:
+            raise ConfigurationError(
+                f"Dependency Graph Artifact 정의가 없습니다: artifact={artifact_name}"
+            )
         relative_path = definition.get("path")
         if not isinstance(relative_path, str):
             raise ConfigurationError(
@@ -82,6 +101,25 @@ def load_project_artifacts(
         else:
             artifacts[artifact_name] = read_text(artifact_path)
     return artifacts
+
+
+def load_existing_project_artifacts(
+    project_path: Path,
+    dependency_graph: Mapping[str, object],
+) -> dict[str, ArtifactContent]:
+    """아직 생성되지 않은 미래 Artifact를 제외하고 현재 파일만 읽는다."""
+    definitions = dependency_artifacts(dependency_graph)
+    existing_names = [
+        artifact_name
+        for artifact_name, definition in definitions.items()
+        if isinstance(definition.get("path"), str)
+        and (project_path / cast(str, definition["path"])).is_file()
+    ]
+    return load_selected_project_artifacts(
+        project_path,
+        dependency_graph,
+        existing_names,
+    )
 
 
 def artifact_document(
@@ -238,6 +276,45 @@ def validate_project_configuration(
         make_pipeline_issue(
             "PROJECT_CONFIGURATION_MISMATCH",
             "Project Manifest, Production Config, Story 또는 Channel 설정이 다릅니다.",
+            "00_PROJECT/project_manifest.json",
+            {"fields": mismatches},
+        )
+    ]
+
+
+def validate_project_setup(
+    manifest: Mapping[str, object],
+    production_config: Mapping[str, object],
+    channel: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """Story 생성 전 Manifest, Config, Channel의 식별 설정을 교차 검사한다."""
+    comparisons = {
+        "standard_version": (
+            manifest.get("standard_version"),
+            production_config.get("standard_version"),
+        ),
+        "channel_id": (
+            manifest.get("channel_id"),
+            production_config.get("channel_id"),
+            channel.get("channel_id"),
+        ),
+        "story_source_mode": (
+            manifest.get("story_source_mode"),
+            production_config.get("story_source_mode"),
+        ),
+    }
+    mismatches = sorted(
+        field
+        for field, values in comparisons.items()
+        if not all(isinstance(value, str) for value in values)
+        or any(value != values[0] for value in values[1:])
+    )
+    if not mismatches:
+        return []
+    return [
+        make_pipeline_issue(
+            "PROJECT_CONFIGURATION_MISMATCH",
+            "Project Manifest, Production Config 또는 Channel 설정이 다릅니다.",
             "00_PROJECT/project_manifest.json",
             {"fields": mismatches},
         )

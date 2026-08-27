@@ -4,29 +4,17 @@
     {
       "hypothesis_id": "HYP-01",
       "claim": "한준호는 21시 49분 이후 방파제로 나가 실족했다.",
-      "introduced_scene_order": 1,
-      "status": "REJECTED",
-      "resolved_scene_order": 5,
-      "supporting_clue_ids": ["CLUE-02"],
-      "contradicting_clue_ids": ["CLUE-01", "CLUE-03"]
+      "status": "REJECTED"
     },
     {
       "hypothesis_id": "HYP-02",
-      "claim": "게스트하우스 안의 제3자가 센서와 무전을 조작했다.",
-      "introduced_scene_order": 3,
-      "status": "REJECTED",
-      "resolved_scene_order": 5,
-      "supporting_clue_ids": ["CLUE-03"],
-      "contradicting_clue_ids": ["CLUE-01", "CLUE-04"]
+      "claim": "게스트하우스 안의 제3자가 센서를 조작했거나 독립 회로가 오작동했다.",
+      "status": "REJECTED"
     },
     {
       "hypothesis_id": "HYP-03",
-      "claim": "한준호는 21시 42분 전원 장애 때 지하 방화문 뒤에 갇혔다.",
-      "introduced_scene_order": 4,
-      "status": "CONFIRMED",
-      "resolved_scene_order": 7,
-      "supporting_clue_ids": ["CLUE-01", "CLUE-03", "CLUE-04"],
-      "contradicting_clue_ids": []
+      "claim": "한준호는 21시 42분 전원 장애 때 지하 방화문 뒤에 갇혀 신호를 보내고 있다.",
+      "status": "CONFIRMED"
     }
   ]
 }

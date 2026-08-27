@@ -30,10 +30,10 @@
     {
       "clue_id": "CLUE-03",
       "role": "CORE",
-      "description": "주 통신망이 끊긴 뒤에도 우량계 릴레이에서 불규칙한 펄스가 기록된다.",
+      "description": "주 통신망이 끊긴 뒤에도 우량계 릴레이에서 불규칙한 펄스가 기록되지만 발생 주체는 공개되지 않는다.",
       "mechanism": "INDEPENDENT_SENSOR_PULSE",
       "object": "아날로그 우량계 릴레이",
-      "first_interpretation": "폭우 때문에 접점이 튀는 센서 오류다.",
+      "first_interpretation": "폭우 때문에 접점이 튀는 센서 오류이거나 정체불명의 현장 신호다.",
       "true_meaning": "한준호가 저류조의 수동 시험 레버를 눌러 생존 신호를 보냈다.",
       "introduced_scene_order": 3,
       "introduced_scene_id": "SCN-03",
