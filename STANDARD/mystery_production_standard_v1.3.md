@@ -1,4 +1,4 @@
-# 단편 미스터리 반복 제작 표준 제작체계 v1.3
+# 단편 미스터리 반복 제작 표준 제작체계 v1.3.1
 
 ## 1. 목적과 완료 정의
 
@@ -90,8 +90,8 @@ Variation Designer는 Story 문장을 쓰기 전에 최소 5개 구조 후보를
 | `story_architect` | Story DNA, Case, Beat, Retention | Story/Case/Story Structure Artifact |
 | `character_designer` | 인물·관계·지식 경계 | Characters, Relationships, Knowledge Matrix |
 | `mystery_designer` | 실제/시청 Timeline과 추리 구조 | Timelines, Clues, Hypotheses, Causal Graph |
-| `scene_designer` | Beat를 촬영 가능한 Scene으로 변환 | Scene Cards, Presentation Plan |
-| `script_writer` | Scene과 지식 경계를 지키는 대본 | Draft, Final Script |
+| `scene_designer` | Scene과 외부 Panel 추리 흐름을 설계 | Scene Cards, Panel Cast, Reaction Segments, Presentation Plan |
+| `script_writer` | 세 Script Layer를 Broadcast Master로 통합 | Drama, Narration, Panel Reaction, Draft, Final Script |
 | `continuity_critic` | 시간·공간·지식·단서·채널 검사 | Continuity, Channel Report |
 | `novelty_auditor` | 구조/Beat/Causal 중복 검사 | Story Fingerprint, Novelty Report |
 | `reference_auditor` | Reference 정제와 사실/충돌 검사 | Reference, Evidence, Collision Report |
@@ -113,10 +113,10 @@ Run과 Task 상태, 입력·Prompt·Schema Hash, Provider·Model·Token 사용�
 03_TIMELINE  Actual, Viewer, Audience Belief Timeline
 04_MYSTERY   Clue Matrix, Hypothesis Ledger, Causal Graph
 05_STORY     Beat Sheet, Retention Plan
-06_SCENE     Scene Cards, Presentation Plan
-07_SCRIPT    Draft, Final Script
+06_SCENE     Scene Cards, Panel Cast, Reaction Segments, Presentation Plan
+07_SCRIPT    Drama, Narration, Panel Reaction Layer, Draft, Final Script
 08_QA        Continuity, Novelty, Reference, Channel, 통합 Validation
-09_PRODUCTION Shooting, Narration, Subtitle, Edit Script
+09_PRODUCTION Shooting, Narration, Panel Reaction Cue, Subtitle, Edit Script
 ```
 
 핵심 흐름은 다음과 같다.
@@ -125,7 +125,7 @@ Run과 Task 상태, 입력·Prompt·Schema Hash, Provider·Model·Token 사용�
 Compatibility → Variations/Approval → Story DNA/Fingerprint
 → Case/Facts → Characters/Relationships/Knowledge
 → Actual/Viewer/Audience Timeline → Clues/Hypotheses/Causal Graph
-→ Beats/Retention → Scenes/Presentation → Draft/Final Script
+→ Beats/Retention → Scenes/Panel/Presentation → 세 Script Layer → Broadcast Master
 → Continuity/Causal/Novelty/Reference/Channel QA
 → Shooting/Narration/Subtitle/Edit Package → Story Library
 ```
@@ -141,13 +141,13 @@ Compatibility → Variations/Approval → Story DNA/Fingerprint
 | `GATE-04` | Character, Relationship, Knowledge | `CHARACTERS_DESIGNED` |
 | `GATE-05` | 3개 Timeline, Clue, Hypothesis, Causal DAG | `MYSTERY_DESIGNED` |
 | `GATE-06` | Beat와 Retention | `STORY_STRUCTURED` |
-| `GATE-07` | Scene과 Presentation | `SCENES_DESIGNED` |
-| `GATE-08` | Draft와 Final Script | `SCRIPT_WRITTEN` |
+| `GATE-07` | Scene, Panel Cast, Reaction Segment와 Presentation v2 | `SCENES_DESIGNED` |
+| `GATE-08` | 세 Layer, Draft와 Marker 기반 Broadcast Master | `SCRIPT_WRITTEN` |
 | `GATE-09` | Continuity QA | `SCRIPT_WRITTEN` |
 | `GATE-10` | 최종 Fingerprint 현재성과 Novelty QA | `SCRIPT_WRITTEN` |
 | `GATE-11` | Reference QA | `SCRIPT_WRITTEN` |
 | `GATE-12` | Channel QA와 통합 Validation | `QA_PASSED` |
-| `GATE-13` | 네 가지 Production Artifact | `PRODUCTION_READY` |
+| `GATE-13` | Panel Reaction Cue를 포함한 다섯 Production Artifact | `PRODUCTION_READY` |
 
 Gate는 순서를 건너뛸 수 없다. 필수 Artifact는 모두 `CLEAN`이어야 하며 실패하면 마지막 통과 Gate를 유지한 채 `BLOCKED`가 된다.
 
@@ -177,7 +177,18 @@ Category는 Exact Match, 배열은 Jaccard, Beat는 Sequence Similarity, Causal�
 
 ### Channel Consistency
 
-Genre, 금지 Tone, 필수 Presentation Mode, Reaction Ratio를 Channel DNA와 비교한다. Reaction 목표 `min`은 `max`보다 클 수 없고 실제 비율은 해당 범위 안이어야 한다.
+Genre, 금지 Tone, 필수 Presentation Mode, Reaction Ratio를 Channel DNA와 비교한다. Reaction 목표 `min`은 `max`보다 클 수 없고 실제 비율은 Presentation Segment의 전체 `duration_sec` 대비 `PANEL_REACTION` 합으로 계산해 해당 범위 안이어야 한다. 수동 비율 필드는 신뢰하지 않는다.
+
+### Presentation Contract v2
+
+- `panel_cast.json`은 공개 정보만 사용하는 서로 다른 Persona의 외부 Panelist를 최소 2명 정의한다.
+- `reaction_segments.json`은 화자, 기능, 근거 Clue, 공개 Fact, 발화 전후 가설, 시간과 배치 Scene을 정의한다.
+- `CHARACTER_REACTION`, `PANEL_REACTION`, `AUDIENCE_PROMPT`는 서로 다른 의미이며 비율에는 외부 `PANEL_REACTION`만 포함한다.
+- 가설 생성과 수정, 그리고 이상 탐지 또는 모순 탐지 기능을 실제 Reaction Segment에 포함한다.
+- `drama_script.md`, `narration_script.md`, `panel_reaction_script.md`는 분리 작성한다. Narration은 화면 행동이나 Panel 발화를 그대로 반복하지 않는다.
+- `final_script.md`는 `SEGMENT`, `TYPE`, `SCENE`, `DURATION`, `END_SEGMENT` Marker로 모든 계획 Segment를 정확히 한 번 통합한 Broadcast Master다.
+- Viewer Timeline보다 먼저 공개된 Fact, 미공개 단서나 Fact를 사용하는 Panel, 역행하는 현재 절대시간, Actual Timeline과 다른 구조 완료 시각을 차단한다.
+- `09_PRODUCTION/panel_reaction_script.md`와 `edit_script.md`는 Reaction ID, Segment ID와 편집 시간 정보를 보존한다.
 
 ### Fact Integrity
 
@@ -233,3 +244,5 @@ mystery-runtime providers
 - `content_version`은 Compatibility 실패 사유가 아니다.
 - Major Schema 변경은 Migration 또는 Adapter 설계를 동반한다.
 - Standard, Schema, Agent Contract, Validator, Test가 바뀌면 구현 매트릭스와 문서를 같은 Pull Request에서 갱신한다.
+
+Presentation Artifact는 1.x에서 2.0.0으로 Breaking Change되었다. 기존 Project는 대본을 자동 창작해 통과시키지 않으며 `PRESENTATION_MIGRATION_REQUIRED`로 전환하고 기존 파일을 보존한다. GATE-05 이후 Artifact는 `DIRTY`, 기존 Presentation Plan과 Draft/Final Script는 `INVALID`, 새 v2 Artifact는 `MISSING`으로 기록한 뒤 GATE-05부터 재생성한다.

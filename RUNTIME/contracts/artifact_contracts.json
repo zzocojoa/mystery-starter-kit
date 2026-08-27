@@ -24,7 +24,12 @@
     "beat_sheet": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/beatSheet", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "retention_plan": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/retentionPlan", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "scene_cards": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/sceneCards", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 1048576},
-    "presentation_plan": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/presentationPlan", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
+    "panel_cast": {"media_type": "application/json", "schema": "STANDARD/schemas/panel_cast.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
+    "reaction_segments": {"media_type": "application/json", "schema": "STANDARD/schemas/reaction_segments.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 1048576},
+    "presentation_plan": {"media_type": "application/json", "schema": "STANDARD/schemas/presentation_plan.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 1048576},
+    "drama_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
+    "narration_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
+    "panel_reaction_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "draft_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY", "SCRIPT_INTEGRITY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "final_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY", "SCRIPT_INTEGRITY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "continuity_report": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/qaReport", "validators": [], "commit_policy": "ALWAYS_DIAGNOSTIC", "max_bytes": 524288},
@@ -35,6 +40,7 @@
     "validation_report": {"media_type": "application/json", "schema": "STANDARD/schemas/validation_report.schema.json", "validators": [], "commit_policy": "ALWAYS_DIAGNOSTIC", "max_bytes": 1048576},
     "shooting_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "narration": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
+    "production_panel_reaction_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "subtitle_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "edit_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152}
   }

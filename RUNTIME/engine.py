@@ -22,6 +22,7 @@ from RUNTIME.core_tasks import (
     combined_artifacts,
     core_task_outputs,
     mapping_artifact,
+    runtime_validation_inputs,
     story_history,
 )
 from RUNTIME.errors import RuntimeExecutionError
@@ -89,27 +90,6 @@ from VALIDATORS.pipeline import load_project_artifacts
 from VALIDATORS.production_cli import append_change_log
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.state_machine import gate_index
-
-
-def runtime_input_documents(
-    repository_root: Path,
-) -> tuple[
-    Mapping[str, object],
-    Mapping[str, object],
-    Mapping[str, object],
-    Mapping[str, object],
-    Mapping[str, object],
-]:
-    """Gate 검증에 필요한 현재 Channel과 표준 문서를 반환한다."""
-    return (
-        load_json_object(repository_root / "CHANNELS" / "mystery_main" / "channel_dna.json"),
-        load_json_object(repository_root / "STANDARD" / "schemas" / "story_dna.schema.json"),
-        load_json_object(
-            repository_root / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
-        ),
-        load_json_object(repository_root / "STANDARD" / "reference_policy.json"),
-        load_json_object(repository_root / "STANDARD" / "novelty_thresholds.json"),
-    )
 
 
 def project_state(project_path: Path) -> ProjectState:
@@ -788,9 +768,14 @@ async def execute_existing_run(
             if current_run["reference_source"] is not None
             else None
         )
-        channel, story_schema, fingerprint_schema, policy, thresholds = runtime_input_documents(
-            repository_root
-        )
+        (
+            channel,
+            story_schema,
+            fingerprint_schema,
+            presentation_schemas,
+            policy,
+            thresholds,
+        ) = runtime_validation_inputs(repository_root)
         for gate_id in gate_ids(from_gate, current_run["to_gate"]):
             latest_run = load_run(project_path, current_run["run_id"])
             if latest_run["cancel_requested"]:
@@ -984,6 +969,7 @@ async def execute_existing_run(
                     channel,
                     story_schema,
                     fingerprint_schema,
+                    presentation_schemas,
                     policy,
                     thresholds,
                     story_history(repository_root),

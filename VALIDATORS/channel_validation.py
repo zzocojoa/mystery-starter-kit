@@ -4,6 +4,11 @@ from collections.abc import Mapping
 
 from VALIDATORS.compatibility import make_error, mapping_or_empty
 from VALIDATORS.models import CompatibilityError, ValidationIssue
+from VALIDATORS.presentation_validation import (
+    actual_panel_reaction_ratio,
+    canonical_mode,
+    panel_required,
+)
 
 
 def validate_reaction_ratio(channel: Mapping[str, object]) -> list[CompatibilityError]:
@@ -104,10 +109,18 @@ def validate_channel_consistency(
         required_modes = presentation_policy.get("modes")
         selected_modes = presentation_plan.get("modes")
         if isinstance(required_modes, list) and isinstance(selected_modes, list):
-            missing_modes = sorted(
-                mode
+            canonical_required_modes = {
+                canonical
                 for mode in required_modes
-                if isinstance(mode, str) and mode not in selected_modes
+                if (canonical := canonical_mode(mode)) is not None
+            }
+            canonical_selected_modes = {
+                canonical
+                for mode in selected_modes
+                if (canonical := canonical_mode(mode)) is not None
+            }
+            missing_modes = sorted(
+                canonical_required_modes - canonical_selected_modes
             )
             if missing_modes:
                 issues.append(
@@ -121,22 +134,31 @@ def validate_channel_consistency(
 
     if isinstance(reaction_policy, Mapping):
         target_ratio = reaction_policy.get("target_ratio")
-        selected_ratio = presentation_plan.get("reaction_ratio")
-        if isinstance(target_ratio, Mapping) and isinstance(selected_ratio, int | float):
+        actual_ratio = actual_panel_reaction_ratio(presentation_plan)
+        if panel_required(channel) and actual_ratio is None:
+            issues.append(
+                make_channel_issue(
+                    "PANEL_REACTION_SEGMENT_MISSING",
+                    "실제 Panel Reaction Segment가 없어 비율을 계산할 수 없습니다.",
+                    "06_SCENE/presentation_plan.json",
+                    {},
+                )
+            )
+        if isinstance(target_ratio, Mapping) and actual_ratio is not None:
             minimum = target_ratio.get("min")
             maximum = target_ratio.get("max")
             if (
                 isinstance(minimum, int | float)
                 and isinstance(maximum, int | float)
-                and not minimum <= selected_ratio <= maximum
+                and not minimum <= actual_ratio <= maximum
             ):
                 issues.append(
                     make_channel_issue(
-                        "CHANNEL_REACTION_RATIO_VIOLATION",
-                        "Reaction 비율이 Channel의 허용 범위를 벗어났습니다.",
+                        "PANEL_REACTION_RATIO_OUT_OF_RANGE",
+                        "실제 Panel Reaction 비율이 Channel의 허용 범위를 벗어났습니다.",
                         "06_SCENE/presentation_plan.json",
                         {
-                            "reaction_ratio": selected_ratio,
+                            "actual_panel_reaction_ratio": actual_ratio,
                             "minimum": minimum,
                             "maximum": maximum,
                         },

@@ -1,3 +1,3 @@
 # PRJ-000 Draft v01
 
-Scene Card가 승인되기 전에는 본문을 작성하지 않는다.
+세 Layer와 Presentation Plan을 시간순으로 통합한 Draft만 기록한다.

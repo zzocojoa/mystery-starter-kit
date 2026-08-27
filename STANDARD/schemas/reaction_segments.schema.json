@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/reaction-segments-2.0.0.json",
+  "title": "Panel Reaction Segment Contract v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "reaction_segments"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_family": {
+      "const": "reaction-segments"
+    },
+    "schema_version": {
+      "const": "2.0.0"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^PRJ-[0-9]{3,}$"
+    },
+    "reaction_segments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/reactionSegment"
+      }
+    }
+  },
+  "$defs": {
+    "identifierList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z]+-[0-9]{2,}$"
+      }
+    },
+    "reactionSegment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reaction_segment_id",
+        "after_scene_id",
+        "order",
+        "start_sec",
+        "duration_sec",
+        "panelist_id",
+        "function",
+        "evidence_ids",
+        "known_fact_ids",
+        "hypothesis_before",
+        "spoken_line",
+        "hypothesis_after",
+        "tone"
+      ],
+      "properties": {
+        "reaction_segment_id": {
+          "type": "string",
+          "pattern": "^RSEG-[0-9]{3,}$"
+        },
+        "after_scene_id": {
+          "type": "string",
+          "pattern": "^SCN-[0-9]{2,}$"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "start_sec": {
+          "type": "number",
+          "minimum": 0
+        },
+        "duration_sec": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "panelist_id": {
+          "type": "string",
+          "pattern": "^PANEL-[0-9]{2,}$"
+        },
+        "function": {
+          "enum": [
+            "EMOTIONAL_REACTION",
+            "ANOMALY_DETECTION",
+            "HYPOTHESIS_GENERATION",
+            "SUSPECT_DISCUSSION",
+            "HYPOTHESIS_REVISION",
+            "CONTRADICTION_DETECTION",
+            "MORAL_REACTION",
+            "TENSION_RELEASE",
+            "EXPECTATION_BUILDING"
+          ]
+        },
+        "evidence_ids": {
+          "$ref": "#/$defs/identifierList"
+        },
+        "known_fact_ids": {
+          "$ref": "#/$defs/identifierList"
+        },
+        "hypothesis_before": {
+          "type": "string",
+          "minLength": 1
+        },
+        "spoken_line": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hypothesis_after": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tone": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        }
+      }
+    }
+  }
+}

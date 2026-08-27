@@ -25,6 +25,11 @@ from VALIDATORS.pipeline import (
     validate_variation_gate,
     validate_variation_precheck,
 )
+from VALIDATORS.presentation_validation import (
+    validate_presentation_design,
+    validate_production_presentation,
+    validate_script_integrity_v2,
+)
 from VALIDATORS.reference_validation import build_story_element_profile
 from VALIDATORS.state_machine import gate_index
 from VALIDATORS.story_validation import (
@@ -61,6 +66,7 @@ def validate_gate(
     channel: Mapping[str, object],
     story_schema: Mapping[str, object],
     fingerprint_schema: Mapping[str, object],
+    presentation_schemas: Mapping[str, Mapping[str, object]],
     reference_policy: Mapping[str, object],
     novelty_thresholds: Mapping[str, object],
     story_history: Sequence[Mapping[str, object]],
@@ -164,16 +170,53 @@ def validate_gate(
             *nonempty_list_issues(retention, "checkpoints", "05_STORY/retention_plan.json"),
         ]
     scenes = artifact_document(artifacts, "scene_cards")
+    panel_cast = artifact_document(artifacts, "panel_cast")
+    reaction_segments = artifact_document(artifacts, "reaction_segments")
     presentation = artifact_document(artifacts, "presentation_plan")
     if gate_id == "GATE-07":
         return [
             *nonempty_list_issues(scenes, "scenes", "06_SCENE/scene_cards.json"),
-            *nonempty_list_issues(
-                presentation, "scene_presentations", "06_SCENE/presentation_plan.json"
+            *schema_issues(
+                panel_cast,
+                presentation_schemas["panel_cast"],
+                "06_SCENE/panel_cast.json",
+            ),
+            *schema_issues(
+                reaction_segments,
+                presentation_schemas["reaction_segments"],
+                "06_SCENE/reaction_segments.json",
+            ),
+            *schema_issues(
+                presentation,
+                presentation_schemas["presentation_plan"],
+                "06_SCENE/presentation_plan.json",
+            ),
+            *validate_presentation_design(
+                panel_cast,
+                reaction_segments,
+                presentation,
+                scenes,
+                viewer,
+                facts,
+                clues,
+                channel,
+                production_config,
             ),
         ]
     if gate_id == "GATE-08":
-        return script_nonempty_issues(artifacts)
+        return validate_script_integrity_v2(
+            presentation,
+            reaction_segments,
+            scenes,
+            viewer,
+            audience,
+            actual,
+            artifact_text(artifacts, "drama_script"),
+            artifact_text(artifacts, "narration_script"),
+            artifact_text(artifacts, "panel_reaction_script"),
+            artifact_text(artifacts, "draft_script"),
+            artifact_text(artifacts, "final_script"),
+        )
     if gate_id == "GATE-09":
         report = validate_continuity(
             production_config,
@@ -220,7 +263,15 @@ def validate_gate(
     if gate_id == "GATE-12":
         return validate_channel_consistency(channel, story, production_config, presentation)
     if gate_id == "GATE-13":
-        return production_text_issues(artifacts)
+        return [
+            *production_text_issues(artifacts),
+            *validate_production_presentation(
+                presentation,
+                reaction_segments,
+                artifact_text(artifacts, "production_panel_reaction_script"),
+                artifact_text(artifacts, "edit_script"),
+            ),
+        ]
     raise ValueError(f"알 수 없는 Gate입니다: {gate_id}")
 
 
@@ -230,6 +281,7 @@ def validation_report_through(
     channel: Mapping[str, object],
     story_schema: Mapping[str, object],
     fingerprint_schema: Mapping[str, object],
+    presentation_schemas: Mapping[str, Mapping[str, object]],
     reference_policy: Mapping[str, object],
     novelty_thresholds: Mapping[str, object],
     story_history: Sequence[Mapping[str, object]],
@@ -251,6 +303,7 @@ def validation_report_through(
             channel,
             story_schema,
             fingerprint_schema,
+            presentation_schemas,
             reference_policy,
             novelty_thresholds,
             story_history,

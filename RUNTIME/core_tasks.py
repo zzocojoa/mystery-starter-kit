@@ -113,6 +113,7 @@ def runtime_validation_inputs(
     Mapping[str, object],
     Mapping[str, object],
     Mapping[str, object],
+    Mapping[str, Mapping[str, object]],
     Mapping[str, object],
     Mapping[str, object],
 ]:
@@ -123,6 +124,23 @@ def runtime_validation_inputs(
         load_json_object(
             repository_root / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
         ),
+        {
+            "panel_cast": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "panel_cast.schema.json"
+            ),
+            "reaction_segments": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "reaction_segments.schema.json"
+            ),
+            "presentation_plan": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "presentation_plan.schema.json"
+            ),
+        },
         load_json_object(repository_root / "STANDARD" / "reference_policy.json"),
         load_json_object(repository_root / "STANDARD" / "novelty_thresholds.json"),
     )
@@ -415,9 +433,14 @@ def core_task_outputs(
             }
         }
     if task_id in {"orchestrator.validation", "production.finalize"}:
-        channel, story_schema, fingerprint_schema, policy, thresholds = runtime_validation_inputs(
-            repository_root
-        )
+        (
+            channel,
+            story_schema,
+            fingerprint_schema,
+            presentation_schemas,
+            policy,
+            thresholds,
+        ) = runtime_validation_inputs(repository_root)
         target_gate = "GATE-12" if task_id == "orchestrator.validation" else "GATE-13"
         validation_report = validation_report_through(
             target_gate,
@@ -425,6 +448,7 @@ def core_task_outputs(
             channel,
             story_schema,
             fingerprint_schema,
+            presentation_schemas,
             policy,
             thresholds,
             story_history(repository_root),

@@ -1,4 +1,4 @@
-# v1.3 스키마와 Artifact 계약
+# v1.3.1 스키마와 Artifact 계약
 
 ## 독립 Version 경계
 
@@ -26,6 +26,9 @@ Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json
 | `production_config.schema.json` | 승인 정책, Genre/Tone, Runtime, USER_CASE 입력 상태 |
 | `channel_dna.schema.json` | Channel Identity와 Capability 구조 |
 | `story_dna.schema.json` | Source Mode와 Full Story DNA v1.3 |
+| `panel_cast.schema.json` | 외부 Panelist Persona, 허용 기능과 공개 정보 경계 |
+| `reaction_segments.schema.json` | Panel 화자, 추리 기능, 근거, 가설 변화와 시간 |
+| `presentation_plan.schema.json` | Presentation Contract v2 Segment Timeline |
 | `reference_policy.schema.json` | 허용 Style과 금지 Story Content |
 | `reference_profile.schema.json` | Project별 정제 Reference Profile |
 | `fact_evidence.schema.json` | Fact/Inference/Dramatization과 Source/Claim 계약 |
@@ -56,7 +59,10 @@ Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json
 
 JSON Schema가 구조를 검증하고 Validator가 다음 교차 규칙을 검증한다.
 
-- Reaction Ratio `min <= max`
+- Reaction Ratio `min <= max`와 실제 Segment Duration 기반 비율
+- Panel Cast/Reaction의 화자·기능·근거·공개 정보·가설 변화 정합성
+- Drama/Narration/Panel Layer와 Final Broadcast Master Marker 일치
+- Viewer Fact 공개, Audience Belief, 절대시간과 Actual Timeline 정합성
 - Culprit Structure별 `causal_truth` 또는 `motive_class`
 - Source Mode와 Reference Profile 일치
 - USER_CASE의 LOCKED/FLEXIBLE/UNKNOWN 상태와 Story DNA 일치
@@ -75,3 +81,5 @@ JSON Schema가 구조를 검증하고 Validator가 다음 교차 규칙을 검�
 ## Artifact 유효성
 
 각 Artifact는 `MISSING`, `DIRTY`, `INVALID`, `CLEAN` 중 하나다. 파일이 존재한다는 사실만으로 `CLEAN`이 되지 않는다. 검증된 현재 Hash와 일치해야 하며 상위 Artifact가 바뀌면 Dependency Graph를 따라 하위 Artifact가 `DIRTY`가 된다.
+
+Presentation Schema 1.x는 2.0.0과 호환되지 않는다. 기존 Project는 `PRESENTATION_MIGRATION_REQUIRED`로 전환하며 GATE-05 이후 Artifact를 재생성하기 전에는 Production Ready로 복귀할 수 없다.

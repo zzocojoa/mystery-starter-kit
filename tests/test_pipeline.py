@@ -13,6 +13,21 @@ from VALIDATORS.schema_validation import collect_schema_errors
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def presentation_schemas() -> dict[str, dict[str, object]]:
+    """Presentation Contract v2 Schema 묶음을 읽는다."""
+    return {
+        "panel_cast": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "panel_cast.schema.json"
+        ),
+        "reaction_segments": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "reaction_segments.schema.json"
+        ),
+        "presentation_plan": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "presentation_plan.schema.json"
+        ),
+    }
+
+
 def run_complete_validation() -> ProductionValidationReport:
     """완전한 독립 Project를 기준 설정으로 검증한다."""
     return run_production_validation(
@@ -22,6 +37,7 @@ def run_complete_validation() -> ProductionValidationReport:
         load_json_object(
             ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
         ),
+        presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
         [],
@@ -60,6 +76,7 @@ def test_causal_break_blocks_full_pipeline() -> None:
         load_json_object(
             ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
         ),
+        presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
         [],
@@ -87,6 +104,7 @@ def test_undeclared_variation_override_blocks_story_gate() -> None:
         load_json_object(
             ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
         ),
+        presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
         [],
@@ -112,6 +130,7 @@ def test_cross_project_artifact_is_rejected() -> None:
         load_json_object(
             ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
         ),
+        presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
         [],

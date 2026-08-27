@@ -123,24 +123,49 @@
       "depends_on": ["beat_sheet", "retention_plan", "clue_matrix"],
       "owner_agent": "scene_designer"
     },
+    "panel_cast": {
+      "path": "06_SCENE/panel_cast.json",
+      "depends_on": ["production_config"],
+      "owner_agent": "scene_designer"
+    },
+    "reaction_segments": {
+      "path": "06_SCENE/reaction_segments.json",
+      "depends_on": ["scene_cards", "audience_belief", "clue_matrix", "hypothesis_ledger", "panel_cast"],
+      "owner_agent": "scene_designer"
+    },
     "presentation_plan": {
       "path": "06_SCENE/presentation_plan.json",
-      "depends_on": ["scene_cards", "production_config"],
+      "depends_on": ["scene_cards", "production_config", "panel_cast", "reaction_segments"],
       "owner_agent": "scene_designer"
+    },
+    "drama_script": {
+      "path": "07_SCRIPT/drama_script.md",
+      "depends_on": ["scene_cards", "knowledge_matrix", "clue_matrix"],
+      "owner_agent": "script_writer"
+    },
+    "narration_script": {
+      "path": "07_SCRIPT/narration_script.md",
+      "depends_on": ["scene_cards", "viewer_timeline", "audience_belief"],
+      "owner_agent": "script_writer"
+    },
+    "panel_reaction_script": {
+      "path": "07_SCRIPT/panel_reaction_script.md",
+      "depends_on": ["reaction_segments", "panel_cast", "clue_matrix", "viewer_timeline"],
+      "owner_agent": "script_writer"
     },
     "draft_script": {
       "path": "07_SCRIPT/draft_v01.md",
-      "depends_on": ["scene_cards", "presentation_plan"],
+      "depends_on": ["drama_script", "narration_script", "panel_reaction_script", "presentation_plan"],
       "owner_agent": "script_writer"
     },
     "final_script": {
       "path": "07_SCRIPT/final_script.md",
-      "depends_on": ["draft_script"],
+      "depends_on": ["draft_script", "presentation_plan"],
       "owner_agent": "script_writer"
     },
     "continuity_report": {
       "path": "08_QA/continuity_report.json",
-      "depends_on": ["final_script", "actual_timeline", "knowledge_matrix", "clue_matrix"],
+      "depends_on": ["final_script", "actual_timeline", "viewer_timeline", "audience_belief", "knowledge_matrix", "clue_matrix", "panel_cast", "reaction_segments", "drama_script", "narration_script", "panel_reaction_script", "presentation_plan"],
       "owner_agent": "continuity_critic"
     },
     "novelty_report": {
@@ -173,6 +198,11 @@
       "depends_on": ["shooting_script", "presentation_plan"],
       "owner_agent": "orchestrator"
     },
+    "production_panel_reaction_script": {
+      "path": "09_PRODUCTION/panel_reaction_script.md",
+      "depends_on": ["shooting_script", "panel_reaction_script", "reaction_segments"],
+      "owner_agent": "orchestrator"
+    },
     "subtitle_script": {
       "path": "09_PRODUCTION/subtitle_script.md",
       "depends_on": ["shooting_script"],
@@ -180,7 +210,7 @@
     },
     "edit_script": {
       "path": "09_PRODUCTION/edit_script.md",
-      "depends_on": ["shooting_script", "presentation_plan", "retention_plan"],
+      "depends_on": ["shooting_script", "presentation_plan", "retention_plan", "production_panel_reaction_script"],
       "owner_agent": "orchestrator"
     }
   }

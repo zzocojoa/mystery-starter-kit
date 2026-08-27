@@ -24,9 +24,13 @@ from VALIDATORS.dependency import (
 from VALIDATORS.exceptions import ConfigurationError, StarterKitError
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.library import make_history_record, register_story_fingerprint
-from VALIDATORS.models import ProjectState, ValidationIssue
+from VALIDATORS.models import GateStatus, ProductionValidationReport, ProjectState, ValidationIssue
 from VALIDATORS.novelty import evaluate_variation_precheck
 from VALIDATORS.pipeline import load_project_artifacts, run_production_validation
+from VALIDATORS.presentation_migration import (
+    mark_presentation_migration_required,
+    presentation_migration_required,
+)
 from VALIDATORS.reference_validation import sanitize_reference_profile
 from VALIDATORS.scaffold import create_project_scaffold
 from VALIDATORS.schema_validation import collect_schema_errors
@@ -638,6 +642,62 @@ def run_variations(args: argparse.Namespace) -> int:
 def run_validate(args: argparse.Namespace) -> int:
     """전체 Production Gate 검증과 상태 동기화를 실행한다."""
     dependency_graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
+    project_id = project_id_from_manifest(args.project_path)
+    if presentation_migration_required(args.project_path):
+        migrated_at = utc_now()
+        previous_state = load_project_state(args.project_path)
+        migration_state = mark_presentation_migration_required(
+            args.project_path,
+            dependency_graph,
+            previous_state,
+            migrated_at,
+        )
+        write_json_object(
+            args.project_path / "00_PROJECT" / "project_state.json",
+            migration_state,
+        )
+        issue = ValidationIssue(
+            severity="ERROR",
+            code="PRESENTATION_MIGRATION_REQUIRED",
+            message="Presentation Contract v1 Project는 v2 Artifact 재생성이 필요합니다.",
+            artifact="06_SCENE/presentation_plan.json",
+            context={"required_schema_version": "2.0.0"},
+        )
+        resume_gate = migration_state["current_gate"]
+        resume_index = -1 if resume_gate == "NONE" else gate_index(resume_gate)
+        migration_gate_results: dict[str, GateStatus] = {}
+        for index in range(14):
+            gate_id = f"GATE-{index:02d}"
+            if index <= resume_index:
+                migration_gate_results[gate_id] = "PASS"
+            elif index == gate_index("GATE-05") and resume_index == gate_index("GATE-04"):
+                migration_gate_results[gate_id] = "FAIL"
+            else:
+                migration_gate_results[gate_id] = "NOT_RUN"
+        migration_report = ProductionValidationReport(
+            schema_family="validation-report",
+            schema_version="1.0.0",
+            project_id=project_id,
+            result="FAIL",
+            gate_results=migration_gate_results,
+            issues=[issue],
+        )
+        write_json_object(
+            args.project_path / "08_QA" / "validation_report.json",
+            migration_report,
+        )
+        if previous_state["state"] != "PRESENTATION_MIGRATION_REQUIRED":
+            append_change_log(
+                args.project_path,
+                "PRESENTATION_MIGRATION_REQUIRED",
+                {
+                    "schema_version": "2.0.0",
+                    "resume_from_gate": f"GATE-{resume_index + 1:02d}",
+                },
+                migrated_at,
+            )
+        print(json.dumps(migration_report, ensure_ascii=False, indent=2))
+        return 1
     artifacts = load_project_artifacts(args.project_path, dependency_graph)
     reference_material = (
         load_json_object(args.reference_source)
@@ -651,6 +711,17 @@ def run_validate(args: argparse.Namespace) -> int:
         load_json_object(
             ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
         ),
+        {
+            "panel_cast": load_json_object(
+                ROOT / "STANDARD" / "schemas" / "panel_cast.schema.json"
+            ),
+            "reaction_segments": load_json_object(
+                ROOT / "STANDARD" / "schemas" / "reaction_segments.schema.json"
+            ),
+            "presentation_plan": load_json_object(
+                ROOT / "STANDARD" / "schemas" / "presentation_plan.schema.json"
+            ),
+        },
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
         load_story_history(ROOT / "STORY_LIBRARY" / "story_fingerprints.json"),
