@@ -14,9 +14,10 @@ flowchart TD
     K --> M[Actual / Viewer / Belief Timeline]
     M --> Q[Clues / Hypotheses / Causal Graph]
     Q --> B[Beat / Retention]
-    B --> N[Scene / Presentation]
-    N --> X[Draft / Final Script]
-    X --> A[Continuity / Novelty / Reference / Channel QA]
+    B --> N[Scene / Panel Cast / Reaction / Presentation]
+    N --> X[Drama / Narration / Panel Layer]
+    X --> Y[Draft / Broadcast Master]
+    Y --> A[Continuity / Novelty / Reference / Channel QA]
     F --> A
     A -->|PASS| P[Production Package]
     P -->|GATE-13| Z[Production Ready]

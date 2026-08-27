@@ -117,11 +117,11 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 - `TEMPLATES/PROJECT/`: `00_PROJECT`~`09_PRODUCTION` Scaffold
 - `VALIDATORS/`: CLI, 상태 머신, Pipeline과 QA Engine
 - `RUNTIME/`: Provider 독립 실행 엔진, 계약, Schema, Adapter, 보안 경계
-- `RUNTIME_ADAPTERS/`: 선택적 In-process·Sidecar Provider 확장 Interface 가이드
+- `RUNTIME_ADAPTERS/`: [선택적 In-process·Sidecar Provider 확장 Interface 가이드](RUNTIME_ADAPTERS/README.md)
 - `STORY_LIBRARY/`: Production Ready Story/Causal Fingerprint History
 - `tests/`: 정상·실패·경계·Disk E2E 자동 검증
 
-상세 규칙은 [Production Standard](STANDARD/mystery_production_standard_v1.3.md), [Runtime v1.0 설계](docs/02-design/llm-agent-runtime-v1.md), 구현 증거는 [v1.3 구현 매트릭스](docs/01-plan/v1.3-implementation-matrix.md)에서 확인할 수 있다.
+상세 규칙은 [Production Standard](STANDARD/mystery_production_standard_v1.3.md), [데이터 흐름](docs/01-plan/erd.md), [용어 정의](docs/01-plan/glossary.md), [Schema 계약](docs/01-plan/schema.md), [Runtime v1.0 설계](docs/02-design/llm-agent-runtime-v1.md), 구현 증거는 [v1.3 구현 매트릭스](docs/01-plan/v1.3-implementation-matrix.md)에서 확인할 수 있다. 기여와 보안 절차는 [CONTRIBUTING.md](CONTRIBUTING.md)와 [SECURITY.md](SECURITY.md)를 따른다.
 
 ## 로컬 품질 검사
 
