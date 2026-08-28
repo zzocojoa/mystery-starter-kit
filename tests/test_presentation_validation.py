@@ -7,6 +7,8 @@ from typing import cast
 
 from project_factory import make_complete_project_artifacts
 
+from RUNTIME.core_tasks import runtime_validation_inputs
+from RUNTIME.gate_control import validate_gate
 from VALIDATORS.io import load_json_object
 from VALIDATORS.models import ValidationIssue
 from VALIDATORS.pipeline import ArtifactContent
@@ -89,6 +91,33 @@ def script_integrity_issues(
     )
 
 
+def direct_gate_issues(
+    artifacts: dict[str, ArtifactContent],
+    gate_id: str,
+) -> list[ValidationIssue]:
+    """완전한 Fixture에 지정 Gate Validator를 직접 실행한다."""
+    (
+        channel,
+        story_schema,
+        fingerprint_schema,
+        presentation_schemas,
+        reference_policy,
+        novelty_thresholds,
+    ) = runtime_validation_inputs(ROOT)
+    return validate_gate(
+        gate_id,
+        artifacts,
+        channel,
+        story_schema,
+        fingerprint_schema,
+        presentation_schemas,
+        reference_policy,
+        novelty_thresholds,
+        [],
+        None,
+    )
+
+
 def test_complete_presentation_contract_passes() -> None:
     """v2 Cast, Reaction, Timeline, Layer와 Broadcast Master는 모두 통과한다."""
     artifacts = make_complete_project_artifacts()
@@ -130,6 +159,22 @@ def test_panel_cast_speaker_function_and_ratio_failures_are_reported() -> None:
     } <= codes
 
 
+def test_panel_cast_requires_distinct_function_profiles() -> None:
+    """Persona가 달라도 기능 구성이 같으면 별도 Panel 역할로 인정하지 않는다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    cast_document = document(artifacts, "panel_cast")
+    panelists = cast_document["panelists"]
+    assert isinstance(panelists, list)
+    first = panelists[0]
+    assert isinstance(first, dict)
+    functions = first["allowed_functions"]
+    for panelist in panelists:
+        assert isinstance(panelist, dict)
+        panelist["allowed_functions"] = deepcopy(functions)
+
+    assert "PANEL_CAST_MISSING" in issue_codes(presentation_design_issues(artifacts))
+
+
 def test_missing_panel_reaction_segments_are_reported() -> None:
     """실제 Reaction이 없으면 수동 모드 선언과 무관하게 실패한다."""
     artifacts = deepcopy(make_complete_project_artifacts())
@@ -139,6 +184,18 @@ def test_missing_panel_reaction_segments_are_reported() -> None:
     codes = issue_codes(presentation_design_issues(artifacts))
 
     assert "PANEL_REACTION_SEGMENT_MISSING" in codes
+
+
+def test_required_gates_independently_reject_missing_panel_reactions() -> None:
+    """GATE-07·08·12·13은 선행 Gate 결과에 기대지 않고 Reaction 누락을 거부한다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    reaction_document = document(artifacts, "reaction_segments")
+    reaction_document["reaction_segments"] = []
+
+    for gate_id in ("GATE-07", "GATE-08", "GATE-12", "GATE-13"):
+        assert "PANEL_REACTION_SEGMENT_MISSING" in issue_codes(
+            direct_gate_issues(artifacts, gate_id)
+        )
 
 
 def test_reaction_evidence_knowledge_and_hypothesis_boundaries_fail() -> None:
@@ -210,6 +267,20 @@ def test_broadcast_master_missing_duplicate_order_and_duration_failures() -> Non
     assert "PRESENTATION_SEGMENT_DUPLICATED" in duplicated_codes
     assert "PRESENTATION_DURATION_MISMATCH" in duration_codes
     assert "FINAL_SCRIPT_NOT_BROADCAST_MASTER" in malformed_codes
+
+
+def test_integrated_draft_requires_all_presentation_segments() -> None:
+    """구조 메모만 있는 Draft는 통합 대본으로 인정하지 않는다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    artifacts["draft_script"] = (
+        "<!-- SEGMENT:SEG-001 TYPE:DRAMA SCENE:SCN-01 DURATION:100 -->\n"
+        "나머지 Segment는 Final에서 통합한다.\n"
+        "<!-- END_SEGMENT:SEG-001 -->"
+    )
+
+    codes = issue_codes(script_integrity_issues(artifacts))
+
+    assert "PRESENTATION_SEGMENT_MISSING_IN_FINAL_SCRIPT" in codes
 
 
 def test_layer_duplication_and_audience_belief_mismatch_are_reported() -> None:
@@ -329,3 +400,38 @@ def test_production_cues_must_preserve_reaction_and_segment_ids() -> None:
         "PANEL_REACTION_SEGMENT_MISSING",
         "PRESENTATION_SEGMENT_MISSING_IN_FINAL_SCRIPT",
     } <= codes
+
+
+def test_edit_script_requires_exact_presentation_timecodes() -> None:
+    """ID만 있거나 잘못된 구간을 적은 Edit Script를 차단한다."""
+    artifacts = make_complete_project_artifacts()
+    presentation_plan = document(artifacts, "presentation_plan")
+    reaction_segments = document(artifacts, "reaction_segments")
+    production_panel_script = text_artifact(
+        artifacts,
+        "production_panel_reaction_script",
+    )
+
+    missing_codes = issue_codes(
+        validate_production_presentation(
+            presentation_plan,
+            reaction_segments,
+            production_panel_script,
+            "SEG-001 SEG-002 SEG-003 SEG-004 SEG-005 SEG-006",
+        )
+    )
+    wrong_timecodes = text_artifact(artifacts, "edit_script").replace(
+        "SEG-001 | 00:00-00:32",
+        "SEG-001 | 00:01-00:33",
+    )
+    mismatch_codes = issue_codes(
+        validate_production_presentation(
+            presentation_plan,
+            reaction_segments,
+            production_panel_script,
+            wrong_timecodes,
+        )
+    )
+
+    assert "EDIT_TIMECODE_MISMATCH" in missing_codes
+    assert "EDIT_TIMECODE_MISMATCH" in mismatch_codes

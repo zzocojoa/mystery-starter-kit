@@ -102,6 +102,7 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
         "process_status": "PROCESS_CONFORMANT",
         "editorial_status": "EDITORIAL_REVIEW_REQUIRED",
         "process_start_gate": "GATE-00",
+        "process_revision": 1,
     }
     assert report["result"] == "PASS"
     assert set(gate_results.values()) == {"PASS"}

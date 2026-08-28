@@ -12,6 +12,8 @@ from RUNTIME.engine import execute_run
 from VALIDATORS.exceptions import GateTransactionError
 from VALIDATORS.gate_transaction import (
     audit_project,
+    process_conformance,
+    return_task_to_owner,
     task_abort,
     task_open,
     task_submit,
@@ -306,6 +308,7 @@ def test_missing_process_trace_blocks_production_ready(
         "process_status": "PROCESS_CONFORMANT",
         "editorial_status": "EDITORIAL_APPROVED",
         "process_start_gate": "GATE-00",
+        "process_revision": 1,
     }
     write_json_object(state_path, state)
 
@@ -477,3 +480,204 @@ def test_task_open_excludes_same_gate_outputs_from_input_hashes(
         "narration_script",
         "panel_reaction_script",
     ]
+
+
+def test_task_open_and_audit_reject_preexisting_canonical_drift(
+    tmp_path: Path,
+) -> None:
+    """Task Open 전 직접 변경도 State Hash와 대조해 차단하고 Audit에 보고한다."""
+    repository_root, project_path, _golden_path = prepare_gate_five_projects(tmp_path)
+    facts_path = project_path / "01_CASE" / "facts.json"
+    original = facts_path.read_bytes()
+    facts_path.write_bytes(original + b"\n")
+
+    with pytest.raises(GateTransactionError) as open_error:
+        task_open(repository_root, project_path, "GATE-05", OPENED_AT)
+
+    assert_error_code(open_error, "GATE_TRANSACTION_INPUT_DRIFT")
+    facts_path.write_bytes(original)
+    asyncio.run(
+        execute_run(
+            repository_root,
+            project_path,
+            "GATE-05",
+            "GATE-13",
+            "default",
+            None,
+            None,
+        )
+    )
+    final_path = project_path / "07_SCRIPT" / "final_script.md"
+    final_path.write_bytes(final_path.read_bytes() + b"\n")
+    state_path = project_path / "00_PROJECT" / "project_state.json"
+    state_before = state_path.read_bytes()
+
+    report = audit_project(
+        repository_root,
+        project_path,
+        None,
+        None,
+        "2026-08-28T00:03:00Z",
+    )
+
+    assert report["result"] == "FAIL"
+    assert report["process_conformant"] is False
+    process_issues = report["process_issues"]
+    assert isinstance(process_issues, list)
+    assert any(
+        issue["code"] == "CANONICAL_ARTIFACT_DRIFT"
+        for issue in process_issues
+        if isinstance(issue, Mapping)
+    )
+    assert state_path.read_bytes() == state_before
+
+
+def test_critic_issue_returns_to_owner_in_new_process_revision(
+    tmp_path: Path,
+) -> None:
+    """Owner 반환은 과거 Trace를 보존하고 새 Revision에서 해당 Gate부터 재실행한다."""
+    repository_root = create_runtime_repository(tmp_path)
+    project_path = create_runtime_project(repository_root, "PRJ-966")
+    asyncio.run(
+        execute_run(
+            repository_root,
+            project_path,
+            "GATE-00",
+            "GATE-13",
+            "default",
+            None,
+            None,
+        )
+    )
+
+    result = return_task_to_owner(
+        repository_root,
+        project_path,
+        "script_writer",
+        "critic-reviewer",
+        "Editorial Issue를 Script Writer가 수정해야 함",
+        "2026-08-28T00:04:00Z",
+    )
+    state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
+    traces = trace_records(repository_root, project_path)
+    conformant, missing = process_conformance(traces, "GATE-08", "GATE-13", 2)
+    readiness = state["readiness"]
+    artifacts = state["artifacts"]
+    assert isinstance(readiness, Mapping)
+    assert isinstance(artifacts, Mapping)
+    final_script_state = artifacts["final_script"]
+    assert isinstance(final_script_state, Mapping)
+
+    assert result["target_gate"] == "GATE-08"
+    assert state["current_gate"] == "GATE-07"
+    assert readiness["process_start_gate"] == "GATE-08"
+    assert readiness["process_revision"] == 2
+    assert final_script_state["status"] == "DIRTY"
+    assert conformant is False
+    assert missing == [
+        "GATE-08",
+        "GATE-09",
+        "GATE-10",
+        "GATE-11",
+        "GATE-12",
+        "GATE-13",
+    ]
+
+    record = task_open(repository_root, project_path, "GATE-08", OPENED_AT)
+    assert record["agent_ids"] == ["script_writer"]
+    assert record["process_revision"] == 2
+
+    assert run_cli(
+        [
+            "task-return",
+            str(project_path),
+            "script_writer",
+            "--actor",
+            "critic-reviewer",
+            "--reason",
+            "열린 재작업에서도 추가 수정이 필요함",
+        ]
+    ) == 0
+    task_record = load_json_object(
+        project_path
+        / ".runtime"
+        / "codex_tasks"
+        / str(record["transaction_id"])
+        / "task.json"
+    )
+    returned_state = load_json_object(
+        project_path / "00_PROJECT" / "project_state.json"
+    )
+    returned_readiness = returned_state["readiness"]
+    assert isinstance(returned_readiness, Mapping)
+    assert task_record["status"] == "ABORTED"
+    assert returned_readiness["process_revision"] == 3
+
+
+def test_canonical_drift_blocks_finalize_and_registration(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """승인 뒤 정본이 바뀌면 Production 확정과 Library 등록을 모두 차단한다."""
+    repository_root = create_runtime_repository(tmp_path)
+    project_path = create_runtime_project(repository_root, "PRJ-967")
+    asyncio.run(
+        execute_run(
+            repository_root,
+            project_path,
+            "GATE-00",
+            "GATE-13",
+            "default",
+            None,
+            None,
+        )
+    )
+    assert run_cli(
+        [
+            "editorial-approve",
+            str(project_path),
+            "--actor",
+            "human-editor",
+            "--reason",
+            "방송 적합성 검토 완료",
+        ]
+    ) == 0
+    capsys.readouterr()
+    final_path = project_path / "07_SCRIPT" / "final_script.md"
+    original = final_path.read_bytes()
+    final_path.write_bytes(original + b"\n")
+
+    assert run_cli(["production-finalize", str(project_path)]) == 2
+    assert "CANONICAL_ARTIFACT_DRIFT" in capsys.readouterr().err
+    assert load_json_object(project_path / "00_PROJECT" / "project_state.json")["state"] == (
+        "EDITORIAL_APPROVED"
+    )
+
+    final_path.write_bytes(original)
+    assert run_cli(["production-finalize", str(project_path)]) == 0
+    capsys.readouterr()
+    final_path.write_bytes(original + b"\n")
+    library_path = tmp_path / "story_fingerprints.json"
+    history_path = tmp_path / "story_history.jsonl"
+    write_json_object(
+        library_path,
+        {
+            "schema_family": "story-library",
+            "schema_version": "1.0.0",
+            "fingerprints": [],
+        },
+    )
+
+    assert run_cli(
+        [
+            "register",
+            str(project_path),
+            "--library",
+            str(library_path),
+            "--history",
+            str(history_path),
+        ]
+    ) == 2
+    assert "CANONICAL_ARTIFACT_DRIFT" in capsys.readouterr().err
+    assert load_json_object(library_path)["fingerprints"] == []
+    assert not history_path.exists()

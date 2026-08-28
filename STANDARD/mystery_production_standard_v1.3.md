@@ -153,6 +153,8 @@ Gate는 순서를 건너뛸 수 없다. 필수 Artifact는 모두 `CLEAN`이어�
 
 Codex App 작업은 Gate마다 `task-open → 격리 Workspace 작성 → task-submit`을 반복한다. Task Record가 Agent, reads, writes, 입력 Hash와 금지 경로를 고정한다. Submit은 현재 Gate 일치, Future Gate 수정, writes와 Owner, 입력 Drift, Schema, 필수 Artifact와 현재 Gate Validator를 검사한다. PASS Bundle만 기존 Write-ahead Transaction으로 Canonical Artifact, Project State, `process_trace.jsonl`에 원자 Commit한다.
 
+`task-open`과 Runtime은 이미 통과한 Canonical Artifact를 Project State의 `content_hash`와 대조한다. 직접 수정, 삭제 또는 State Hash 누락은 `GATE_TRANSACTION_INPUT_DRIFT`로 차단한다. `audit`, Editorial 승인, Production 확정, Story Library 등록도 같은 정본 대조를 통과해야 한다.
+
 Trace가 없는 Gate는 Process Conformance를 충족하지 않는다. `AUTO_CONTINUE`는 현재 Gate PASS 뒤 다음 Gate Task를 추가 확인 없이 열 수 있다는 의미일 뿐 일괄 Artifact 생성이나 사후 State 재구성을 허용하지 않는다.
 
 Project 준비 상태는 다음 독립 조건으로 관리한다.
@@ -166,6 +168,8 @@ ARTIFACT_COMPLETE
 ```
 
 GATE-13의 Critic은 최종 Script와 Production Package를 읽고 방송 형식, 절대시간, 대사 자연스러움, Panel Reaction 기능, Audience Belief, 촬영 가능성, 피해자 존엄을 `editorial_review.json`에 판정한다. Critic은 Script를 수정하지 않는다. Review PASS 뒤에도 Human Actor와 Reason을 기록한 별도 승인이 필요하다.
+
+Critic Issue는 `task-return`으로 해당 `owner_agent`의 가장 최근 LLM Gate에 반환한다. Canonical 파일과 과거 Trace는 삭제하지 않고, 목표 Gate 이후 Artifact를 `DIRTY`로 바꾸며 `process_revision`을 증가시킨다. 재작업 뒤 Process Conformance에는 현재 Revision에서 목표 Gate부터 새로 쌓인 PASS Trace만 사용한다.
 
 ## 9. QA 규칙
 
@@ -197,14 +201,14 @@ Genre, 금지 Tone, 필수 Presentation Mode, Reaction Ratio를 Channel DNA와 �
 
 ### Presentation Contract v2
 
-- `panel_cast.json`은 공개 정보만 사용하는 서로 다른 Persona의 외부 Panelist를 최소 2명 정의한다.
+- `panel_cast.json`은 공개 정보만 사용하는 서로 다른 Persona와 기능 구성을 가진 외부 Panelist를 최소 2명 정의한다.
 - `reaction_segments.json`은 화자, 기능, 근거 Clue, 공개 Fact, 발화 전후 가설, 시간과 배치 Scene을 정의한다.
 - `CHARACTER_REACTION`, `PANEL_REACTION`, `AUDIENCE_PROMPT`는 서로 다른 의미이며 비율에는 외부 `PANEL_REACTION`만 포함한다.
 - 가설 생성과 수정, 그리고 이상 탐지 또는 모순 탐지 기능을 실제 Reaction Segment에 포함한다.
 - `drama_script.md`, `narration_script.md`, `panel_reaction_script.md`는 분리 작성한다. Narration은 화면 행동이나 Panel 발화를 그대로 반복하지 않는다.
-- `final_script.md`는 `SEGMENT`, `TYPE`, `SCENE`, `DURATION`, `END_SEGMENT` Marker로 모든 계획 Segment를 정확히 한 번 통합한 Broadcast Master다.
+- `draft_v01.md`와 `final_script.md`는 `SEGMENT`, `TYPE`, `SCENE`, `DURATION`, `END_SEGMENT` Marker로 모든 계획 Segment를 정확히 한 번, 같은 순서와 시간으로 통합한다. Final은 Layer 본문을 보존한 Broadcast Master다.
 - Viewer Timeline보다 먼저 공개된 Fact, 미공개 단서나 Fact를 사용하는 Panel, 역행하는 현재 절대시간, Actual Timeline과 다른 구조 완료 시각을 차단한다.
-- `09_PRODUCTION/panel_reaction_script.md`와 `edit_script.md`는 Reaction ID, Segment ID와 편집 시간 정보를 보존한다.
+- `09_PRODUCTION/panel_reaction_script.md`와 `edit_script.md`는 Reaction ID, Segment ID를 보존한다. 각 Edit Timecode의 시작·종료 초는 Presentation Plan의 `start_sec`, `duration_sec`와 정확히 일치해야 한다.
 
 ### Fact Integrity
 
@@ -242,6 +246,7 @@ mystery-kit task-open PROJECTS/PRJ-002 GATE-05
 mystery-kit task-status PROJECTS/PRJ-002
 mystery-kit task-submit PROJECTS/PRJ-002 GATE-05
 mystery-kit task-abort PROJECTS/PRJ-002 GATE-05
+mystery-kit task-return PROJECTS/PRJ-002 script_writer --actor critic --reason "Editorial Issue 수정"
 mystery-kit audit PROJECTS/PRJ-002
 mystery-kit rebuild-state PROJECTS/PRJ-002 --force
 mystery-kit editorial-approve PROJECTS/PRJ-002 --actor reviewer --reason "검토 완료"
@@ -272,4 +277,4 @@ mystery-runtime providers
 
 Presentation Artifact는 1.x에서 2.0.0으로 Breaking Change되었다. 기존 Project는 대본을 자동 창작해 통과시키지 않으며 `PRESENTATION_MIGRATION_REQUIRED`로 전환하고 기존 파일을 보존한다. GATE-05 이후 Artifact는 `DIRTY`, 기존 Presentation Plan과 Draft/Final Script는 `INVALID`, 새 v2 Artifact는 `MISSING`으로 기록한 뒤 GATE-05부터 재생성한다.
 
-Project State 1.1.0은 Artifact, Contract, Process, Editorial 준비 상태와 `process_start_gate`를 추가한다. 기존 Project는 보유 Artifact를 삭제하지 않지만 과거 Gate Trace를 추정하지 않으며, 재생성 시작 Gate부터 실제 Trace를 쌓기 전까지 `PROCESS_CONFORMANT`, `EDITORIAL_APPROVED`, `PRODUCTION_READY`로 인정하지 않는다.
+Project State 1.2.0은 Artifact, Contract, Process, Editorial 준비 상태, `process_start_gate`, `process_revision`을 기록한다. 기존 Project는 보유 Artifact와 과거 Trace를 삭제하거나 추정하지 않는다. 재생성 시작 Gate부터 현재 Revision의 실제 Trace를 쌓기 전까지 `PROCESS_CONFORMANT`, `EDITORIAL_APPROVED`, `PRODUCTION_READY`로 인정하지 않는다.

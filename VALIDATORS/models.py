@@ -108,6 +108,7 @@ class ProjectReadiness(TypedDict):
     process_status: ProcessConformanceStatus
     editorial_status: EditorialStatus
     process_start_gate: str
+    process_revision: int
 
 
 class ProjectState(TypedDict):

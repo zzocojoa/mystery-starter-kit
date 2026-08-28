@@ -89,6 +89,6 @@ JSON Schema가 구조를 검증하고 Validator가 다음 교차 규칙을 검�
 
 각 Artifact는 `MISSING`, `DIRTY`, `INVALID`, `CLEAN` 중 하나다. 파일이 존재한다는 사실만으로 `CLEAN`이 되지 않는다. 검증된 현재 Hash와 일치해야 하며 상위 Artifact가 바뀌면 Dependency Graph를 따라 하위 Artifact가 `DIRTY`가 된다.
 
-Project State 1.1.0은 Artifact 상태와 별도로 `artifact_status`, `contract_status`, `process_status`, `editorial_status`, `process_start_gate`를 유지한다. `validate`와 `audit`는 이 값을 바꾸지 않으며 `rebuild-state --force`도 존재하지 않는 Trace나 Human Approval을 합성하지 않는다.
+Project State 1.2.0은 Artifact 상태와 별도로 `artifact_status`, `contract_status`, `process_status`, `editorial_status`, `process_start_gate`, `process_revision`을 유지한다. `validate`와 `audit`는 이 값을 바꾸지 않으며 `rebuild-state --force`도 존재하지 않는 Trace나 Human Approval을 합성하지 않는다.
 
 Presentation Schema 1.x는 2.0.0과 호환되지 않는다. 기존 Project는 `PRESENTATION_MIGRATION_REQUIRED`로 전환하며 GATE-05 이후 Artifact를 재생성하기 전에는 Production Ready로 복귀할 수 없다.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/project-state-1.1.0.json",
+  "$id": "https://example.local/schemas/project-state-1.2.0.json",
   "title": "Project State and Artifact Validity",
   "type": "object",
   "additionalProperties": false,
@@ -51,7 +51,7 @@
     "readiness": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["artifact_status", "contract_status", "process_status", "editorial_status", "process_start_gate"],
+      "required": ["artifact_status", "contract_status", "process_status", "editorial_status", "process_start_gate", "process_revision"],
       "properties": {
         "artifact_status": {
           "enum": ["INCOMPLETE", "ARTIFACT_COMPLETE"]
@@ -68,6 +68,10 @@
         "process_start_gate": {
           "type": "string",
           "pattern": "^GATE-(0[0-9]|1[0-3])$"
+        },
+        "process_revision": {
+          "type": "integer",
+          "minimum": 1
         }
       }
     },

@@ -42,6 +42,11 @@ PANEL_HEADER = re.compile(
     r"\[(?P<panelist_id>PANEL-[0-9]{2,})\]\s*"
     r"\[(?P<function>[A-Z_]+)\]"
 )
+EDIT_TIMECODE = re.compile(
+    r"(?P<segment_id>SEG-[0-9]{3,})[^\n]*?"
+    r"(?P<start>[0-9]{2,}:[0-5][0-9])\s*[\u2013-]\s*"
+    r"(?P<end>[0-9]{2,}:[0-5][0-9])"
+)
 KOREAN_TIME = re.compile(r"(?P<hour>[01]?[0-9]|2[0-3])시\s*(?P<minute>[0-5]?[0-9])분")
 COLON_TIME = re.compile(r"(?<![0-9])(?P<hour>[01]?[0-9]|2[0-3]):(?P<minute>[0-5][0-9])(?![0-9])")
 KOREAN_MERIDIEM_TIME = re.compile(
@@ -235,6 +240,23 @@ def validate_panel_cast(panel_cast: Mapping[str, object]) -> list[ValidationIssu
                 "Panel Cast는 최소 2개의 서로 다른 Persona를 가져야 합니다.",
                 "06_SCENE/panel_cast.json",
                 {"personas": sorted(cast(set[str], personas))},
+            )
+        )
+    function_profiles = {
+        tuple(sorted(string_items(panelist, "allowed_functions")))
+        for panelist in panelists
+    }
+    if len(panelists) >= 2 and len(function_profiles) < 2:
+        issues.append(
+            make_presentation_issue(
+                "PANEL_CAST_MISSING",
+                "Panel Cast는 최소 2개의 서로 다른 기능 구성을 가져야 합니다.",
+                "06_SCENE/panel_cast.json",
+                {
+                    "function_profiles": [
+                        list(profile) for profile in sorted(function_profiles)
+                    ]
+                },
             )
         )
     invalid_scopes = sorted(
@@ -840,6 +862,24 @@ def script_segment_alignment_issues(
     return issues
 
 
+def draft_script_alignment_issues(
+    presentation_plan: Mapping[str, object],
+    draft_script: str,
+) -> list[ValidationIssue]:
+    """통합 Draft가 Final과 동일한 Segment 계약을 충족하는지 검사한다."""
+    final_issues = script_segment_alignment_issues(presentation_plan, draft_script)
+    return [
+        ValidationIssue(
+            severity=issue["severity"],
+            code=issue["code"],
+            message=issue["message"].replace("Final Script", "Draft Script"),
+            artifact="07_SCRIPT/draft_v01.md",
+            context=issue["context"],
+        )
+        for issue in final_issues
+    ]
+
+
 def layer_alignment_issues(
     presentation_plan: Mapping[str, object],
     layer_scripts: Mapping[str, str],
@@ -1277,15 +1317,7 @@ def validate_script_integrity_v2(
                 {"empty_layers": empty_layers},
             )
         )
-    if not draft_script.strip():
-        issues.append(
-            make_presentation_issue(
-                "FINAL_SCRIPT_NOT_BROADCAST_MASTER",
-                "통합 Draft Script가 비어 있습니다.",
-                "07_SCRIPT/draft_v01.md",
-                {},
-            )
-        )
+    issues.extend(draft_script_alignment_issues(presentation_plan, draft_script))
     issues.extend(script_segment_alignment_issues(presentation_plan, final_script))
     issues.extend(
         layer_alignment_issues(
@@ -1317,6 +1349,55 @@ def validate_script_integrity_v2(
     )
     issues.extend(absolute_time_issues(final_script, actual_timeline))
     return issues
+
+
+def edit_timecode_seconds(value: str) -> float:
+    """MM:SS 형식의 Edit Timecode를 초로 변환한다."""
+    minute_text, second_text = value.split(":", maxsplit=1)
+    return float(int(minute_text) * 60 + int(second_text))
+
+
+def edit_timecode_mismatches(
+    presentation_plan: Mapping[str, object],
+    edit_script: str,
+) -> list[dict[str, object]]:
+    """Edit Script 구간과 Presentation Plan 절대 구간의 차이를 반환한다."""
+    parsed = {
+        match.group("segment_id"): (
+            edit_timecode_seconds(match.group("start")),
+            edit_timecode_seconds(match.group("end")),
+        )
+        for match in EDIT_TIMECODE.finditer(edit_script)
+    }
+    mismatches: list[dict[str, object]] = []
+    for segment in presentation_segments(presentation_plan):
+        segment_id = segment.get("segment_id")
+        start_sec = segment.get("start_sec")
+        duration_sec = segment.get("duration_sec")
+        if (
+            not isinstance(segment_id, str)
+            or not isinstance(start_sec, int | float)
+            or isinstance(start_sec, bool)
+            or not isinstance(duration_sec, int | float)
+            or isinstance(duration_sec, bool)
+        ):
+            continue
+        actual = parsed.get(segment_id)
+        expected = (float(start_sec), float(start_sec) + float(duration_sec))
+        if actual is None or any(
+            abs(actual_value - expected_value) > 0.001
+            for actual_value, expected_value in zip(actual, expected, strict=True)
+        ):
+            mismatches.append(
+                {
+                    "segment_id": segment_id,
+                    "expected_start_sec": expected[0],
+                    "expected_end_sec": expected[1],
+                    "actual_start_sec": None if actual is None else actual[0],
+                    "actual_end_sec": None if actual is None else actual[1],
+                }
+            )
+    return mismatches
 
 
 def validate_production_presentation(
@@ -1368,6 +1449,16 @@ def validate_production_presentation(
                 "Edit Script에서 Presentation Segment ID가 누락되었습니다.",
                 "09_PRODUCTION/edit_script.md",
                 {"segment_ids": missing_edit_segments},
+            )
+        )
+    timecode_mismatches = edit_timecode_mismatches(presentation_plan, edit_script)
+    if timecode_mismatches:
+        issues.append(
+            make_presentation_issue(
+                "EDIT_TIMECODE_MISMATCH",
+                "Edit Script Timecode가 Presentation Plan의 절대 구간과 다릅니다.",
+                "09_PRODUCTION/edit_script.md",
+                {"segments": timecode_mismatches},
             )
         )
     return issues

@@ -86,7 +86,9 @@ from VALIDATORS.dependency import artifact_hash, dependency_artifacts
 from VALIDATORS.exceptions import StarterKitError
 from VALIDATORS.gate_transaction import (
     PROCESS_TRACE_PATH,
+    artifact_gate_map,
     build_gate_traces,
+    canonical_artifact_drift,
     gate_commit_sha,
     process_conformance,
     process_trace_bytes,
@@ -727,6 +729,34 @@ async def execute_existing_run(
     current_run = run
     try:
         recovered = recover_prepared_transactions(project_path)
+        state = project_state(project_path)
+        state_gate = state["current_gate"]
+        gate_map = artifact_gate_map(task_catalog)
+        completed_artifacts = (
+            []
+            if state_gate == "NONE"
+            else sorted(
+                artifact_name
+                for artifact_name, artifact_gate in gate_map.items()
+                if gate_index(artifact_gate) <= gate_index(state_gate)
+            )
+        )
+        drift = canonical_artifact_drift(
+            project_path,
+            dependency_graph,
+            state,
+            completed_artifacts,
+        )
+        if drift:
+            raise RuntimeExecutionError(
+                "INPUT_HASH_CHANGED",
+                False,
+                "RUN",
+                "Project State와 Canonical Artifact Hash가 일치하지 않습니다.",
+                None,
+                None,
+                {"artifacts": drift},
+            )
         current_run = update_run_status(project_path, current_run, "RUNNING", None, None)
         if recovered:
             append_event(
@@ -1007,6 +1037,7 @@ async def execute_existing_run(
                 trace_context: dict[str, object] = {
                     "project_id": next_state["project_id"],
                     "gate_id": gate_id,
+                    "process_revision": next_state["readiness"]["process_revision"],
                     "input_hashes": captured_hashes,
                     "started_at": gate_started_at,
                 }
@@ -1031,6 +1062,7 @@ async def execute_existing_run(
                     [*existing_traces, *traces],
                     next_state["readiness"]["process_start_gate"],
                     gate_id,
+                    next_state["readiness"]["process_revision"],
                 )
                 if not conformant:
                     raise RuntimeExecutionError(

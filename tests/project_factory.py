@@ -5,6 +5,7 @@ from pathlib import Path
 
 from RUNTIME.providers.fake import (
     fake_broadcast_master,
+    fake_edit_script,
     fake_panel_cast,
     fake_presentation_plan,
     fake_reaction_segments,
@@ -311,10 +312,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "RSEG-003 논리 패널 Cue"
         ),
         "subtitle_script": "00:00 지안은 7분의 공백을 발견한다.",
-        "edit_script": (
-            "SEG-001 SEG-002 SEG-003 SEG-004 SEG-005 SEG-006\n"
-            "SCN-01에서 로그를 제시하고 SCN-02에서 인과를 재구성한다."
-        ),
+        "edit_script": fake_edit_script(project_id, total_seconds),
         "editorial_review": {
             "schema_family": "editorial-review",
             "schema_version": "1.0.0",

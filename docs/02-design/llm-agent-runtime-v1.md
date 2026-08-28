@@ -34,6 +34,8 @@ Production Ready → Story Library
 
 Codex App은 Canonical Project를 직접 편집하지 않는다. `task-open`이 현재 Gate의 Agent, reads, writes, 입력 Hash, 금지 경로와 Staging Workspace를 고정하고 `task-submit`이 Future Artifact, 권한, Drift, Schema와 현재 Gate를 검사한다. 이 운영 모드에는 외부 LLM Provider가 필요하지 않다. Built-in FakeProvider는 Provider-independent Runtime의 Staging, Transaction, Hash Drift, Retry, Provenance를 재현하는 CI·E2E Test Double로만 사용한다. 따라서 `mystery-runtime run`의 Fake 출력은 실제 작품 결과로 취급하지 않는다.
 
+통과한 Canonical Artifact는 다음 Task를 열기 전 Project State Hash와 다시 대조한다. Critic Issue는 `task-return`으로 Artifact Owner의 LLM Gate에 반환하며, 목표 Gate 이후 상태를 `DIRTY`로 바꾸고 `process_revision`을 증가시킨다. 과거 Trace는 감사 이력으로 남지만 현재 Revision의 Process Conformance에는 포함하지 않는다.
+
 ## 계약
 
 - `runtime_tasks.json`: Task ID, Agent, Executor, Gate, reads, writes, 의존성, Model·Retry·Budget Profile
@@ -78,10 +80,10 @@ Prompt 우선순위는 Runtime System Rule, Agent Contract, Task Contract, 비�
 - `transactions/<transaction-id>/`: Write-ahead Record와 Canonical 백업
 - `provenance/<artifact>.json`: Content·Input·Prompt·Schema Hash, Provider·Model, Attempt, Transaction
 
-Canonical `00_PROJECT/process_trace.jsonl`은 Runtime과 Codex 양쪽의 Gate별 PASS 증거다. `.runtime/codex_tasks/<transaction-id>/task.json`은 Open/Committed/Aborted 권한 Snapshot을 보존한다. `validate`와 `audit`는 이 이력을 재구성하지 않는다.
+Canonical `00_PROJECT/process_trace.jsonl`은 Runtime과 Codex 양쪽의 Gate별 PASS 및 Process Revision 증거다. `.runtime/codex_tasks/<transaction-id>/task.json`은 Open/Committed/Aborted 권한 Snapshot을 보존한다. `validate`와 `audit`는 이 이력을 재구성하지 않는다.
 
 운영 파일은 Project 결과물이 아니므로 Git에서 제외한다.
 
 ## 검증 범위
 
-`tests/runtime/`은 Fake Provider 전체 Gate E2E, 정제 Reference만 Provider로 전달되는 E2E, 권한 밖 출력 시 Canonical 불변성, Retry 소진 시 `BLOCKED`, Format Retry, Human 승인·재개, Active·Stale Lock, Input Drift, Transaction Rollback·Crash Recovery·경로 격리, EXAMPLES·Raw Reference·Tool 차단, In-process와 Sidecar Conformance를 검증한다. `tests/test_gate_transaction.py`는 Codex Workspace의 정상 Commit, Future/권한/Drift 차단, Trace, 상태 비변경 Audit과 Editorial 분리를 검증한다. CI는 Python 3.11과 3.14에서 기존 Validator 회귀 테스트와 함께 실행한다.
+`tests/runtime/`은 Fake Provider 전체 Gate E2E, 정제 Reference만 Provider로 전달되는 E2E, 권한 밖 출력 시 Canonical 불변성, Retry 소진 시 `BLOCKED`, Format Retry, Human 승인·재개, Active·Stale Lock, Input Drift, Transaction Rollback·Crash Recovery·경로 격리, EXAMPLES·Raw Reference·Tool 차단, In-process와 Sidecar Conformance를 검증한다. `tests/test_gate_transaction.py`는 Codex Workspace의 정상 Commit, Future/권한/사전 Drift 차단, Trace Revision, Owner 반환, 상태 비변경 Audit과 Editorial 분리를 검증한다. CI는 Python 3.11과 3.14에서 기존 Validator 회귀 테스트와 함께 실행한다.

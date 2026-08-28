@@ -5,7 +5,7 @@ flowchart TD
     S[Production Standard] --> C[Compatibility Contract]
     C --> R[Compatibility Report]
     D[Standard Defaults] --> R
-    H[Channel DNA] --> R
+    CD[Channel DNA] --> R
     R -->|PASS| V[Variation Candidates]
     L[Story Library] --> V
     V -->|Approve| T[Story DNA]
@@ -21,8 +21,8 @@ flowchart TD
     F --> A
     A -->|PASS| P[Production Package]
     P --> E[Editorial Review]
-    E -->|GATE-13 PASS| H[Human Editorial Approval]
-    H --> Z[Production Ready]
+    E -->|GATE-13 PASS| HE[Human Editorial Approval]
+    HE --> Z[Production Ready]
     Z --> L
 ```
 

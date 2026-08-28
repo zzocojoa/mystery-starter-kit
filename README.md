@@ -40,9 +40,10 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 .venv/bin/mystery-kit task-status PROJECTS/PRJ-002
 # 출력된 Staging Workspace의 allowed_writes만 Codex가 편집한다.
 .venv/bin/mystery-kit task-submit PROJECTS/PRJ-002 GATE-05
+.venv/bin/mystery-kit task-return PROJECTS/PRJ-002 script_writer --actor critic --reason "대본 수정 필요"
 ```
 
-제출은 현재 Gate, writes Allowlist, Artifact Owner, Future Gate 수정, 입력 Hash Drift, Schema와 현재 Gate Validator를 검사한다. PASS일 때만 Artifact·Project State·`00_PROJECT/process_trace.jsonl`을 기존 Write-ahead Transaction으로 함께 Commit한다. 작업을 폐기하려면 `task-abort`를 사용한다. `AUTO_CONTINUE`는 PASS 뒤 다음 Gate Task를 사용자 재확인 없이 열 수 있다는 뜻이며 여러 Gate를 한꺼번에 작성한다는 뜻이 아니다.
+제출은 현재 Gate, writes Allowlist, Artifact Owner, Future Gate 수정, 입력 Hash Drift, Schema와 현재 Gate Validator를 검사한다. 다음 Task를 열기 전에도 이미 통과한 Canonical Artifact를 Project State Hash와 대조한다. PASS일 때만 Artifact·Project State·`00_PROJECT/process_trace.jsonl`을 기존 Write-ahead Transaction으로 함께 Commit한다. 작업을 폐기하려면 `task-abort`를 사용한다. Critic Issue는 `task-return`으로 Owner Agent Gate에 반환하며, 새 `process_revision`의 Trace만 재작업 적합성에 사용한다. `AUTO_CONTINUE`는 PASS 뒤 다음 Gate Task를 사용자 재확인 없이 열 수 있다는 뜻이며 여러 Gate를 한꺼번에 작성한다는 뜻이 아니다.
 
 ### 3. 감사, Editorial 승인과 등록
 
@@ -56,11 +57,11 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 .venv/bin/mystery-kit register PROJECTS/PRJ-002
 ```
 
-`validate`는 현재 파일 집합의 14개 Gate 정합성을 진단하고 `audit_report.json`만 기록한다. `audit`는 같은 Artifact 검증에 Gate별 Process Trace 완전성을 더해 판정한다. 둘 다 `current_gate`, Project Status, Artifact `CLEAN` 상태나 기존 실행 이력을 바꾸지 않는다. 손상된 State를 Artifact에서 명시적으로 복구할 때만 `rebuild-state PROJECT --force`를 사용하며, 이 명령도 Process Trace나 Human Editorial 승인을 만들어 내지 않는다.
+`validate`는 현재 파일 집합의 14개 Gate 정합성을 진단하고 `validation_report.json`과 파생 QA Report를 기록한다. `audit`는 같은 Artifact 검증에 Gate별 Process Trace 완전성을 더해 `audit_report.json`에 기록한다. 둘 다 `current_gate`, Project Status, Artifact `CLEAN` 상태나 기존 실행 이력을 바꾸지 않는다. 손상된 State를 Artifact에서 명시적으로 복구할 때만 `rebuild-state PROJECT --force`를 사용하며, 이 명령도 Process Trace나 Human Editorial 승인을 만들어 내지 않는다.
 
 GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Continuity Critic의 `editorial_review.json`이 PASS여도 Human Actor와 Reason을 기록한 `editorial-approve` 전에는 승인되지 않는다. `production-finalize`는 `ARTIFACT_COMPLETE + CONTRACT_VALIDATED + PROCESS_CONFORMANT + EDITORIAL_APPROVED`를 모두 요구한다. `register`는 이 조건으로 확정된 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 성공 `0`, 검증 실패 `1`, 입력·구성·Transaction 오류 `2`다.
 
-Presentation Contract v2는 `panel_cast.json`, `reaction_segments.json`, Drama/Narration/Panel Reaction Layer Script를 별도 Artifact로 유지한다. `final_script.md`는 모든 Segment를 방송 순서대로 한 번씩 포함한 Marker 기반 Broadcast Master다. Panel Reaction 비율은 선언값이 아니라 Segment `duration_sec` 합으로 계산한다.
+Presentation Contract v2는 `panel_cast.json`, `reaction_segments.json`, Drama/Narration/Panel Reaction Layer Script를 별도 Artifact로 유지한다. `draft_v01.md`와 `final_script.md`는 모든 Segment를 방송 순서대로 한 번씩 포함하고, Edit Script는 계획된 절대 Timecode를 보존한다. Panel Reaction 비율은 선언값이 아니라 Segment `duration_sec` 합으로 계산한다.
 
 ## Runtime Core 회귀 모드
 
