@@ -1,6 +1,6 @@
 {
   "schema_family": "reaction-segments",
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "project_id": "PRJ-002",
   "reaction_segments": [
     {
@@ -9,19 +9,54 @@
       "order": 1,
       "start_sec": 170,
       "duration_sec": 40,
-      "panelist_id": "PANEL-03",
-      "function": "HYPOTHESIS_GENERATION",
-      "evidence_ids": [
-        "CLUE-01"
-      ],
-      "known_fact_ids": [
-        "FACT-01",
-        "FACT-02"
-      ],
+      "segment_function": "HYPOTHESIS_GENERATION",
       "hypothesis_before": "23시 17분 호출은 그 시각 유진이 북측 계단에 있었다는 증명이다.",
-      "spoken_line": "호출이 23시 17분에 도착했다는 것과 그때 작성됐다는 건 다릅니다. 화면까지 반복된다면 사람의 현재가 아니라 시스템의 재생을 먼저 의심해야 해요.",
       "hypothesis_after": "호출과 순찰 화면이 실제 마지막 시각보다 늦게 재생됐을 가능성을 남긴다.",
-      "tone": "SKEPTICAL"
+      "tone": "SKEPTICAL",
+      "turns": [
+        {
+          "turn_id": "TURN-001-01",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "기록상 호출이 23시 17분에 도착했다는 것과 그때 작성됐다는 건 다릅니다. 화면까지 반복된다면 사람의 현재가 아니라 시스템의 재생을 먼저 의심해야 해요.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-001-02",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "맞아요. 도착 시각 말고 작성 시각이 있어야 마지막 위치가 됩니다.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-001-03",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "그걸 확인하지 않으면 유진은 화면이 돌 때마다 계속 밖으로 밀려나는 셈이고요.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02"
+          ],
+          "tone": "SKEPTICAL"
+        }
+      ]
     },
     {
       "reaction_segment_id": "RSEG-002",
@@ -29,20 +64,57 @@
       "order": 2,
       "start_sec": 345,
       "duration_sec": 45,
-      "panelist_id": "PANEL-02",
-      "function": "EMOTIONAL_REACTION",
-      "evidence_ids": [
-        "CLUE-02"
-      ],
-      "known_fact_ids": [
-        "FACT-01",
-        "FACT-02",
-        "FACT-05"
-      ],
+      "segment_function": "EMOTIONAL_REACTION",
       "hypothesis_before": "유진은 북측 계단으로 호텔을 나갔다.",
-      "spoken_line": "밖으로 나갔다면 마스터키가 왜 봉인된 채일까요. 도망이라는 말은 빠르지만, 안에 갇힌 사람을 그 말 하나로 놓칠 수도 있습니다.",
       "hypothesis_after": "외부 이탈과 호텔 내부 고립을 동시에 수색해야 한다.",
-      "tone": "CONCERNED"
+      "tone": "CONCERNED",
+      "turns": [
+        {
+          "turn_id": "TURN-002-01",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "밖으로 나갔다면 마스터키가 왜 봉인된 채일까요. 도망이라는 말은 빠르지만, 안에 갇힌 사람을 그 말 하나로 놓칠 수도 있습니다.",
+          "evidence_ids": [
+            "CLUE-02"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-05"
+          ],
+          "tone": "CONCERNED"
+        },
+        {
+          "turn_id": "TURN-002-02",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "아니, 근데 키 없이 나가는 통로가 정말 없다는 확인도 아직이죠?",
+          "evidence_ids": [
+            "CLUE-02"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-05"
+          ],
+          "tone": "CONCERNED"
+        },
+        {
+          "turn_id": "TURN-002-03",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "그래서 봉인은 결론이 아니라 경로 제한입니다. 외부문과 서비스 통로를 같이 확인해야 해요.",
+          "evidence_ids": [
+            "CLUE-02"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-05"
+          ],
+          "tone": "CONCERNED"
+        }
+      ]
     },
     {
       "reaction_segment_id": "RSEG-003",
@@ -50,21 +122,60 @@
       "order": 3,
       "start_sec": 535,
       "duration_sec": 45,
-      "panelist_id": "PANEL-01",
-      "function": "ANOMALY_DETECTION",
-      "evidence_ids": [
-        "CLUE-03"
-      ],
-      "known_fact_ids": [
-        "FACT-01",
-        "FACT-02",
-        "FACT-03",
-        "FACT-05"
-      ],
+      "segment_function": "ANOMALY_DETECTION",
       "hypothesis_before": "유진이 책임을 피하려고 순찰 화면을 조작하고 숨었다.",
-      "spoken_line": "영상이 바뀌는데 거울 속 시계만 같은 분에 멈춥니다. 누군가 새 장면을 꾸민 게 아니라 이미 끝난 구간을 시스템이 돌려 보여 주는 쪽이 단순합니다.",
       "hypothesis_after": "순찰 화면은 현재 은신을 위한 조작이 아니라 과거 캐시의 반복일 수 있다.",
-      "tone": "ANALYTICAL"
+      "tone": "ANALYTICAL",
+      "turns": [
+        {
+          "turn_id": "TURN-003-01",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "영상이 바뀌는데 거울 속 시계만 같은 분에 멈춥니다. 누군가 새 장면을 꾸민 게 아니라 이미 끝난 구간을 시스템이 돌려 보여 주는 쪽이 단순합니다.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-05"
+          ],
+          "tone": "ANALYTICAL"
+        },
+        {
+          "turn_id": "TURN-003-02",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "잠깐, 유진이 직접 조작했다면 시계까지 계산했을 수도 있잖아요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-05"
+          ],
+          "tone": "ANALYTICAL"
+        },
+        {
+          "turn_id": "TURN-003-03",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "그 가설은 가능하지만 숨은 사람을 찾기 전에 화면 원본부터 확인하는 게 안전해요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-05"
+          ],
+          "tone": "ANALYTICAL"
+        }
+      ]
     },
     {
       "reaction_segment_id": "RSEG-004",
@@ -72,22 +183,63 @@
       "order": 4,
       "start_sec": 700,
       "duration_sec": 50,
-      "panelist_id": "PANEL-03",
-      "function": "CONTRADICTION_DETECTION",
-      "evidence_ids": [
-        "CLUE-03"
-      ],
-      "known_fact_ids": [
-        "FACT-01",
-        "FACT-02",
-        "FACT-03",
-        "FACT-04",
-        "FACT-05"
-      ],
+      "segment_function": "CONTRADICTION_DETECTION",
       "hypothesis_before": "23시 17분 장면이 유진의 마지막 위치와 시각을 보여 준다.",
-      "spoken_line": "잠깐만요, 화면 제목은 23시 17분인데 거울은 22시 52분입니다. 이제 찾아야 할 건 그 뒤의 발자국이 아니라 그때 닫힌 문이에요.",
       "hypothesis_after": "22시 52분 전후 서비스 구역에서 발생한 사건을 다시 구성해야 한다.",
-      "tone": "CHALLENGING"
+      "tone": "CHALLENGING",
+      "turns": [
+        {
+          "turn_id": "TURN-004-01",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "기록상 잠깐만요, 화면 제목은 23시 17분인데 거울은 22시 52분입니다. 이제 찾아야 할 건 그 뒤의 발자국이 아니라 그때 닫힌 문이에요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05"
+          ],
+          "tone": "CHALLENGING"
+        },
+        {
+          "turn_id": "TURN-004-02",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "그러면 수색 기준을 스물다섯 분 앞당기고 NAS가 끊긴 순간의 설비 기록을 봐야 합니다.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05"
+          ],
+          "tone": "CHALLENGING"
+        },
+        {
+          "turn_id": "TURN-004-03",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "도윤의 확신도 같은 화면 위에 서 있었으니, 이제 말하지 않은 시간을 물어야겠네요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05"
+          ],
+          "tone": "CHALLENGING"
+        }
+      ]
     },
     {
       "reaction_segment_id": "RSEG-005",
@@ -95,26 +247,96 @@
       "order": 5,
       "start_sec": 880,
       "duration_sec": 50,
-      "panelist_id": "PANEL-01",
-      "function": "HYPOTHESIS_REVISION",
-      "evidence_ids": [
-        "CLUE-01",
-        "CLUE-02",
-        "CLUE-03"
-      ],
-      "known_fact_ids": [
-        "FACT-01",
-        "FACT-02",
-        "FACT-03",
-        "FACT-04",
-        "FACT-05",
-        "FACT-07",
-        "FACT-08"
-      ],
+      "segment_function": "HYPOTHESIS_REVISION",
       "hypothesis_before": "유진은 무단 시험 뒤 책임을 피하려고 자발적으로 숨었다.",
-      "spoken_line": "예약 호출은 유진의 존재를 늦게 만들었고 도윤의 거짓말은 수색 시각을 더 밀었습니다. 자발적 은신이 아니라 시험 중 고립으로 가설을 바꿔야 합니다.",
       "hypothesis_after": "유진은 22시 52분 방화문 시험 중 호텔 서비스 구역에 고립됐다.",
-      "tone": "DECISIVE"
+      "tone": "DECISIVE",
+      "turns": [
+        {
+          "turn_id": "TURN-005-01",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "예약 호출은 유진의 존재를 늦게 만들었고 도윤의 거짓말은 수색 시각을 더 밀었습니다. 자발적 은신이 아니라 시험 중 고립으로 가설을 바꿔야 합니다.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-02",
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-07",
+            "FACT-08"
+          ],
+          "tone": "DECISIVE"
+        },
+        {
+          "turn_id": "TURN-005-02",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "아니, 그런데 시험 위치를 이제야 말한 도윤의 설명을 그대로 믿어도 됩니까?",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-02",
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-07",
+            "FACT-08"
+          ],
+          "tone": "DECISIVE"
+        },
+        {
+          "turn_id": "TURN-005-03",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "믿는 게 아니라 확인하는 거죠. 보호하려던 거짓말이 위험이 됐다는 사실부터 인정하면서요.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-02",
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-07",
+            "FACT-08"
+          ],
+          "tone": "DECISIVE"
+        },
+        {
+          "turn_id": "TURN-005-04",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "맞습니다. 위치는 출입 기록과 설비 신호로 독립 검증합니다.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-02",
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-07",
+            "FACT-08"
+          ],
+          "tone": "DECISIVE"
+        }
+      ]
     },
     {
       "reaction_segment_id": "RSEG-006",
@@ -122,27 +344,78 @@
       "order": 6,
       "start_sec": 1100,
       "duration_sec": 35,
-      "panelist_id": "PANEL-01",
-      "function": "ANOMALY_DETECTION",
-      "evidence_ids": [
-        "CLUE-02",
-        "CLUE-04"
-      ],
-      "known_fact_ids": [
-        "FACT-01",
-        "FACT-02",
-        "FACT-03",
-        "FACT-04",
-        "FACT-05",
-        "FACT-06",
-        "FACT-07",
-        "FACT-08",
-        "FACT-09"
-      ],
+      "segment_function": "ANOMALY_DETECTION",
       "hypothesis_before": "유진은 서비스 구역 어딘가에 있지만 정확한 위치는 모른다.",
-      "spoken_line": "발전기 부하라면 일정해야 할 열이 사람 손처럼 끊겨 있습니다. 봉인된 출구와 이 신호를 함께 보면 서비스 리프트가 가장 짧은 답입니다.",
       "hypothesis_after": "유진은 린넨실 서비스 리프트에서 난방관을 두드리고 있다.",
-      "tone": "URGENT"
+      "tone": "URGENT",
+      "turns": [
+        {
+          "turn_id": "TURN-006-01",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "발전기 부하라면 일정해야 할 열이 사람 손처럼 끊겨 있습니다. 봉인된 출구와 이 신호를 함께 보면 서비스 리프트가 가장 짧은 답입니다.",
+          "evidence_ids": [
+            "CLUE-02",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-06",
+            "FACT-07",
+            "FACT-08",
+            "FACT-09"
+          ],
+          "tone": "URGENT"
+        },
+        {
+          "turn_id": "TURN-006-02",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "위치를 찾았다는 안도보다 문을 열 시간이 여섯 분뿐이라는 게 먼저 와요.",
+          "evidence_ids": [
+            "CLUE-02",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-06",
+            "FACT-07",
+            "FACT-08",
+            "FACT-09"
+          ],
+          "tone": "URGENT"
+        },
+        {
+          "turn_id": "TURN-006-03",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "그러면 더 넓게 찾는 게 아니라 이 문이 틀렸을 때의 탈출 경로만 준비해야겠네요.",
+          "evidence_ids": [
+            "CLUE-02",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-06",
+            "FACT-07",
+            "FACT-08",
+            "FACT-09"
+          ],
+          "tone": "URGENT"
+        }
+      ]
     },
     {
       "reaction_segment_id": "RSEG-007",
@@ -150,27 +423,78 @@
       "order": 7,
       "start_sec": 1295,
       "duration_sec": 30,
-      "panelist_id": "PANEL-02",
-      "function": "TENSION_RELEASE",
-      "evidence_ids": [
-        "CLUE-04"
-      ],
-      "known_fact_ids": [
-        "FACT-01",
-        "FACT-02",
-        "FACT-03",
-        "FACT-04",
-        "FACT-05",
-        "FACT-06",
-        "FACT-07",
-        "FACT-08",
-        "FACT-09",
-        "FACT-10"
-      ],
+      "segment_function": "TENSION_RELEASE",
       "hypothesis_before": "열 펄스의 주체가 유진인지 구조 전까지 확정할 수 없다.",
-      "spoken_line": "유진이 살아 있고 신호의 주체도 확인됐습니다. 다만 안도와 별개로, 사랑 때문에 숨긴 스물다섯 분은 반드시 기록돼야 합니다.",
       "hypothesis_after": "생존은 확인됐고 남은 질문은 결함과 판단 지연의 책임이다.",
-      "tone": "RELIEVED"
+      "tone": "RELIEVED",
+      "turns": [
+        {
+          "turn_id": "TURN-007-01",
+          "panelist_id": "PANEL-02",
+          "function": "TENSION_RELEASE",
+          "spoken_line": "유진이 살아 있고 신호의 주체도 확인됐습니다. 다만 안도와 별개로, 사랑 때문에 숨긴 스물다섯 분은 반드시 기록돼야 합니다.",
+          "evidence_ids": [
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-06",
+            "FACT-07",
+            "FACT-08",
+            "FACT-09",
+            "FACT-10"
+          ],
+          "tone": "RELIEVED"
+        },
+        {
+          "turn_id": "TURN-007-02",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "구조 성공이 잘못된 마지막 시각을 사실로 바꾸지는 않으니까요.",
+          "evidence_ids": [
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-06",
+            "FACT-07",
+            "FACT-08",
+            "FACT-09",
+            "FACT-10"
+          ],
+          "tone": "RELIEVED"
+        },
+        {
+          "turn_id": "TURN-007-03",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "맞아요. 이번 결과가 좋았다는 이유로 원인을 덮으면 다음 반복 화면은 더 위험합니다.",
+          "evidence_ids": [
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-06",
+            "FACT-07",
+            "FACT-08",
+            "FACT-09",
+            "FACT-10"
+          ],
+          "tone": "RELIEVED"
+        }
+      ]
     },
     {
       "reaction_segment_id": "RSEG-008",
@@ -178,30 +502,87 @@
       "order": 8,
       "start_sec": 1470,
       "duration_sec": 30,
-      "panelist_id": "PANEL-03",
-      "function": "MORAL_REACTION",
-      "evidence_ids": [
-        "CLUE-01",
-        "CLUE-02",
-        "CLUE-03",
-        "CLUE-04"
-      ],
-      "known_fact_ids": [
-        "FACT-01",
-        "FACT-02",
-        "FACT-03",
-        "FACT-04",
-        "FACT-05",
-        "FACT-06",
-        "FACT-07",
-        "FACT-08",
-        "FACT-09",
-        "FACT-10"
-      ],
+      "segment_function": "MORAL_REACTION",
       "hypothesis_before": "구조에 성공했으므로 보호성 거짓말은 결과적으로 용서할 수 있다.",
-      "spoken_line": "지키려던 마음이 있었다는 설명과 구조를 늦춘 책임은 동시에 참일 수 있습니다. 좋은 의도만 남기지 않는 기록이 다음 사람을 살립니다.",
       "hypothesis_after": "구조 성공과 별개로 시험 결함과 보호성 거짓말을 공식 기록에 함께 남겨야 한다.",
-      "tone": "FIRM"
+      "tone": "FIRM",
+      "turns": [
+        {
+          "turn_id": "TURN-008-01",
+          "panelist_id": "PANEL-03",
+          "function": "MORAL_REACTION",
+          "spoken_line": "지키려던 마음이 있었다는 설명과 구조를 늦춘 책임은 동시에 참일 수 있습니다. 좋은 의도만 남기지 않는 기록이 다음 사람을 살립니다.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-02",
+            "CLUE-03",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-06",
+            "FACT-07",
+            "FACT-08",
+            "FACT-09",
+            "FACT-10"
+          ],
+          "tone": "FIRM"
+        },
+        {
+          "turn_id": "TURN-008-02",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "유진도 자기 시험을 빼지 말라고 했죠. 누구도 피해자나 악인 하나로 고정하지 않았어요.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-02",
+            "CLUE-03",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-06",
+            "FACT-07",
+            "FACT-08",
+            "FACT-09",
+            "FACT-10"
+          ],
+          "tone": "FIRM"
+        },
+        {
+          "turn_id": "TURN-008-03",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "그래서 정정된 기록에는 장치, 선택, 지연이 모두 같은 줄에 남습니다.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-02",
+            "CLUE-03",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02",
+            "FACT-03",
+            "FACT-04",
+            "FACT-05",
+            "FACT-06",
+            "FACT-07",
+            "FACT-08",
+            "FACT-09",
+            "FACT-10"
+          ],
+          "tone": "FIRM"
+        }
+      ]
     }
   ]
 }

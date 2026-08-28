@@ -95,6 +95,7 @@ from VALIDATORS.gate_transaction import (
     trace_records,
 )
 from VALIDATORS.io import load_json_object, write_json_object
+from VALIDATORS.library_store import sync_novelty_gate
 from VALIDATORS.models import ProjectState, ValidationIssue
 from VALIDATORS.pipeline import load_project_artifacts
 from VALIDATORS.schema_validation import collect_schema_errors
@@ -1094,6 +1095,12 @@ async def execute_existing_run(
                     dependency_graph,
                     next_state,
                     {PROCESS_TRACE_PATH: process_trace_bytes(project_path, traces)},
+                )
+                sync_novelty_gate(
+                    repository_root,
+                    project_path,
+                    gate_id,
+                    completed_at,
                 )
                 for artifact_name, content in gate_outputs.items():
                     provenance = output_provenance[artifact_name]

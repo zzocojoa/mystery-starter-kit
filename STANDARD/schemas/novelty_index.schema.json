@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/novelty-index-1.0.0.json",
+  "title": "Story Novelty Lifecycle Index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "entries"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "novelty-index"},
+    "schema_version": {"const": "1.0.0"},
+    "entries": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/entry"}
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "status",
+        "story_signature",
+        "indexed_at",
+        "updated_at"
+      ],
+      "properties": {
+        "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+        "status": {
+          "enum": ["DRAFT", "EDITORIAL_PENDING", "PRODUCTION_READY", "ABANDONED"]
+        },
+        "story_signature": {"type": "object", "minProperties": 1},
+        "fingerprint": {"$ref": "#/$defs/fingerprint"},
+        "indexed_at": {"type": "string", "format": "date-time"},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "fingerprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_family",
+        "schema_version",
+        "project_id",
+        "story",
+        "beat_signature",
+        "causal",
+        "semantic_causal"
+      ],
+      "properties": {
+        "$schema": {"type": "string"},
+        "schema_family": {"const": "story-fingerprint"},
+        "schema_version": {"type": "string"},
+        "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+        "story": {"type": "object", "minProperties": 1},
+        "beat_signature": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string"}
+        },
+        "causal": {"type": "object", "minProperties": 5},
+        "semantic_causal": {"type": "object", "minProperties": 4}
+      }
+    }
+  }
+}

@@ -3,6 +3,7 @@
 import json
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 from typing import cast
 from uuid import uuid4
@@ -46,6 +47,126 @@ from VALIDATORS.state_machine import GATES, expected_gate, gate_index
 
 PROCESS_TRACE_PATH = "00_PROJECT/process_trace.jsonl"
 VALIDATOR_VERSION = "1.0.0"
+
+
+def parse_audit_timestamp(value: object, source: str) -> datetime:
+    """Audit 인과성 비교용 ISO 8601 Offset 시각을 엄격하게 파싱한다."""
+    if not isinstance(value, str):
+        raise ConfigurationError(f"Audit Timestamp 문자열이 필요합니다: source={source}")
+    normalized = f"{value[:-1]}+00:00" if value.endswith("Z") else value
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError as error:
+        raise ConfigurationError(
+            f"Audit Timestamp가 ISO 8601 형식이 아닙니다: source={source}, value={value!r}"
+        ) from error
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ConfigurationError(
+            f"Audit Timestamp에 UTC Offset이 필요합니다: source={source}, value={value!r}"
+        )
+    return parsed
+
+
+def change_log_records(project_path: Path) -> list[Mapping[str, object]]:
+    """Project Change Log JSONL을 파일 순서대로 읽는다."""
+    path = project_path / "00_PROJECT" / "change_log.jsonl"
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError as error:
+        raise ConfigurationError(
+            f"Change Log를 읽지 못했습니다: path={path}, detail={error}"
+        ) from error
+    records: list[Mapping[str, object]] = []
+    for line_number, line in enumerate(lines, start=1):
+        if not line.strip():
+            continue
+        try:
+            parsed: object = json.loads(line)
+        except json.JSONDecodeError as error:
+            raise ConfigurationError(
+                f"Change Log JSON이 잘못됐습니다: path={path}, line={line_number}"
+            ) from error
+        if not isinstance(parsed, Mapping):
+            raise ConfigurationError(
+                f"Change Log Record가 객체가 아닙니다: path={path}, line={line_number}"
+            )
+        records.append(parsed)
+    return records
+
+
+def process_timestamp_issues(
+    project_path: Path,
+    traces: Sequence[Mapping[str, object]],
+) -> list[dict[str, object]]:
+    """Change Log과 Process Trace의 시간 인과성 위반을 반환한다."""
+    issues: list[dict[str, object]] = []
+    changes = change_log_records(project_path)
+    previous_change_time: datetime | None = None
+    initialized_at: datetime | None = None
+    for index, record in enumerate(changes):
+        occurred_at = parse_audit_timestamp(
+            record.get("occurred_at"),
+            f"change_log[{index}].occurred_at",
+        )
+        if previous_change_time is not None and occurred_at < previous_change_time:
+            issues.append(
+                {
+                    "code": "AUDIT_EVENT_TIME_ORDER_ERROR",
+                    "message": "Change Log 이벤트 시각이 파일 순서에서 역행합니다.",
+                    "event_index": index,
+                    "occurred_at": record.get("occurred_at"),
+                }
+            )
+        previous_change_time = occurred_at
+        if record.get("event") == "PROJECT_INITIALIZED":
+            initialized_at = occurred_at
+
+    previous_started: datetime | None = None
+    previous_completed: datetime | None = None
+    earliest_started: datetime | None = None
+    for index, trace in enumerate(traces):
+        started_at = parse_audit_timestamp(
+            trace.get("started_at"),
+            f"process_trace[{index}].started_at",
+        )
+        completed_at = parse_audit_timestamp(
+            trace.get("completed_at"),
+            f"process_trace[{index}].completed_at",
+        )
+        earliest_started = (
+            started_at
+            if earliest_started is None
+            else min(earliest_started, started_at)
+        )
+        if (
+            started_at > completed_at
+            or (previous_started is not None and started_at < previous_started)
+            or (previous_completed is not None and completed_at < previous_completed)
+        ):
+            issues.append(
+                {
+                    "code": "PROCESS_TRACE_TIME_REGRESSION",
+                    "message": "Process Trace 시작·완료 시각이 인과 순서를 역행합니다.",
+                    "trace_index": index,
+                    "trace_id": trace.get("trace_id"),
+                }
+            )
+        previous_started = started_at
+        previous_completed = completed_at
+    if (
+        initialized_at is not None
+        and earliest_started is not None
+        and initialized_at > earliest_started
+    ):
+        issues.append(
+            {
+                "code": "PROJECT_CREATED_AFTER_GATE_ERROR",
+                "message": "Project 생성 시각이 최초 Gate 시작 시각보다 늦습니다.",
+                "initialized_at": initialized_at.isoformat(),
+                "earliest_gate_started_at": earliest_started.isoformat(),
+            }
+        )
+    return issues
 
 
 def task_records_root(project_path: Path) -> Path:
@@ -1372,7 +1493,8 @@ def audit_project(
         "GATE-13",
         state["readiness"]["process_revision"],
     )
-    conformant = trace_conformant and not drift
+    timestamp_issues = process_timestamp_issues(project_path, traces)
+    conformant = trace_conformant and not drift and not timestamp_issues
     artifact_complete = (
         validation["gate_results"].get("GATE-13") == "PASS" and not drift
     )
@@ -1389,6 +1511,7 @@ def audit_project(
     )
     technical_pass = artifact_complete and contract_validated and conformant
     process_issues: list[dict[str, object]] = []
+    process_issues.extend(timestamp_issues)
     if not trace_conformant:
         process_issues.append(
             {

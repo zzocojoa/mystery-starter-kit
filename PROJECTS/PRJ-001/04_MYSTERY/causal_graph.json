@@ -64,5 +64,29 @@
     "concealment": "DASHBOARD_TIMESTAMP_AND_BREAKWATER_TRACKS",
     "discovery_path": "RAIN_GAUGE_PULSE_AND_PIPE_TAPPING",
     "resolution": "CISTERN_HATCH_RESCUE"
+  },
+  "semantic_normalization": {
+    "normalized_roles": [
+      "ISOLATED_SITE",
+      "INTERNAL_ENTRAPMENT",
+      "DELAYED_OR_REPLAYED_RECORD",
+      "WRONG_EXTERNAL_SEARCH",
+      "ALTERNATE_EQUIPMENT_SIGNAL",
+      "COUNTDOWN_MANUAL_RESCUE",
+      "INSTITUTIONAL_RECORD_CORRECTION"
+    ],
+    "character_function_chain": [
+      "PROTECTIVE_OR_PREMATURE_JUDGMENT",
+      "MISDIRECTED_SEARCH",
+      "EVIDENCE_REINTERPRETATION",
+      "MANUAL_RESCUE",
+      "RECORD_CORRECTION"
+    ],
+    "audience_hypothesis_transitions": [
+      "APPARENT_EXTERNAL_DEPARTURE",
+      "TIMESTAMP_DOUBT",
+      "INTERNAL_ENTRAPMENT",
+      "SYSTEMIC_ACCOUNTABILITY"
+    ]
   }
 }

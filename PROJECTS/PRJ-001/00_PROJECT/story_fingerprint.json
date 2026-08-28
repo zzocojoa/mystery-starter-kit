@@ -1,6 +1,6 @@
 {
   "schema_family": "story-fingerprint",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "project_id": "PRJ-001",
   "story": {
     "mystery_type": "HOW",
@@ -41,5 +41,37 @@
     "concealment": "DASHBOARD_TIMESTAMP_AND_BREAKWATER_TRACKS",
     "discovery_path": "RAIN_GAUGE_PULSE_AND_PIPE_TAPPING",
     "resolution": "CISTERN_HATCH_RESCUE"
+  },
+  "semantic_causal": {
+    "normalized_roles": [
+      "ISOLATED_SITE",
+      "INTERNAL_ENTRAPMENT",
+      "DELAYED_OR_REPLAYED_RECORD",
+      "WRONG_EXTERNAL_SEARCH",
+      "ALTERNATE_EQUIPMENT_SIGNAL",
+      "COUNTDOWN_MANUAL_RESCUE",
+      "INSTITUTIONAL_RECORD_CORRECTION"
+    ],
+    "edge_sequence": [
+      "ROOT_CAUSE>MECHANISM",
+      "ROOT_CAUSE>MECHANISM",
+      "MECHANISM>CONCEALMENT",
+      "MECHANISM>CONCEALMENT",
+      "CONCEALMENT>DISCOVERY",
+      "DISCOVERY>RESOLUTION"
+    ],
+    "character_function_chain": [
+      "PROTECTIVE_OR_PREMATURE_JUDGMENT",
+      "MISDIRECTED_SEARCH",
+      "EVIDENCE_REINTERPRETATION",
+      "MANUAL_RESCUE",
+      "RECORD_CORRECTION"
+    ],
+    "audience_hypothesis_transitions": [
+      "APPARENT_EXTERNAL_DEPARTURE",
+      "TIMESTAMP_DOUBT",
+      "INTERNAL_ENTRAPMENT",
+      "SYSTEMIC_ACCOUNTABILITY"
+    ]
   }
 }

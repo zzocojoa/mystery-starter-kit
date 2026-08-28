@@ -86,6 +86,9 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
 
     state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
     report = load_json_object(project_path / "08_QA" / "validation_report.json")
+    novelty_index = load_json_object(
+        repository_root / "STORY_LIBRARY" / "novelty_index.json"
+    )
     gate_results = report.get("gate_results")
     assert isinstance(gate_results, dict)
     story_path = project_path / "00_PROJECT" / "story_dna.json"
@@ -122,6 +125,15 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
         project_path / "00_PROJECT" / "process_trace.jsonl"
     ).read_text(encoding="utf-8").splitlines()
     assert len(trace_lines) == 22
+    novelty_entries = novelty_index["entries"]
+    assert isinstance(novelty_entries, list)
+    runtime_entry = next(
+        entry
+        for entry in novelty_entries
+        if isinstance(entry, dict) and entry.get("project_id") == "PRJ-940"
+    )
+    assert runtime_entry["status"] == "EDITORIAL_PENDING"
+    assert isinstance(runtime_entry["fingerprint"], dict)
 
 
 def test_unauthorized_provider_output_never_changes_canonical_artifact(tmp_path: Path) -> None:

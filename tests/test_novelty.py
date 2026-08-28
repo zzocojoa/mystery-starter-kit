@@ -43,12 +43,32 @@ def make_fingerprint() -> dict[str, object]:
     }
     causal_graph: dict[str, object] = {
         "project_id": "PRJ-001",
+        "nodes": [
+            {"node_id": "CAUSE-01", "type": "ROOT_CAUSE"},
+            {"node_id": "MECH-01", "type": "MECHANISM"},
+            {"node_id": "DISC-01", "type": "DISCOVERY"},
+            {"node_id": "RES-01", "type": "RESOLUTION"},
+        ],
+        "edges": [
+            {"from": "CAUSE-01", "to": "MECH-01"},
+            {"from": "MECH-01", "to": "DISC-01"},
+            {"from": "DISC-01", "to": "RES-01"},
+        ],
         "fingerprint": {
             "root_cause": "SYSTEMIC_NEGLECT",
             "mechanism": "AUTOMATION_CASCADE",
             "concealment": "LOG_ROTATION",
             "discovery_path": "TIME_GAP_ANALYSIS",
             "resolution": "PUBLIC_DISCLOSURE",
+        },
+        "semantic_normalization": {
+            "normalized_roles": ["ISOLATED_SITE", "INTERNAL_ENTRAPMENT"],
+            "character_function_chain": ["MISREAD", "DISCOVERY", "RESCUE"],
+            "audience_hypothesis_transitions": [
+                "APPARENT_DEPARTURE",
+                "TIMESTAMP_DOUBT",
+                "INTERNAL_ENTRAPMENT",
+            ],
         },
     }
     return build_story_fingerprint(story, beat_sheet, causal_graph)
@@ -83,6 +103,33 @@ def test_causal_fingerprint_exact_match_is_hard_collision() -> None:
     issues = report["issues"]
     assert isinstance(issues, list)
     assert [issue["code"] for issue in issues] == ["CAUSAL_HARD_COLLISION"]
+
+
+def test_semantic_causal_reskin_is_hard_collision() -> None:
+    """인과 문구를 바꿔도 역할과 가설 전이 골격이 같으면 차단해야 한다."""
+    fingerprint = make_fingerprint()
+    existing = deepcopy(fingerprint)
+    existing["project_id"] = "PRJ-099"
+    causal = existing["causal"]
+    assert isinstance(causal, dict)
+    causal.update(
+        {
+            "root_cause": "DIFFERENT_CAUSE_NAME",
+            "mechanism": "DIFFERENT_MECHANISM_NAME",
+            "concealment": "DIFFERENT_CONCEALMENT_NAME",
+            "discovery_path": "DIFFERENT_DISCOVERY_NAME",
+            "resolution": "DIFFERENT_RESOLUTION_NAME",
+        }
+    )
+    thresholds = load_json_object(THRESHOLDS_PATH)
+
+    report = evaluate_novelty(fingerprint, [existing], thresholds)
+
+    assert report["result"] == "FAIL"
+    issues = report["issues"]
+    assert isinstance(issues, list)
+    assert [issue["code"] for issue in issues] == ["CAUSAL_SEMANTIC_COLLISION"]
+    assert report["semantic_hard_collisions"] == ["PRJ-099"]
 
 
 def test_registered_project_does_not_collide_with_itself() -> None:
@@ -138,6 +185,16 @@ def test_distinct_story_and_causal_fingerprint_passes() -> None:
             "concealment": "FALSE_WITNESS",
             "discovery_path": "OBJECT_TRACE",
             "resolution": "ARREST",
+        }
+    )
+    semantic = existing["semantic_causal"]
+    assert isinstance(semantic, dict)
+    semantic.update(
+        {
+            "normalized_roles": ["OPEN_CITY", "PLANNED_CRIME"],
+            "edge_sequence": ["ROOT_CAUSE>RESOLUTION"],
+            "character_function_chain": ["INVESTIGATION", "ARREST"],
+            "audience_hypothesis_transitions": ["SUSPECT_A", "CULPRIT_B"],
         }
     )
     thresholds = load_json_object(THRESHOLDS_PATH)

@@ -1,16 +1,20 @@
-"""Editorial Review v1.1의 감사 증거와 Runtime 근거 검증."""
+"""Editorial Review v1.2의 Selector 감사 증거와 Runtime 근거 검증."""
 
 from copy import deepcopy
 from pathlib import Path
 from typing import cast
 
+import pytest
 from project_factory import make_complete_project_artifacts
 
+from VALIDATORS.dependency import build_initial_project_state
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
+    finalize_production_ready,
     runtime_evidence_issues,
     validate_editorial_review,
 )
+from VALIDATORS.exceptions import StateTransitionError
 from VALIDATORS.io import load_json_object
 from VALIDATORS.models import ValidationIssue
 from VALIDATORS.pipeline import ArtifactContent
@@ -38,6 +42,7 @@ def editorial_issues(artifacts: dict[str, ArtifactContent]) -> list[ValidationIs
             review,
             "PRJ-002",
             editorial_artifact_hashes(artifacts),
+            artifacts,
         ),
         *runtime_evidence_issues(
             review,
@@ -58,13 +63,13 @@ def first_runtime_segment(review: dict[str, object]) -> dict[str, object]:
     return cast(dict[str, object], first_segment)
 
 
-def test_editorial_review_v11_requires_auditable_evidence() -> None:
+def test_editorial_review_v12_requires_resolvable_evidence() -> None:
     """완료 Review는 검토자·시각·Hash·근거·Runtime 추정을 모두 보존한다."""
     artifacts = make_complete_project_artifacts()
     review = editorial_review(artifacts)
     schema = load_json_object(ROOT / "STANDARD" / "schemas" / "editorial_review.schema.json")
 
-    assert review["schema_version"] == "1.1.0"
+    assert review["schema_version"] == "1.2.0"
     assert collect_schema_errors(review, schema, "editorial_review") == []
     assert editorial_issues(artifacts) == []
 
@@ -140,3 +145,55 @@ def test_editorial_review_rejects_nonfinite_runtime_value() -> None:
     codes = {issue["code"] for issue in editorial_issues(artifacts)}
 
     assert "EDITORIAL_RUNTIME_AGGREGATE_MISMATCH" in codes
+
+
+def test_editorial_review_rejects_unknown_selector_and_excerpt_drift() -> None:
+    """Evidence Selector가 없거나 Excerpt가 바뀌면 감사 근거를 거부해야 한다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    review = editorial_review(artifacts)
+    checks = review["checks"]
+    assert isinstance(checks, dict)
+    check = checks["broadcast_format"]
+    assert isinstance(check, dict)
+    evidence = check["evidence"]
+    assert isinstance(evidence, list)
+    reference = evidence[0]
+    assert isinstance(reference, dict)
+    reference["selector_id"] = "SEG-999"
+
+    selector_codes = {issue["code"] for issue in editorial_issues(artifacts)}
+    assert "EDITORIAL_EVIDENCE_SELECTOR_NOT_FOUND" in selector_codes
+
+    reference["selector_id"] = "SEG-001"
+    reference["excerpt_hash"] = "0" * 64
+    hash_codes = {issue["code"] for issue in editorial_issues(artifacts)}
+    assert "EDITORIAL_EVIDENCE_HASH_MISMATCH" in hash_codes
+
+
+def test_production_finalize_requires_measured_runtime_method() -> None:
+    """Word Count 예상만으로는 Production Ready를 확정할 수 없다."""
+    graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
+    state = build_initial_project_state(graph, "PRJ-002", "2026-08-28T00:00:00Z")
+    state["state"] = "EDITORIAL_APPROVED"
+    state["current_gate"] = "GATE-13"
+    state["readiness"].update(
+        {
+            "artifact_status": "ARTIFACT_COMPLETE",
+            "contract_status": "CONTRACT_VALIDATED",
+            "process_status": "PROCESS_CONFORMANT",
+            "editorial_status": "EDITORIAL_APPROVED",
+        }
+    )
+    artifacts = make_complete_project_artifacts()
+    review = editorial_review(artifacts)
+    runtime_evidence = review["runtime_evidence"]
+    assert isinstance(runtime_evidence, dict)
+    runtime_evidence["method"] = "WORD_COUNT_ESTIMATE"
+    runtime_evidence["measured_panel_duration_sec"] = None
+
+    with pytest.raises(StateTransitionError, match="TABLE_READ"):
+        finalize_production_ready(
+            state,
+            review,
+            "2026-08-28T01:00:00Z",
+        )

@@ -140,8 +140,12 @@ def test_panel_cast_speaker_function_and_ratio_failures_are_reported() -> None:
     assert isinstance(reactions, list)
     for reaction in reactions:
         assert isinstance(reaction, dict)
-        reaction["panelist_id"] = "PANEL-99"
-        reaction["function"] = "EMOTIONAL_REACTION"
+        turns = reaction["turns"]
+        assert isinstance(turns, list)
+        for turn in turns:
+            assert isinstance(turn, dict)
+            turn["panelist_id"] = "PANEL-99"
+            turn["function"] = "EMOTIONAL_REACTION"
     plan = document(artifacts, "presentation_plan")
     segments = plan["segments"]
     assert isinstance(segments, list)
@@ -217,10 +221,14 @@ def test_reaction_evidence_knowledge_and_hypothesis_boundaries_fail() -> None:
     assert isinstance(reactions, list)
     first = reactions[0]
     assert isinstance(first, dict)
-    first["evidence_ids"] = ["CLUE-03", "CLUE-99"]
-    first["known_fact_ids"] = ["FACT-02"]
+    turns = first["turns"]
+    assert isinstance(turns, list)
+    first_turn = turns[0]
+    assert isinstance(first_turn, dict)
+    first_turn["evidence_ids"] = ["CLUE-03", "CLUE-99"]
+    first_turn["known_fact_ids"] = ["FACT-02"]
     first["hypothesis_after"] = first["hypothesis_before"]
-    first["spoken_line"] = "그는 고개를 숙이고 침묵한다."
+    first_turn["spoken_line"] = "그는 고개를 숙이고 침묵한다."
 
     codes = issue_codes(presentation_design_issues(artifacts))
 
@@ -289,7 +297,7 @@ def test_layer_duplication_and_audience_belief_mismatch_are_reported() -> None:
     drama = text_artifact(artifacts, "drama_script")
     panel = text_artifact(artifacts, "panel_reaction_script")
     drama_line = "[FACT:FACT-01] 지안은 기계 로그에서 7분의 공백을 발견한다."
-    panel_line = "[PANEL-01] 7분의 공백이 이탈의 증거인지부터 확인해야 합니다."
+    panel_line = "[PANEL-01] “7분의 공백이 이탈의 증거인지부터 확인해야 합니다.”"
     duplication_codes = issue_codes(
         narration_duplication_issues(
             drama,

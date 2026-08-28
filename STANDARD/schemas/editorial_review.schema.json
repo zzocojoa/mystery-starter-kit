@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/editorial-review-1.1.0.json",
+  "$id": "https://example.local/schemas/editorial-review-1.2.0.json",
   "title": "Editorial Review",
   "type": "object",
   "additionalProperties": false,
@@ -19,7 +19,7 @@
   "properties": {
     "$schema": {"type": "string"},
     "schema_family": {"const": "editorial-review"},
-    "schema_version": {"const": "1.1.0"},
+    "schema_version": {"const": "1.2.0"},
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "reviewer": {
       "type": "object",
@@ -105,9 +105,46 @@
         "evidence": {
           "type": "array",
           "uniqueItems": true,
-          "items": {"type": "string", "minLength": 1}
+          "items": {"$ref": "#/$defs/evidenceReference"}
         },
         "notes": {"type": "string"}
+      }
+    },
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact", "selector_type", "selector_id", "excerpt_hash"],
+      "properties": {
+        "artifact": {
+          "enum": [
+            "final_script",
+            "actual_timeline",
+            "viewer_timeline",
+            "audience_belief",
+            "panel_cast",
+            "reaction_segments",
+            "presentation_plan",
+            "panel_reaction_script",
+            "shooting_script",
+            "narration",
+            "production_panel_reaction_script",
+            "subtitle_script",
+            "edit_script"
+          ]
+        },
+        "selector_type": {
+          "enum": [
+            "DOCUMENT",
+            "SEGMENT_ID",
+            "REACTION_SEGMENT_ID",
+            "SCENE_ID",
+            "EVENT_ID",
+            "FACT_ID",
+            "CLUE_ID"
+          ]
+        },
+        "selector_id": {"type": "string", "minLength": 1},
+        "excerpt_hash": {"$ref": "#/$defs/sha256"}
       }
     },
     "nonSpeechElement": {

@@ -9,7 +9,9 @@ from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.cli import evaluate_compatibility_documents
 from VALIDATORS.compatibility import make_project_compatibility_report
 from VALIDATORS.continuity import validate_continuity
+from VALIDATORS.exceptions import StoryLibraryError
 from VALIDATORS.io import load_json_object
+from VALIDATORS.library import novelty_history
 from VALIDATORS.novelty import (
     build_story_fingerprint,
     evaluate_novelty,
@@ -89,22 +91,20 @@ def text_artifact(
 
 
 def story_history(repository_root: Path) -> list[Mapping[str, object]]:
-    """Story Library Fingerprint 배열을 엄격하게 읽는다."""
-    library = load_json_object(repository_root / "STORY_LIBRARY" / "story_fingerprints.json")
-    fingerprints = library.get("fingerprints")
-    if not isinstance(fingerprints, list) or not all(
-        isinstance(fingerprint, Mapping) for fingerprint in fingerprints
-    ):
+    """Abandoned를 제외한 Novelty Index 비교 기록을 읽는다."""
+    index = load_json_object(repository_root / "STORY_LIBRARY" / "novelty_index.json")
+    try:
+        return novelty_history(index)
+    except StoryLibraryError as error:
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
             False,
             "TASK",
-            "Story Library Fingerprint 배열이 올바르지 않습니다.",
+            "Novelty Index Entry 배열이 올바르지 않습니다.",
             None,
             None,
-            {},
-        )
-    return list(fingerprints)
+            {"detail": str(error)},
+        ) from error
 
 
 def runtime_validation_inputs(

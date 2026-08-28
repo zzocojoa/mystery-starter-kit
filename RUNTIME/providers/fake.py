@@ -12,7 +12,11 @@ from RUNTIME.models import (
     ProviderDescriptor,
     TokenUsage,
 )
-from VALIDATORS.editorial import editorial_artifact_hashes, panel_spoken_metrics
+from VALIDATORS.editorial import (
+    editorial_artifact_hashes,
+    make_editorial_evidence,
+    panel_spoken_metrics,
+)
 from VALIDATORS.presentation_validation import presentation_segments
 
 PresentationDefinition: TypeAlias = tuple[
@@ -225,7 +229,7 @@ def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, obj
     main_duration = float(total_seconds) * 4.0 / 15.0
     return {
         "schema_family": "reaction-segments",
-        "schema_version": "2.0.0",
+        "schema_version": "2.1.0",
         "project_id": project_id,
         "reaction_segments": [
             {
@@ -234,14 +238,30 @@ def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, obj
                 "order": 1,
                 "start_sec": main_duration,
                 "duration_sec": reaction_duration,
-                "panelist_id": "PANEL-01",
-                "function": "HYPOTHESIS_GENERATION",
-                "evidence_ids": ["CLUE-01"],
-                "known_fact_ids": ["FACT-01"],
+                "segment_function": "HYPOTHESIS_GENERATION",
                 "hypothesis_before": "작업자가 자발적으로 이탈했다.",
-                "spoken_line": "7분의 공백이 이탈의 증거인지부터 확인해야 합니다.",
                 "hypothesis_after": "기계 기록이 실제 동선과 다를 수 있다.",
                 "tone": "SUSPICIOUS",
+                "turns": [
+                    {
+                        "turn_id": "TURN-001-01",
+                        "panelist_id": "PANEL-01",
+                        "function": "HYPOTHESIS_GENERATION",
+                        "spoken_line": "7분의 공백이 이탈의 증거인지부터 확인해야 합니다.",
+                        "evidence_ids": ["CLUE-01"],
+                        "known_fact_ids": ["FACT-01"],
+                        "tone": "SUSPICIOUS",
+                    },
+                    {
+                        "turn_id": "TURN-001-02",
+                        "panelist_id": "PANEL-03",
+                        "function": "CONTRADICTION_DETECTION",
+                        "spoken_line": "공백을 사람의 선택으로만 보기엔 빠른 것 같아요.",
+                        "evidence_ids": ["CLUE-01"],
+                        "known_fact_ids": ["FACT-01"],
+                        "tone": "CHALLENGING",
+                    },
+                ],
             },
             {
                 "reaction_segment_id": "RSEG-002",
@@ -249,14 +269,30 @@ def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, obj
                 "order": 2,
                 "start_sec": main_duration * 2.0 + reaction_duration,
                 "duration_sec": reaction_duration,
-                "panelist_id": "PANEL-03",
-                "function": "CONTRADICTION_DETECTION",
-                "evidence_ids": ["CLUE-01"],
-                "known_fact_ids": ["FACT-01"],
+                "segment_function": "CONTRADICTION_DETECTION",
                 "hypothesis_before": "공백 동안 작업자가 이동했다.",
-                "spoken_line": "이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.",
                 "hypothesis_after": "센서 공백과 작업자 이동은 별개일 수 있다.",
                 "tone": "ANALYTICAL",
+                "turns": [
+                    {
+                        "turn_id": "TURN-002-01",
+                        "panelist_id": "PANEL-03",
+                        "function": "CONTRADICTION_DETECTION",
+                        "spoken_line": "이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.",
+                        "evidence_ids": ["CLUE-01"],
+                        "known_fact_ids": ["FACT-01"],
+                        "tone": "ANALYTICAL",
+                    },
+                    {
+                        "turn_id": "TURN-002-02",
+                        "panelist_id": "PANEL-02",
+                        "function": "EMOTIONAL_REACTION",
+                        "spoken_line": "그렇다면 공백 안에 남은 사람을 먼저 찾아야 해요.",
+                        "evidence_ids": ["CLUE-01"],
+                        "known_fact_ids": ["FACT-01"],
+                        "tone": "CONCERNED",
+                    },
+                ],
             },
             {
                 "reaction_segment_id": "RSEG-003",
@@ -264,14 +300,30 @@ def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, obj
                 "order": 3,
                 "start_sec": main_duration * 3.0 + reaction_duration * 2.0,
                 "duration_sec": reaction_duration,
-                "panelist_id": "PANEL-01",
-                "function": "HYPOTHESIS_REVISION",
-                "evidence_ids": ["CLUE-01", "CLUE-02"],
-                "known_fact_ids": ["FACT-01", "FACT-02"],
+                "segment_function": "HYPOTHESIS_REVISION",
                 "hypothesis_before": "작업자가 기록 공백을 이용해 이탈했다.",
-                "spoken_line": "안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.",
                 "hypothesis_after": "센서 차단이 작업자의 위치를 숨겼다.",
                 "tone": "RECONSIDERING",
+                "turns": [
+                    {
+                        "turn_id": "TURN-003-01",
+                        "panelist_id": "PANEL-01",
+                        "function": "HYPOTHESIS_REVISION",
+                        "spoken_line": "안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.",
+                        "evidence_ids": ["CLUE-01", "CLUE-02"],
+                        "known_fact_ids": ["FACT-01", "FACT-02"],
+                        "tone": "RECONSIDERING",
+                    },
+                    {
+                        "turn_id": "TURN-003-02",
+                        "panelist_id": "PANEL-02",
+                        "function": "TENSION_RELEASE",
+                        "spoken_line": "이제야 사람을 잘못 탓하던 시간을 되돌릴 수 있겠네요.",
+                        "evidence_ids": ["CLUE-01", "CLUE-02"],
+                        "known_fact_ids": ["FACT-01", "FACT-02"],
+                        "tone": "RELIEVED",
+                    },
+                ],
             },
         ],
     }
@@ -315,7 +367,8 @@ def fake_script_layers(total_seconds: int) -> dict[str, str]:
                     "SCN-01",
                     reaction_duration,
                     "[RSEG-001] [PANEL-01] [HYPOTHESIS_GENERATION]\n"
-                    "[PANEL-01] 7분의 공백이 이탈의 증거인지부터 확인해야 합니다.",
+                    "[PANEL-01] “7분의 공백이 이탈의 증거인지부터 확인해야 합니다.”\n"
+                    "[PANEL-03] “공백을 사람의 선택으로만 보기엔 빠른 것 같아요.”",
                 ),
                 broadcast_marker(
                     "SEG-004",
@@ -323,7 +376,8 @@ def fake_script_layers(total_seconds: int) -> dict[str, str]:
                     "SCN-01",
                     reaction_duration,
                     "[RSEG-002] [PANEL-03] [CONTRADICTION_DETECTION]\n"
-                    "[PANEL-03] 이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.",
+                    "[PANEL-03] “이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.”\n"
+                    "[PANEL-02] “그렇다면 공백 안에 남은 사람을 먼저 찾아야 해요.”",
                 ),
                 broadcast_marker(
                     "SEG-006",
@@ -331,7 +385,8 @@ def fake_script_layers(total_seconds: int) -> dict[str, str]:
                     "SCN-02",
                     reaction_duration,
                     "[RSEG-003] [PANEL-01] [HYPOTHESIS_REVISION]\n"
-                    "[PANEL-01] 안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.",
+                    "[PANEL-01] “안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.”\n"
+                    "[PANEL-02] “이제야 사람을 잘못 탓하던 시간을 되돌릴 수 있겠네요.”",
                 ),
             )
         ),
@@ -488,7 +543,7 @@ def fake_runtime_evidence(
                 "planned_duration_sec": float(duration),
                 "spoken_word_count": word_count,
                 "estimated_spoken_duration_sec": estimated_duration,
-                "measured_duration_sec": None,
+                "measured_duration_sec": estimated_duration,
                 "speaker_ids": speaker_ids,
                 "non_speech_elements": [
                     {
@@ -502,7 +557,7 @@ def fake_runtime_evidence(
         planned_panel_duration += float(duration)
         estimated_panel_spoken_duration += estimated_duration
     return {
-        "method": "WORD_COUNT_ESTIMATE",
+        "method": "TABLE_READ",
         "reading_rate_wpm": reading_rate_wpm,
         "planned_runtime_sec": planned_runtime,
         "planned_panel_duration_sec": planned_panel_duration,
@@ -510,7 +565,10 @@ def fake_runtime_evidence(
             estimated_panel_spoken_duration,
             2,
         ),
-        "measured_panel_duration_sec": None,
+        "measured_panel_duration_sec": round(
+            estimated_panel_spoken_duration,
+            2,
+        ),
         "panel_segments": panel_segments,
     }
 
@@ -536,7 +594,7 @@ def fake_editorial_review(
         )
     return {
         "schema_family": "editorial-review",
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "project_id": project_id,
         "reviewer": {
             "reviewer_id": "agent:continuity_critic",
@@ -552,37 +610,86 @@ def fake_editorial_review(
         "checks": {
             "broadcast_format": {
                 "result": "PASS",
-                "evidence": ["07_SCRIPT/final_script.md#SEG-001"],
+                "evidence": [
+                    make_editorial_evidence(
+                        artifacts,
+                        "final_script",
+                        "SEGMENT_ID",
+                        "SEG-001",
+                    )
+                ],
                 "notes": "모든 방송 Segment Marker와 Layer 순서를 확인함",
             },
             "absolute_time": {
                 "result": "PASS",
-                "evidence": ["03_TIMELINE/actual_timeline.json#EVT-01"],
+                "evidence": [
+                    make_editorial_evidence(
+                        artifacts,
+                        "actual_timeline",
+                        "DOCUMENT",
+                        "actual_timeline",
+                    )
+                ],
                 "notes": "대본의 시간 언급과 실제 사건 순서를 대조함",
             },
             "dialogue_naturalness": {
                 "result": "PASS",
-                "evidence": ["07_SCRIPT/panel_reaction_script.md#SEG-002"],
+                "evidence": [
+                    make_editorial_evidence(
+                        artifacts,
+                        "panel_reaction_script",
+                        "SEGMENT_ID",
+                        "SEG-002",
+                    )
+                ],
                 "notes": "Panel 발화가 기능과 화자 Persona에 맞는지 검토함",
             },
             "panel_reaction_function": {
                 "result": "PASS",
-                "evidence": ["06_SCENE/reaction_segments.json#RSEG-001"],
+                "evidence": [
+                    make_editorial_evidence(
+                        artifacts,
+                        "reaction_segments",
+                        "REACTION_SEGMENT_ID",
+                        "RSEG-001",
+                    )
+                ],
                 "notes": "가설 생성·반론·수정 기능과 방송 Cue를 대조함",
             },
             "audience_belief": {
                 "result": "PASS",
-                "evidence": ["03_TIMELINE/audience_belief_timeline.json#SCN-01"],
+                "evidence": [
+                    make_editorial_evidence(
+                        artifacts,
+                        "audience_belief",
+                        "DOCUMENT",
+                        "audience_belief",
+                    )
+                ],
                 "notes": "관객이 공개 전 사실을 알지 못하도록 Reveal 순서를 확인함",
             },
             "shootability": {
                 "result": "PASS",
-                "evidence": ["09_PRODUCTION/shooting_script.md#SCN-01"],
+                "evidence": [
+                    make_editorial_evidence(
+                        artifacts,
+                        "shooting_script",
+                        "DOCUMENT",
+                        "shooting_script",
+                    )
+                ],
                 "notes": "장면과 Production Cue가 촬영 가능한 단위인지 확인함",
             },
             "victim_dignity": {
                 "result": "PASS",
-                "evidence": ["07_SCRIPT/final_script.md#SEG-005"],
+                "evidence": [
+                    make_editorial_evidence(
+                        artifacts,
+                        "final_script",
+                        "SEGMENT_ID",
+                        "SEG-005",
+                    )
+                ],
                 "notes": "피해 인물을 선정적으로 대상화하는 표현이 없음을 확인함",
             },
         },
@@ -970,6 +1077,23 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                         "concealment": "SHIFT_LOG_GAP",
                         "discovery_path": "MACHINE_LOG_RECONSTRUCTION",
                         "resolution": "MANUAL_RESCUE",
+                    },
+                    "semantic_normalization": {
+                        "normalized_roles": [
+                            "INDUSTRIAL_SITE",
+                            "INTERNAL_ENTRAPMENT",
+                            "MACHINE_LOG_DISCOVERY",
+                        ],
+                        "character_function_chain": [
+                            "INITIAL_MISREAD",
+                            "EVIDENCE_REINTERPRETATION",
+                            "MANUAL_RESCUE",
+                        ],
+                        "audience_hypothesis_transitions": [
+                            "APPARENT_DEPARTURE",
+                            "SYSTEM_FAILURE",
+                            "INTERNAL_ENTRAPMENT",
+                        ],
                     },
                 },
             },

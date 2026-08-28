@@ -22,6 +22,7 @@
     "pressure_engine": 8,
     "dramatic_engine": 8,
     "beat_signature": 15,
-    "causal": 20
+    "causal": 15,
+    "semantic_causal": 25
   }
 }

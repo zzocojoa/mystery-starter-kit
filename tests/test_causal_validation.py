@@ -25,6 +25,14 @@ def make_valid_graph() -> dict[str, object]:
             {"from": "MECH-01", "to": "DISC-01"},
             {"from": "DISC-01", "to": "RES-01"},
         ],
+        "semantic_normalization": {
+            "normalized_roles": ["INTERNAL_ENTRAPMENT", "MANUAL_RESCUE"],
+            "character_function_chain": ["MISREAD", "DISCOVERY", "RESCUE"],
+            "audience_hypothesis_transitions": [
+                "APPARENT_DEPARTURE",
+                "INTERNAL_ENTRAPMENT",
+            ],
+        },
     }
 
 
