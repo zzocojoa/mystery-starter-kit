@@ -167,7 +167,7 @@ ARTIFACT_COMPLETE
 = PRODUCTION_READY
 ```
 
-GATE-13의 Critic은 최종 Script와 Production Package를 읽고 방송 형식, 절대시간, 대사 자연스러움, Panel Reaction 기능, Audience Belief, 촬영 가능성, 피해자 존엄을 `editorial_review.json`에 판정한다. Critic은 Script를 수정하지 않는다. Review PASS 뒤에도 Human Actor와 Reason을 기록한 별도 승인이 필요하다.
+GATE-13의 Critic은 최종 Script와 Production Package를 읽고 방송 형식, 절대시간, 대사 자연스러움, Panel Reaction 기능, Audience Belief, 촬영 가능성, 피해자 존엄을 `editorial_review.json`에 판정한다. Editorial Review v1.1은 Reviewer, 시각, Check별 장면·Segment 근거, 검토한 Artifact의 Canonical Hash를 보존한다. 검토 뒤 입력이 바뀌어 Hash가 달라지면 기존 Review는 무효다. Critic은 Script를 수정하지 않는다. Review PASS 뒤에도 Human Actor와 Reason을 기록한 별도 승인이 필요하다.
 
 Critic Issue는 `task-return`으로 해당 `owner_agent`의 가장 최근 LLM Gate에 반환한다. Canonical 파일과 과거 Trace는 삭제하지 않고, 목표 Gate 이후 Artifact를 `DIRTY`로 바꾸며 `process_revision`을 증가시킨다. 재작업 뒤 Process Conformance에는 현재 Revision에서 목표 Gate부터 새로 쌓인 PASS Trace만 사용한다.
 
@@ -209,6 +209,9 @@ Genre, 금지 Tone, 필수 Presentation Mode, Reaction Ratio를 Channel DNA와 �
 - `draft_v01.md`와 `final_script.md`는 `SEGMENT`, `TYPE`, `SCENE`, `DURATION`, `END_SEGMENT` Marker로 모든 계획 Segment를 정확히 한 번, 같은 순서와 시간으로 통합한다. Final은 Layer 본문을 보존한 Broadcast Master다.
 - Viewer Timeline보다 먼저 공개된 Fact, 미공개 단서나 Fact를 사용하는 Panel, 역행하는 현재 절대시간, Actual Timeline과 다른 구조 완료 시각을 차단한다.
 - `09_PRODUCTION/panel_reaction_script.md`와 `edit_script.md`는 Reaction ID, Segment ID를 보존한다. 각 Edit Timecode의 시작·종료 초는 Presentation Plan의 `start_sec`, `duration_sec`와 정확히 일치해야 한다.
+- Segment `duration_sec` 합으로 계산한 Panel Reaction 비율은 계획된 편집 비율이다. Editorial Review는 각 Panel Segment의 실제 화자와 Script에서 재계산한 발화 단어 수를 보존하고, 발화시간과 Replay·Graphic·Reaction Hold 같은 비발화 요소가 계획시간을 완전히 설명하는지 검사한다.
+- `WORD_COUNT_ESTIMATE`는 명시한 WPM으로 예상 발화시간을 계산한다. `TABLE_READ`와 `RECORDED_AUDIO`는 Segment별 실측 `measured_duration_sec`와 합계를 요구한다. Human Editor는 이 근거로 방송 호흡과 의미상 중복을 최종 판단한다.
+- 자연스러운 집단 대화가 필요한 Reaction Segment는 최소 두 명 이상의 짧은 질문·반박·가설 수정·감정 연결을 허용한다. 결정론적 Validator가 Metadata나 문장 표면 일치로 잡기 어려운 의미상 조기 공개와 바꿔 쓴 반복은 Human Editorial Review 책임으로 남긴다.
 
 ### Fact Integrity
 

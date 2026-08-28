@@ -1,0 +1,95 @@
+{
+  "project_id": "PRJ-002",
+  "events": [
+    {
+      "event_id": "EVT-01",
+      "start_minute": 0,
+      "end_minute": 2,
+      "location_id": "LOC-SAFETY-OFFICE",
+      "participant_ids": [
+        "CHAR-02"
+      ],
+      "description": "22시 40분 서유진이 23시 17분 발송용 북측 계단 점검 완료 호출을 예약한다."
+    },
+    {
+      "event_id": "EVT-02",
+      "start_minute": 12,
+      "end_minute": 18,
+      "location_id": "LOC-SERVICE-LIFT",
+      "participant_ids": [
+        "CHAR-02"
+      ],
+      "description": "22시 52분 유진이 무단 방화문 시험을 시작하고 발전기 전환으로 서비스 리프트 안에 갇힌다."
+    },
+    {
+      "event_id": "EVT-03",
+      "start_minute": 18,
+      "end_minute": 37,
+      "location_id": "LOC-HOTEL-SYSTEM",
+      "participant_ids": [
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "description": "22시 58분 NAS 연결이 끊겨 순찰 화면이 마지막 12분을 반복하고 유진은 난방관을 두드리기 시작한다."
+    },
+    {
+      "event_id": "EVT-04",
+      "start_minute": 25,
+      "end_minute": 37,
+      "location_id": "LOC-MOUNTAIN-ROAD",
+      "participant_ids": [
+        "CHAR-04"
+      ],
+      "description": "23시 05분 폭설로 산길이 통제되고 강태석 구조대가 호텔 안쪽 수색으로 전환한다."
+    },
+    {
+      "event_id": "EVT-05",
+      "start_minute": 37,
+      "end_minute": 55,
+      "location_id": "LOC-LOBBY",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "23시 17분 예약 호출과 반복 순찰 화면이 재생되고 도윤은 그 시각까지 유진과 함께 있었다고 진술한다."
+    },
+    {
+      "event_id": "EVT-06",
+      "start_minute": 55,
+      "end_minute": 73,
+      "location_id": "LOC-BALLROOM",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "봉인된 마스터키와 연회장 시계 반사를 대조해 23시 17분 화면이 22시 52분 기록임을 확인한다."
+    },
+    {
+      "event_id": "EVT-07",
+      "start_minute": 73,
+      "end_minute": 84,
+      "location_id": "LOC-LINEN-ROOM",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "난방관 열 펄스를 따라 린넨실에 도착하고 도윤이 무단 시험과 자신의 거짓말을 인정한다."
+    },
+    {
+      "event_id": "EVT-08",
+      "start_minute": 84,
+      "end_minute": 90,
+      "location_id": "LOC-SERVICE-LIFT",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "00시 04분 수동 해제기로 유진을 구조하고 00시 10분 발전기가 정지하기 전 결함과 판단 지연을 기록한다."
+    }
+  ]
+}

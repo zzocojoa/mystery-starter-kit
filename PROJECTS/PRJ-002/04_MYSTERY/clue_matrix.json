@@ -1,0 +1,57 @@
+{
+  "project_id": "PRJ-002",
+  "clues": [
+    {
+      "clue_id": "CLUE-01",
+      "role": "CORE",
+      "description": "23시 17분 북측 계단 점검 완료 호출이 유진의 단말에서 도착한다.",
+      "mechanism": "SCHEDULED_PAGER_MESSAGE",
+      "object": "직원 호출 단말",
+      "first_interpretation": "유진은 23시 17분까지 자유롭게 움직였다.",
+      "true_meaning": "유진이 22시 40분에 예약한 메시지가 고립 뒤 자동 발송됐다.",
+      "introduced_scene_order": 1,
+      "introduced_scene_id": "SCN-01",
+      "resolved_scene_order": 5,
+      "resolved_scene_id": "SCN-05"
+    },
+    {
+      "clue_id": "CLUE-02",
+      "role": "RED_HERRING",
+      "description": "외부 출입용 7번 비상 마스터키가 봉인된 채 남아 있다.",
+      "mechanism": "UNUSED_EXIT_KEY",
+      "object": "7번 비상 마스터키 봉인함",
+      "first_interpretation": "유진은 호텔에 숨었거나 키 없이 다른 출구로 달아났다.",
+      "true_meaning": "유진은 처음부터 외부로 나가지 않았고 서비스 구역 안에서 고립됐다.",
+      "introduced_scene_order": 2,
+      "introduced_scene_id": "SCN-02",
+      "resolved_scene_order": 6,
+      "resolved_scene_id": "SCN-06"
+    },
+    {
+      "clue_id": "CLUE-03",
+      "role": "CORE",
+      "description": "23시 17분 순찰 화면의 거울에 비친 연회장 태엽시계가 22시 52분을 가리킨다.",
+      "mechanism": "FROZEN_CLOCK_REFLECTION",
+      "object": "연회장 태엽시계 반사면",
+      "first_interpretation": "낡은 시계가 멈췄거나 영상에 우연히 잘못 찍혔다.",
+      "true_meaning": "순찰 화면은 NAS 단절 전 22시 52분 영상을 반복 재생했다.",
+      "introduced_scene_order": 3,
+      "introduced_scene_id": "SCN-03",
+      "resolved_scene_order": 4,
+      "resolved_scene_id": "SCN-04"
+    },
+    {
+      "clue_id": "CLUE-04",
+      "role": "CORE",
+      "description": "린넨실 난방관의 열감지 띠에 사람의 타격 간격과 닮은 불규칙한 펄스가 나타난다.",
+      "mechanism": "THERMAL_PIPE_PULSE",
+      "object": "난방관 열감지 띠",
+      "first_interpretation": "발전기 부하 변화로 배관 온도가 흔들린다.",
+      "true_meaning": "서비스 리프트 안의 유진이 금속 손잡이로 난방관을 두드린 생존 신호다.",
+      "introduced_scene_order": 6,
+      "introduced_scene_id": "SCN-06",
+      "resolved_scene_order": 7,
+      "resolved_scene_id": "SCN-07"
+    }
+  ]
+}

@@ -1,17 +1,338 @@
 {
   "$schema": "../../../STANDARD/schemas/editorial_review.schema.json",
   "schema_family": "editorial-review",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "project_id": "PRJ-001",
+  "reviewer": {
+    "reviewer_id": "agent:continuity_critic",
+    "role": "CONTINUITY_CRITIC"
+  },
+  "reviewed_at": "2026-08-28T04:42:00Z",
+  "artifact_hashes": {
+    "actual_timeline": "7cd849436d03c1b2e127228c7710d512eba5500368c0609991928c608840911a",
+    "audience_belief": "336559f4b950a3686dbe122a1304753fcc01eb6ccb69b57eb8bde03c76214bb1",
+    "edit_script": "538524357e105cd63b2490ff1cac110b67b268f59e44356ead1b7b52d5d31e24",
+    "final_script": "468c9d41df28906a922026fd91b75ca7a61252bde114707a9703ba570810c3b3",
+    "narration": "5e2d48f82586b0734e89458ae1e632d20ddfedbbc4d67583224fef92d1962203",
+    "panel_cast": "1ddc9af3b48882637fdf5cd62b896e42744cb15a1d6bd613f8003b288c8ac7a5",
+    "panel_reaction_script": "680a77d71e8af4652a7c94c8bacaf5880c04b8e7194f0153a67ed7b02d335f31",
+    "presentation_plan": "d57874dc7f260e69a10317f93205e0098a0973180f882699c88dd87d0a1ddae3",
+    "production_panel_reaction_script": "9ba862c8b0ddfc2b7ae57a000bdf40c7399b6c458c6cc254745b837b776bd1e3",
+    "reaction_segments": "bdc91a5e45c9d8f3e91c6582ab8441f8e9f74727a368c929d170a923ab71b7e1",
+    "shooting_script": "7f589b6e17cdce5fecdf8e5a01af865a68fd264ac43fa9b9429d89b47b9e7f1e",
+    "subtitle_script": "21c100b5b0aa4288ae6a8f6f01b6a62eff4918d3044a2e31d80786b555e34ca4",
+    "viewer_timeline": "81f3fc7c47aa0ac4b0b43f253a605412a4bfe9d464daf34215b7361535efcaea"
+  },
+  "runtime_evidence": {
+    "method": "WORD_COUNT_ESTIMATE",
+    "reading_rate_wpm": 150,
+    "planned_runtime_sec": 1500,
+    "planned_panel_duration_sec": 325,
+    "estimated_panel_spoken_duration_sec": 136,
+    "measured_panel_duration_sec": null,
+    "panel_segments": [
+      {
+        "segment_id": "SEG-003",
+        "reaction_segment_id": "RSEG-001",
+        "planned_duration_sec": 40,
+        "spoken_word_count": 45,
+        "estimated_spoken_duration_sec": 18,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10,
+            "notes": "무전 표시 시각과 방파제 수색 화면을 교차 재생한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 8,
+            "notes": "표시 시각과 실제 전송 시각의 차이를 타임라인으로 제시한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 4,
+            "notes": "가설을 유보하는 세 패널의 표정을 유지한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-005",
+        "reaction_segment_id": "RSEG-002",
+        "planned_duration_sec": 45,
+        "spoken_word_count": 48,
+        "estimated_spoken_duration_sec": 19.2,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 12,
+            "notes": "장화 자국과 오미라의 경고 장면을 나란히 보여 준다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 9.8,
+            "notes": "현장 단서와 인물 증언을 동시에 검증하는 두 갈래 그래픽을 쓴다."
+          },
+          {
+            "element_type": "CROSS_TALK_PAUSE",
+            "duration_sec": 4,
+            "notes": "패널의 짧은 반박 뒤 판단을 보류하는 침묵을 둔다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-008",
+        "reaction_segment_id": "RSEG-003",
+        "planned_duration_sec": 45,
+        "spoken_word_count": 37,
+        "estimated_spoken_duration_sec": 14.8,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10,
+            "notes": "독립 회로의 반복 펄스를 파형과 함께 재생한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 15.2,
+            "notes": "폭우 잡음과 규칙적 신호의 간격을 비교한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 5,
+            "notes": "의도된 신호 가설을 받아들이는 반응을 잡는다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-010",
+        "reaction_segment_id": "RSEG-004",
+        "planned_duration_sec": 50,
+        "spoken_word_count": 46,
+        "estimated_spoken_duration_sec": 18.4,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 12,
+            "notes": "패킷 생성 시점과 화면 표시 시점을 분리해 재생한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 14.6,
+            "notes": "수색 가설이 무너지는 시간축을 단계별로 제시한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 5,
+            "notes": "건물 내부로 가설을 되돌리는 패널 반응을 유지한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-012",
+        "reaction_segment_id": "RSEG-005",
+        "planned_duration_sec": 50,
+        "spoken_word_count": 52,
+        "estimated_spoken_duration_sec": 20.8,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10,
+            "notes": "장화 자국, 펄스, 배관 타격을 빠르게 교차한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 14.2,
+            "notes": "세 단서가 지하 설비 구역에서 만나는 경로를 표시한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 5,
+            "notes": "수정된 가설의 긴박감을 패널 표정으로 남긴다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-015",
+        "reaction_segment_id": "RSEG-006",
+        "planned_duration_sec": 35,
+        "spoken_word_count": 33,
+        "estimated_spoken_duration_sec": 13.2,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "B_ROLL",
+            "duration_sec": 12,
+            "notes": "해일 접근과 정전 위험 자료 화면을 제시한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 6.8,
+            "notes": "점검 해치를 열 수 있는 150초 카운트다운을 표시한다."
+          },
+          {
+            "element_type": "TRANSITION",
+            "duration_sec": 3,
+            "notes": "추리에서 구조 작전으로 장면을 전환한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-017",
+        "reaction_segment_id": "RSEG-007",
+        "planned_duration_sec": 30,
+        "spoken_word_count": 37,
+        "estimated_spoken_duration_sec": 14.8,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 8,
+            "notes": "구조 직전 두 신호가 합쳐지는 장면을 재생한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 4.2,
+            "notes": "생존 확인과 남은 책임 질문을 분리해 표시한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 3,
+            "notes": "안도와 의문이 겹치는 표정을 유지한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-020",
+        "reaction_segment_id": "RSEG-008",
+        "planned_duration_sec": 30,
+        "spoken_word_count": 42,
+        "estimated_spoken_duration_sec": 16.8,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 8,
+            "notes": "정정 전후의 공식 사건 기록을 비교한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 3.2,
+            "notes": "기록 책임에 동의하는 패널 표정을 남긴다."
+          },
+          {
+            "element_type": "TRANSITION",
+            "duration_sec": 2,
+            "notes": "엔드카드로 전환한다."
+          }
+        ]
+      }
+    ]
+  },
   "result": "PASS",
   "checks": {
-    "broadcast_format": "PASS",
-    "absolute_time": "PASS",
-    "dialogue_naturalness": "PASS",
-    "panel_reaction_function": "PASS",
-    "audience_belief": "PASS",
-    "shootability": "PASS",
-    "victim_dignity": "PASS"
+    "broadcast_format": {
+      "result": "PASS",
+      "evidence": [
+        "07_SCRIPT/final_script.md#SEG-001",
+        "07_SCRIPT/final_script.md#SEG-020"
+      ],
+      "notes": "콜드 오픈부터 패널 마무리까지 20개 방송 Segment가 1,500초 시간축을 빈틈없이 구성한다."
+    },
+    "absolute_time": {
+      "result": "PASS",
+      "evidence": [
+        "07_SCRIPT/final_script.md#SEG-009",
+        "03_TIMELINE/actual_timeline.json#EVT-03"
+      ],
+      "notes": "패킷 생성 시점과 표시 시점을 분리해 사건의 절대시간 순서를 보존한다."
+    },
+    "dialogue_naturalness": {
+      "result": "PASS",
+      "evidence": [
+        "07_SCRIPT/panel_reaction_script.md#SEG-003",
+        "07_SCRIPT/panel_reaction_script.md#SEG-005",
+        "07_SCRIPT/panel_reaction_script.md#SEG-012"
+      ],
+      "notes": "각 근거 Segment에서 세 패널이 질문, 반박, 감정 연결을 짧게 교차하며 기존 핵심 추론 문장을 유지한다."
+    },
+    "panel_reaction_function": {
+      "result": "PASS",
+      "evidence": [
+        "06_SCENE/reaction_segments.json#RSEG-001",
+        "06_SCENE/reaction_segments.json#RSEG-005",
+        "09_PRODUCTION/panel_reaction_script.md#RSEG-008"
+      ],
+      "notes": "패널 대화가 장면 요약에 머물지 않고 가설 생성, 수정, 도덕적 판단으로 시청자 추론을 전진시킨다."
+    },
+    "audience_belief": {
+      "result": "PASS",
+      "evidence": [
+        "03_TIMELINE/audience_belief_timeline.json#SCN-05",
+        "07_SCRIPT/final_script.md#SEG-016"
+      ],
+      "notes": "시청자가 알 수 있는 사실과 단서를 장면별 공개 순서 안에서만 사용하고 구조 위치는 SCN-06 이후 확정한다."
+    },
+    "shootability": {
+      "result": "PASS",
+      "evidence": [
+        "09_PRODUCTION/shooting_script.md#SEG-003",
+        "09_PRODUCTION/edit_script.md#SEG-020"
+      ],
+      "notes": "패널 발화, 리플레이, 그래픽, 반응 숏의 시간을 Segment별로 분리해 계획시간을 모두 채운다."
+    },
+    "victim_dignity": {
+      "result": "PASS",
+      "evidence": [
+        "07_SCRIPT/final_script.md#SEG-016",
+        "09_PRODUCTION/shooting_script.md#SEG-016"
+      ],
+      "notes": "구조 대상자를 충격 이미지로 소비하지 않고 생존 확인, 응급 대응, 기록 정정의 주체로 다룬다."
+    }
   },
   "issues": []
 }

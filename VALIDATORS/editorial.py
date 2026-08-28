@@ -1,10 +1,16 @@
 """최종 방송 대본과 Production Package의 Editorial Review 계약."""
 
+import json
+import re
 from collections.abc import Mapping
 from copy import deepcopy
+from hashlib import sha256
+from math import isfinite
+from typing import cast
 
 from VALIDATORS.exceptions import StateTransitionError
 from VALIDATORS.models import ProjectState, ValidationIssue
+from VALIDATORS.presentation_validation import parse_script_segments, presentation_segments
 
 EDITORIAL_CHECKS = (
     "broadcast_format",
@@ -15,40 +21,407 @@ EDITORIAL_CHECKS = (
     "shootability",
     "victim_dignity",
 )
+EDITORIAL_REVIEWED_ARTIFACTS = (
+    "final_script",
+    "actual_timeline",
+    "viewer_timeline",
+    "audience_belief",
+    "panel_cast",
+    "reaction_segments",
+    "presentation_plan",
+    "panel_reaction_script",
+    "shooting_script",
+    "narration",
+    "production_panel_reaction_script",
+    "subtitle_script",
+    "edit_script",
+)
+PANEL_DIALOGUE_LINE = re.compile(
+    r"^\[(?P<panelist_id>PANEL-[0-9]{2,})(?:\s*·[^\]]+)?\]\s*"
+    r"[“\"]?(?P<speech>.*?)[”\"]?\s*$"
+)
+SPOKEN_WORD = re.compile(r"[0-9A-Za-z가-힣]+(?:['\u2019][0-9A-Za-z가-힣]+)?")
+
+
+def make_editorial_issue(
+    code: str,
+    message: str,
+    context: dict[str, object],
+) -> ValidationIssue:
+    """Editorial Review 문제를 공통 Issue 형식으로 생성한다."""
+    return ValidationIssue(
+        severity="ERROR",
+        code=code,
+        message=message,
+        artifact="08_QA/editorial_review.json",
+        context=context,
+    )
+
+
+def encoded_review_artifact(content: object) -> bytes:
+    """Review 입력 Hash에 사용할 형식 독립 Canonical Byte를 반환한다."""
+    if isinstance(content, Mapping):
+        return json.dumps(
+            dict(content),
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    if isinstance(content, str):
+        return content.encode("utf-8")
+    raise TypeError(
+        "Editorial Review 입력은 JSON 객체 또는 문자열이어야 합니다: "
+        f"actual_type={type(content).__name__}"
+    )
+
+
+def editorial_artifact_hashes(
+    artifacts: Mapping[str, object],
+) -> dict[str, str]:
+    """Editorial Critic이 실제로 검토해야 하는 입력 Hash를 계산한다."""
+    hashes: dict[str, str] = {}
+    for artifact_name in EDITORIAL_REVIEWED_ARTIFACTS:
+        if artifact_name not in artifacts:
+            continue
+        hashes[artifact_name] = sha256(
+            encoded_review_artifact(artifacts[artifact_name])
+        ).hexdigest()
+    return hashes
+
+
+def panel_spoken_metrics(panel_reaction_script: str) -> dict[str, dict[str, object]]:
+    """Panel Segment별 방송 발화 단어 수와 실제 화자 집합을 계산한다."""
+    metrics: dict[str, dict[str, object]] = {}
+    parsed_segments, malformed = parse_script_segments(panel_reaction_script)
+    if malformed:
+        return metrics
+    for segment in parsed_segments:
+        speaker_ids: set[str] = set()
+        spoken_words = 0
+        for raw_line in segment["body"].splitlines():
+            match = PANEL_DIALOGUE_LINE.fullmatch(raw_line.strip())
+            if match is None:
+                continue
+            speaker_ids.add(match.group("panelist_id"))
+            spoken_words += len(SPOKEN_WORD.findall(match.group("speech")))
+        metrics[segment["segment_id"]] = {
+            "speaker_ids": sorted(speaker_ids),
+            "spoken_word_count": spoken_words,
+        }
+    return metrics
+
+
+def mapping_records(document: Mapping[str, object], key: str) -> list[Mapping[str, object]]:
+    """Editorial Review의 객체 배열을 안전하게 읽는다."""
+    value = document.get(key)
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, Mapping)]
+
+
+def numeric_value(value: object) -> float | None:
+    """Boolean을 제외한 유한한 0 이상 시간값을 실수로 정규화한다."""
+    if (
+        not isinstance(value, int | float)
+        or isinstance(value, bool)
+        or not isfinite(value)
+        or value < 0
+    ):
+        return None
+    return float(value)
+
+
+def runtime_evidence_issues(
+    review: Mapping[str, object],
+    presentation_plan: Mapping[str, object],
+    panel_reaction_script: str,
+) -> list[ValidationIssue]:
+    """계획시간을 발화 예상시간과 비발화 편집 요소로 완전히 설명하는지 검사한다."""
+    evidence = review.get("runtime_evidence")
+    if not isinstance(evidence, Mapping):
+        return [
+            make_editorial_issue(
+                "EDITORIAL_RUNTIME_EVIDENCE_INVALID",
+                "Editorial Review에 Runtime 측정 근거가 필요합니다.",
+                {},
+            )
+        ]
+    method = evidence.get("method")
+    reading_rate = numeric_value(evidence.get("reading_rate_wpm"))
+    raw_segments = mapping_records(evidence, "panel_segments")
+    evidence_by_id = {
+        cast(str, item.get("segment_id")): item
+        for item in raw_segments
+        if isinstance(item.get("segment_id"), str)
+    }
+    planned_panel_segments = [
+        segment
+        for segment in presentation_segments(presentation_plan)
+        if segment.get("segment_type") == "PANEL_REACTION"
+    ]
+    planned_ids = {
+        cast(str, segment.get("segment_id"))
+        for segment in planned_panel_segments
+        if isinstance(segment.get("segment_id"), str)
+    }
+    missing_ids = sorted(planned_ids - set(evidence_by_id))
+    unexpected_ids = sorted(set(evidence_by_id) - planned_ids)
+    issues: list[ValidationIssue] = []
+    if missing_ids or unexpected_ids:
+        issues.append(
+            make_editorial_issue(
+                "EDITORIAL_PANEL_SEGMENT_COVERAGE_MISMATCH",
+                "Runtime 근거가 모든 Panel Segment와 정확히 대응해야 합니다.",
+                {"missing_segment_ids": missing_ids, "unexpected_segment_ids": unexpected_ids},
+            )
+        )
+    spoken_metrics = panel_spoken_metrics(panel_reaction_script)
+    planned_panel_duration = 0.0
+    estimated_panel_spoken_duration = 0.0
+    measured_panel_duration = 0.0
+    measured_values_present = True
+    for plan_segment in planned_panel_segments:
+        segment_id = plan_segment.get("segment_id")
+        if not isinstance(segment_id, str):
+            continue
+        record = evidence_by_id.get(segment_id)
+        if record is None:
+            continue
+        planned_duration = numeric_value(plan_segment.get("duration_sec"))
+        recorded_planned_duration = numeric_value(record.get("planned_duration_sec"))
+        estimated_duration = numeric_value(record.get("estimated_spoken_duration_sec"))
+        measured_duration = numeric_value(record.get("measured_duration_sec"))
+        raw_word_count = record.get("spoken_word_count")
+        raw_speaker_ids = record.get("speaker_ids")
+        speaker_ids = (
+            sorted(item for item in raw_speaker_ids if isinstance(item, str))
+            if isinstance(raw_speaker_ids, list)
+            else []
+        )
+        actual_metrics = spoken_metrics.get(segment_id, {})
+        actual_word_count = actual_metrics.get("spoken_word_count")
+        actual_speaker_ids = actual_metrics.get("speaker_ids")
+        if raw_word_count != actual_word_count:
+            issues.append(
+                make_editorial_issue(
+                    "EDITORIAL_PANEL_WORD_COUNT_MISMATCH",
+                    "Runtime 근거의 발화 단어 수가 Panel Script와 다릅니다.",
+                    {
+                        "segment_id": segment_id,
+                        "expected": actual_word_count,
+                        "actual": raw_word_count,
+                    },
+                )
+            )
+        if speaker_ids != actual_speaker_ids:
+            issues.append(
+                make_editorial_issue(
+                    "EDITORIAL_PANEL_SPEAKER_MISMATCH",
+                    "Runtime 근거의 화자 목록이 Panel Script와 다릅니다.",
+                    {
+                        "segment_id": segment_id,
+                        "expected": actual_speaker_ids,
+                        "actual": speaker_ids,
+                    },
+                )
+            )
+        if (
+            method == "WORD_COUNT_ESTIMATE"
+            and reading_rate is not None
+            and isinstance(actual_word_count, int)
+            and estimated_duration is not None
+        ):
+            expected_estimate = round(actual_word_count * 60.0 / reading_rate, 2)
+            if abs(expected_estimate - estimated_duration) > 0.01:
+                issues.append(
+                    make_editorial_issue(
+                        "EDITORIAL_PANEL_ESTIMATE_MISMATCH",
+                        "단어 수 기반 예상시간 계산이 발화 속도와 일치하지 않습니다.",
+                        {
+                            "segment_id": segment_id,
+                            "expected": expected_estimate,
+                            "actual": estimated_duration,
+                        },
+                    )
+                )
+        if (
+            planned_duration is None
+            or recorded_planned_duration is None
+            or abs(planned_duration - recorded_planned_duration) > 0.01
+        ):
+            issues.append(
+                make_editorial_issue(
+                    "EDITORIAL_PANEL_PLANNED_DURATION_MISMATCH",
+                    "Runtime 근거의 계획시간이 Presentation Plan과 다릅니다.",
+                    {
+                        "segment_id": segment_id,
+                        "expected": planned_duration,
+                        "actual": recorded_planned_duration,
+                    },
+                )
+            )
+            continue
+        non_speech_duration = sum(
+            duration
+            for item in mapping_records(record, "non_speech_elements")
+            if (duration := numeric_value(item.get("duration_sec"))) is not None
+        )
+        spoken_duration = (
+            measured_duration
+            if method in {"TABLE_READ", "RECORDED_AUDIO"}
+            else estimated_duration
+        )
+        timing_gap = (
+            None
+            if spoken_duration is None
+            else abs(spoken_duration + non_speech_duration - planned_duration)
+        )
+        if timing_gap is None or timing_gap > 0.25:
+            issues.append(
+                make_editorial_issue(
+                    "EDITORIAL_PANEL_TIMING_GAP",
+                    "Panel Segment의 발화와 비발화 요소가 계획시간을 채우지 못합니다.",
+                    {
+                        "segment_id": segment_id,
+                        "planned_duration_sec": planned_duration,
+                        "spoken_duration_sec": spoken_duration,
+                        "non_speech_duration_sec": non_speech_duration,
+                    },
+                )
+            )
+        planned_panel_duration += planned_duration
+        estimated_panel_spoken_duration += estimated_duration or 0.0
+        if measured_duration is None:
+            measured_values_present = False
+        else:
+            measured_panel_duration += measured_duration
+    planned_total = sum(
+        duration
+        for segment in presentation_segments(presentation_plan)
+        if (duration := numeric_value(segment.get("duration_sec"))) is not None
+    )
+    aggregate_values = {
+        "planned_runtime_sec": (planned_total, numeric_value(evidence.get("planned_runtime_sec"))),
+        "planned_panel_duration_sec": (
+            planned_panel_duration,
+            numeric_value(evidence.get("planned_panel_duration_sec")),
+        ),
+        "estimated_panel_spoken_duration_sec": (
+            round(estimated_panel_spoken_duration, 2),
+            numeric_value(evidence.get("estimated_panel_spoken_duration_sec")),
+        ),
+    }
+    aggregate_mismatches = {
+        field: {"expected": expected, "actual": actual}
+        for field, (expected, actual) in aggregate_values.items()
+        if actual is None or abs(expected - actual) > 0.01
+    }
+    if method in {"TABLE_READ", "RECORDED_AUDIO"}:
+        reported_measured = numeric_value(evidence.get("measured_panel_duration_sec"))
+        if (
+            not measured_values_present
+            or reported_measured is None
+            or abs(measured_panel_duration - reported_measured) > 0.01
+        ):
+            aggregate_mismatches["measured_panel_duration_sec"] = {
+                "expected": measured_panel_duration,
+                "actual": reported_measured,
+            }
+    if aggregate_mismatches:
+        issues.append(
+            make_editorial_issue(
+                "EDITORIAL_RUNTIME_AGGREGATE_MISMATCH",
+                "Runtime 근거의 합계가 Segment별 값과 다릅니다.",
+                {"mismatches": aggregate_mismatches},
+            )
+        )
+    return issues
 
 
 def validate_editorial_review(
     review: Mapping[str, object],
     project_id: str,
+    expected_artifact_hashes: Mapping[str, str],
 ) -> list[ValidationIssue]:
     """완료된 Editorial Review의 판정과 Issue 정합성을 검사한다."""
     issues: list[ValidationIssue] = []
     if review.get("project_id") != project_id:
         issues.append(
-            ValidationIssue(
-                severity="ERROR",
-                code="EDITORIAL_PROJECT_ID_MISMATCH",
-                message="Editorial Review의 Project ID가 현재 Project와 다릅니다.",
-                artifact="08_QA/editorial_review.json",
-                context={"expected": project_id, "actual": review.get("project_id")},
+            make_editorial_issue(
+                "EDITORIAL_PROJECT_ID_MISMATCH",
+                "Editorial Review의 Project ID가 현재 Project와 다릅니다.",
+                {"expected": project_id, "actual": review.get("project_id")},
             )
         )
     checks = review.get("checks")
     failed_checks = (
         list(EDITORIAL_CHECKS)
         if not isinstance(checks, Mapping)
-        else [name for name in EDITORIAL_CHECKS if checks.get(name) != "PASS"]
+        else [
+            name
+            for name in EDITORIAL_CHECKS
+            if not isinstance(checks.get(name), Mapping)
+            or cast(Mapping[str, object], checks.get(name)).get("result") != "PASS"
+        ]
     )
     raw_issues = review.get("issues")
     issue_count = len(raw_issues) if isinstance(raw_issues, list) else 1
+    evidence_missing: list[str] = []
+    if isinstance(checks, Mapping):
+        for name in EDITORIAL_CHECKS:
+            check = checks.get(name)
+            if not isinstance(check, Mapping):
+                evidence_missing.append(name)
+                continue
+            raw_evidence = check.get("evidence")
+            notes = check.get("notes")
+            if (
+                not isinstance(raw_evidence, list)
+                or not raw_evidence
+                or not all(isinstance(item, str) and item.strip() for item in raw_evidence)
+                or not isinstance(notes, str)
+                or not notes.strip()
+            ):
+                evidence_missing.append(name)
+    if evidence_missing:
+        issues.append(
+            make_editorial_issue(
+                "EDITORIAL_CHECK_EVIDENCE_MISSING",
+                "PASS Editorial Check에는 장면·Segment 근거와 검토 Notes가 필요합니다.",
+                {"checks": evidence_missing},
+            )
+        )
+    raw_hashes = review.get("artifact_hashes")
+    actual_hashes = (
+        {str(key): str(value) for key, value in raw_hashes.items()}
+        if isinstance(raw_hashes, Mapping)
+        else {}
+    )
+    missing_hashes = sorted(set(expected_artifact_hashes) - set(actual_hashes))
+    unexpected_hashes = sorted(set(actual_hashes) - set(expected_artifact_hashes))
+    mismatched_hashes = sorted(
+        artifact_name
+        for artifact_name, expected_hash in expected_artifact_hashes.items()
+        if actual_hashes.get(artifact_name) != expected_hash
+    )
+    if missing_hashes or unexpected_hashes or mismatched_hashes:
+        issues.append(
+            make_editorial_issue(
+                "EDITORIAL_ARTIFACT_HASH_MISMATCH",
+                "Editorial Review가 현재 검토 대상 Artifact Hash와 결합되지 않았습니다.",
+                {
+                    "missing_artifacts": missing_hashes,
+                    "unexpected_artifacts": unexpected_hashes,
+                    "mismatched_artifacts": mismatched_hashes,
+                },
+            )
+        )
     if review.get("result") != "PASS" or failed_checks or issue_count:
         issues.append(
-            ValidationIssue(
-                severity="ERROR",
-                code="EDITORIAL_REVIEW_REQUIRED",
-                message="Editorial Review의 모든 항목이 PASS이고 Issue가 없어야 합니다.",
-                artifact="08_QA/editorial_review.json",
-                context={
+            make_editorial_issue(
+                "EDITORIAL_REVIEW_REQUIRED",
+                "Editorial Review의 모든 항목이 PASS이고 Issue가 없어야 합니다.",
+                {
                     "result": review.get("result"),
                     "failed_checks": failed_checks,
                     "issue_count": issue_count,
@@ -61,6 +434,7 @@ def validate_editorial_review(
 def approve_editorial_review(
     state: ProjectState,
     review: Mapping[str, object],
+    expected_artifact_hashes: Mapping[str, str],
     actor: str,
     reason: str,
     updated_at: str,
@@ -89,7 +463,11 @@ def approve_editorial_review(
         raise StateTransitionError(
             f"Editorial 승인 전 준비 상태가 완전하지 않습니다: mismatches={mismatches}"
         )
-    issues = validate_editorial_review(review, state["project_id"])
+    issues = validate_editorial_review(
+        review,
+        state["project_id"],
+        expected_artifact_hashes,
+    )
     if issues:
         raise StateTransitionError(
             f"Editorial Review Issue를 먼저 해결해야 합니다: issues={issues}"

@@ -367,7 +367,7 @@
       "agent_id": "continuity_critic",
       "executor": "LLM",
       "target_gate": "GATE-13",
-      "reads": ["final_script", "actual_timeline", "viewer_timeline", "audience_belief", "panel_cast", "reaction_segments", "presentation_plan", "shooting_script", "narration", "production_panel_reaction_script", "subtitle_script", "edit_script"],
+      "reads": ["final_script", "actual_timeline", "viewer_timeline", "audience_belief", "panel_cast", "reaction_segments", "presentation_plan", "panel_reaction_script", "shooting_script", "narration", "production_panel_reaction_script", "subtitle_script", "edit_script"],
       "writes": ["editorial_review"],
       "depends_on_tasks": ["production.package"],
       "condition": "ALWAYS",

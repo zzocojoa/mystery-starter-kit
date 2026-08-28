@@ -1,0 +1,136 @@
+{
+  "project_id": "PRJ-002",
+  "belief_states": [
+    {
+      "scene_order": 1,
+      "belief": "서유진은 23시 17분까지 북측 계단을 순찰한 뒤 폭설 속으로 나갔다.",
+      "confidence": 0.78,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01"
+      ]
+    },
+    {
+      "scene_order": 2,
+      "belief": "마스터키가 남았으므로 유진은 호텔 안에 숨었거나 다른 출구를 썼다.",
+      "confidence": 0.62,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-05"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_order": 3,
+      "belief": "23시 17분 순찰 화면은 현재 행동이 아니라 반복 기록일 수 있다.",
+      "confidence": 0.72,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-05"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02",
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_order": 4,
+      "belief": "유진의 마지막 확인 시각은 23시 17분이 아니라 22시 52분이다.",
+      "confidence": 0.88,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02",
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_order": 5,
+      "belief": "유진은 무단 시험 중 고립됐고 도윤의 거짓말이 수색 시작점을 늦췄다.",
+      "confidence": 0.9,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-07",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_order": 6,
+      "belief": "유진은 서비스 리프트 안에서 난방관을 두드리고 있으며 전환 전원이 문을 잠갔다.",
+      "confidence": 0.96,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_order": 7,
+      "belief": "린넨실 수동 해제기가 유일한 구조 경로다.",
+      "confidence": 1.0,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_order": 8,
+      "belief": "실종은 범죄가 아니라 안전시험, 재잠금, 반복 기록, 보호성 거짓말이 만든 구조 사고였다.",
+      "confidence": 1.0,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10"
+      ],
+      "active_hypothesis_ids": []
+    }
+  ]
+}

@@ -6,6 +6,7 @@ from pathlib import Path
 from RUNTIME.providers.fake import (
     fake_broadcast_master,
     fake_edit_script,
+    fake_editorial_review,
     fake_panel_cast,
     fake_presentation_plan,
     fake_reaction_segments,
@@ -224,7 +225,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     total_seconds = 120
     layer_scripts = fake_script_layers(total_seconds)
     broadcast_master = fake_broadcast_master(total_seconds)
-    return {
+    artifacts: dict[str, ArtifactContent] = {
         "project_manifest": {
             "project_id": project_id,
             "standard_version": "1.3.2",
@@ -313,20 +314,6 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         ),
         "subtitle_script": "00:00 지안은 7분의 공백을 발견한다.",
         "edit_script": fake_edit_script(project_id, total_seconds),
-        "editorial_review": {
-            "schema_family": "editorial-review",
-            "schema_version": "1.0.0",
-            "project_id": project_id,
-            "result": "PASS",
-            "checks": {
-                "broadcast_format": "PASS",
-                "absolute_time": "PASS",
-                "dialogue_naturalness": "PASS",
-                "panel_reaction_function": "PASS",
-                "audience_belief": "PASS",
-                "shootability": "PASS",
-                "victim_dignity": "PASS",
-            },
-            "issues": [],
-        },
     }
+    artifacts["editorial_review"] = fake_editorial_review(project_id, artifacts)
+    return artifacts

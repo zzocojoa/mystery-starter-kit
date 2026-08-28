@@ -1,0 +1,207 @@
+{
+  "schema_family": "reaction-segments",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-002",
+  "reaction_segments": [
+    {
+      "reaction_segment_id": "RSEG-001",
+      "after_scene_id": "SCN-01",
+      "order": 1,
+      "start_sec": 170,
+      "duration_sec": 40,
+      "panelist_id": "PANEL-03",
+      "function": "HYPOTHESIS_GENERATION",
+      "evidence_ids": [
+        "CLUE-01"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02"
+      ],
+      "hypothesis_before": "23시 17분 호출은 그 시각 유진이 북측 계단에 있었다는 증명이다.",
+      "spoken_line": "호출이 23시 17분에 도착했다는 것과 그때 작성됐다는 건 다릅니다. 화면까지 반복된다면 사람의 현재가 아니라 시스템의 재생을 먼저 의심해야 해요.",
+      "hypothesis_after": "호출과 순찰 화면이 실제 마지막 시각보다 늦게 재생됐을 가능성을 남긴다.",
+      "tone": "SKEPTICAL"
+    },
+    {
+      "reaction_segment_id": "RSEG-002",
+      "after_scene_id": "SCN-02",
+      "order": 2,
+      "start_sec": 345,
+      "duration_sec": 45,
+      "panelist_id": "PANEL-02",
+      "function": "EMOTIONAL_REACTION",
+      "evidence_ids": [
+        "CLUE-02"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-05"
+      ],
+      "hypothesis_before": "유진은 북측 계단으로 호텔을 나갔다.",
+      "spoken_line": "밖으로 나갔다면 마스터키가 왜 봉인된 채일까요. 도망이라는 말은 빠르지만, 안에 갇힌 사람을 그 말 하나로 놓칠 수도 있습니다.",
+      "hypothesis_after": "외부 이탈과 호텔 내부 고립을 동시에 수색해야 한다.",
+      "tone": "CONCERNED"
+    },
+    {
+      "reaction_segment_id": "RSEG-003",
+      "after_scene_id": "SCN-03",
+      "order": 3,
+      "start_sec": 535,
+      "duration_sec": 45,
+      "panelist_id": "PANEL-01",
+      "function": "ANOMALY_DETECTION",
+      "evidence_ids": [
+        "CLUE-03"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-05"
+      ],
+      "hypothesis_before": "유진이 책임을 피하려고 순찰 화면을 조작하고 숨었다.",
+      "spoken_line": "영상이 바뀌는데 거울 속 시계만 같은 분에 멈춥니다. 누군가 새 장면을 꾸민 게 아니라 이미 끝난 구간을 시스템이 돌려 보여 주는 쪽이 단순합니다.",
+      "hypothesis_after": "순찰 화면은 현재 은신을 위한 조작이 아니라 과거 캐시의 반복일 수 있다.",
+      "tone": "ANALYTICAL"
+    },
+    {
+      "reaction_segment_id": "RSEG-004",
+      "after_scene_id": "SCN-04",
+      "order": 4,
+      "start_sec": 700,
+      "duration_sec": 50,
+      "panelist_id": "PANEL-03",
+      "function": "CONTRADICTION_DETECTION",
+      "evidence_ids": [
+        "CLUE-03"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05"
+      ],
+      "hypothesis_before": "23시 17분 장면이 유진의 마지막 위치와 시각을 보여 준다.",
+      "spoken_line": "잠깐만요, 화면 제목은 23시 17분인데 거울은 22시 52분입니다. 이제 찾아야 할 건 그 뒤의 발자국이 아니라 그때 닫힌 문이에요.",
+      "hypothesis_after": "22시 52분 전후 서비스 구역에서 발생한 사건을 다시 구성해야 한다.",
+      "tone": "CHALLENGING"
+    },
+    {
+      "reaction_segment_id": "RSEG-005",
+      "after_scene_id": "SCN-05",
+      "order": 5,
+      "start_sec": 880,
+      "duration_sec": 50,
+      "panelist_id": "PANEL-01",
+      "function": "HYPOTHESIS_REVISION",
+      "evidence_ids": [
+        "CLUE-01",
+        "CLUE-02",
+        "CLUE-03"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-07",
+        "FACT-08"
+      ],
+      "hypothesis_before": "유진은 무단 시험 뒤 책임을 피하려고 자발적으로 숨었다.",
+      "spoken_line": "예약 호출은 유진의 존재를 늦게 만들었고 도윤의 거짓말은 수색 시각을 더 밀었습니다. 자발적 은신이 아니라 시험 중 고립으로 가설을 바꿔야 합니다.",
+      "hypothesis_after": "유진은 22시 52분 방화문 시험 중 호텔 서비스 구역에 고립됐다.",
+      "tone": "DECISIVE"
+    },
+    {
+      "reaction_segment_id": "RSEG-006",
+      "after_scene_id": "SCN-06",
+      "order": 6,
+      "start_sec": 1100,
+      "duration_sec": 35,
+      "panelist_id": "PANEL-01",
+      "function": "ANOMALY_DETECTION",
+      "evidence_ids": [
+        "CLUE-02",
+        "CLUE-04"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09"
+      ],
+      "hypothesis_before": "유진은 서비스 구역 어딘가에 있지만 정확한 위치는 모른다.",
+      "spoken_line": "발전기 부하라면 일정해야 할 열이 사람 손처럼 끊겨 있습니다. 봉인된 출구와 이 신호를 함께 보면 서비스 리프트가 가장 짧은 답입니다.",
+      "hypothesis_after": "유진은 린넨실 서비스 리프트에서 난방관을 두드리고 있다.",
+      "tone": "URGENT"
+    },
+    {
+      "reaction_segment_id": "RSEG-007",
+      "after_scene_id": "SCN-07",
+      "order": 7,
+      "start_sec": 1295,
+      "duration_sec": 30,
+      "panelist_id": "PANEL-02",
+      "function": "TENSION_RELEASE",
+      "evidence_ids": [
+        "CLUE-04"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10"
+      ],
+      "hypothesis_before": "열 펄스의 주체가 유진인지 구조 전까지 확정할 수 없다.",
+      "spoken_line": "유진이 살아 있고 신호의 주체도 확인됐습니다. 다만 안도와 별개로, 사랑 때문에 숨긴 스물다섯 분은 반드시 기록돼야 합니다.",
+      "hypothesis_after": "생존은 확인됐고 남은 질문은 결함과 판단 지연의 책임이다.",
+      "tone": "RELIEVED"
+    },
+    {
+      "reaction_segment_id": "RSEG-008",
+      "after_scene_id": "SCN-08",
+      "order": 8,
+      "start_sec": 1470,
+      "duration_sec": 30,
+      "panelist_id": "PANEL-03",
+      "function": "MORAL_REACTION",
+      "evidence_ids": [
+        "CLUE-01",
+        "CLUE-02",
+        "CLUE-03",
+        "CLUE-04"
+      ],
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10"
+      ],
+      "hypothesis_before": "구조에 성공했으므로 보호성 거짓말은 결과적으로 용서할 수 있다.",
+      "spoken_line": "지키려던 마음이 있었다는 설명과 구조를 늦춘 책임은 동시에 참일 수 있습니다. 좋은 의도만 남기지 않는 기록이 다음 사람을 살립니다.",
+      "hypothesis_after": "구조 성공과 별개로 시험 결함과 보호성 거짓말을 공식 기록에 함께 남겨야 한다.",
+      "tone": "FIRM"
+    }
+  ]
+}

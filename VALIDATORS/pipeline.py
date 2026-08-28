@@ -9,7 +9,11 @@ from VALIDATORS.causal_validation import validate_causal_graph
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.dependency import dependency_artifacts
-from VALIDATORS.editorial import validate_editorial_review
+from VALIDATORS.editorial import (
+    editorial_artifact_hashes,
+    runtime_evidence_issues,
+    validate_editorial_review,
+)
 from VALIDATORS.exceptions import ConfigurationError, InputFileReadError
 from VALIDATORS.fact_validation import validate_fact_integrity
 from VALIDATORS.io import load_json_object
@@ -808,7 +812,16 @@ def run_production_validation(
             artifact_text(artifacts, "production_panel_reaction_script"),
             artifact_text(artifacts, "edit_script"),
         ),
-        *validate_editorial_review(editorial_review, project_id),
+        *validate_editorial_review(
+            editorial_review,
+            project_id,
+            editorial_artifact_hashes(artifacts),
+        ),
+        *runtime_evidence_issues(
+            editorial_review,
+            presentation_plan,
+            panel_reaction_script,
+        ),
     ]
     gate_groups = (
         gate_00,

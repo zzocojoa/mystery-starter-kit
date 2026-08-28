@@ -1,0 +1,37 @@
+{
+  "project_id": "PRJ-002",
+  "checkpoints": [
+    {
+      "scene_id": "SCN-01",
+      "function": "QUESTION_REPEATED_2317"
+    },
+    {
+      "scene_id": "SCN-02",
+      "function": "CONTRADICTION_SEALED_EXIT_KEY"
+    },
+    {
+      "scene_id": "SCN-03",
+      "function": "FALSE_SOLUTION_VOLUNTARY_HIDING"
+    },
+    {
+      "scene_id": "SCN-04",
+      "function": "MIDPOINT_REFRAME_CLOCK_REFLECTION"
+    },
+    {
+      "scene_id": "SCN-05",
+      "function": "TRUST_COLLAPSE_PROTECTIVE_LIE"
+    },
+    {
+      "scene_id": "SCN-06",
+      "function": "LOCATION_LOCK_THERMAL_PULSE"
+    },
+    {
+      "scene_id": "SCN-07",
+      "function": "PAYOFF_MANUAL_RELEASE_RESCUE"
+    },
+    {
+      "scene_id": "SCN-08",
+      "function": "FINAL_REFRAME_ACCOUNTABILITY_RECORD"
+    }
+  ]
+}

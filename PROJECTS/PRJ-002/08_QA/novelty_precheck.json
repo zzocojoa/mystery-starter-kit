@@ -1,0 +1,34 @@
+{
+  "project_id": "PRJ-002",
+  "source_hash": "9ed14d35f61fffdfdbbed4a144ba14dcc8c86d9b4190f4d9339f43274993bdf1",
+  "approved_candidate_id": "VAR-01",
+  "result": "PASS",
+  "candidate_results": [
+    {
+      "candidate_id": "VAR-01",
+      "result": "PASS",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-02",
+      "result": "PASS",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-03",
+      "result": "PASS",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-04",
+      "result": "PASS",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-05",
+      "result": "PASS",
+      "comparisons": []
+    }
+  ],
+  "issues": []
+}

@@ -12,6 +12,8 @@ from RUNTIME.models import (
     ProviderDescriptor,
     TokenUsage,
 )
+from VALIDATORS.editorial import editorial_artifact_hashes, panel_spoken_metrics
+from VALIDATORS.presentation_validation import presentation_segments
 
 PresentationDefinition: TypeAlias = tuple[
     str,
@@ -313,7 +315,7 @@ def fake_script_layers(total_seconds: int) -> dict[str, str]:
                     "SCN-01",
                     reaction_duration,
                     "[RSEG-001] [PANEL-01] [HYPOTHESIS_GENERATION]\n"
-                    "7분의 공백이 이탈의 증거인지부터 확인해야 합니다.",
+                    "[PANEL-01] 7분의 공백이 이탈의 증거인지부터 확인해야 합니다.",
                 ),
                 broadcast_marker(
                     "SEG-004",
@@ -321,7 +323,7 @@ def fake_script_layers(total_seconds: int) -> dict[str, str]:
                     "SCN-01",
                     reaction_duration,
                     "[RSEG-002] [PANEL-03] [CONTRADICTION_DETECTION]\n"
-                    "이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.",
+                    "[PANEL-03] 이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.",
                 ),
                 broadcast_marker(
                     "SEG-006",
@@ -329,7 +331,7 @@ def fake_script_layers(total_seconds: int) -> dict[str, str]:
                     "SCN-02",
                     reaction_duration,
                     "[RSEG-003] [PANEL-01] [HYPOTHESIS_REVISION]\n"
-                    "안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.",
+                    "[PANEL-01] 안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.",
                 ),
             )
         ),
@@ -404,6 +406,188 @@ def fake_edit_script(project_id: str, total_seconds: int) -> str:
             f"{end // 60:02d}:{end % 60:02d} |"
         )
     return "\n".join(lines)
+
+
+def fake_runtime_evidence(
+    presentation_plan: Mapping[str, object],
+    panel_reaction_script: str,
+) -> dict[str, object]:
+    """발화 예상시간과 편집 요소가 계획시간을 채우는 Runtime Fixture를 만든다."""
+    reading_rate_wpm = 150.0
+    spoken_metrics = panel_spoken_metrics(panel_reaction_script)
+    panel_segments: list[dict[str, object]] = []
+    planned_panel_duration = 0.0
+    estimated_panel_spoken_duration = 0.0
+    planned_runtime = 0.0
+    for segment in presentation_segments(presentation_plan):
+        duration = segment.get("duration_sec")
+        if not isinstance(duration, int | float) or isinstance(duration, bool):
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Fake Runtime Evidence의 Segment 시간이 올바르지 않습니다.",
+                "editorial.review",
+                "presentation_plan",
+                {"segment_id": segment.get("segment_id")},
+            )
+        planned_runtime += float(duration)
+        if segment.get("segment_type") != "PANEL_REACTION":
+            continue
+        segment_id = segment.get("segment_id")
+        reaction_segment_id = segment.get("reaction_segment_id")
+        if not isinstance(segment_id, str) or not isinstance(reaction_segment_id, str):
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Fake Runtime Evidence의 Panel Segment ID가 없습니다.",
+                "editorial.review",
+                "presentation_plan",
+                {"segment_id": segment_id},
+            )
+        metrics = spoken_metrics.get(segment_id)
+        if metrics is None:
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Fake Panel Script의 발화 지표가 없습니다.",
+                "editorial.review",
+                "panel_reaction_script",
+                {"segment_id": segment_id},
+            )
+        word_count = metrics.get("spoken_word_count")
+        speaker_ids = metrics.get("speaker_ids")
+        if not isinstance(word_count, int) or not isinstance(speaker_ids, list):
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Fake Panel Script의 발화 지표 형식이 올바르지 않습니다.",
+                "editorial.review",
+                "panel_reaction_script",
+                {"segment_id": segment_id},
+            )
+        estimated_duration = round(word_count * 60.0 / reading_rate_wpm, 2)
+        non_speech_duration = round(float(duration) - estimated_duration, 2)
+        if non_speech_duration <= 0:
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Fake Panel 발화가 계획시간을 초과합니다.",
+                "editorial.review",
+                "panel_reaction_script",
+                {"segment_id": segment_id},
+            )
+        panel_segments.append(
+            {
+                "segment_id": segment_id,
+                "reaction_segment_id": reaction_segment_id,
+                "planned_duration_sec": float(duration),
+                "spoken_word_count": word_count,
+                "estimated_spoken_duration_sec": estimated_duration,
+                "measured_duration_sec": None,
+                "speaker_ids": speaker_ids,
+                "non_speech_elements": [
+                    {
+                        "element_type": "GRAPHIC",
+                        "duration_sec": non_speech_duration,
+                        "notes": "결정론적 Fixture의 근거 요약 Graphic",
+                    }
+                ],
+            }
+        )
+        planned_panel_duration += float(duration)
+        estimated_panel_spoken_duration += estimated_duration
+    return {
+        "method": "WORD_COUNT_ESTIMATE",
+        "reading_rate_wpm": reading_rate_wpm,
+        "planned_runtime_sec": planned_runtime,
+        "planned_panel_duration_sec": planned_panel_duration,
+        "estimated_panel_spoken_duration_sec": round(
+            estimated_panel_spoken_duration,
+            2,
+        ),
+        "measured_panel_duration_sec": None,
+        "panel_segments": panel_segments,
+    }
+
+
+def fake_editorial_review(
+    project_id: str,
+    artifacts: Mapping[str, object],
+) -> dict[str, object]:
+    """입력 Hash·근거·Runtime 추정을 포함한 Editorial Review Fixture를 만든다."""
+    presentation_plan = artifacts.get("presentation_plan")
+    panel_reaction_script = artifacts.get("panel_reaction_script")
+    if not isinstance(presentation_plan, Mapping) or not isinstance(
+        panel_reaction_script, str
+    ):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Editorial Review Fixture 입력이 누락되었습니다.",
+            "editorial.review",
+            None,
+            {},
+        )
+    return {
+        "schema_family": "editorial-review",
+        "schema_version": "1.1.0",
+        "project_id": project_id,
+        "reviewer": {
+            "reviewer_id": "agent:continuity_critic",
+            "role": "CONTINUITY_CRITIC",
+        },
+        "reviewed_at": "2026-08-28T00:00:00Z",
+        "artifact_hashes": editorial_artifact_hashes(artifacts),
+        "runtime_evidence": fake_runtime_evidence(
+            presentation_plan,
+            panel_reaction_script,
+        ),
+        "result": "PASS",
+        "checks": {
+            "broadcast_format": {
+                "result": "PASS",
+                "evidence": ["07_SCRIPT/final_script.md#SEG-001"],
+                "notes": "모든 방송 Segment Marker와 Layer 순서를 확인함",
+            },
+            "absolute_time": {
+                "result": "PASS",
+                "evidence": ["03_TIMELINE/actual_timeline.json#EVT-01"],
+                "notes": "대본의 시간 언급과 실제 사건 순서를 대조함",
+            },
+            "dialogue_naturalness": {
+                "result": "PASS",
+                "evidence": ["07_SCRIPT/panel_reaction_script.md#SEG-002"],
+                "notes": "Panel 발화가 기능과 화자 Persona에 맞는지 검토함",
+            },
+            "panel_reaction_function": {
+                "result": "PASS",
+                "evidence": ["06_SCENE/reaction_segments.json#RSEG-001"],
+                "notes": "가설 생성·반론·수정 기능과 방송 Cue를 대조함",
+            },
+            "audience_belief": {
+                "result": "PASS",
+                "evidence": ["03_TIMELINE/audience_belief_timeline.json#SCN-01"],
+                "notes": "관객이 공개 전 사실을 알지 못하도록 Reveal 순서를 확인함",
+            },
+            "shootability": {
+                "result": "PASS",
+                "evidence": ["09_PRODUCTION/shooting_script.md#SCN-01"],
+                "notes": "장면과 Production Cue가 촬영 가능한 단위인지 확인함",
+            },
+            "victim_dignity": {
+                "result": "PASS",
+                "evidence": ["07_SCRIPT/final_script.md#SEG-005"],
+                "notes": "피해 인물을 선정적으로 대상화하는 표현이 없음을 확인함",
+            },
+        },
+        "issues": [],
+    }
 
 
 def story_document(
@@ -486,8 +670,8 @@ def story_document(
     }
 
 
-def context_artifact(request: LLMRequest, artifact_name: str) -> Mapping[str, object] | None:
-    """컴파일된 비신뢰 Context에서 지정 Artifact 객체를 읽는다."""
+def context_artifacts(request: LLMRequest) -> dict[str, object]:
+    """컴파일된 비신뢰 Context의 Artifact Content를 이름으로 색인한다."""
     start_marker = '<CONTEXT_DATA instructional="false">\n'
     end_marker = "\n</CONTEXT_DATA>"
     user_messages = [message.content for message in request.messages if message.role == "user"]
@@ -498,7 +682,7 @@ def context_artifact(request: LLMRequest, artifact_name: str) -> Mapping[str, ob
             "TASK",
             "FakeProvider는 단일 User Prompt를 요구합니다.",
             request.metadata.get("task_id"),
-            artifact_name,
+            None,
             {"user_message_count": len(user_messages)},
         )
     content = user_messages[0]
@@ -511,7 +695,7 @@ def context_artifact(request: LLMRequest, artifact_name: str) -> Mapping[str, ob
             "TASK",
             "FakeProvider Prompt에 Context Data 구간이 없습니다.",
             request.metadata.get("task_id"),
-            artifact_name,
+            None,
             {},
         )
     parsed: object = json.loads(content[start + len(start_marker) : end])
@@ -522,25 +706,45 @@ def context_artifact(request: LLMRequest, artifact_name: str) -> Mapping[str, ob
             "TASK",
             "FakeProvider Context Data가 배열이 아닙니다.",
             request.metadata.get("task_id"),
-            artifact_name,
+            None,
             {},
         )
+    artifacts: dict[str, object] = {}
     for item in parsed:
-        if not isinstance(item, Mapping) or item.get("artifact_name") != artifact_name:
+        if not isinstance(item, Mapping):
             continue
+        artifact_name = item.get("artifact_name")
         artifact = item.get("content")
-        if not isinstance(artifact, Mapping):
+        if not isinstance(artifact_name, str) or not isinstance(artifact, Mapping | str):
             raise RuntimeExecutionError(
                 "RUNTIME_CONFIGURATION_ERROR",
                 False,
                 "TASK",
-                "FakeProvider Context Artifact가 객체가 아닙니다.",
+                "FakeProvider Context Artifact 형식이 올바르지 않습니다.",
                 request.metadata.get("task_id"),
-                artifact_name,
+                artifact_name if isinstance(artifact_name, str) else None,
                 {},
             )
-        return artifact
-    return None
+        artifacts[artifact_name] = dict(artifact) if isinstance(artifact, Mapping) else artifact
+    return artifacts
+
+
+def context_artifact(request: LLMRequest, artifact_name: str) -> Mapping[str, object] | None:
+    """컴파일된 비신뢰 Context에서 지정 JSON Artifact를 읽는다."""
+    artifact = context_artifacts(request).get(artifact_name)
+    if artifact is None:
+        return None
+    if not isinstance(artifact, Mapping):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "FakeProvider Context Artifact가 JSON 객체가 아닙니다.",
+            request.metadata.get("task_id"),
+            artifact_name,
+            {},
+        )
+    return artifact
 
 
 def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, object]]:
@@ -911,22 +1115,10 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             {
                 "artifact_name": "editorial_review",
                 "media_type": "application/json",
-                "content": {
-                    "schema_family": "editorial-review",
-                    "schema_version": "1.0.0",
-                    "project_id": project_id,
-                    "result": "PASS",
-                    "checks": {
-                        "broadcast_format": "PASS",
-                        "absolute_time": "PASS",
-                        "dialogue_naturalness": "PASS",
-                        "panel_reaction_function": "PASS",
-                        "audience_belief": "PASS",
-                        "shootability": "PASS",
-                        "victim_dignity": "PASS",
-                    },
-                    "issues": [],
-                },
+                "content": fake_editorial_review(
+                    project_id,
+                    context_artifacts(request),
+                ),
             }
         ]
     raise RuntimeExecutionError(

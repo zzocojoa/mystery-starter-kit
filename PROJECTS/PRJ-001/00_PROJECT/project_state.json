@@ -4,14 +4,14 @@
   "project_id": "PRJ-001",
   "state": "EDITORIAL_REVIEW_REQUIRED",
   "current_gate": "GATE-13",
-  "updated_at": "2026-08-28T00:19:42.199389Z",
+  "updated_at": "2026-08-28T04:49:01.912104Z",
   "readiness": {
     "artifact_status": "ARTIFACT_COMPLETE",
     "contract_status": "CONTRACT_VALIDATED",
     "process_status": "PROCESS_CONFORMANT",
     "editorial_status": "EDITORIAL_REVIEW_REQUIRED",
     "process_start_gate": "GATE-08",
-    "process_revision": 2
+    "process_revision": 3
   },
   "artifacts": {
     "project_manifest": {
@@ -141,12 +141,12 @@
     },
     "draft_script": {
       "status": "CLEAN",
-      "content_hash": "d5759b54314f1a9c43cade6e3c65facda6e5dfc7c122f144c495a6bc6ba95922",
+      "content_hash": "468c9d41df28906a922026fd91b75ca7a61252bde114707a9703ba570810c3b3",
       "invalidated_by": []
     },
     "final_script": {
       "status": "CLEAN",
-      "content_hash": "d5759b54314f1a9c43cade6e3c65facda6e5dfc7c122f144c495a6bc6ba95922",
+      "content_hash": "468c9d41df28906a922026fd91b75ca7a61252bde114707a9703ba570810c3b3",
       "invalidated_by": []
     },
     "continuity_report": {
@@ -176,7 +176,7 @@
     },
     "shooting_script": {
       "status": "CLEAN",
-      "content_hash": "94719203ff444d82b4e9cc17a68f9e923768c60ec27b4f77c32baa76ccbda869",
+      "content_hash": "7f589b6e17cdce5fecdf8e5a01af865a68fd264ac43fa9b9429d89b47b9e7f1e",
       "invalidated_by": []
     },
     "narration": {
@@ -191,7 +191,7 @@
     },
     "edit_script": {
       "status": "CLEAN",
-      "content_hash": "51bdbe3a528227e27f6596d9438c8ab89150bff090106e7254704105f4d05e94",
+      "content_hash": "538524357e105cd63b2490ff1cac110b67b268f59e44356ead1b7b52d5d31e24",
       "invalidated_by": []
     },
     "panel_cast": {
@@ -216,17 +216,17 @@
     },
     "panel_reaction_script": {
       "status": "CLEAN",
-      "content_hash": "bb752172c68bfe736001d56d707a28aef020b3282135eb656747842b2f85eb34",
+      "content_hash": "680a77d71e8af4652a7c94c8bacaf5880c04b8e7194f0153a67ed7b02d335f31",
       "invalidated_by": []
     },
     "production_panel_reaction_script": {
       "status": "CLEAN",
-      "content_hash": "4260e5d8b0f3224a283f315b5e0890c3a8af774d649168087f70b12e4ecf9ce4",
+      "content_hash": "9ba862c8b0ddfc2b7ae57a000bdf40c7399b6c458c6cc254745b837b776bd1e3",
       "invalidated_by": []
     },
     "editorial_review": {
       "status": "CLEAN",
-      "content_hash": "0db6aac7745e98ddcff999032417ee594758952985868224ac703a1320c6a055",
+      "content_hash": "f51305bcb7cf8a61a86cb8ef206c6240c536b48e2de4c81026fb03310b365404",
       "invalidated_by": []
     }
   }

@@ -25,7 +25,12 @@ from VALIDATORS.dependency import (
     mark_artifact_clean,
     transitive_dependents,
 )
-from VALIDATORS.editorial import approve_editorial_review, finalize_production_ready
+from VALIDATORS.editorial import (
+    EDITORIAL_REVIEWED_ARTIFACTS,
+    approve_editorial_review,
+    editorial_artifact_hashes,
+    finalize_production_ready,
+)
 from VALIDATORS.exceptions import (
     ConfigurationError,
     GateTransactionError,
@@ -46,6 +51,7 @@ from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.library import make_history_record, register_story_fingerprint
 from VALIDATORS.models import ProjectState, ValidationIssue
 from VALIDATORS.novelty import evaluate_variation_precheck
+from VALIDATORS.pipeline import load_selected_project_artifacts
 from VALIDATORS.reference_validation import sanitize_reference_profile
 from VALIDATORS.scaffold import create_project_scaffold
 from VALIDATORS.schema_validation import collect_schema_errors
@@ -1020,10 +1026,17 @@ def run_editorial_approve(args: argparse.Namespace) -> int:
             )
         state = load_project_state(args.project_path)
         review = load_json_object(args.project_path / "08_QA" / "editorial_review.json")
+        dependency_graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
+        reviewed_artifacts = load_selected_project_artifacts(
+            args.project_path,
+            dependency_graph,
+            list(EDITORIAL_REVIEWED_ARTIFACTS),
+        )
         approved_at = utc_now()
         approved = approve_editorial_review(
             state,
             review,
+            editorial_artifact_hashes(reviewed_artifacts),
             args.actor,
             args.reason,
             approved_at,

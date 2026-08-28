@@ -1,17 +1,32 @@
 {
   "$schema": "../../../STANDARD/schemas/editorial_review.schema.json",
   "schema_family": "editorial-review",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "project_id": "PRJ-000",
+  "reviewer": {
+    "reviewer_id": null,
+    "role": null
+  },
+  "reviewed_at": null,
+  "artifact_hashes": {},
+  "runtime_evidence": {
+    "method": "PENDING",
+    "reading_rate_wpm": null,
+    "planned_runtime_sec": null,
+    "planned_panel_duration_sec": null,
+    "estimated_panel_spoken_duration_sec": null,
+    "measured_panel_duration_sec": null,
+    "panel_segments": []
+  },
   "result": "PENDING",
   "checks": {
-    "broadcast_format": "PENDING",
-    "absolute_time": "PENDING",
-    "dialogue_naturalness": "PENDING",
-    "panel_reaction_function": "PENDING",
-    "audience_belief": "PENDING",
-    "shootability": "PENDING",
-    "victim_dignity": "PENDING"
+    "broadcast_format": {"result": "PENDING", "evidence": [], "notes": ""},
+    "absolute_time": {"result": "PENDING", "evidence": [], "notes": ""},
+    "dialogue_naturalness": {"result": "PENDING", "evidence": [], "notes": ""},
+    "panel_reaction_function": {"result": "PENDING", "evidence": [], "notes": ""},
+    "audience_belief": {"result": "PENDING", "evidence": [], "notes": ""},
+    "shootability": {"result": "PENDING", "evidence": [], "notes": ""},
+    "victim_dignity": {"result": "PENDING", "evidence": [], "notes": ""}
   },
   "issues": []
 }

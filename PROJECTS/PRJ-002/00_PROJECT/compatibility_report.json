@@ -1,0 +1,140 @@
+{
+  "project_id": "PRJ-002",
+  "contract_family": "mystery-production-channel-dna",
+  "contract_version": "1.0.0",
+  "channel": {
+    "channel_id": "MYSTERY_MAIN",
+    "schema_family": "channel-dna",
+    "schema_version": "1.0.0",
+    "content_version": "1.1.0"
+  },
+  "compatibility": "PASS",
+  "required_capabilities": {
+    "GENRE_POLICY": "SUPPORTED",
+    "TONE_POLICY": "SUPPORTED",
+    "PRESENTATION_POLICY": "SUPPORTED",
+    "AUDIENCE_CONTRACT": "SUPPORTED",
+    "STORY_VARIATION_POLICY": "SUPPORTED"
+  },
+  "optional_capabilities": {
+    "NARRATION_POLICY": "SUPPORTED",
+    "REACTION_POLICY": "SUPPORTED",
+    "HUMOR_POLICY": "SUPPORTED",
+    "VISUAL_POLICY": "SUPPORTED",
+    "PACING_POLICY": "SUPPORTED",
+    "RETENTION_POLICY": "SUPPORTED",
+    "HOST_POLICY": "MISSING_USE_DEFAULT",
+    "MUSIC_POLICY": "MISSING_USE_DEFAULT",
+    "THUMBNAIL_POLICY": "MISSING_USE_DEFAULT"
+  },
+  "resolved_optional_capabilities": {
+    "NARRATION_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "purposes": [
+          "PERSPECTIVE",
+          "EMOTION",
+          "MEMORY",
+          "INTERPRETATION",
+          "TIME_COMPRESSION",
+          "REVEAL_REINFORCEMENT"
+        ],
+        "repeat_visible_information": false
+      }
+    },
+    "REACTION_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "target_ratio": {
+          "min": 0.15,
+          "max": 0.3
+        },
+        "functions": [
+          "EMOTIONAL_REACTION",
+          "ANOMALY_DETECTION",
+          "HYPOTHESIS_GENERATION",
+          "HYPOTHESIS_REVISION",
+          "CONTRADICTION_DETECTION",
+          "TENSION_RELEASE"
+        ],
+        "required_functions": [
+          "HYPOTHESIS_GENERATION",
+          "HYPOTHESIS_REVISION"
+        ],
+        "required_function_any_of": [
+          "ANOMALY_DETECTION",
+          "CONTRADICTION_DETECTION"
+        ]
+      }
+    },
+    "HUMOR_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "mode": "CONTROLLED_RELEASE",
+        "never_undermine": [
+          "VICTIM_HARM",
+          "CORE_REVEAL",
+          "EMOTIONAL_AFTERMATH"
+        ]
+      }
+    },
+    "VISUAL_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "mode": "REENACTMENT_FIRST",
+        "priorities": [
+          "SPATIAL_CLARITY",
+          "CLUE_VISIBILITY",
+          "REACTION_READABILITY"
+        ]
+      }
+    },
+    "PACING_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "mode": "MEDIUM_FAST",
+        "slowdown_allowed_for": [
+          "EMOTIONAL_WEIGHT",
+          "CLUE_COMPREHENSION",
+          "REVEAL_RECONTEXTUALIZATION"
+        ]
+      }
+    },
+    "RETENTION_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "mode": "HYPOTHESIS_DRIVEN",
+        "required_progression": [
+          "QUESTION",
+          "PARTIAL_ANSWER",
+          "CONTRADICTION",
+          "UPDATED_QUESTION"
+        ]
+      }
+    },
+    "HOST_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false
+      }
+    },
+    "MUSIC_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "mode": "UNSPECIFIED"
+      }
+    },
+    "THUMBNAIL_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "mode": "UNSPECIFIED"
+      }
+    }
+  },
+  "ignored_unknown_fields": [],
+  "ignored_unknown_capabilities": [],
+  "errors": []
+}
