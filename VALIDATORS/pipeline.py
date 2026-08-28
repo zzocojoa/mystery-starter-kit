@@ -816,6 +816,7 @@ def run_production_validation(
             editorial_review,
             project_id,
             editorial_artifact_hashes(artifacts),
+            artifacts,
         ),
         *runtime_evidence_issues(
             editorial_review,

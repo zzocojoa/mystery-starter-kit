@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/causal-graph-1.0.0.json",
+  "$id": "https://example.local/schemas/causal-graph-1.1.0.json",
   "title": "Mystery Causal Graph",
   "type": "object",
   "additionalProperties": false,
-  "required": ["project_id", "nodes", "edges", "fingerprint"],
+  "required": ["project_id", "nodes", "edges", "fingerprint", "semantic_normalization"],
   "properties": {
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "nodes": {
@@ -51,6 +51,33 @@
         "concealment": {"type": "string", "minLength": 1},
         "discovery_path": {"type": "string", "minLength": 1},
         "resolution": {"type": "string", "minLength": 1}
+      }
+    },
+    "semantic_normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "normalized_roles",
+        "character_function_chain",
+        "audience_hypothesis_transitions"
+      ],
+      "properties": {
+        "normalized_roles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+        },
+        "character_function_chain": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+        },
+        "audience_hypothesis_transitions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+        }
       }
     }
   }

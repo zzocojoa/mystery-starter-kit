@@ -21,7 +21,7 @@
       "writes": ["variation_candidates"],
       "gates": ["GATE-01"],
       "requires_agents": ["reference_auditor"],
-      "resources": ["STORY_LIBRARY/story_fingerprints.json"],
+      "resources": ["STORY_LIBRARY/novelty_index.json"],
       "may_read_examples": false
     },
     "story_architect": {
@@ -91,7 +91,7 @@
       "writes": ["novelty_precheck", "story_fingerprint", "novelty_report"],
       "gates": ["GATE-01", "GATE-10"],
       "requires_agents": ["continuity_critic"],
-      "resources": ["STORY_LIBRARY/story_fingerprints.json"],
+      "resources": ["STORY_LIBRARY/novelty_index.json"],
       "may_read_examples": false
     },
     "reference_auditor": {

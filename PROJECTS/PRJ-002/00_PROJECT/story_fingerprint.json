@@ -1,6 +1,6 @@
 {
   "schema_family": "story-fingerprint",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "project_id": "PRJ-002",
   "story": {
     "mystery_type": "WHEN",
@@ -41,5 +41,38 @@
     "concealment": "SCHEDULED_PAGER_LOOPED_PATROL_AND_PROTECTIVE_LIE",
     "discovery_path": "SEALED_MASTER_KEY_CLOCK_REFLECTION_AND_THERMAL_PIPE_PULSE",
     "resolution": "LINEN_ROOM_MANUAL_RELEASE_RESCUE"
+  },
+  "semantic_causal": {
+    "normalized_roles": [
+      "ISOLATED_SITE",
+      "INTERNAL_ENTRAPMENT",
+      "DELAYED_OR_REPLAYED_RECORD",
+      "WRONG_EXTERNAL_SEARCH",
+      "ALTERNATE_EQUIPMENT_SIGNAL",
+      "COUNTDOWN_MANUAL_RESCUE",
+      "INSTITUTIONAL_RECORD_CORRECTION"
+    ],
+    "edge_sequence": [
+      "ROOT_CAUSE>MECHANISM",
+      "ROOT_CAUSE>CONCEALMENT",
+      "MECHANISM>CONCEALMENT",
+      "CONCEALMENT>DISCOVERY",
+      "CONCEALMENT>DISCOVERY",
+      "DISCOVERY>DISCOVERY",
+      "DISCOVERY>RESOLUTION"
+    ],
+    "character_function_chain": [
+      "PROTECTIVE_OR_PREMATURE_JUDGMENT",
+      "MISDIRECTED_SEARCH",
+      "EVIDENCE_REINTERPRETATION",
+      "MANUAL_RESCUE",
+      "RECORD_CORRECTION"
+    ],
+    "audience_hypothesis_transitions": [
+      "APPARENT_EXTERNAL_DEPARTURE",
+      "TIMESTAMP_DOUBT",
+      "INTERNAL_ENTRAPMENT",
+      "SYSTEMIC_ACCOUNTABILITY"
+    ]
   }
 }

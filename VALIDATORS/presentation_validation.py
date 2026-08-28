@@ -42,6 +42,10 @@ PANEL_HEADER = re.compile(
     r"\[(?P<panelist_id>PANEL-[0-9]{2,})\]\s*"
     r"\[(?P<function>[A-Z_]+)\]"
 )
+PANEL_SPOKEN_LINE = re.compile(
+    r"\[(?P<panelist_id>PANEL-[0-9]{2,})(?:[^\]]*)\]\s*"
+    r"[“\"](?P<spoken_line>[^”\"]+)[”\"]"
+)
 EDIT_TIMECODE = re.compile(
     r"(?P<segment_id>SEG-[0-9]{3,})[^\n]*?"
     r"(?P<start>[0-9]{2,}:[0-5][0-9])\s*[\u2013-]\s*"
@@ -307,7 +311,8 @@ def reaction_function_issues(
     functions = {
         function
         for segment in reaction_segments
-        if isinstance((function := segment.get("function")), str)
+        for turn in mapping_items(segment, "turns")
+        if isinstance((function := turn.get("function")), str)
     }
     invalid = sorted(functions - PANEL_FUNCTIONS)
     missing = sorted(REQUIRED_PANEL_FUNCTIONS - functions)
@@ -371,88 +376,107 @@ def reaction_reference_issues(
     issues: list[ValidationIssue] = []
     for segment in reaction_segments:
         reaction_id = segment.get("reaction_segment_id")
-        panelist_id = segment.get("panelist_id")
         after_scene_id = segment.get("after_scene_id")
-        function = segment.get("function")
         reaction_context = {"reaction_segment_id": reaction_id}
-        if panelist_id not in panelist_ids:
-            issues.append(
-                make_presentation_issue(
-                    "PANEL_SPEAKER_INVALID",
-                    "Reaction Segment의 Panelist ID가 Panel Cast에 없습니다.",
-                    "06_SCENE/reaction_segments.json",
-                    {**reaction_context, "panelist_id": panelist_id},
-                )
-            )
-        elif (
-            isinstance(panelist_id, str)
-            and isinstance(function, str)
-            and function not in panelist_functions.get(panelist_id, set())
-        ):
-            issues.append(
-                make_presentation_issue(
-                    "PANEL_SPEAKER_INVALID",
-                    "Panelist에게 허용되지 않은 Reaction Function입니다.",
-                    "06_SCENE/reaction_segments.json",
-                    {
-                        **reaction_context,
-                        "panelist_id": panelist_id,
-                        "function": function,
-                    },
-                )
-            )
         scene_order = orders.get(after_scene_id) if isinstance(after_scene_id, str) else None
-        evidence_ids = string_items(segment, "evidence_ids")
-        broken_evidence = sorted(
-            evidence_id for evidence_id in evidence_ids if evidence_id not in clues
-        )
-        if broken_evidence:
-            issues.append(
-                make_presentation_issue(
-                    "REACTION_EVIDENCE_REFERENCE_BROKEN",
-                    "Reaction이 존재하지 않는 Clue를 참조합니다.",
-                    "06_SCENE/reaction_segments.json",
-                    {**reaction_context, "evidence_ids": broken_evidence},
+        turns = mapping_items(segment, "turns")
+        for turn in turns:
+            turn_id = turn.get("turn_id")
+            panelist_id = turn.get("panelist_id")
+            function = turn.get("function")
+            turn_context = {**reaction_context, "turn_id": turn_id}
+            if panelist_id not in panelist_ids:
+                issues.append(
+                    make_presentation_issue(
+                        "PANEL_SPEAKER_INVALID",
+                        "Panel Turn의 Panelist ID가 Panel Cast에 없습니다.",
+                        "06_SCENE/reaction_segments.json",
+                        {**turn_context, "panelist_id": panelist_id},
+                    )
                 )
-            )
-        premature_evidence = sorted(
-            evidence_id
-            for evidence_id in evidence_ids
-            if evidence_id in clues
-            and isinstance(scene_order, int)
-            and isinstance(clues[evidence_id].get("introduced_scene_order"), int)
-            and cast(int, clues[evidence_id].get("introduced_scene_order")) > scene_order
-        )
-        if premature_evidence:
-            issues.append(
-                make_presentation_issue(
-                    "REACTION_EVIDENCE_NOT_YET_REVEALED",
-                    "Panel이 아직 공개되지 않은 Clue를 사용했습니다.",
-                    "06_SCENE/reaction_segments.json",
-                    {**reaction_context, "evidence_ids": premature_evidence},
+            elif (
+                isinstance(panelist_id, str)
+                and isinstance(function, str)
+                and function not in panelist_functions.get(panelist_id, set())
+            ):
+                issues.append(
+                    make_presentation_issue(
+                        "PANEL_SPEAKER_INVALID",
+                        "Panelist에게 허용되지 않은 Turn Function입니다.",
+                        "06_SCENE/reaction_segments.json",
+                        {
+                            **turn_context,
+                            "panelist_id": panelist_id,
+                            "function": function,
+                        },
+                    )
                 )
+            evidence_ids = string_items(turn, "evidence_ids")
+            broken_evidence = sorted(
+                evidence_id for evidence_id in evidence_ids if evidence_id not in clues
             )
-        known_fact_ids = string_items(segment, "known_fact_ids")
-        unavailable_facts = sorted(
-            fact_id
-            for fact_id in known_fact_ids
-            if fact_id not in fact_ids
-            or fact_id not in fact_reveal_orders
-            or not isinstance(scene_order, int)
-            or fact_reveal_orders[fact_id] > scene_order
-        )
-        if unavailable_facts:
-            issues.append(
-                make_presentation_issue(
-                    "REACTION_KNOWLEDGE_BOUNDARY_VIOLATION",
-                    "Panel이 존재하지 않거나 아직 공개되지 않은 Fact를 사용했습니다.",
-                    "06_SCENE/reaction_segments.json",
-                    {**reaction_context, "fact_ids": unavailable_facts},
+            if broken_evidence:
+                issues.append(
+                    make_presentation_issue(
+                        "REACTION_EVIDENCE_REFERENCE_BROKEN",
+                        "Panel Turn이 존재하지 않는 Clue를 참조합니다.",
+                        "06_SCENE/reaction_segments.json",
+                        {**turn_context, "evidence_ids": broken_evidence},
+                    )
                 )
+            premature_evidence = sorted(
+                evidence_id
+                for evidence_id in evidence_ids
+                if evidence_id in clues
+                and isinstance(scene_order, int)
+                and isinstance(clues[evidence_id].get("introduced_scene_order"), int)
+                and cast(int, clues[evidence_id].get("introduced_scene_order"))
+                > scene_order
             )
+            if premature_evidence:
+                issues.append(
+                    make_presentation_issue(
+                        "REACTION_EVIDENCE_NOT_YET_REVEALED",
+                        "Panel Turn이 아직 공개되지 않은 Clue를 사용했습니다.",
+                        "06_SCENE/reaction_segments.json",
+                        {**turn_context, "evidence_ids": premature_evidence},
+                    )
+                )
+            known_fact_ids = string_items(turn, "known_fact_ids")
+            unavailable_facts = sorted(
+                fact_id
+                for fact_id in known_fact_ids
+                if fact_id not in fact_ids
+                or fact_id not in fact_reveal_orders
+                or not isinstance(scene_order, int)
+                or fact_reveal_orders[fact_id] > scene_order
+            )
+            if unavailable_facts:
+                issues.append(
+                    make_presentation_issue(
+                        "REACTION_KNOWLEDGE_BOUNDARY_VIOLATION",
+                        "Panel Turn이 존재하지 않거나 미공개 Fact를 사용했습니다.",
+                        "06_SCENE/reaction_segments.json",
+                        {**turn_context, "fact_ids": unavailable_facts},
+                    )
+                )
+            spoken_line = turn.get("spoken_line")
+            if isinstance(spoken_line, str) and (
+                "[리액션]" in spoken_line
+                or re.search(r"(고개를|표정|몸짓|침묵|눈빛)", spoken_line) is not None
+            ):
+                issues.append(
+                    make_presentation_issue(
+                        "CHARACTER_REACTION_MISLABELED_AS_PANEL",
+                        "극중 인물의 행동·표정을 Panel Turn으로 계산할 수 없습니다.",
+                        "06_SCENE/reaction_segments.json",
+                        turn_context,
+                    )
+                )
         before = segment.get("hypothesis_before")
         after = segment.get("hypothesis_after")
-        if function in {"HYPOTHESIS_GENERATION", "HYPOTHESIS_REVISION"} and (
+        segment_function = segment.get("segment_function")
+        if segment_function in {"HYPOTHESIS_GENERATION", "HYPOTHESIS_REVISION"} and (
             not isinstance(before, str)
             or not before.strip()
             or not isinstance(after, str)
@@ -463,19 +487,6 @@ def reaction_reference_issues(
                 make_presentation_issue(
                     "REACTION_HYPOTHESIS_DELTA_MISSING",
                     "가설 Function은 발화 전후 가설을 실제로 변경해야 합니다.",
-                    "06_SCENE/reaction_segments.json",
-                    reaction_context,
-                )
-            )
-        spoken_line = segment.get("spoken_line")
-        if isinstance(spoken_line, str) and (
-            "[리액션]" in spoken_line
-            or re.search(r"(고개를|표정|몸짓|침묵|눈빛)", spoken_line) is not None
-        ):
-            issues.append(
-                make_presentation_issue(
-                    "CHARACTER_REACTION_MISLABELED_AS_PANEL",
-                    "극중 인물의 행동·표정을 Panel Reaction으로 계산할 수 없습니다.",
                     "06_SCENE/reaction_segments.json",
                     reaction_context,
                 )
@@ -982,20 +993,32 @@ def panel_script_issues(
         if not isinstance(reaction_id, str):
             continue
         header = headers.get(reaction_id)
+        turns = mapping_items(reaction, "turns")
+        first_turn = turns[0] if turns else None
+        body = bodies_by_reaction_id.get(reaction_id, "")
+        scripted_turns = [
+            (match.group("panelist_id"), match.group("spoken_line").strip())
+            for match in PANEL_SPOKEN_LINE.finditer(body)
+        ]
+        expected_turns = [
+            (turn.get("panelist_id"), cast(str, turn.get("spoken_line")).strip())
+            for turn in turns
+            if isinstance(turn.get("panelist_id"), str)
+            and isinstance(turn.get("spoken_line"), str)
+        ]
         if (
             header is None
-            or header["panelist_id"] != reaction.get("panelist_id")
-            or header["function"] != reaction.get("function")
-            or not isinstance(reaction.get("spoken_line"), str)
-            or cast(str, reaction.get("spoken_line")).strip()
-            not in bodies_by_reaction_id.get(reaction_id, "")
+            or first_turn is None
+            or header["panelist_id"] != first_turn.get("panelist_id")
+            or header["function"] != reaction.get("segment_function")
+            or scripted_turns != expected_turns
         ):
             mismatches.append(reaction_id)
     if mismatches:
         issues.append(
             make_presentation_issue(
                 "PANEL_SPEAKER_INVALID",
-                "Panel Script Header가 Reaction Segment의 화자·기능과 다릅니다.",
+                "Panel Script가 Reaction Segment의 Turn 순서·화자·발화와 다릅니다.",
                 "07_SCRIPT/panel_reaction_script.md",
                 {"reaction_segment_ids": sorted(mismatches)},
             )

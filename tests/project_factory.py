@@ -67,7 +67,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
 
     production_config: dict[str, object] = {
         "project_id": project_id,
-        "standard_version": "1.3.2",
+        "standard_version": "1.3.3",
         "channel_id": "MYSTERY_MAIN",
         "approval_policy": "AUTO_CONTINUE",
         "story_source_mode": "ORIGINAL",
@@ -187,6 +187,23 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "discovery_path": "MACHINE_LOG_RECONSTRUCTION",
             "resolution": "MANUAL_RESCUE",
         },
+        "semantic_normalization": {
+            "normalized_roles": [
+                "INDUSTRIAL_SITE",
+                "INTERNAL_ENTRAPMENT",
+                "MACHINE_LOG_DISCOVERY",
+            ],
+            "character_function_chain": [
+                "INITIAL_MISREAD",
+                "EVIDENCE_REINTERPRETATION",
+                "MANUAL_RESCUE",
+            ],
+            "audience_hypothesis_transitions": [
+                "APPARENT_DEPARTURE",
+                "SYSTEM_FAILURE",
+                "INTERNAL_ENTRAPMENT",
+            ],
+        },
     }
     beat_sheet: dict[str, object] = {
         "project_id": project_id,
@@ -228,7 +245,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     artifacts: dict[str, ArtifactContent] = {
         "project_manifest": {
             "project_id": project_id,
-            "standard_version": "1.3.2",
+            "standard_version": "1.3.3",
             "channel_id": "MYSTERY_MAIN",
             "story_source_mode": "ORIGINAL",
         },

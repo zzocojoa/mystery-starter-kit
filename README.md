@@ -1,8 +1,8 @@
-# Mystery Starter Kit v1.3.2
+# Mystery Starter Kit v1.3.3
 
 [![CI](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml)
 
-Channel의 정체성을 유지하면서 Story 구조와 인과를 반복하지 않도록 설계한 미스터리 제작 Starter Kit다. Compatibility Negotiation, Full Story DNA, Presentation Contract v2, 10개 Agent Contract, Provider 독립 LLM Agent Runtime v1.0, Artifact Dependency Invalidation, Continuity/Causal/Novelty/Reference/Channel QA, 14개 Production Gate를 실행 코드로 제공한다.
+Channel의 정체성을 유지하면서 Story 구조와 인과를 반복하지 않도록 설계한 미스터리 제작 Starter Kit다. Compatibility Negotiation, Full Story DNA, Presentation Contract v2.1, 10개 Agent Contract, Provider 독립 LLM Agent Runtime v1.0, Artifact Dependency Invalidation, Continuity/Causal/Novelty/Reference/Channel QA, 14개 Production Gate를 실행 코드로 제공한다.
 
 ## Codex App 운영 모드
 
@@ -59,11 +59,11 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 
 `validate`는 현재 파일 집합의 14개 Gate 정합성을 진단하고 `validation_report.json`과 파생 QA Report를 기록한다. `audit`는 같은 Artifact 검증에 Gate별 Process Trace 완전성을 더해 `audit_report.json`에 기록한다. 둘 다 `current_gate`, Project Status, Artifact `CLEAN` 상태나 기존 실행 이력을 바꾸지 않는다. 손상된 State를 Artifact에서 명시적으로 복구할 때만 `rebuild-state PROJECT --force`를 사용하며, 이 명령도 Process Trace나 Human Editorial 승인을 만들어 내지 않는다.
 
-GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Editorial Review v1.1은 검토자·검토 시각·Check별 장면 근거·검토 대상 Artifact Hash를 보존하고, Panel Segment마다 실제 화자와 발화 단어 수를 Script에서 다시 계산한다. `WORD_COUNT_ESTIMATE`는 계획시간을 예상 발화시간과 Replay·Graphic·Reaction Hold 같은 비발화 편집 요소로 완전히 설명해야 한다. `TABLE_READ`와 `RECORDED_AUDIO`는 Segment별 `measured_duration_sec`를 요구한다.
+GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Editorial Review v1.2는 검토자·검토 시각·Artifact Hash와 `artifact + selector_type + selector_id + excerpt_hash`를 보존한다. Validator는 Selector를 현재 Artifact에서 다시 해석해 근거 위조와 유효하지 않은 ID를 차단한다. `WORD_COUNT_ESTIMATE`는 Editorial PASS 증거로는 사용할 수 있지만 Production Finalize를 허용하지 않는다. Finalize에는 Segment별 `measured_duration_sec`가 완전한 `TABLE_READ` 또는 `RECORDED_AUDIO`가 필요하다.
 
 Continuity Critic의 `editorial_review.json`이 PASS여도 이는 기술적 Editorial 검토 결과일 뿐 Human Approval이 아니다. Human Actor와 Reason을 기록한 `editorial-approve` 전에는 승인되지 않는다. `production-finalize`는 `ARTIFACT_COMPLETE + CONTRACT_VALIDATED + PROCESS_CONFORMANT + EDITORIAL_APPROVED`를 모두 요구한다. `register`는 이 조건으로 확정된 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 성공 `0`, 검증 실패 `1`, 입력·구성·Transaction 오류 `2`다.
 
-Presentation Contract v2는 `panel_cast.json`, `reaction_segments.json`, Drama/Narration/Panel Reaction Layer Script를 별도 Artifact로 유지한다. `draft_v01.md`와 `final_script.md`는 모든 Segment를 방송 순서대로 한 번씩 포함하고, Edit Script는 계획된 절대 Timecode를 보존한다. Panel Reaction 비율은 선언값이 아니라 Segment `duration_sec` 합으로 계산한다. 이 계획 비율을 실제 방송 분량으로 오인하지 않도록 Editorial Review의 Runtime Evidence가 예상 또는 실측 발화시간과 나머지 편집시간을 별도로 기록한다.
+Presentation Contract v2.1은 `panel_cast.json`, `reaction_segments.json`, Drama/Narration/Panel Reaction Layer Script를 별도 Artifact로 유지한다. Reaction Segment의 `turns[]`는 각 패널 발화별 화자·기능·Clue·Fact·Tone을 보존하며 Validator는 모든 Turn을 대본 순서와 대조한다. `draft_v01.md`와 `final_script.md`는 모든 Segment를 방송 순서대로 한 번씩 포함하고, Edit Script는 계획된 절대 Timecode를 보존한다. Panel Reaction 비율은 Segment `duration_sec` 합으로 계산한다.
 
 ## Runtime Core 회귀 모드
 
@@ -130,14 +130,14 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 
 ## 구조
 
-- `STANDARD/`: v1.3.2 표준, Contract, Policy, Catalog, Dependency Graph, JSON Schema
+- `STANDARD/`: v1.3.3 표준, Contract, Policy, Catalog, Dependency Graph, JSON Schema
 - `CHANNELS/`: 독립 Version의 Channel DNA
 - `AGENTS/`: 10개 Agent Prompt와 계약 Manifest
 - `TEMPLATES/PROJECT/`: `00_PROJECT`~`09_PRODUCTION` Scaffold
 - `VALIDATORS/`: CLI, 상태 머신, Pipeline과 QA Engine
 - `RUNTIME/`: Provider 독립 실행 엔진, 계약, Schema, Adapter, 보안 경계
 - `RUNTIME_ADAPTERS/`: [선택적 In-process·Sidecar Provider 확장 Interface 가이드](RUNTIME_ADAPTERS/README.md)
-- `STORY_LIBRARY/`: Production Ready Story/Causal Fingerprint History
+- `STORY_LIBRARY/`: Draft부터 추적하는 Novelty Index, Published Fingerprints, Append-only History
 - `tests/`: 정상·실패·경계·Disk E2E 자동 검증
 
 상세 규칙은 [Production Standard](STANDARD/mystery_production_standard_v1.3.md), [데이터 흐름](docs/01-plan/erd.md), [용어 정의](docs/01-plan/glossary.md), [Schema 계약](docs/01-plan/schema.md), [Runtime v1.0 설계](docs/02-design/llm-agent-runtime-v1.md), 구현 증거는 [v1.3 구현 매트릭스](docs/01-plan/v1.3-implementation-matrix.md)에서 확인할 수 있다. 기여와 보안 절차는 [CONTRIBUTING.md](CONTRIBUTING.md)와 [SECURITY.md](SECURITY.md)를 따른다.

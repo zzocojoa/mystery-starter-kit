@@ -359,6 +359,7 @@ def validate_gate(
                 artifact_document(artifacts, "editorial_review"),
                 project_id,
                 editorial_artifact_hashes(artifacts),
+                artifacts,
             ),
             *runtime_evidence_issues(
                 artifact_document(artifacts, "editorial_review"),

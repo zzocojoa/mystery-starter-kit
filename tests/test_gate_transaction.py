@@ -13,6 +13,7 @@ from VALIDATORS.exceptions import GateTransactionError
 from VALIDATORS.gate_transaction import (
     audit_project,
     process_conformance,
+    process_timestamp_issues,
     return_task_to_owner,
     task_abort,
     task_open,
@@ -289,6 +290,17 @@ def test_audit_is_state_preserving_and_human_approval_is_separate(
     assert run_cli(["production-finalize", str(project_path)]) == 0
     finalized = load_json_object(state_path)
     assert finalized["state"] == "PRODUCTION_READY"
+    novelty_index = load_json_object(
+        repository_root / "STORY_LIBRARY" / "novelty_index.json"
+    )
+    entries = novelty_index["entries"]
+    assert isinstance(entries, list)
+    finalized_entry = next(
+        entry
+        for entry in entries
+        if isinstance(entry, dict) and entry.get("project_id") == "PRJ-961"
+    )
+    assert finalized_entry["status"] == "PRODUCTION_READY"
 
 
 def test_missing_process_trace_blocks_production_ready(
@@ -681,3 +693,36 @@ def test_canonical_drift_blocks_finalize_and_registration(
     assert "CANONICAL_ARTIFACT_DRIFT" in capsys.readouterr().err
     assert load_json_object(library_path)["fingerprints"] == []
     assert not history_path.exists()
+
+
+def test_process_audit_detects_event_and_gate_time_causality(tmp_path: Path) -> None:
+    """Project 생성 전 Gate와 역행하는 Event·Trace 시각을 모두 보고해야 한다."""
+    project_path = tmp_path / "PROJECTS" / "PRJ-999"
+    project_root = project_path / "00_PROJECT"
+    project_root.mkdir(parents=True)
+    (project_root / "change_log.jsonl").write_text(
+        '{"occurred_at":"2026-08-28T01:00:00Z","event":"PROJECT_INITIALIZED"}\n'
+        '{"occurred_at":"2026-08-28T00:59:00Z","event":"LATE_APPEND"}\n',
+        encoding="utf-8",
+    )
+    traces = [
+        {
+            "trace_id": "TRACE-001",
+            "started_at": "2026-08-28T00:58:00Z",
+            "completed_at": "2026-08-28T00:59:30Z",
+        },
+        {
+            "trace_id": "TRACE-002",
+            "started_at": "2026-08-28T00:57:00Z",
+            "completed_at": "2026-08-28T00:59:00Z",
+        },
+    ]
+
+    issues = process_timestamp_issues(project_path, traces)
+    codes = {issue["code"] for issue in issues}
+
+    assert {
+        "AUDIT_EVENT_TIME_ORDER_ERROR",
+        "PROJECT_CREATED_AFTER_GATE_ERROR",
+        "PROCESS_TRACE_TIME_REGRESSION",
+    } <= codes

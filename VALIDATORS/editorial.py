@@ -2,13 +2,13 @@
 
 import json
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from hashlib import sha256
 from math import isfinite
 from typing import cast
 
-from VALIDATORS.exceptions import StateTransitionError
+from VALIDATORS.exceptions import ConfigurationError, StateTransitionError
 from VALIDATORS.models import ProjectState, ValidationIssue
 from VALIDATORS.presentation_validation import parse_script_segments, presentation_segments
 
@@ -41,6 +41,14 @@ PANEL_DIALOGUE_LINE = re.compile(
     r"[“\"]?(?P<speech>.*?)[”\"]?\s*$"
 )
 SPOKEN_WORD = re.compile(r"[0-9A-Za-z가-힣]+(?:['\u2019][0-9A-Za-z가-힣]+)?")
+EVIDENCE_SELECTOR_FIELDS = {
+    "SEGMENT_ID": "segment_id",
+    "REACTION_SEGMENT_ID": "reaction_segment_id",
+    "SCENE_ID": "scene_id",
+    "EVENT_ID": "event_id",
+    "FACT_ID": "fact_id",
+    "CLUE_ID": "clue_id",
+}
 
 
 def make_editorial_issue(
@@ -87,6 +95,172 @@ def editorial_artifact_hashes(
             encoded_review_artifact(artifacts[artifact_name])
         ).hexdigest()
     return hashes
+
+
+def json_selector_matches(
+    value: object,
+    field: str,
+    selector_id: str,
+) -> list[Mapping[str, object]]:
+    """JSON Tree에서 지정 ID를 소유한 객체를 찾는다."""
+    if isinstance(value, Mapping):
+        if value.get(field) == selector_id:
+            return [value]
+        return [
+            match
+            for child in value.values()
+            for match in json_selector_matches(child, field, selector_id)
+        ]
+    if isinstance(value, list):
+        return [
+            match
+            for child in value
+            for match in json_selector_matches(child, field, selector_id)
+        ]
+    return []
+
+
+def resolve_editorial_excerpt(
+    artifact_name: str,
+    artifact: object,
+    selector_type: str,
+    selector_id: str,
+) -> object | None:
+    """Editorial Evidence Selector를 실제 Artifact 일부로 해석한다."""
+    if selector_type == "DOCUMENT":
+        return artifact if selector_id == artifact_name else None
+    field = EVIDENCE_SELECTOR_FIELDS.get(selector_type)
+    if field is None:
+        return None
+    if isinstance(artifact, str):
+        if selector_type != "SEGMENT_ID":
+            return None
+        segments, malformed = parse_script_segments(artifact)
+        if malformed:
+            return None
+        script_matches = [
+            segment for segment in segments if segment["segment_id"] == selector_id
+        ]
+        return script_matches[0] if len(script_matches) == 1 else None
+    if isinstance(artifact, Mapping):
+        json_matches = json_selector_matches(artifact, field, selector_id)
+        return json_matches[0] if len(json_matches) == 1 else None
+    return None
+
+
+def editorial_excerpt_hash(excerpt: object) -> str:
+    """Editorial Evidence Excerpt의 Canonical SHA-256을 계산한다."""
+    return sha256(encoded_review_artifact(excerpt)).hexdigest()
+
+
+def make_editorial_evidence(
+    artifacts: Mapping[str, object],
+    artifact_name: str,
+    selector_type: str,
+    selector_id: str,
+) -> dict[str, str]:
+    """실제로 해석 가능한 Editorial Evidence Reference를 생성한다."""
+    artifact = artifacts.get(artifact_name)
+    if artifact is None:
+        raise ConfigurationError(
+            f"Editorial Evidence Artifact가 없습니다: artifact={artifact_name}"
+        )
+    excerpt = resolve_editorial_excerpt(
+        artifact_name,
+        artifact,
+        selector_type,
+        selector_id,
+    )
+    if excerpt is None:
+        raise ConfigurationError(
+            "Editorial Evidence Selector를 해석할 수 없습니다: "
+            f"artifact={artifact_name}, selector_type={selector_type}, "
+            f"selector_id={selector_id}"
+        )
+    return {
+        "artifact": artifact_name,
+        "selector_type": selector_type,
+        "selector_id": selector_id,
+        "excerpt_hash": editorial_excerpt_hash(excerpt),
+    }
+
+
+def editorial_evidence_issues(
+    evidence: Sequence[object],
+    artifacts: Mapping[str, object],
+    check_name: str,
+) -> list[ValidationIssue]:
+    """Editorial Evidence의 Artifact, Selector, Excerpt Hash를 검증한다."""
+    issues: list[ValidationIssue] = []
+    for index, raw_reference in enumerate(evidence):
+        context = {"check": check_name, "evidence_index": index}
+        if not isinstance(raw_reference, Mapping):
+            issues.append(
+                make_editorial_issue(
+                    "EDITORIAL_EVIDENCE_SELECTOR_NOT_FOUND",
+                    "Editorial Evidence가 구조화된 Selector Reference가 아닙니다.",
+                    context,
+                )
+            )
+            continue
+        artifact_name = raw_reference.get("artifact")
+        selector_type = raw_reference.get("selector_type")
+        selector_id = raw_reference.get("selector_id")
+        excerpt_hash = raw_reference.get("excerpt_hash")
+        if not isinstance(artifact_name, str) or artifact_name not in artifacts:
+            issues.append(
+                make_editorial_issue(
+                    "EDITORIAL_EVIDENCE_ARTIFACT_UNKNOWN",
+                    "Editorial Evidence가 검토 대상이 아닌 Artifact를 참조합니다.",
+                    {**context, "artifact": artifact_name},
+                )
+            )
+            continue
+        if not isinstance(selector_type, str) or not isinstance(selector_id, str):
+            issues.append(
+                make_editorial_issue(
+                    "EDITORIAL_EVIDENCE_SELECTOR_NOT_FOUND",
+                    "Editorial Evidence Selector 형식이 완전하지 않습니다.",
+                    context,
+                )
+            )
+            continue
+        excerpt = resolve_editorial_excerpt(
+            artifact_name,
+            artifacts[artifact_name],
+            selector_type,
+            selector_id,
+        )
+        if excerpt is None:
+            issues.append(
+                make_editorial_issue(
+                    "EDITORIAL_EVIDENCE_SELECTOR_NOT_FOUND",
+                    "Editorial Evidence Selector가 Artifact에서 해석되지 않습니다.",
+                    {
+                        **context,
+                        "artifact": artifact_name,
+                        "selector_type": selector_type,
+                        "selector_id": selector_id,
+                    },
+                )
+            )
+            continue
+        expected_hash = editorial_excerpt_hash(excerpt)
+        if excerpt_hash != expected_hash:
+            issues.append(
+                make_editorial_issue(
+                    "EDITORIAL_EVIDENCE_HASH_MISMATCH",
+                    "Editorial Evidence Excerpt Hash가 현재 Artifact와 다릅니다.",
+                    {
+                        **context,
+                        "artifact": artifact_name,
+                        "selector_id": selector_id,
+                        "expected": expected_hash,
+                        "actual": excerpt_hash,
+                    },
+                )
+            )
+    return issues
 
 
 def panel_spoken_metrics(panel_reaction_script: str) -> dict[str, dict[str, object]]:
@@ -342,6 +516,7 @@ def validate_editorial_review(
     review: Mapping[str, object],
     project_id: str,
     expected_artifact_hashes: Mapping[str, str],
+    reviewed_artifacts: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """완료된 Editorial Review의 판정과 Issue 정합성을 검사한다."""
     issues: list[ValidationIssue] = []
@@ -378,11 +553,14 @@ def validate_editorial_review(
             if (
                 not isinstance(raw_evidence, list)
                 or not raw_evidence
-                or not all(isinstance(item, str) and item.strip() for item in raw_evidence)
                 or not isinstance(notes, str)
                 or not notes.strip()
             ):
                 evidence_missing.append(name)
+                continue
+            issues.extend(
+                editorial_evidence_issues(raw_evidence, reviewed_artifacts, name)
+            )
     if evidence_missing:
         issues.append(
             make_editorial_issue(
@@ -435,6 +613,7 @@ def approve_editorial_review(
     state: ProjectState,
     review: Mapping[str, object],
     expected_artifact_hashes: Mapping[str, str],
+    reviewed_artifacts: Mapping[str, object],
     actor: str,
     reason: str,
     updated_at: str,
@@ -467,6 +646,7 @@ def approve_editorial_review(
         review,
         state["project_id"],
         expected_artifact_hashes,
+        reviewed_artifacts,
     )
     if issues:
         raise StateTransitionError(
@@ -481,6 +661,7 @@ def approve_editorial_review(
 
 def finalize_production_ready(
     state: ProjectState,
+    review: Mapping[str, object],
     updated_at: str,
 ) -> ProjectState:
     """네 준비 조건이 모두 충족된 Project만 Production Ready로 전이한다."""
@@ -505,6 +686,38 @@ def finalize_production_ready(
     if mismatches:
         raise StateTransitionError(
             f"Production Ready 조건이 충족되지 않았습니다: mismatches={mismatches}"
+        )
+    runtime_evidence = review.get("runtime_evidence")
+    method = (
+        runtime_evidence.get("method")
+        if isinstance(runtime_evidence, Mapping)
+        else None
+    )
+    segments = (
+        mapping_records(runtime_evidence, "panel_segments")
+        if isinstance(runtime_evidence, Mapping)
+        else []
+    )
+    measured_total = (
+        numeric_value(runtime_evidence.get("measured_panel_duration_sec"))
+        if isinstance(runtime_evidence, Mapping)
+        else None
+    )
+    missing_measured_segments = [
+        segment.get("segment_id")
+        for segment in segments
+        if numeric_value(segment.get("measured_duration_sec")) is None
+    ]
+    if (
+        method not in {"TABLE_READ", "RECORDED_AUDIO"}
+        or measured_total is None
+        or not segments
+        or missing_measured_segments
+    ):
+        raise StateTransitionError(
+            "Production Ready에는 TABLE_READ 또는 RECORDED_AUDIO 실측이 필요합니다: "
+            f"method={method!r}, measured_total={measured_total!r}, "
+            f"missing_segments={missing_measured_segments}"
         )
     next_state = deepcopy(state)
     next_state["state"] = "PRODUCTION_READY"

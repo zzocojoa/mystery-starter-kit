@@ -48,7 +48,16 @@ from VALIDATORS.gate_transaction import (
     trace_records,
 )
 from VALIDATORS.io import load_json_object, write_json_object
-from VALIDATORS.library import make_history_record, register_story_fingerprint
+from VALIDATORS.library import (
+    make_history_record,
+    novelty_history,
+    register_story_fingerprint,
+)
+from VALIDATORS.library_store import (
+    sync_novelty_gate,
+    sync_novelty_production_ready,
+    sync_novelty_revision,
+)
 from VALIDATORS.models import ProjectState, ValidationIssue
 from VALIDATORS.novelty import evaluate_variation_precheck
 from VALIDATORS.pipeline import load_selected_project_artifacts
@@ -63,7 +72,11 @@ from VALIDATORS.variation import (
 )
 
 ROOT = Path.cwd().resolve()
-NOVELTY_CODES = {"CAUSAL_HARD_COLLISION", "STORY_SIMILARITY_EXCEEDED"}
+NOVELTY_CODES = {
+    "CAUSAL_HARD_COLLISION",
+    "CAUSAL_SEMANTIC_COLLISION",
+    "STORY_SIMILARITY_EXCEEDED",
+}
 REFERENCE_CODES = {
     "REFERENCE_LEXICAL_COLLISION",
     "REFERENCE_STORY_ELEMENT_COLLISION",
@@ -144,7 +157,7 @@ def build_parser() -> argparse.ArgumentParser:
     register_parser.add_argument(
         "--library",
         type=Path,
-        default=ROOT / "STORY_LIBRARY" / "story_fingerprints.json",
+        default=ROOT / "STORY_LIBRARY" / "published_fingerprints.json",
     )
     register_parser.add_argument(
         "--history",
@@ -237,6 +250,22 @@ def project_id_from_manifest(project_path: Path) -> str:
     if not isinstance(project_id, str):
         raise ConfigurationError("project_manifest.project_id 문자열이 필요합니다.")
     return project_id
+
+
+def repository_root_for_project(project_path: Path) -> Path:
+    """Project와 같은 Tree에 속한 Repository Root를 엄격하게 찾는다."""
+    resolved_project = project_path.resolve()
+    if resolved_project.is_relative_to(ROOT):
+        return ROOT
+    for parent in resolved_project.parents:
+        if (
+            (parent / "STANDARD" / "dependency_graph.json").is_file()
+            and (parent / "STORY_LIBRARY" / "novelty_index.json").is_file()
+        ):
+            return parent
+    raise ConfigurationError(
+        f"Project Repository Root를 찾을 수 없습니다: project_path={project_path}"
+    )
 
 
 def validate_project_compatibility_configuration(
@@ -401,16 +430,13 @@ def require_variation_prerequisites(project_path: Path, project_id: str) -> None
 
 
 def load_story_history(path: Path) -> list[Mapping[str, object]]:
-    """Story Library의 Fingerprint 배열을 엄격하게 읽는다."""
-    library = load_json_object(path)
-    fingerprints = library.get("fingerprints")
-    if not isinstance(fingerprints, list) or not all(
-        isinstance(fingerprint, Mapping) for fingerprint in fingerprints
-    ):
+    """Novelty Index의 활성 Project 비교 기록을 엄격하게 읽는다."""
+    try:
+        return novelty_history(load_json_object(path))
+    except StarterKitError as error:
         raise ConfigurationError(
-            f"Story Library fingerprints 객체 배열이 필요합니다: path={path}"
-        )
-    return list(fingerprints)
+            f"Novelty Index를 읽을 수 없습니다: path={path}, detail={error}"
+        ) from error
 
 
 def qa_issue_group(code: str) -> str | None:
@@ -801,7 +827,7 @@ def run_precheck(args: argparse.Namespace) -> int:
     )
     report = evaluate_variation_precheck(
         candidates,
-        load_story_history(ROOT / "STORY_LIBRARY" / "story_fingerprints.json"),
+        load_story_history(ROOT / "STORY_LIBRARY" / "novelty_index.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
     )
     path = args.project_path / "08_QA" / "novelty_precheck.json"
@@ -891,6 +917,12 @@ def run_task_submit(args: argparse.Namespace) -> int:
         submitted_at,
         args.reference_source if isinstance(args.reference_source, Path) else None,
     )
+    sync_novelty_gate(
+        repository_root_for_project(args.project_path),
+        args.project_path,
+        args.gate_id,
+        submitted_at,
+    )
     append_change_log(
         args.project_path,
         "CODEX_GATE_TRANSACTION_COMMITTED",
@@ -925,6 +957,13 @@ def run_task_return(args: argparse.Namespace) -> int:
         args.reason,
         returned_at,
     )
+    target_gate = result.get("target_gate")
+    if isinstance(target_gate, str) and gate_index(target_gate) <= gate_index("GATE-10"):
+        sync_novelty_revision(
+            repository_root_for_project(args.project_path),
+            args.project_path,
+            returned_at,
+        )
     append_change_log(
         args.project_path,
         "TASK_RETURNED_TO_OWNER",
@@ -1037,6 +1076,7 @@ def run_editorial_approve(args: argparse.Namespace) -> int:
             state,
             review,
             editorial_artifact_hashes(reviewed_artifacts),
+            reviewed_artifacts,
             args.actor,
             args.reason,
             approved_at,
@@ -1092,6 +1132,9 @@ def run_production_finalize(args: argparse.Namespace) -> int:
             )
         finalized = finalize_production_ready(
             state,
+            load_json_object(
+                args.project_path / "08_QA" / "editorial_review.json"
+            ),
             finalized_at,
         )
         write_json_object(
@@ -1102,6 +1145,11 @@ def run_production_finalize(args: argparse.Namespace) -> int:
             args.project_path,
             "PRODUCTION_READY_FINALIZED",
             {"current_gate": finalized["current_gate"]},
+            finalized_at,
+        )
+        sync_novelty_production_ready(
+            repository_root_for_project(args.project_path),
+            args.project_path,
             finalized_at,
         )
     finally:

@@ -70,7 +70,7 @@
       "commit_policy": "ATOMIC_ON_PASS",
       "retry_policy": "CORE",
       "budget_profile": "SMALL",
-      "standard_resources": ["STANDARD/novelty_thresholds.json", "STORY_LIBRARY/story_fingerprints.json"],
+      "standard_resources": ["STANDARD/novelty_thresholds.json", "STORY_LIBRARY/novelty_index.json"],
       "allowed_tools": [],
       "required_data_classes": ["INTERNAL"],
       "approval_required": false
@@ -286,7 +286,7 @@
       "commit_policy": "ALWAYS_DIAGNOSTIC",
       "retry_policy": "CORE",
       "budget_profile": "SMALL",
-      "standard_resources": ["STANDARD/novelty_thresholds.json", "STORY_LIBRARY/story_fingerprints.json"],
+      "standard_resources": ["STANDARD/novelty_thresholds.json", "STORY_LIBRARY/novelty_index.json"],
       "allowed_tools": [],
       "required_data_classes": ["INTERNAL"],
       "approval_required": false

@@ -160,8 +160,8 @@
     "noveltyReport": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["project_id", "result", "comparisons", "hard_collisions", "issues"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "result": {"enum": ["PASS", "FAIL"]}, "comparisons": {"type": "array", "items": {"type": "object"}}, "hard_collisions": {"type": "array", "items": {"type": "string"}}, "issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}}}
+      "required": ["project_id", "result", "comparisons", "hard_collisions", "semantic_hard_collisions", "issues"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "result": {"enum": ["PASS", "FAIL"]}, "comparisons": {"type": "array", "items": {"type": "object"}}, "hard_collisions": {"type": "array", "items": {"type": "string"}}, "semantic_hard_collisions": {"type": "array", "items": {"type": "string"}}, "issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}}}
     },
     "referenceReport": {
       "type": "object",

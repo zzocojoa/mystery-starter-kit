@@ -1,7 +1,47 @@
 {
   "project_id": "PRJ-002",
-  "result": "PASS",
-  "comparisons": [],
+  "result": "FAIL",
+  "comparisons": [
+    {
+      "project_id": "PRJ-001",
+      "similarity": 19.4,
+      "components": {
+        "mystery_type": 0.0,
+        "architecture": 0.0,
+        "protagonist_role": 0.0,
+        "primary_twist": 0.0,
+        "timeline_style": 0.0,
+        "incident_type": 100.0,
+        "setting": 0.0,
+        "culprit_structure": 0.0,
+        "setting_logic": 0.0,
+        "information_mechanism": 0.0,
+        "relationship_engine": 0.0,
+        "pressure_engine": 0.0,
+        "dramatic_engine": 0.0,
+        "beat_signature": 12.5,
+        "causal": 0.0,
+        "semantic_causal": 91.67
+      },
+      "threshold": 60.0,
+      "causal_hard_collision": false,
+      "semantic_causal_collision": true
+    }
+  ],
   "hard_collisions": [],
-  "issues": []
+  "semantic_hard_collisions": [
+    "PRJ-001"
+  ],
+  "issues": [
+    {
+      "severity": "ERROR",
+      "code": "CAUSAL_SEMANTIC_COLLISION",
+      "message": "표면 명칭은 다르지만 기존 작품과 의미 인과 골격이 같습니다.",
+      "artifact": "08_QA/novelty_report.json",
+      "context": {
+        "project_id": "PRJ-001",
+        "semantic_similarity": 91.67
+      }
+    }
+  ]
 }

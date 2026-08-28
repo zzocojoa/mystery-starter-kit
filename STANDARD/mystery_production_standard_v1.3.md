@@ -1,4 +1,4 @@
-# 단편 미스터리 반복 제작 표준 제작체계 v1.3.2
+# 단편 미스터리 반복 제작 표준 제작체계 v1.3.3
 
 ## 1. 목적과 완료 정의
 
@@ -167,7 +167,7 @@ ARTIFACT_COMPLETE
 = PRODUCTION_READY
 ```
 
-GATE-13의 Critic은 최종 Script와 Production Package를 읽고 방송 형식, 절대시간, 대사 자연스러움, Panel Reaction 기능, Audience Belief, 촬영 가능성, 피해자 존엄을 `editorial_review.json`에 판정한다. Editorial Review v1.1은 Reviewer, 시각, Check별 장면·Segment 근거, 검토한 Artifact의 Canonical Hash를 보존한다. 검토 뒤 입력이 바뀌어 Hash가 달라지면 기존 Review는 무효다. Critic은 Script를 수정하지 않는다. Review PASS 뒤에도 Human Actor와 Reason을 기록한 별도 승인이 필요하다.
+GATE-13의 Critic은 최종 Script와 Production Package를 읽고 방송 형식, 절대시간, 대사 자연스러움, Panel Reaction 기능, Audience Belief, 촬영 가능성, 피해자 존엄을 `editorial_review.json`에 판정한다. Editorial Review v1.2는 Reviewer, 시각, 검토한 Artifact의 Canonical Hash와 `artifact + selector_type + selector_id + excerpt_hash` 근거를 보존한다. Validator는 Selector를 현재 Artifact에서 다시 해석하고 Excerpt Hash를 검증한다. 검토 뒤 입력이 바뀌거나 근거가 사라지면 기존 Review는 무효다. Critic은 Script를 수정하지 않는다. Review PASS 뒤에도 Human Actor와 Reason을 기록한 별도 승인이 필요하다.
 
 Critic Issue는 `task-return`으로 해당 `owner_agent`의 가장 최근 LLM Gate에 반환한다. Canonical 파일과 과거 Trace는 삭제하지 않고, 목표 Gate 이후 Artifact를 `DIRTY`로 바꾸며 `process_revision`을 증가시킨다. 재작업 뒤 Process Conformance에는 현재 Revision에서 목표 Gate부터 새로 쌓인 PASS Trace만 사용한다.
 
@@ -185,7 +185,7 @@ Critic Issue는 `task-return`으로 해당 `owner_agent`의 가장 최근 LLM Ga
 
 ### Novelty
 
-Story Fingerprint는 Story Dimension, Beat Signature, 다섯 Causal Dimension으로 구성한다.
+Story Fingerprint는 Story Dimension, Beat Signature, 다섯 Causal Dimension과 의미 정규화된 인과 Signature로 구성한다.
 
 1. Root Cause
 2. Mechanism
@@ -193,16 +193,18 @@ Story Fingerprint는 Story Dimension, Beat Signature, 다섯 Causal Dimension으
 4. Discovery Path
 5. Resolution
 
-Category는 Exact Match, 배열은 Jaccard, Beat는 Sequence Similarity, Causal은 다섯 Dimension의 부분 구조 일치율로 계산한다. 이 Component를 가중 합산하며 최근 5개는 60%, 최근 10개는 65%, 전체는 70%를 초과할 수 없다. 다섯 Causal Dimension이 모두 같으면 가중 유사도와 무관하게 `CAUSAL_HARD_COLLISION`이다. 저장 Fingerprint가 현재 Story/Beat/Causal Artifact에서 재생성되지 않으면 오래된 것으로 차단한다.
+Category는 Exact Match, 배열은 Jaccard, Beat는 Sequence Similarity, Causal은 다섯 Dimension의 부분 구조 일치율로 계산한다. 의미 Signature는 인과 Node Role, 정규화 Edge Sequence, Character Causal Chain, Audience Belief Transition을 비교한다. 이 Component를 가중 합산하며 최근 5개는 60%, 최근 10개는 65%, 전체는 70%를 초과할 수 없다. 다섯 Causal Dimension이 모두 같으면 `CAUSAL_HARD_COLLISION`, 의미 인과 유사도가 85% 이상이면 `CAUSAL_SEMANTIC_COLLISION`이다. 저장 Fingerprint가 현재 Story/Beat/Causal Artifact에서 재생성되지 않으면 오래된 것으로 차단한다.
+
+`novelty_index.json`은 GATE-02부터 Project Fingerprint를 `DRAFT`, `EDITORIAL_PENDING`, `PRODUCTION_READY`, `ABANDONED` Lifecycle로 추적한다. GATE-10과 GATE-13, Production Finalize, Owner Return 때 현재 상태를 동기화한다. Novelty 비교는 `ABANDONED`를 제외한 활성 Project를 대상으로 하며, 발행된 Story Library와 Append-only History는 Production Ready 확정 뒤에만 갱신한다.
 
 ### Channel Consistency
 
 Genre, 금지 Tone, 필수 Presentation Mode, Reaction Ratio를 Channel DNA와 비교한다. Reaction 목표 `min`은 `max`보다 클 수 없고 실제 비율은 Presentation Segment의 전체 `duration_sec` 대비 `PANEL_REACTION` 합으로 계산해 해당 범위 안이어야 한다. 수동 비율 필드는 신뢰하지 않는다.
 
-### Presentation Contract v2
+### Presentation Contract v2.1
 
 - `panel_cast.json`은 공개 정보만 사용하는 서로 다른 Persona와 기능 구성을 가진 외부 Panelist를 최소 2명 정의한다.
-- `reaction_segments.json`은 화자, 기능, 근거 Clue, 공개 Fact, 발화 전후 가설, 시간과 배치 Scene을 정의한다.
+- `reaction_segments.json`은 Segment 시간·배치·가설 변화와 `turns[]`를 정의한다. 각 Turn은 화자, 기능, 실제 발화, 근거 Clue, 공개 Fact와 Tone을 독립적으로 보존한다.
 - `CHARACTER_REACTION`, `PANEL_REACTION`, `AUDIENCE_PROMPT`는 서로 다른 의미이며 비율에는 외부 `PANEL_REACTION`만 포함한다.
 - 가설 생성과 수정, 그리고 이상 탐지 또는 모순 탐지 기능을 실제 Reaction Segment에 포함한다.
 - `drama_script.md`, `narration_script.md`, `panel_reaction_script.md`는 분리 작성한다. Narration은 화면 행동이나 Panel 발화를 그대로 반복하지 않는다.
@@ -211,7 +213,7 @@ Genre, 금지 Tone, 필수 Presentation Mode, Reaction Ratio를 Channel DNA와 �
 - `09_PRODUCTION/panel_reaction_script.md`와 `edit_script.md`는 Reaction ID, Segment ID를 보존한다. 각 Edit Timecode의 시작·종료 초는 Presentation Plan의 `start_sec`, `duration_sec`와 정확히 일치해야 한다.
 - Segment `duration_sec` 합으로 계산한 Panel Reaction 비율은 계획된 편집 비율이다. Editorial Review는 각 Panel Segment의 실제 화자와 Script에서 재계산한 발화 단어 수를 보존하고, 발화시간과 Replay·Graphic·Reaction Hold 같은 비발화 요소가 계획시간을 완전히 설명하는지 검사한다.
 - `WORD_COUNT_ESTIMATE`는 명시한 WPM으로 예상 발화시간을 계산한다. `TABLE_READ`와 `RECORDED_AUDIO`는 Segment별 실측 `measured_duration_sec`와 합계를 요구한다. Human Editor는 이 근거로 방송 호흡과 의미상 중복을 최종 판단한다.
-- 자연스러운 집단 대화가 필요한 Reaction Segment는 최소 두 명 이상의 짧은 질문·반박·가설 수정·감정 연결을 허용한다. 결정론적 Validator가 Metadata나 문장 표면 일치로 잡기 어려운 의미상 조기 공개와 바꿔 쓴 반복은 Human Editorial Review 책임으로 남긴다.
+- Validator는 모든 Turn의 화자·기능·근거·공개 시점과 Panel Script의 순서·문장을 검증한다. 자연스러운 집단 대화가 필요한 Reaction Segment는 최소 두 명 이상의 짧은 질문·반박·가설 수정·감정 연결을 허용한다. 결정론적 Validator가 Metadata나 문장 표면 일치로 잡기 어려운 의미상 조기 공개와 바꿔 쓴 반복은 Human Editorial Review 책임으로 남긴다.
 
 ### Fact Integrity
 
@@ -221,7 +223,7 @@ Genre, 금지 Tone, 필수 Presentation Mode, Reaction Ratio를 Channel DNA와 �
 
 `STANDARD/dependency_graph.json`은 각 Artifact의 경로, 선행 Artifact, Owner Agent를 정의한다. 상위 Artifact Hash가 바뀌면 모든 Transitive Dependent를 `DIRTY`로 만들고 `invalidated_by`를 기록한다. 입력 객체는 수정하지 않고 새 Project State를 반환한다.
 
-`00_PROJECT/change_log.jsonl`은 초기화, Variation 생성/승인, Gate Transaction Commit, 명시적 State 복구, Editorial 승인, Production 확정, Story Library 등록을 시간과 함께 기록한다. `process_trace.jsonl`은 Gate별 Task, Agent, 입력 Hash, 변경 경로, Validator, 결과, Commit SHA와 시각을 보존한다. Production Ready Fingerprint만 Story Library에 등록할 수 있으며 동일 Project의 중복 등록은 실패한다.
+`00_PROJECT/change_log.jsonl`은 초기화, Variation 생성/승인, Gate Transaction Commit, 명시적 State 복구, Editorial 승인, Production 확정, Story Library 등록을 시간과 함께 기록한다. `process_trace.jsonl`은 Gate별 Task, Agent, 입력 Hash, 변경 경로, Validator, 결과, Commit SHA와 시각을 보존한다. Audit은 Project 생성, Change Log, Gate Transaction과 Process Trace Timestamp가 인과 순서를 지키는지 검증한다. Draft부터 Novelty Index에 추적하되 Production Ready Fingerprint만 Published Story Library에 등록할 수 있으며 동일 Project의 중복 등록은 실패한다.
 
 ## 11. 승인 정책
 

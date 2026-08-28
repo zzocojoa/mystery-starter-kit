@@ -59,4 +59,4 @@ def test_production_context_excludes_all_example_paths(tmp_path: Path) -> None:
         ROOT,
         tmp_path / "PRJ-999",
     )
-    assert ROOT / "STORY_LIBRARY" / "story_fingerprints.json" in novelty_paths
+    assert ROOT / "STORY_LIBRARY" / "novelty_index.json" in novelty_paths

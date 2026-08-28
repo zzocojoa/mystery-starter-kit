@@ -1,6 +1,6 @@
 {
   "$schema": "../STANDARD/schemas/story_library.schema.json",
   "schema_family": "story-library",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "fingerprints": []
 }

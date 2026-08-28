@@ -1,4 +1,4 @@
-# v1.3.2 스키마와 Artifact 계약
+# v1.3.3 스키마와 Artifact 계약
 
 ## 독립 Version 경계
 
@@ -10,7 +10,8 @@
 | Agent Manifest | Agent 이름 | `schema_version` | 읽기·쓰기·선행 Agent·Gate |
 | Dependency Graph | Artifact 이름 | `schema_version` | 경로·의존성·Owner |
 | Project State | `project_id` | `schema_version` | Gate와 Artifact Hash/상태 |
-| Story Library | `project_id` | `schema_version` | Production Ready Fingerprint History |
+| Novelty Index | `project_id` | `schema_version` | Draft부터 Production Ready까지 활성 Fingerprint와 Lifecycle 상태 |
+| Published Library | `project_id` | `schema_version` | Production Ready Fingerprint와 Append-only 발행 이력 |
 | Runtime Task Catalog | Task ID | `schema_version` | 실제 호출의 최소 읽기·쓰기·Gate·Retry 권한 |
 | Provider Interface | `provider_id` | `interface_version` | SDK 비종속 Capability와 Request/Response Wire 경계 |
 | Runtime Run/Event | `run_id` | `schema_version` | 재개 가능한 상태와 Append-only 감사 기록 |
@@ -29,17 +30,18 @@ Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json
 | `channel_dna.schema.json` | Channel Identity와 Capability 구조 |
 | `story_dna.schema.json` | Source Mode와 Full Story DNA v1.3 |
 | `panel_cast.schema.json` | 외부 Panelist Persona, 허용 기능과 공개 정보 경계 |
-| `reaction_segments.schema.json` | Panel 화자, 추리 기능, 근거, 가설 변화와 시간 |
-| `presentation_plan.schema.json` | Presentation Contract v2 Segment Timeline |
+| `reaction_segments.schema.json` | Segment와 `turns[]`별 Panel 화자, 기능, 근거, 공개 정보와 시간 |
+| `presentation_plan.schema.json` | Presentation Contract v2.1 Segment Timeline |
 | `reference_policy.schema.json` | 허용 Style과 금지 Story Content |
 | `reference_profile.schema.json` | Project별 정제 Reference Profile |
 | `fact_evidence.schema.json` | Fact/Inference/Dramatization과 Source/Claim 계약 |
 | `variation_catalog.schema.json` | 다축 후보 선택 Catalog |
 | `variation_candidates.schema.json` | 생성·승인 후보 출력 |
-| `story_fingerprint.schema.json` | Story/Beat/Causal Fingerprint |
-| `causal_graph.schema.json` | Mystery 인과 Node/Edge와 Causal Fingerprint |
+| `story_fingerprint.schema.json` | Story/Beat/Causal 및 의미 정규화 Fingerprint |
+| `causal_graph.schema.json` | Mystery 인과 Node/Edge, 의미 역할과 Character·Audience 전이 |
 | `novelty_thresholds.schema.json` | 최근/전체 유사도와 Weight |
 | `novelty_precheck.schema.json` | 승인 Variation의 사전 History 비교 |
+| `novelty_index.schema.json` | Project별 Fingerprint Lifecycle 상태와 현재 Gate |
 | `agent_manifest.schema.json` | 10개 Agent 실행 계약 |
 | `dependency_graph.schema.json` | Artifact DAG |
 | `project_state.schema.json` | 상태와 Hash 기반 무효화 |
@@ -47,7 +49,7 @@ Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json
 | `process_trace.schema.json` | Gate별 Process Conformance 증거 |
 | `editorial_review.schema.json` | 최종 방송·서사·제작 적합성 Critic 판정 |
 | `validation_report.schema.json` | 14 Gate 통합 결과 |
-| `story_library.schema.json` | 등록된 Fingerprint 집합 |
+| `story_library.schema.json` | Production Ready로 발행된 Fingerprint 집합 |
 | `runtime_task_catalog.schema.json` | Agent 권한의 부분집합인 실행 Task Catalog |
 | `runtime_config.schema.json` | 활성 Route Profile과 계약 파일 경로 |
 | `artifact_contracts.schema.json` | 출력별 Media Type, Schema, 크기, Commit 정책 |
@@ -65,25 +67,27 @@ Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json
 JSON Schema가 구조를 검증하고 Validator가 다음 교차 규칙을 검증한다.
 
 - Reaction Ratio `min <= max`와 실제 Segment Duration 기반 비율
-- Panel Cast/Reaction의 화자·기능·근거·공개 정보·가설 변화 정합성
+- Panel Cast/Reaction의 모든 Turn별 화자·기능·근거·공개 정보·가설 변화 정합성
 - Drama/Narration/Panel Layer와 Final Broadcast Master Marker 일치
 - Viewer Fact 공개, Audience Belief, 절대시간과 Actual Timeline 정합성
 - Culprit Structure별 `causal_truth` 또는 `motive_class`
 - Source Mode와 Reference Profile 일치
 - USER_CASE의 LOCKED/FLEXIBLE/UNKNOWN 상태와 Story DNA 일치
 - 승인 Variation과 Story DNA Override 일치
-- Story Fingerprint의 현재성
+- Story Fingerprint의 현재성과 의미 정규화된 Causal Role·Edge·Character·Audience 전이 충돌
 - Causal Graph DAG와 Root-to-Resolution 경로
 - Timeline, Knowledge, Clue, Runtime, ID 참조
 - Reference Lexical/14개 Story Element Category Collision
 - Channel Genre/Tone/Presentation/Reaction 일치
-- Artifact, Contract, Process, Editorial 조건을 모두 충족한 Production Ready에서만 Story Library 등록
+- GATE-02·10·13과 Revision에서 Novelty Index Lifecycle을 동기화하고, Production Ready에서만 Published Library 등록
 - Runtime Task 권한은 Agent Manifest보다 넓을 수 없음
 - Provider 출력 Identity와 Task writes가 정확히 일치해야 함
 - Raw Reference, EXAMPLES, 비허용 Data Class의 Provider Egress 금지
 - Gate Commit 직전 Canonical Input Hash 불변성과 단일 Writer Lock
 - Current Gate보다 뒤의 Artifact 수정과 Task writes 밖 변경 차단
-- Gate별 PASS Process Trace 완전성과 Human Editorial 승인 분리
+- Gate별 PASS Process Trace 완전성, Event Timestamp 인과 순서와 Human Editorial 승인 분리
+- Editorial Evidence Selector 재해석과 Excerpt Hash 일치
+- 모든 Panel Segment의 TABLE_READ 또는 RECORDED_AUDIO 실측값이 있어야 Production Finalize
 
 ## Artifact 유효성
 

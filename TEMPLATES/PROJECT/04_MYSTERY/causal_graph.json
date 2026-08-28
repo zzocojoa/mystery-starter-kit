@@ -1,5 +1,17 @@
 {
   "project_id": "PRJ-000",
   "nodes": [],
-  "edges": []
+  "edges": [],
+  "fingerprint": {
+    "root_cause": "",
+    "mechanism": "",
+    "concealment": "",
+    "discovery_path": "",
+    "resolution": ""
+  },
+  "semantic_normalization": {
+    "normalized_roles": [],
+    "character_function_chain": [],
+    "audience_hypothesis_transitions": []
+  }
 }

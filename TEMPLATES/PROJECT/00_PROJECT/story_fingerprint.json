@@ -1,7 +1,7 @@
 {
   "$schema": "../../../STANDARD/schemas/story_fingerprint.schema.json",
   "schema_family": "story-fingerprint",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "project_id": "PRJ-000",
   "story": {},
   "beat_signature": [],
@@ -11,5 +11,11 @@
     "concealment": "",
     "discovery_path": "",
     "resolution": ""
+  },
+  "semantic_causal": {
+    "normalized_roles": [],
+    "edge_sequence": [],
+    "character_function_chain": [],
+    "audience_hypothesis_transitions": []
   }
 }

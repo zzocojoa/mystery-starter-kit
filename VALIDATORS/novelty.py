@@ -12,6 +12,13 @@ from VALIDATORS.models import ValidationIssue
 
 CAUSAL_FIELDS = ("root_cause", "mechanism", "concealment", "discovery_path", "resolution")
 LIST_STORY_FIELDS = {"setting_logic", "information_mechanism"}
+SEMANTIC_CAUSAL_FIELDS = (
+    "normalized_roles",
+    "edge_sequence",
+    "character_function_chain",
+    "audience_hypothesis_transitions",
+)
+SEMANTIC_CAUSAL_COLLISION_THRESHOLD = 0.85
 
 
 def make_novelty_issue(
@@ -52,13 +59,81 @@ def primary_engine(value: object) -> object:
     return value
 
 
+def build_story_signature(story_document: Mapping[str, object]) -> dict[str, object]:
+    """Story DNA에서 초기 Novelty Index에 저장할 비교 Signature를 만든다."""
+    story_dna = require_mapping_value(story_document, "story_dna", "story_dna")
+    return {
+        "mystery_type": story_dna.get("mystery_type", ""),
+        "architecture": story_dna.get("architecture", ""),
+        "protagonist_role": story_dna.get("protagonist_role", ""),
+        "primary_twist": story_dna.get("primary_twist", ""),
+        "timeline_style": story_dna.get("timeline_style", ""),
+        "incident_type": story_dna.get("incident_type", ""),
+        "setting": story_dna.get("setting", ""),
+        "culprit_structure": story_dna.get("culprit_structure", ""),
+        "setting_logic": deepcopy(story_dna.get("setting_logic", [])),
+        "information_mechanism": deepcopy(story_dna.get("information_mechanism", [])),
+        "relationship_engine": primary_engine(story_dna.get("relationship_engine", "")),
+        "pressure_engine": primary_engine(story_dna.get("pressure_engine", "")),
+        "dramatic_engine": primary_engine(story_dna.get("dramatic_engine", "")),
+    }
+
+
+def semantic_causal_fingerprint(
+    causal_graph: Mapping[str, object],
+) -> dict[str, list[str]]:
+    """통제된 인과 역할과 Graph Edge Type을 의미 비교용 구조로 정규화한다."""
+    normalization = require_mapping_value(
+        causal_graph,
+        "semantic_normalization",
+        "causal_graph",
+    )
+    normalized = {
+        field: require_string_sequence(
+            normalization.get(field),
+            f"causal_graph.semantic_normalization.{field}",
+        )
+        for field in (
+            "normalized_roles",
+            "character_function_chain",
+            "audience_hypothesis_transitions",
+        )
+    }
+    nodes = causal_graph.get("nodes")
+    edges = causal_graph.get("edges")
+    if not isinstance(nodes, list) or not isinstance(edges, list):
+        raise ConfigurationError("Semantic Causal Normalization에는 nodes와 edges가 필요합니다.")
+    node_types = {
+        node.get("node_id"): node.get("type")
+        for node in nodes
+        if isinstance(node, Mapping)
+        and isinstance(node.get("node_id"), str)
+        and isinstance(node.get("type"), str)
+    }
+    edge_sequence: list[str] = []
+    for edge in edges:
+        if not isinstance(edge, Mapping):
+            raise ConfigurationError("causal_graph.edges 객체 배열이 필요합니다.")
+        source_type = node_types.get(edge.get("from"))
+        target_type = node_types.get(edge.get("to"))
+        if not isinstance(source_type, str) or not isinstance(target_type, str):
+            raise ConfigurationError(
+                "Semantic Causal Edge가 존재하는 Node Type을 참조해야 합니다: "
+                f"from={edge.get('from')!r}, to={edge.get('to')!r}"
+            )
+        edge_sequence.append(f"{source_type}>{target_type}")
+    if not edge_sequence:
+        raise ConfigurationError("Semantic Causal Edge Sequence는 비어 있을 수 없습니다.")
+    normalized["edge_sequence"] = edge_sequence
+    return normalized
+
+
 def build_story_fingerprint(
     story_document: Mapping[str, object],
     beat_sheet: Mapping[str, object],
     causal_graph: Mapping[str, object],
 ) -> dict[str, object]:
     """Story DNA, Beat, Causal Graph를 정규화된 Fingerprint로 변환한다."""
-    story_dna = require_mapping_value(story_document, "story_dna", "story_dna")
     beats = beat_sheet.get("beats")
     if not isinstance(beats, list):
         raise ConfigurationError("beat_sheet.beats 배열이 필요합니다.")
@@ -74,28 +149,14 @@ def build_story_fingerprint(
             f"Causal Fingerprint 필드가 누락되었습니다: fields={missing_causal}"
         )
 
-    fingerprint_story = {
-        "mystery_type": story_dna.get("mystery_type", ""),
-        "architecture": story_dna.get("architecture", ""),
-        "protagonist_role": story_dna.get("protagonist_role", ""),
-        "primary_twist": story_dna.get("primary_twist", ""),
-        "timeline_style": story_dna.get("timeline_style", ""),
-        "incident_type": story_dna.get("incident_type", ""),
-        "setting": story_dna.get("setting", ""),
-        "culprit_structure": story_dna.get("culprit_structure", ""),
-        "setting_logic": deepcopy(story_dna.get("setting_logic", [])),
-        "information_mechanism": deepcopy(story_dna.get("information_mechanism", [])),
-        "relationship_engine": primary_engine(story_dna.get("relationship_engine", "")),
-        "pressure_engine": primary_engine(story_dna.get("pressure_engine", "")),
-        "dramatic_engine": primary_engine(story_dna.get("dramatic_engine", "")),
-    }
     return {
         "schema_family": "story-fingerprint",
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "project_id": story_document.get("project_id", ""),
-        "story": fingerprint_story,
+        "story": build_story_signature(story_document),
         "beat_signature": beat_signature,
         "causal": {field: causal[field] for field in CAUSAL_FIELDS},
+        "semantic_causal": semantic_causal_fingerprint(causal_graph),
     }
 
 
@@ -171,13 +232,71 @@ def causal_structure_similarity(candidate: object, existing: object) -> float:
     return matches / len(CAUSAL_FIELDS)
 
 
+def sequence_field_similarity(candidate: object, existing: object, source: str) -> float:
+    """의미 인과 Chain의 순서 유사도를 계산한다."""
+    candidate_values = require_string_sequence(candidate, f"candidate.{source}")
+    existing_values = require_string_sequence(existing, f"existing.{source}")
+    if not candidate_values or not existing_values:
+        raise ConfigurationError(f"Semantic Causal 배열은 비어 있을 수 없습니다: field={source}")
+    return SequenceMatcher(
+        None,
+        candidate_values,
+        existing_values,
+        autojunk=False,
+    ).ratio()
+
+
+def semantic_causal_similarity(candidate: object, existing: object) -> float:
+    """역할·Edge·인물 기능·관객 가설 Chain의 의미 인과 유사도를 계산한다."""
+    if not isinstance(candidate, Mapping) or not isinstance(existing, Mapping):
+        raise ConfigurationError("Semantic Causal Fingerprint 객체가 필요합니다.")
+    invalid = [
+        field
+        for field in SEMANTIC_CAUSAL_FIELDS
+        if not isinstance(candidate.get(field), list)
+        or not candidate.get(field)
+        or not isinstance(existing.get(field), list)
+        or not existing.get(field)
+    ]
+    if invalid:
+        raise ConfigurationError(
+            f"Semantic Causal 유사도 필드가 누락되었습니다: fields={invalid}"
+        )
+    role_similarity = jaccard_similarity(
+        candidate["normalized_roles"],
+        existing["normalized_roles"],
+        "semantic_causal.normalized_roles",
+    )
+    edge_similarity = jaccard_similarity(
+        candidate["edge_sequence"],
+        existing["edge_sequence"],
+        "semantic_causal.edge_sequence",
+    )
+    character_similarity = sequence_field_similarity(
+        candidate["character_function_chain"],
+        existing["character_function_chain"],
+        "semantic_causal.character_function_chain",
+    )
+    hypothesis_similarity = sequence_field_similarity(
+        candidate["audience_hypothesis_transitions"],
+        existing["audience_hypothesis_transitions"],
+        "semantic_causal.audience_hypothesis_transitions",
+    )
+    return (
+        role_similarity * 0.4
+        + edge_similarity * 0.25
+        + character_similarity * 0.2
+        + hypothesis_similarity * 0.15
+    )
+
+
 def fingerprint_component(
     fingerprint: Mapping[str, object],
     story: Mapping[str, object],
     field: str,
 ) -> object:
     """Weight 이름에 해당하는 Story 또는 구조 Fingerprint 값을 읽는다."""
-    if field in {"beat_signature", "causal"}:
+    if field in {"beat_signature", "causal", "semantic_causal"}:
         return fingerprint.get(field)
     return story.get(field)
 
@@ -194,6 +313,8 @@ def component_similarity(
         return sequence_similarity(candidate_value, existing_value)
     if field == "causal":
         return causal_structure_similarity(candidate_value, existing_value)
+    if field == "semantic_causal":
+        return semantic_causal_similarity(candidate_value, existing_value)
     if not isinstance(candidate_value, str) or not isinstance(existing_value, str):
         raise ConfigurationError(
             f"Exact 유사도 Dimension은 문자열이어야 합니다: field={field}"
@@ -276,6 +397,39 @@ def causal_hard_collision(
     )
 
 
+def has_complete_mapping_fields(
+    document: Mapping[str, object],
+    key: str,
+    fields: Sequence[str],
+) -> bool:
+    """비교 기록이 완전한 구조 Fingerprint를 가졌는지 확인한다."""
+    value = document.get(key)
+    return isinstance(value, Mapping) and all(
+        has_comparable_value(value.get(field)) for field in fields
+    )
+
+
+def semantic_causal_hard_collision(
+    candidate: Mapping[str, object],
+    existing: Mapping[str, object],
+) -> bool:
+    """표면 명칭과 무관한 의미 인과 유사도가 임계값 이상인지 판정한다."""
+    candidate_semantic = require_mapping_value(
+        candidate,
+        "semantic_causal",
+        "candidate_fingerprint",
+    )
+    existing_semantic = require_mapping_value(
+        existing,
+        "semantic_causal",
+        "existing_fingerprint",
+    )
+    return (
+        semantic_causal_similarity(candidate_semantic, existing_semantic)
+        >= SEMANTIC_CAUSAL_COLLISION_THRESHOLD
+    )
+
+
 def threshold_value(thresholds: Mapping[str, object], key: str) -> float:
     """Novelty Threshold 숫자를 읽는다."""
     similarity = require_mapping_value(thresholds, "similarity", "novelty_thresholds")
@@ -292,7 +446,11 @@ def history_for_other_projects(
     """현재 Project를 제외한 신규성 비교 History를 반환한다."""
     if not isinstance(project_id, str) or not project_id:
         raise ConfigurationError("신규성 비교에는 Candidate Project ID가 필요합니다.")
-    return [record for record in history if record.get("project_id") != project_id]
+    own_positions = [
+        index for index, record in enumerate(history) if record.get("project_id") == project_id
+    ]
+    historical_scope = history[: own_positions[-1]] if own_positions else history
+    return [record for record in historical_scope if record.get("project_id") != project_id]
 
 
 def evaluate_novelty(
@@ -318,7 +476,24 @@ def evaluate_novelty(
             else "overall_max"
         )
         maximum = threshold_value(thresholds, threshold_key)
-        hard_collision = causal_hard_collision(candidate, existing)
+        hard_collision = (
+            has_complete_mapping_fields(candidate, "causal", CAUSAL_FIELDS)
+            and has_complete_mapping_fields(existing, "causal", CAUSAL_FIELDS)
+            and causal_hard_collision(candidate, existing)
+        )
+        semantic_collision = (
+            has_complete_mapping_fields(
+                candidate,
+                "semantic_causal",
+                SEMANTIC_CAUSAL_FIELDS,
+            )
+            and has_complete_mapping_fields(
+                existing,
+                "semantic_causal",
+                SEMANTIC_CAUSAL_FIELDS,
+            )
+            and semantic_causal_hard_collision(candidate, existing)
+        )
         project_id = existing.get("project_id", "")
         comparisons.append(
             {
@@ -330,6 +505,7 @@ def evaluate_novelty(
                 },
                 "threshold": maximum,
                 "causal_hard_collision": hard_collision,
+                "semantic_causal_collision": semantic_collision,
             }
         )
         if hard_collision:
@@ -338,6 +514,24 @@ def evaluate_novelty(
                     "CAUSAL_HARD_COLLISION",
                     "기존 작품과 Causal Fingerprint 다섯 요소가 모두 같습니다.",
                     {"project_id": project_id},
+                )
+            )
+        elif semantic_collision:
+            issues.append(
+                make_novelty_issue(
+                    "CAUSAL_SEMANTIC_COLLISION",
+                    "표면 명칭은 다르지만 기존 작품과 의미 인과 골격이 같습니다.",
+                    {
+                        "project_id": project_id,
+                        "semantic_similarity": round(
+                            semantic_causal_similarity(
+                                candidate["semantic_causal"],
+                                existing["semantic_causal"],
+                            )
+                            * 100,
+                            2,
+                        ),
+                    },
                 )
             )
         elif score > maximum:
@@ -357,6 +551,11 @@ def evaluate_novelty(
             comparison["project_id"]
             for comparison in comparisons
             if comparison["causal_hard_collision"] is True
+        ],
+        "semantic_hard_collisions": [
+            comparison["project_id"]
+            for comparison in comparisons
+            if comparison["semantic_causal_collision"] is True
         ],
         "issues": issues,
     }
