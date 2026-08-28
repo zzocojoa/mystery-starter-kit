@@ -57,7 +57,7 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 .venv/bin/mystery-kit register PROJECTS/PRJ-002
 ```
 
-`validate`는 현재 파일 집합의 14개 Gate 정합성을 진단하고 `audit_report.json`만 기록한다. `audit`는 같은 Artifact 검증에 Gate별 Process Trace 완전성을 더해 판정한다. 둘 다 `current_gate`, Project Status, Artifact `CLEAN` 상태나 기존 실행 이력을 바꾸지 않는다. 손상된 State를 Artifact에서 명시적으로 복구할 때만 `rebuild-state PROJECT --force`를 사용하며, 이 명령도 Process Trace나 Human Editorial 승인을 만들어 내지 않는다.
+`validate`는 현재 파일 집합의 14개 Gate 정합성을 진단하고 `validation_report.json`과 파생 QA Report를 기록한다. `audit`는 같은 Artifact 검증에 Gate별 Process Trace 완전성을 더해 `audit_report.json`에 기록한다. 둘 다 `current_gate`, Project Status, Artifact `CLEAN` 상태나 기존 실행 이력을 바꾸지 않는다. 손상된 State를 Artifact에서 명시적으로 복구할 때만 `rebuild-state PROJECT --force`를 사용하며, 이 명령도 Process Trace나 Human Editorial 승인을 만들어 내지 않는다.
 
 GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Continuity Critic의 `editorial_review.json`이 PASS여도 Human Actor와 Reason을 기록한 `editorial-approve` 전에는 승인되지 않는다. `production-finalize`는 `ARTIFACT_COMPLETE + CONTRACT_VALIDATED + PROCESS_CONFORMANT + EDITORIAL_APPROVED`를 모두 요구한다. `register`는 이 조건으로 확정된 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 성공 `0`, 검증 실패 `1`, 입력·구성·Transaction 오류 `2`다.
 
