@@ -1,16 +1,17 @@
 {
   "schema_family": "project-state",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "project_id": "PRJ-001",
   "state": "EDITORIAL_REVIEW_REQUIRED",
   "current_gate": "GATE-13",
-  "updated_at": "2026-08-27T18:00:54.095341Z",
+  "updated_at": "2026-08-28T00:19:42.199389Z",
   "readiness": {
     "artifact_status": "ARTIFACT_COMPLETE",
     "contract_status": "CONTRACT_VALIDATED",
     "process_status": "PROCESS_CONFORMANT",
     "editorial_status": "EDITORIAL_REVIEW_REQUIRED",
-    "process_start_gate": "GATE-05"
+    "process_start_gate": "GATE-08",
+    "process_revision": 2
   },
   "artifacts": {
     "project_manifest": {
@@ -140,7 +141,7 @@
     },
     "draft_script": {
       "status": "CLEAN",
-      "content_hash": "2f29e5b02d3ad7e90f5bb6a8b64ce4d2f0a020e4c58f9a2ebc340292586062c1",
+      "content_hash": "d5759b54314f1a9c43cade6e3c65facda6e5dfc7c122f144c495a6bc6ba95922",
       "invalidated_by": []
     },
     "final_script": {

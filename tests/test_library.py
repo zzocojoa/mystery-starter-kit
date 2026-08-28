@@ -37,6 +37,7 @@ def make_ready_state() -> ProjectState:
         "process_status": "PROCESS_CONFORMANT",
         "editorial_status": "EDITORIAL_APPROVED",
         "process_start_gate": "GATE-00",
+        "process_revision": 1,
     }
     return state
 

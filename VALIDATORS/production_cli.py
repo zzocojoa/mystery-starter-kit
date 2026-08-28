@@ -35,6 +35,7 @@ from VALIDATORS.gate_transaction import (
     audit_project,
     full_validation_report,
     process_conformance,
+    return_task_to_owner,
     task_abort,
     task_open,
     task_status,
@@ -172,6 +173,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     task_abort_parser.add_argument("project_path", type=Path)
     task_abort_parser.add_argument("gate_id")
+
+    task_return_parser = subparsers.add_parser(
+        "task-return",
+        help="Critic Issue를 Artifact Owner Agent의 Gate로 되돌립니다.",
+    )
+    task_return_parser.add_argument("project_path", type=Path)
+    task_return_parser.add_argument("owner_agent")
+    task_return_parser.add_argument("--actor", required=True)
+    task_return_parser.add_argument("--reason", required=True)
 
     audit_parser = subparsers.add_parser(
         "audit",
@@ -510,12 +520,14 @@ def synchronize_project_state(
     state["state"] = "INITIALIZED"
     state["current_gate"] = "NONE"
     process_start_gate = state["readiness"]["process_start_gate"]
+    process_revision = state["readiness"]["process_revision"]
     state["readiness"] = {
         "artifact_status": "INCOMPLETE",
         "contract_status": "UNVALIDATED",
         "process_status": "NONCONFORMANT",
         "editorial_status": "NOT_REVIEWED",
         "process_start_gate": process_start_gate,
+        "process_revision": process_revision,
     }
     for gate in GATES:
         gate_id = gate["gate_id"]
@@ -818,6 +830,13 @@ def append_history_record(path: Path, record: Mapping[str, object]) -> None:
 
 def run_register(args: argparse.Namespace) -> int:
     """Production Ready Fingerprint를 Story Library에 등록한다."""
+    audit = audit_project(ROOT, args.project_path, None, None, utc_now())
+    if audit["production_ready"] is not True:
+        raise GateTransactionError(
+            "PRODUCTION_READY_AUDIT_FAILED",
+            "현재 Canonical Artifact와 Process가 Production Ready 감사를 통과하지 못했습니다.",
+            {"audit": audit},
+        )
     state = load_project_state(args.project_path)
     fingerprint = load_json_object(
         args.project_path / "00_PROJECT" / "story_fingerprint.json"
@@ -889,6 +908,34 @@ def run_task_abort(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_task_return(args: argparse.Namespace) -> int:
+    """Critic Issue를 Owner Agent의 재작업 Gate로 반환한다."""
+    returned_at = utc_now()
+    result = return_task_to_owner(
+        ROOT,
+        args.project_path,
+        args.owner_agent,
+        args.actor,
+        args.reason,
+        returned_at,
+    )
+    append_change_log(
+        args.project_path,
+        "TASK_RETURNED_TO_OWNER",
+        {
+            "owner_agent": result["owner_agent"],
+            "actor": result["actor"],
+            "reason": result["reason"],
+            "target_gate": result["target_gate"],
+            "process_revision": result["process_revision"],
+            "aborted_transaction_id": result["aborted_transaction_id"],
+        },
+        returned_at,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
 def run_audit(args: argparse.Namespace) -> int:
     """Project State를 바꾸지 않는 전체 Artifact와 Process 감사를 실행한다."""
     report = audit_project(
@@ -933,6 +980,7 @@ def run_rebuild_state(args: argparse.Namespace) -> int:
         trace_records(ROOT, args.project_path),
         state["readiness"]["process_start_gate"],
         "GATE-13",
+        state["readiness"]["process_revision"],
     )
     state["readiness"]["process_status"] = (
         "PROCESS_CONFORMANT"
@@ -963,6 +1011,13 @@ def run_editorial_approve(args: argparse.Namespace) -> int:
     run_id = f"EDITORIAL-{uuid4().hex[:16].upper()}"
     lock_path = acquire_project_lock(args.project_path, run_id)
     try:
+        audit = audit_project(ROOT, args.project_path, None, None, utc_now())
+        if audit["result"] != "PASS":
+            raise GateTransactionError(
+                "EDITORIAL_APPROVAL_AUDIT_FAILED",
+                "Editorial 승인 전 Canonical Artifact와 Process 감사를 통과해야 합니다.",
+                {"audit": audit},
+            )
         state = load_project_state(args.project_path)
         review = load_json_object(args.project_path / "08_QA" / "editorial_review.json")
         approved_at = utc_now()
@@ -1000,6 +1055,7 @@ def run_production_finalize(args: argparse.Namespace) -> int:
             trace_records(ROOT, args.project_path),
             state["readiness"]["process_start_gate"],
             "GATE-13",
+            state["readiness"]["process_revision"],
         )
         if (
             state["readiness"]["process_status"] != "PROCESS_CONFORMANT"
@@ -1013,6 +1069,13 @@ def run_production_finalize(args: argparse.Namespace) -> int:
                     "current_gate": state["current_gate"],
                     "missing_gate_traces": missing_traces,
                 },
+            )
+        audit = audit_project(ROOT, args.project_path, None, None, finalized_at)
+        if audit["result"] != "PASS":
+            raise GateTransactionError(
+                "PRODUCTION_READY_AUDIT_FAILED",
+                "Production Ready 전 Canonical Artifact와 Process 감사를 통과해야 합니다.",
+                {"audit": audit},
             )
         finalized = finalize_production_ready(
             state,
@@ -1063,6 +1126,8 @@ def run_cli(argv: Sequence[str]) -> int:
             return run_task_submit(args)
         if args.command == "task-abort":
             return run_task_abort(args)
+        if args.command == "task-return":
+            return run_task_return(args)
         if args.command == "audit":
             return run_audit(args)
         if args.command == "rebuild-state":

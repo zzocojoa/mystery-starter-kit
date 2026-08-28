@@ -42,7 +42,7 @@ from VALIDATORS.pipeline import (
     run_production_validation,
 )
 from VALIDATORS.schema_validation import collect_schema_errors
-from VALIDATORS.state_machine import expected_gate, gate_index
+from VALIDATORS.state_machine import GATES, expected_gate, gate_index
 
 PROCESS_TRACE_PATH = "00_PROJECT/process_trace.jsonl"
 VALIDATOR_VERSION = "1.0.0"
@@ -260,6 +260,75 @@ def project_state(project_path: Path) -> ProjectState:
     )
 
 
+def canonical_artifact_drift(
+    project_path: Path,
+    dependency_graph: Mapping[str, object],
+    state: ProjectState,
+    artifact_names: Sequence[str],
+) -> list[dict[str, object]]:
+    """Project State Hash와 Canonical Artifact의 불일치를 반환한다."""
+    issues: list[dict[str, object]] = []
+    definitions = dependency_artifacts(dependency_graph)
+    for artifact_name in artifact_names:
+        definition = definitions.get(artifact_name)
+        if definition is None:
+            issues.append(
+                {
+                    "artifact": artifact_name,
+                    "path": None,
+                    "reason": "DEPENDENCY_DEFINITION_MISSING",
+                }
+            )
+            continue
+        relative_path = definition.get("path")
+        artifact_state = state["artifacts"].get(artifact_name)
+        if not isinstance(relative_path, str) or artifact_state is None:
+            issues.append(
+                {
+                    "artifact": artifact_name,
+                    "path": relative_path,
+                    "reason": "STATE_ENTRY_MISSING",
+                }
+            )
+            continue
+        expected_hash = artifact_state["content_hash"]
+        if artifact_state["status"] == "CLEAN" and expected_hash is None:
+            issues.append(
+                {
+                    "artifact": artifact_name,
+                    "path": relative_path,
+                    "reason": "CLEAN_HASH_MISSING",
+                }
+            )
+            continue
+        if expected_hash is None:
+            continue
+        path = project_path / relative_path
+        try:
+            actual_hash = artifact_hash(path.read_bytes())
+        except OSError as error:
+            issues.append(
+                {
+                    "artifact": artifact_name,
+                    "path": relative_path,
+                    "reason": "CANONICAL_FILE_MISSING",
+                    "detail": str(error),
+                }
+            )
+            continue
+        if actual_hash != expected_hash:
+            issues.append(
+                {
+                    "artifact": artifact_name,
+                    "path": relative_path,
+                    "reason": "CONTENT_HASH_MISMATCH",
+                    "expected_hash": expected_hash,
+                    "actual_hash": actual_hash,
+                }
+            )
+    return issues
+
+
 def task_open_unlocked(
     repository_root: Path,
     project_path: Path,
@@ -279,6 +348,9 @@ def task_open_unlocked(
             },
         )
     state = project_state(project_path)
+    dependency_graph = load_json_object(
+        repository_root / "STANDARD" / "dependency_graph.json"
+    )
     required_gate = expected_gate(state)["gate_id"]
     if gate_id != required_gate:
         raise GateTransactionError(
@@ -291,9 +363,25 @@ def task_open_unlocked(
             },
         )
     tasks = tasks_for_gate(repository_root, project_path, gate_id)
-    dependency_graph = load_json_object(
-        repository_root / "STANDARD" / "dependency_graph.json"
+    catalog = load_task_catalog(repository_root)
+    gate_map = artifact_gate_map(catalog)
+    completed_artifacts = sorted(
+        artifact_name
+        for artifact_name, artifact_gate in gate_map.items()
+        if gate_index(artifact_gate) < gate_index(gate_id)
     )
+    drift = canonical_artifact_drift(
+        project_path,
+        dependency_graph,
+        state,
+        completed_artifacts,
+    )
+    if drift:
+        raise GateTransactionError(
+            "GATE_TRANSACTION_INPUT_DRIFT",
+            "Project State와 Canonical Artifact Hash가 일치하지 않습니다.",
+            {"artifacts": drift},
+        )
     allowed_reads = string_union(tasks, "reads")
     gate_writes = string_union(tasks, "writes")
     allowed_writes = string_union(tasks_for_executor(tasks, "LLM"), "writes")
@@ -318,6 +406,7 @@ def task_open_unlocked(
         "transaction_id": transaction_id,
         "project_id": state["project_id"],
         "gate_id": gate_id,
+        "process_revision": state["readiness"]["process_revision"],
         "task_ids": list(tasks),
         "agent_ids": sorted({task["agent_id"] for task in tasks.values()}),
         "allowed_reads": allowed_reads,
@@ -628,6 +717,7 @@ def process_conformance(
     records: Sequence[Mapping[str, object]],
     start_gate: str,
     through_gate: str,
+    process_revision: int,
 ) -> tuple[bool, list[str]]:
     """요구 범위의 모든 Gate가 순서대로 Trace됐는지 판정한다."""
     start_index = gate_index(start_gate)
@@ -637,12 +727,14 @@ def process_conformance(
         cast(str, record["gate_id"])
         for record in records
         if record.get("gate_result") == "PASS"
+        and record.get("process_revision") == process_revision
     }
     missing = [gate_id for gate_id in required if gate_id not in seen]
     ordered_gate_indices = [
         gate_index(cast(str, record["gate_id"]))
         for record in records
-        if start_index <= gate_index(cast(str, record["gate_id"])) <= end_index
+        if record.get("process_revision") == process_revision
+        and start_index <= gate_index(cast(str, record["gate_id"])) <= end_index
     ]
     ordered = ordered_gate_indices == sorted(ordered_gate_indices)
     if not ordered:
@@ -688,6 +780,7 @@ def build_gate_traces(
                 "task_id": task_id,
                 "agent_id": task["agent_id"],
                 "gate_id": record["gate_id"],
+                "process_revision": record["process_revision"],
                 "input_hashes": {
                     artifact_name: input_hashes[artifact_name]
                     for artifact_name in task["reads"]
@@ -913,6 +1006,7 @@ def task_submit(
             [*existing_traces, *traces],
             next_state["readiness"]["process_start_gate"],
             gate_id,
+            next_state["readiness"]["process_revision"],
         )
         if not conformant:
             raise GateTransactionError(
@@ -1021,6 +1115,170 @@ def task_abort(
         release_project_lock(lock_path, lock_owner)
 
 
+def owner_revision_gate(
+    catalog: Mapping[str, RuntimeTask],
+    owner_agent: str,
+    through_gate: str,
+) -> str:
+    """Owner Agent가 다시 작성해야 할 가장 최근 LLM Gate를 반환한다."""
+    candidates = [
+        task["target_gate"]
+        for task in catalog.values()
+        if task["executor"] == "LLM"
+        and task["agent_id"] == owner_agent
+        and gate_index(task["target_gate"]) <= gate_index(through_gate)
+    ]
+    if not candidates:
+        raise GateTransactionError(
+            "OWNER_AGENT_TASK_NOT_FOUND",
+            "현재 범위에 Owner Agent가 다시 수행할 LLM Task가 없습니다.",
+            {"owner_agent": owner_agent, "through_gate": through_gate},
+        )
+    return max(candidates, key=gate_index)
+
+
+def revision_state(
+    state: ProjectState,
+    target_gate: str,
+    catalog: Mapping[str, RuntimeTask],
+    updated_at: str,
+) -> ProjectState:
+    """Owner 재작업을 위해 목표 Gate 이후 상태를 무효화한다."""
+    target_index = gate_index(target_gate)
+    next_state = deepcopy(state)
+    next_state["schema_version"] = "1.2.0"
+    next_state["current_gate"] = (
+        "NONE" if target_index == 0 else GATES[target_index - 1]["gate_id"]
+    )
+    next_state["state"] = (
+        "INITIALIZED" if target_index == 0 else GATES[target_index - 1]["target_state"]
+    )
+    next_state["updated_at"] = updated_at
+    next_state["readiness"] = {
+        "artifact_status": "INCOMPLETE",
+        "contract_status": "UNVALIDATED",
+        "process_status": "NONCONFORMANT",
+        "editorial_status": "NOT_REVIEWED",
+        "process_start_gate": target_gate,
+        "process_revision": state["readiness"]["process_revision"] + 1,
+    }
+    gate_map = artifact_gate_map(catalog)
+    affected = {
+        artifact_name
+        for artifact_name, artifact_gate in gate_map.items()
+        if gate_index(artifact_gate) >= target_index
+    }
+    target_artifacts = sorted(
+        artifact_name
+        for artifact_name, artifact_gate in gate_map.items()
+        if artifact_gate == target_gate
+    )
+    for artifact_name in affected:
+        artifact_state = next_state["artifacts"].get(artifact_name)
+        if artifact_state is None:
+            continue
+        artifact_state["status"] = "DIRTY"
+        artifact_state["invalidated_by"] = [
+            target_artifact
+            for target_artifact in target_artifacts
+            if target_artifact != artifact_name
+        ]
+    return next_state
+
+
+def return_task_to_owner_unlocked(
+    repository_root: Path,
+    project_path: Path,
+    owner_agent: str,
+    actor: str,
+    reason: str,
+    returned_at: str,
+) -> dict[str, object]:
+    """Critic Issue를 Owner Agent의 Gate로 되돌리고 새 Process Revision을 연다."""
+    if not owner_agent.strip() or not actor.strip() or not reason.strip():
+        raise GateTransactionError(
+            "OWNER_RETURN_CONTEXT_MISSING",
+            "Owner 반환에는 owner_agent, actor, reason이 모두 필요합니다.",
+            {"owner_agent": owner_agent, "actor": actor, "reason": reason},
+        )
+    state = project_state(project_path)
+    if state["state"] in {"EDITORIAL_APPROVED", "PRODUCTION_READY"}:
+        raise GateTransactionError(
+            "OWNER_RETURN_STATE_INVALID",
+            "Editorial 승인 또는 Production 확정 뒤에는 Task를 되돌릴 수 없습니다.",
+            {"state": state["state"]},
+        )
+    catalog = load_task_catalog(repository_root)
+    active = open_task_record(repository_root, project_path)
+    through_gate = (
+        cast(str, active["gate_id"])
+        if active is not None
+        else state["current_gate"]
+    )
+    if through_gate == "NONE":
+        raise GateTransactionError(
+            "OWNER_RETURN_STATE_INVALID",
+            "통과한 Gate가 없는 Project는 Owner Task로 되돌릴 수 없습니다.",
+            {"current_gate": through_gate},
+        )
+    target_gate = owner_revision_gate(catalog, owner_agent, through_gate)
+    if active is not None:
+        aborted = deepcopy(active)
+        aborted["status"] = "ABORTED"
+        aborted["completed_at"] = returned_at
+        validate_task_record(
+            repository_root,
+            aborted,
+            cast(str, aborted["transaction_id"]),
+        )
+        write_json_object(
+            task_record_path(project_path, cast(str, aborted["transaction_id"])),
+            aborted,
+        )
+    next_state = revision_state(state, target_gate, catalog, returned_at)
+    write_json_object(
+        project_path / "00_PROJECT" / "project_state.json",
+        next_state,
+    )
+    return {
+        "project_id": state["project_id"],
+        "owner_agent": owner_agent,
+        "actor": actor,
+        "reason": reason,
+        "target_gate": target_gate,
+        "current_gate": next_state["current_gate"],
+        "process_revision": next_state["readiness"]["process_revision"],
+        "aborted_transaction_id": (
+            None if active is None else active["transaction_id"]
+        ),
+        "returned_at": returned_at,
+    }
+
+
+def return_task_to_owner(
+    repository_root: Path,
+    project_path: Path,
+    owner_agent: str,
+    actor: str,
+    reason: str,
+    returned_at: str,
+) -> dict[str, object]:
+    """단일 Writer Lock 안에서 Critic Issue를 Owner Agent에게 반환한다."""
+    lock_owner = f"OWNER-RETURN-{uuid4().hex[:16].upper()}"
+    lock_path = acquire_project_lock(project_path, lock_owner)
+    try:
+        return return_task_to_owner_unlocked(
+            repository_root,
+            project_path,
+            owner_agent,
+            actor,
+            reason,
+            returned_at,
+        )
+    finally:
+        release_project_lock(lock_path, lock_owner)
+
+
 def task_status(
     repository_root: Path,
     project_path: Path,
@@ -1092,6 +1350,15 @@ def audit_project(
 ) -> dict[str, object]:
     """Artifact 정합성과 Process Conformance를 Project State와 분리해 판정한다."""
     state = project_state(project_path)
+    dependency_graph = load_json_object(
+        repository_root / "STANDARD" / "dependency_graph.json"
+    )
+    drift = canonical_artifact_drift(
+        project_path,
+        dependency_graph,
+        state,
+        sorted(dependency_artifacts(dependency_graph)),
+    )
     validation = full_validation_report(
         repository_root,
         project_path,
@@ -1099,13 +1366,17 @@ def audit_project(
         channel_path,
     )
     traces = trace_records(repository_root, project_path)
-    conformant, missing_traces = process_conformance(
+    trace_conformant, missing_traces = process_conformance(
         traces,
         state["readiness"]["process_start_gate"],
         "GATE-13",
+        state["readiness"]["process_revision"],
     )
-    artifact_complete = validation["gate_results"].get("GATE-13") == "PASS"
-    contract_validated = validation["result"] == "PASS"
+    conformant = trace_conformant and not drift
+    artifact_complete = (
+        validation["gate_results"].get("GATE-13") == "PASS" and not drift
+    )
+    contract_validated = validation["result"] == "PASS" and not drift
     editorial_approved = (
         state["readiness"]["editorial_status"] == "EDITORIAL_APPROVED"
     )
@@ -1117,17 +1388,23 @@ def audit_project(
         and state["state"] == "PRODUCTION_READY"
     )
     technical_pass = artifact_complete and contract_validated and conformant
-    process_issues = (
-        []
-        if conformant
-        else [
+    process_issues: list[dict[str, object]] = []
+    if not trace_conformant:
+        process_issues.append(
             {
                 "code": "PROCESS_TRACE_MISSING",
                 "message": "요구 Gate 범위의 PASS Process Trace가 완전하지 않습니다.",
                 "missing_gate_traces": missing_traces,
             }
-        ]
-    )
+        )
+    if drift:
+        process_issues.append(
+            {
+                "code": "CANONICAL_ARTIFACT_DRIFT",
+                "message": "Project State와 Canonical Artifact Hash가 일치하지 않습니다.",
+                "artifacts": drift,
+            }
+        )
     return {
         "schema_family": "process-audit",
         "schema_version": "1.0.0",
@@ -1143,6 +1420,7 @@ def audit_project(
         "editorial_approved": editorial_approved,
         "production_ready": production_ready,
         "missing_gate_traces": missing_traces,
+        "process_revision": state["readiness"]["process_revision"],
         "process_issues": process_issues,
         "trace_count": len(traces),
         "validation": validation,

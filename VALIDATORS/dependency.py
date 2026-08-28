@@ -82,7 +82,7 @@ def build_initial_project_state(
     }
     return ProjectState(
         schema_family="project-state",
-        schema_version="1.1.0",
+        schema_version="1.2.0",
         project_id=project_id,
         state="INITIALIZED",
         current_gate="NONE",
@@ -93,6 +93,7 @@ def build_initial_project_state(
             "process_status": "NONCONFORMANT",
             "editorial_status": "NOT_REVIEWED",
             "process_start_gate": "GATE-00",
+            "process_revision": 1,
         },
         artifacts=artifacts,
     )

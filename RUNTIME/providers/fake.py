@@ -352,6 +352,60 @@ def fake_broadcast_master(total_seconds: int) -> str:
     return "\n\n".join(layer_segments[f"SEG-{index:03d}"] for index in range(1, 7))
 
 
+def fake_edit_script(project_id: str, total_seconds: int) -> str:
+    """Presentation Plan과 일치하는 Edit Timecode 표를 만든다."""
+    plan = fake_presentation_plan(project_id, total_seconds)
+    raw_segments = plan.get("segments")
+    if not isinstance(raw_segments, list):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Fake Presentation Plan Segment가 배열이 아닙니다.",
+            "production.package",
+            "presentation_plan",
+            {},
+        )
+    lines = ["| Segment | Timecode |", "|---|---:|"]
+    for raw_segment in raw_segments:
+        if not isinstance(raw_segment, Mapping):
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Fake Presentation Segment가 객체가 아닙니다.",
+                "production.package",
+                "presentation_plan",
+                {},
+            )
+        segment_id = raw_segment.get("segment_id")
+        start_sec = raw_segment.get("start_sec")
+        duration_sec = raw_segment.get("duration_sec")
+        if (
+            not isinstance(segment_id, str)
+            or not isinstance(start_sec, int | float)
+            or isinstance(start_sec, bool)
+            or not isinstance(duration_sec, int | float)
+            or isinstance(duration_sec, bool)
+        ):
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Fake Presentation Segment Timecode가 올바르지 않습니다.",
+                "production.package",
+                "presentation_plan",
+                {"segment_id": segment_id},
+            )
+        start = round(float(start_sec))
+        end = round(float(start_sec) + float(duration_sec))
+        lines.append(
+            f"| {segment_id} | {start // 60:02d}:{start % 60:02d}-"
+            f"{end // 60:02d}:{end % 60:02d} |"
+        )
+    return "\n".join(lines)
+
+
 def story_document(
     project_id: str,
     source_mode: str,
@@ -821,7 +875,6 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             },
         ]
     if task_id == "production.package":
-        segment_ids = " ".join(f"SEG-{index:03d}" for index in range(1, 7))
         return [
             {
                 "artifact_name": "shooting_script",
@@ -850,10 +903,7 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             {
                 "artifact_name": "edit_script",
                 "media_type": "text/markdown",
-                "content": (
-                    f"{segment_ids}\n"
-                    "SCN-01에서 로그를 제시하고 SCN-02에서 인과를 재구성한다."
-                ),
+                "content": fake_edit_script(project_id, target_runtime_seconds(metadata)),
             },
         ]
     if task_id == "editorial.review":

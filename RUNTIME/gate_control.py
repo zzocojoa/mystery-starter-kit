@@ -210,19 +210,32 @@ def validate_gate(
             ),
         ]
     if gate_id == "GATE-08":
-        return validate_script_integrity_v2(
-            presentation,
-            reaction_segments,
-            scenes,
-            viewer,
-            audience,
-            actual,
-            artifact_text(artifacts, "drama_script"),
-            artifact_text(artifacts, "narration_script"),
-            artifact_text(artifacts, "panel_reaction_script"),
-            artifact_text(artifacts, "draft_script"),
-            artifact_text(artifacts, "final_script"),
-        )
+        return [
+            *validate_presentation_design(
+                panel_cast,
+                reaction_segments,
+                presentation,
+                scenes,
+                viewer,
+                facts,
+                clues,
+                channel,
+                production_config,
+            ),
+            *validate_script_integrity_v2(
+                presentation,
+                reaction_segments,
+                scenes,
+                viewer,
+                audience,
+                actual,
+                artifact_text(artifacts, "drama_script"),
+                artifact_text(artifacts, "narration_script"),
+                artifact_text(artifacts, "panel_reaction_script"),
+                artifact_text(artifacts, "draft_script"),
+                artifact_text(artifacts, "final_script"),
+            ),
+        ]
     if gate_id == "GATE-09":
         report = validate_continuity(
             production_config,
@@ -267,9 +280,70 @@ def validate_gate(
             reference_policy,
         )
     if gate_id == "GATE-12":
-        return validate_channel_consistency(channel, story, production_config, presentation)
+        return [
+            *validate_presentation_design(
+                panel_cast,
+                reaction_segments,
+                presentation,
+                scenes,
+                viewer,
+                facts,
+                clues,
+                channel,
+                production_config,
+            ),
+            *validate_script_integrity_v2(
+                presentation,
+                reaction_segments,
+                scenes,
+                viewer,
+                audience,
+                actual,
+                artifact_text(artifacts, "drama_script"),
+                artifact_text(artifacts, "narration_script"),
+                artifact_text(artifacts, "panel_reaction_script"),
+                artifact_text(artifacts, "draft_script"),
+                final_script,
+            ),
+            *validate_channel_consistency(
+                channel,
+                story,
+                production_config,
+                presentation,
+            ),
+        ]
     if gate_id == "GATE-13":
         return [
+            *validate_presentation_design(
+                panel_cast,
+                reaction_segments,
+                presentation,
+                scenes,
+                viewer,
+                facts,
+                clues,
+                channel,
+                production_config,
+            ),
+            *validate_script_integrity_v2(
+                presentation,
+                reaction_segments,
+                scenes,
+                viewer,
+                audience,
+                actual,
+                artifact_text(artifacts, "drama_script"),
+                artifact_text(artifacts, "narration_script"),
+                artifact_text(artifacts, "panel_reaction_script"),
+                artifact_text(artifacts, "draft_script"),
+                final_script,
+            ),
+            *validate_channel_consistency(
+                channel,
+                story,
+                production_config,
+                presentation,
+            ),
             *production_text_issues(artifacts),
             *validate_production_presentation(
                 presentation,

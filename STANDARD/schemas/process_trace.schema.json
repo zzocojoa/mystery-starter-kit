@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/process-trace-1.0.0.json",
+  "$id": "https://example.local/schemas/process-trace-1.1.0.json",
   "title": "Codex App Gate Process Trace",
   "type": "object",
   "additionalProperties": false,
@@ -10,6 +10,7 @@
     "task_id",
     "agent_id",
     "gate_id",
+    "process_revision",
     "input_hashes",
     "changed_paths",
     "validator_version",
@@ -38,6 +39,10 @@
     "gate_id": {
       "type": "string",
       "pattern": "^GATE-(0[0-9]|1[0-3])$"
+    },
+    "process_revision": {
+      "type": "integer",
+      "minimum": 1
     },
     "input_hashes": {
       "type": "object",
