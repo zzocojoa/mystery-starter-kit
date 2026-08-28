@@ -1,0 +1,233 @@
+{
+  "schema_family": "project-state",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-002",
+  "state": "EDITORIAL_REVIEW_REQUIRED",
+  "current_gate": "GATE-13",
+  "updated_at": "2026-08-28T05:12:42.380918Z",
+  "readiness": {
+    "artifact_status": "ARTIFACT_COMPLETE",
+    "contract_status": "CONTRACT_VALIDATED",
+    "process_status": "PROCESS_CONFORMANT",
+    "editorial_status": "EDITORIAL_REVIEW_REQUIRED",
+    "process_start_gate": "GATE-00",
+    "process_revision": 1
+  },
+  "artifacts": {
+    "project_manifest": {
+      "status": "CLEAN",
+      "content_hash": "87e5dfbd51462483f7b6d5ce8b5260a71816c504333f92d839beea9551586a46",
+      "invalidated_by": []
+    },
+    "compatibility_report": {
+      "status": "CLEAN",
+      "content_hash": "4288a72ab7b4d8c9cdcb30eeb2b2831056021202346fc0f5bfefa9aa75c01d62",
+      "invalidated_by": []
+    },
+    "production_config": {
+      "status": "CLEAN",
+      "content_hash": "05372987ebf7875c2ee2fabb3be627d95bd7a8ce6ec99aa8505ec191f1de6ca2",
+      "invalidated_by": []
+    },
+    "reference_profile": {
+      "status": "CLEAN",
+      "content_hash": "39e70c95f374f3f2d1ab1130aa856effcb7d66b5aef5b7e46afc77b36c39ed68",
+      "invalidated_by": []
+    },
+    "variation_candidates": {
+      "status": "CLEAN",
+      "content_hash": "25a2240203ad58275130a422aca71ab17d9e67073c7fe6c0c32a504332ab6627",
+      "invalidated_by": []
+    },
+    "novelty_precheck": {
+      "status": "CLEAN",
+      "content_hash": "ffe758d4ea5c8faed00763425e2b0089dffc1a07463443899bf766b841ebc67a",
+      "invalidated_by": []
+    },
+    "story_dna": {
+      "status": "CLEAN",
+      "content_hash": "63babe6095966b7c31e09a747da6796d123d514f0b4d5b05a14e256347e5a009",
+      "invalidated_by": []
+    },
+    "story_fingerprint": {
+      "status": "CLEAN",
+      "content_hash": "7b4ba6b4cffd2304c32c9658e46eccbaaf41cea3ca5606262fa1de59107b3203",
+      "invalidated_by": []
+    },
+    "case_input": {
+      "status": "CLEAN",
+      "content_hash": "f2bc92fe6034f3e8ff0dd72bb2dccba4b3cb42679f1b1b400438a5b0261788ea",
+      "invalidated_by": []
+    },
+    "facts": {
+      "status": "CLEAN",
+      "content_hash": "65d790b2f4830c8b3893ea5f9937009f7d7a2c6df3fa1b3feb4b32b73399549e",
+      "invalidated_by": []
+    },
+    "sources": {
+      "status": "CLEAN",
+      "content_hash": "560e02fa64e4cf0e009fa94f00173a925c8a3b59d205d52a469a3b62c7d703d2",
+      "invalidated_by": []
+    },
+    "claim_evidence": {
+      "status": "CLEAN",
+      "content_hash": "031f17a398afd8b401fc103715f5fece6d8b6fd7b54e60af75cf23d896d43335",
+      "invalidated_by": []
+    },
+    "characters": {
+      "status": "CLEAN",
+      "content_hash": "b1ab2067499cc7ac6fa2be261bc3ba1d01bc1e9fa2da21fcb0250446f52fdc20",
+      "invalidated_by": []
+    },
+    "relationships": {
+      "status": "CLEAN",
+      "content_hash": "ede6b7d6522aec255280da30877f2a8e5a712c8d6a56c607702bb476f34ab635",
+      "invalidated_by": []
+    },
+    "knowledge_matrix": {
+      "status": "CLEAN",
+      "content_hash": "69d0a9163c6c55ffaac04c3d435431618f657e753db871eeb1a489c1b74088c7",
+      "invalidated_by": []
+    },
+    "actual_timeline": {
+      "status": "CLEAN",
+      "content_hash": "42b63c9b86539eb303c7b94cc3175b94bf8ddcc7f915e3c26207fe1f36c7c520",
+      "invalidated_by": []
+    },
+    "viewer_timeline": {
+      "status": "CLEAN",
+      "content_hash": "abc3b74de2a093771271811ffc99a426cb51e1f36d523cadd0f898b89ed91773",
+      "invalidated_by": []
+    },
+    "audience_belief": {
+      "status": "CLEAN",
+      "content_hash": "85895b1747b045558de473850b5f0381976cdf924617bf57dc97edd267e9e238",
+      "invalidated_by": []
+    },
+    "clue_matrix": {
+      "status": "CLEAN",
+      "content_hash": "df5b6436ec518f9416d9bb0163f1a3a262a391cba1fdf6cbc449a7f8d1834cc5",
+      "invalidated_by": []
+    },
+    "hypothesis_ledger": {
+      "status": "CLEAN",
+      "content_hash": "5816adccd901921952a37daf6c399416c7fccf92a760fb9b7cd751dc110d0a26",
+      "invalidated_by": []
+    },
+    "causal_graph": {
+      "status": "CLEAN",
+      "content_hash": "e9040943e7b4b79723ba0dc6eff068d9841e48da1862edb929d84875b928b151",
+      "invalidated_by": []
+    },
+    "beat_sheet": {
+      "status": "CLEAN",
+      "content_hash": "6dd467b206b4c2b4c20f64085c2ee9a2fd7720c892da70fce2bbd2e296b08a9c",
+      "invalidated_by": []
+    },
+    "retention_plan": {
+      "status": "CLEAN",
+      "content_hash": "59d29bea9237d5b02b29bef8ea3dbababc47f7928dec95d43114d8d15157cf39",
+      "invalidated_by": []
+    },
+    "scene_cards": {
+      "status": "CLEAN",
+      "content_hash": "dd971f2ed16b4a8086826dddb92b045f995b0848d0eeb889d77e8f3d936b49e4",
+      "invalidated_by": []
+    },
+    "panel_cast": {
+      "status": "CLEAN",
+      "content_hash": "d5b750de4af8ec7e3e8cd95f930d8f8a0096679ec820b92cc51cadfb5e8c6961",
+      "invalidated_by": []
+    },
+    "reaction_segments": {
+      "status": "CLEAN",
+      "content_hash": "992cf4ae65c41bf067cc4895ed4b0843db7b9efa52f2c136503dcf4874e2c36c",
+      "invalidated_by": []
+    },
+    "presentation_plan": {
+      "status": "CLEAN",
+      "content_hash": "07a5f00d429eeb7bc0c7128c24c9d9615e0a6d4aa64f9265a0fca7e3e324ece3",
+      "invalidated_by": []
+    },
+    "drama_script": {
+      "status": "CLEAN",
+      "content_hash": "0c38c1753e5cf14d6de24ee6951b0e32a243ff2601708841bba7b723aea737d1",
+      "invalidated_by": []
+    },
+    "narration_script": {
+      "status": "CLEAN",
+      "content_hash": "05f1529f736d256515362571f39d85fa6c778920a8259480ace4f32209da3008",
+      "invalidated_by": []
+    },
+    "panel_reaction_script": {
+      "status": "CLEAN",
+      "content_hash": "2ede32ab90b09134d6c32e208a1b56b07cc40b749f2541f5caaefdcc3e3cc59e",
+      "invalidated_by": []
+    },
+    "draft_script": {
+      "status": "CLEAN",
+      "content_hash": "7ba040990254d63f2b937c9ace6043d223d2452a7b61f60bbe8cabf1513e22a4",
+      "invalidated_by": []
+    },
+    "final_script": {
+      "status": "CLEAN",
+      "content_hash": "7ba040990254d63f2b937c9ace6043d223d2452a7b61f60bbe8cabf1513e22a4",
+      "invalidated_by": []
+    },
+    "continuity_report": {
+      "status": "CLEAN",
+      "content_hash": "6ff9e33326007267dd1f4ae381dc50ad58e208b48b557f581643c7bbfafcc632",
+      "invalidated_by": []
+    },
+    "novelty_report": {
+      "status": "CLEAN",
+      "content_hash": "78fd5c845524a20317d8ac506d5536e2694440703ab3689ff40abe3c9146e783",
+      "invalidated_by": []
+    },
+    "reference_collision_report": {
+      "status": "CLEAN",
+      "content_hash": "eeb8e0cef41251548e1dabdd14bff2cb56de8a78a3ca4857127c64da01ee65d3",
+      "invalidated_by": []
+    },
+    "channel_consistency_report": {
+      "status": "CLEAN",
+      "content_hash": "6ff9e33326007267dd1f4ae381dc50ad58e208b48b557f581643c7bbfafcc632",
+      "invalidated_by": []
+    },
+    "validation_report": {
+      "status": "CLEAN",
+      "content_hash": "ce41a4021cbaac409d9518ecac53f3171b91e45fe974e6a2beb42e570e6701d8",
+      "invalidated_by": []
+    },
+    "shooting_script": {
+      "status": "CLEAN",
+      "content_hash": "1c790e2a3e1f47a845698e323231509e72e8c2304c4867e735cba35c5c21e7fa",
+      "invalidated_by": []
+    },
+    "narration": {
+      "status": "CLEAN",
+      "content_hash": "0b4158a1a4b9fbf09c1edfd5353f3cb0225c589dc4791a2f9544e8790aba9d74",
+      "invalidated_by": []
+    },
+    "production_panel_reaction_script": {
+      "status": "CLEAN",
+      "content_hash": "08f54721c30952fcde2085c5c64797169312360a6a0d38d556e6ac9d174b1b85",
+      "invalidated_by": []
+    },
+    "subtitle_script": {
+      "status": "CLEAN",
+      "content_hash": "bd52c0eaf8c335ee53744cdccfd5581c4ec75597c288b37b118ca767c7c31124",
+      "invalidated_by": []
+    },
+    "edit_script": {
+      "status": "CLEAN",
+      "content_hash": "9f2c725caf63b3e4d9ac6b6cb81d6d85f271401ca7ebe3437cadd31bd545027f",
+      "invalidated_by": []
+    },
+    "editorial_review": {
+      "status": "CLEAN",
+      "content_hash": "3455188713ab7892059830057bb10960b6d7d7143dfea84a83c0206635249583",
+      "invalidated_by": []
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "project_id": "PRJ-002",
+  "reveals": [
+    {
+      "reveal_id": "REV-01",
+      "scene_order": 1,
+      "fact_id": "FACT-01",
+      "information": "폭설로 호텔이 고립됐고 발전기는 00시 10분 멈춘다.",
+      "effect": "QUESTION"
+    },
+    {
+      "reveal_id": "REV-02",
+      "scene_order": 1,
+      "fact_id": "FACT-02",
+      "information": "23시 17분 북측 계단 점검 완료 호출이 도착했지만 작성 시점은 아직 보이지 않는다.",
+      "effect": "QUESTION"
+    },
+    {
+      "reveal_id": "REV-03",
+      "scene_order": 2,
+      "fact_id": "FACT-05",
+      "information": "외부 출입용 7번 마스터키가 봉인함 안에 남아 있다.",
+      "effect": "CONTRADICTION"
+    },
+    {
+      "reveal_id": "REV-04",
+      "scene_order": 3,
+      "fact_id": "FACT-03",
+      "information": "순찰 화면이 NAS 단절 뒤 마지막 12분을 반복하고 있다.",
+      "effect": "UPDATED_QUESTION"
+    },
+    {
+      "reveal_id": "REV-05",
+      "scene_order": 4,
+      "fact_id": "FACT-04",
+      "information": "23시 17분 화면의 시계 반사는 22시 52분을 가리킨다.",
+      "effect": "MIDPOINT_REFRAME"
+    },
+    {
+      "reveal_id": "REV-06",
+      "scene_order": 5,
+      "fact_id": "FACT-08",
+      "information": "도윤은 유진의 무단 시험을 숨기려고 마지막 동행 시각을 거짓 진술했다.",
+      "effect": "CONTRADICTION"
+    },
+    {
+      "reveal_id": "REV-07",
+      "scene_order": 5,
+      "fact_id": "FACT-07",
+      "information": "유진은 22시 52분 서비스 리프트 안에서 방화문 재현 시험을 시작했다.",
+      "effect": "UPDATED_QUESTION"
+    },
+    {
+      "reveal_id": "REV-08",
+      "scene_order": 6,
+      "fact_id": "FACT-09",
+      "information": "난방관의 불규칙한 열 펄스가 리프트 내부의 타격과 일치한다.",
+      "effect": "LOCATION_LOCK"
+    },
+    {
+      "reveal_id": "REV-09",
+      "scene_order": 6,
+      "fact_id": "FACT-06",
+      "information": "발전기 전환 신호가 서비스 리프트 방화문을 재잠갔다.",
+      "effect": "CAUSAL_ANSWER"
+    },
+    {
+      "reveal_id": "REV-10",
+      "scene_order": 7,
+      "fact_id": "FACT-10",
+      "information": "린넨실 수동 해제기로 발전기 정지 전에 방화문을 열 수 있다.",
+      "effect": "ACTION_PATH"
+    },
+    {
+      "reveal_id": "REV-11",
+      "scene_order": 8,
+      "fact_id": "FACT-07",
+      "information": "구조 뒤 무단 시험과 보호성 거짓말이 함께 구조 지연 기록에 남는다.",
+      "effect": "FINAL_REFRAME"
+    }
+  ]
+}

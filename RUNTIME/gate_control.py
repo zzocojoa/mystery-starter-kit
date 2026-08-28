@@ -5,7 +5,11 @@ from collections.abc import Mapping, Sequence
 from VALIDATORS.causal_validation import validate_causal_graph
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.continuity import validate_continuity
-from VALIDATORS.editorial import validate_editorial_review
+from VALIDATORS.editorial import (
+    editorial_artifact_hashes,
+    runtime_evidence_issues,
+    validate_editorial_review,
+)
 from VALIDATORS.fact_validation import validate_fact_integrity
 from VALIDATORS.models import GateStatus, ProductionValidationReport, ValidationIssue
 from VALIDATORS.novelty import evaluate_novelty
@@ -354,6 +358,12 @@ def validate_gate(
             *validate_editorial_review(
                 artifact_document(artifacts, "editorial_review"),
                 project_id,
+                editorial_artifact_hashes(artifacts),
+            ),
+            *runtime_evidence_issues(
+                artifact_document(artifacts, "editorial_review"),
+                presentation,
+                artifact_text(artifacts, "panel_reaction_script"),
             ),
         ]
     raise ValueError(f"알 수 없는 Gate입니다: {gate_id}")

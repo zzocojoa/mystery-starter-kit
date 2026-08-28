@@ -1,0 +1,77 @@
+{
+  "$schema": "../../../STANDARD/schemas/story_dna.schema.json",
+  "schema_family": "story-dna",
+  "schema_version": "1.3.0",
+  "project_id": "PRJ-002",
+  "story_source_mode": "ORIGINAL",
+  "story_dna": {
+    "mystery_type": "WHEN",
+    "architecture": "ARCH-02_FALSE_SOLUTION",
+    "protagonist_role": "PARTNER",
+    "perspective": "THIRD_PERSON_LIMITED",
+    "narrator_reliability": "UNRELIABLE_BIAS",
+    "timeline_style": "LOOP",
+    "incident_type": "NO_CRIME",
+    "setting": "HOTEL",
+    "setting_logic": [
+      "MOUNTAIN_SNOW_ISOLATION",
+      "CLOSING_NIGHT_HOTEL",
+      "LEGACY_SERVICE_SHAFT"
+    ],
+    "culprit_structure": "VICTIM_SELF_ENGINEERED",
+    "causal_truth": "안전기사 서유진은 폐업 전날 방화문 결함을 증명하려고 무단 비상훈련을 설계했지만, 전환 전원 때문에 서비스 리프트가 재잠기며 자신이 만든 시험 안에 고립됐다. 파트너 한도윤의 보호성 거짓말과 반복 재생된 순찰 화면이 실제 고립 시각을 스물다섯 분 늦췄다.",
+    "primary_twist": "TW-14_SELF_CREATED_TRAP",
+    "secondary_twists": [
+      "TW-06_RECORDED_PRESENCE"
+    ],
+    "information_mechanism": [
+      "SCHEDULED_PAGER_MESSAGE",
+      "LOOPED_PATROL_EXPORT",
+      "GENERATOR_TRANSFER_LOG"
+    ],
+    "clue_mechanism": [
+      "FROZEN_CLOCK_REFLECTION",
+      "UNUSED_MASTER_KEY",
+      "THERMAL_PIPE_PULSE"
+    ],
+    "motive_class": "PUBLIC_SAFETY_PROOF",
+    "emotional_engine": "TRUST_EROSION",
+    "relationship_engine": {
+      "primary": "PROTECTIVE_LIE",
+      "secondary": [
+        "PARTNERSHIP_TO_ACCOUNTABILITY"
+      ],
+      "protagonist_counterpart_role": "MISSING_SAFETY_ENGINEER"
+    },
+    "pressure_engine": {
+      "source": "LEGAL_THREAT",
+      "escalation": "COUNTDOWN",
+      "stakes": [
+        "INSPECTION_DEADLINE",
+        "GENERATOR_SHUTDOWN",
+        "TRAPPED_LIFE"
+      ]
+    },
+    "dramatic_engine": {
+      "primary": "TRUST_EROSION",
+      "secondary": [
+        "BELIEF_REVERSAL"
+      ],
+      "audience_emotion_curve": [
+        "UNEASE",
+        "SUSPICION",
+        "BETRAYAL",
+        "URGENCY",
+        "ACCOUNTABILITY"
+      ]
+    },
+    "thematic_question": "사랑하는 사람을 지키려는 거짓말은 언제 구조를 늦추는 증거 은폐가 되는가?",
+    "audience_experience": {
+      "initial_belief": "서유진은 23시 17분 순찰 화면 뒤 호텔을 떠나 폭설 속에서 사라졌다.",
+      "midpoint_shift": "23시 17분 화면과 호출은 예약된 기록이므로 실제 고립은 더 일찍 일어났다.",
+      "final_reframe": "실종은 범죄가 아니라 유진의 무단 안전시험, 전환 전원, 도윤의 보호성 거짓말이 겹친 구조 사고였다."
+    },
+    "reveal_mode": "FALSE_EXIT_THEN_TIME_RECONSTRUCTION",
+    "ending_type": "BITTERSWEET"
+  }
+}

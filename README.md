@@ -59,9 +59,11 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 
 `validate`는 현재 파일 집합의 14개 Gate 정합성을 진단하고 `validation_report.json`과 파생 QA Report를 기록한다. `audit`는 같은 Artifact 검증에 Gate별 Process Trace 완전성을 더해 `audit_report.json`에 기록한다. 둘 다 `current_gate`, Project Status, Artifact `CLEAN` 상태나 기존 실행 이력을 바꾸지 않는다. 손상된 State를 Artifact에서 명시적으로 복구할 때만 `rebuild-state PROJECT --force`를 사용하며, 이 명령도 Process Trace나 Human Editorial 승인을 만들어 내지 않는다.
 
-GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Continuity Critic의 `editorial_review.json`이 PASS여도 Human Actor와 Reason을 기록한 `editorial-approve` 전에는 승인되지 않는다. `production-finalize`는 `ARTIFACT_COMPLETE + CONTRACT_VALIDATED + PROCESS_CONFORMANT + EDITORIAL_APPROVED`를 모두 요구한다. `register`는 이 조건으로 확정된 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 성공 `0`, 검증 실패 `1`, 입력·구성·Transaction 오류 `2`다.
+GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Editorial Review v1.1은 검토자·검토 시각·Check별 장면 근거·검토 대상 Artifact Hash를 보존하고, Panel Segment마다 실제 화자와 발화 단어 수를 Script에서 다시 계산한다. `WORD_COUNT_ESTIMATE`는 계획시간을 예상 발화시간과 Replay·Graphic·Reaction Hold 같은 비발화 편집 요소로 완전히 설명해야 한다. `TABLE_READ`와 `RECORDED_AUDIO`는 Segment별 `measured_duration_sec`를 요구한다.
 
-Presentation Contract v2는 `panel_cast.json`, `reaction_segments.json`, Drama/Narration/Panel Reaction Layer Script를 별도 Artifact로 유지한다. `draft_v01.md`와 `final_script.md`는 모든 Segment를 방송 순서대로 한 번씩 포함하고, Edit Script는 계획된 절대 Timecode를 보존한다. Panel Reaction 비율은 선언값이 아니라 Segment `duration_sec` 합으로 계산한다.
+Continuity Critic의 `editorial_review.json`이 PASS여도 이는 기술적 Editorial 검토 결과일 뿐 Human Approval이 아니다. Human Actor와 Reason을 기록한 `editorial-approve` 전에는 승인되지 않는다. `production-finalize`는 `ARTIFACT_COMPLETE + CONTRACT_VALIDATED + PROCESS_CONFORMANT + EDITORIAL_APPROVED`를 모두 요구한다. `register`는 이 조건으로 확정된 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 성공 `0`, 검증 실패 `1`, 입력·구성·Transaction 오류 `2`다.
+
+Presentation Contract v2는 `panel_cast.json`, `reaction_segments.json`, Drama/Narration/Panel Reaction Layer Script를 별도 Artifact로 유지한다. `draft_v01.md`와 `final_script.md`는 모든 Segment를 방송 순서대로 한 번씩 포함하고, Edit Script는 계획된 절대 Timecode를 보존한다. Panel Reaction 비율은 선언값이 아니라 Segment `duration_sec` 합으로 계산한다. 이 계획 비율을 실제 방송 분량으로 오인하지 않도록 Editorial Review의 Runtime Evidence가 예상 또는 실측 발화시간과 나머지 편집시간을 별도로 기록한다.
 
 ## Runtime Core 회귀 모드
 

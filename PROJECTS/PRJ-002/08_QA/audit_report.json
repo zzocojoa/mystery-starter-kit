@@ -1,0 +1,42 @@
+{
+  "schema_family": "process-audit",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-002",
+  "audited_at": "2026-08-28T05:13:00.482774Z",
+  "result": "PASS",
+  "state_unchanged": true,
+  "current_gate": "GATE-13",
+  "project_state": "EDITORIAL_REVIEW_REQUIRED",
+  "artifact_complete": true,
+  "contract_validated": true,
+  "process_conformant": true,
+  "editorial_approved": false,
+  "production_ready": false,
+  "missing_gate_traces": [],
+  "process_revision": 1,
+  "process_issues": [],
+  "trace_count": 22,
+  "validation": {
+    "schema_family": "validation-report",
+    "schema_version": "1.0.0",
+    "project_id": "PRJ-002",
+    "result": "PASS",
+    "gate_results": {
+      "GATE-00": "PASS",
+      "GATE-01": "PASS",
+      "GATE-02": "PASS",
+      "GATE-03": "PASS",
+      "GATE-04": "PASS",
+      "GATE-05": "PASS",
+      "GATE-06": "PASS",
+      "GATE-07": "PASS",
+      "GATE-08": "PASS",
+      "GATE-09": "PASS",
+      "GATE-10": "PASS",
+      "GATE-11": "PASS",
+      "GATE-12": "PASS",
+      "GATE-13": "PASS"
+    },
+    "issues": []
+  }
+}

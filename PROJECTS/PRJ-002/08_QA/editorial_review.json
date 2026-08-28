@@ -1,0 +1,339 @@
+{
+  "$schema": "../../../STANDARD/schemas/editorial_review.schema.json",
+  "schema_family": "editorial-review",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-002",
+  "reviewer": {
+    "reviewer_id": "agent:continuity_critic",
+    "role": "CONTINUITY_CRITIC"
+  },
+  "reviewed_at": "2026-08-28T05:10:00Z",
+  "artifact_hashes": {
+    "actual_timeline": "e7047cd6541369b7c6ff873e90ee5de15f79a7d4cc93f5676f86e1577267948e",
+    "audience_belief": "92194b60da73099cbba14bef2f79b45517263f601f0117507d572086b3b395ab",
+    "edit_script": "9f2c725caf63b3e4d9ac6b6cb81d6d85f271401ca7ebe3437cadd31bd545027f",
+    "final_script": "7ba040990254d63f2b937c9ace6043d223d2452a7b61f60bbe8cabf1513e22a4",
+    "narration": "0b4158a1a4b9fbf09c1edfd5353f3cb0225c589dc4791a2f9544e8790aba9d74",
+    "panel_cast": "621f2a88c9d22ce2a489fb74b287883c8ac605acb54be37ec234c81cdcb8082c",
+    "panel_reaction_script": "2ede32ab90b09134d6c32e208a1b56b07cc40b749f2541f5caaefdcc3e3cc59e",
+    "presentation_plan": "35ffbfb074ac015923b80aedf07d4557b32b78cba02263d502c8434dd96ba56a",
+    "production_panel_reaction_script": "08f54721c30952fcde2085c5c64797169312360a6a0d38d556e6ac9d174b1b85",
+    "reaction_segments": "cdb278b71ca729371551ea153c3c59274e170e087199702827db233ad2fc71db",
+    "shooting_script": "1c790e2a3e1f47a845698e323231509e72e8c2304c4867e735cba35c5c21e7fa",
+    "subtitle_script": "bd52c0eaf8c335ee53744cdccfd5581c4ec75597c288b37b118ca767c7c31124",
+    "viewer_timeline": "21d4129d256bef0a388c2c6f922d481f128224b70267291336b2657ad35b9f7e"
+  },
+  "runtime_evidence": {
+    "method": "WORD_COUNT_ESTIMATE",
+    "reading_rate_wpm": 150,
+    "planned_runtime_sec": 1500,
+    "planned_panel_duration_sec": 325,
+    "estimated_panel_spoken_duration_sec": 136.8,
+    "measured_panel_duration_sec": null,
+    "panel_segments": [
+      {
+        "segment_id": "SEG-003",
+        "reaction_segment_id": "RSEG-001",
+        "planned_duration_sec": 40,
+        "spoken_word_count": 41,
+        "estimated_spoken_duration_sec": 16.4,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10,
+            "notes": "세 번째 순찰 화면을 다시 보여 준다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 9.6,
+            "notes": "호출 도착 시각과 작성 시각을 분리한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 4,
+            "notes": "첫 대안 가설 뒤 세 패널의 반응을 유지한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-005",
+        "reaction_segment_id": "RSEG-002",
+        "planned_duration_sec": 45,
+        "spoken_word_count": 40,
+        "estimated_spoken_duration_sec": 16,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 12,
+            "notes": "봉인 키와 눈에 막힌 외부문을 재생한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 12,
+            "notes": "외부문과 서비스 통로 두 경로를 표시한다."
+          },
+          {
+            "element_type": "CROSS_TALK_PAUSE",
+            "duration_sec": 5,
+            "notes": "반박 뒤 내부 고립 가능성을 생각할 여백을 둔다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-008",
+        "reaction_segment_id": "RSEG-003",
+        "planned_duration_sec": 45,
+        "spoken_word_count": 43,
+        "estimated_spoken_duration_sec": 17.2,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10,
+            "notes": "세 반복의 거울 영역을 겹친다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 12.8,
+            "notes": "고정된 분침과 정상 시계를 비교한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 5,
+            "notes": "캐시 반복 가설을 검토하는 표정을 잡는다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-010",
+        "reaction_segment_id": "RSEG-004",
+        "planned_duration_sec": 50,
+        "spoken_word_count": 45,
+        "estimated_spoken_duration_sec": 18,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 12,
+            "notes": "표시 제목과 원본 시각을 나란히 재생한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 15,
+            "notes": "수색 기준을 스물다섯 분 되감는다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 5,
+            "notes": "도윤의 빈 시간으로 질문을 전환한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-012",
+        "reaction_segment_id": "RSEG-005",
+        "planned_duration_sec": 50,
+        "spoken_word_count": 51,
+        "estimated_spoken_duration_sec": 20.4,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10,
+            "notes": "예약 호출과 거짓 진술을 교차한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 14.6,
+            "notes": "호출, 진술, 서비스 리프트를 세 칸으로 연결한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 5,
+            "notes": "은신에서 고립으로 바뀐 가설을 유지한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-015",
+        "reaction_segment_id": "RSEG-006",
+        "planned_duration_sec": 35,
+        "spoken_word_count": 44,
+        "estimated_spoken_duration_sec": 17.6,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "B_ROLL",
+            "duration_sec": 8,
+            "notes": "구조대의 린넨실 진입을 보여 준다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 6.4,
+            "notes": "발전기 6분 Countdown과 열 펄스를 겹친다."
+          },
+          {
+            "element_type": "TRANSITION",
+            "duration_sec": 3,
+            "notes": "추리에서 수동 해제 구조로 전환한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-017",
+        "reaction_segment_id": "RSEG-007",
+        "planned_duration_sec": 30,
+        "spoken_word_count": 37,
+        "estimated_spoken_duration_sec": 14.8,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 8,
+            "notes": "유진 구조 순간을 존엄성 중심 화면으로 재생한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 4.2,
+            "notes": "보호성 거짓말의 스물다섯 분 지연을 표시한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 3,
+            "notes": "안도와 책임 질문을 함께 남긴다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-020",
+        "reaction_segment_id": "RSEG-008",
+        "planned_duration_sec": 30,
+        "spoken_word_count": 41,
+        "estimated_spoken_duration_sec": 16.4,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 8,
+            "notes": "정정 전후 사건명을 비교한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 3.6,
+            "notes": "네 사람의 서명과 패널 반응을 유지한다."
+          },
+          {
+            "element_type": "TRANSITION",
+            "duration_sec": 2,
+            "notes": "원본 시각에서 End Card로 전환한다."
+          }
+        ]
+      }
+    ]
+  },
+  "result": "PASS",
+  "checks": {
+    "broadcast_format": {
+      "result": "PASS",
+      "evidence": [
+        "07_SCRIPT/final_script.md#SEG-001",
+        "07_SCRIPT/final_script.md#SEG-020"
+      ],
+      "notes": "20개 Segment가 1,500초 시간축을 연속 구성하고 Drama, Narration, Panel Reaction의 출처가 분리돼 있다."
+    },
+    "absolute_time": {
+      "result": "PASS",
+      "evidence": [
+        "03_TIMELINE/actual_timeline.json#EVT-01",
+        "03_TIMELINE/actual_timeline.json#EVT-08",
+        "07_SCRIPT/final_script.md#SEG-016"
+      ],
+      "notes": "22시 40분 호출 예약부터 00시 04분 구조까지 실제 사건 순서를 유지하고 화면 시각은 과거 기록으로 명시한다."
+    },
+    "dialogue_naturalness": {
+      "result": "PASS",
+      "evidence": [
+        "07_SCRIPT/panel_reaction_script.md#SEG-005",
+        "07_SCRIPT/panel_reaction_script.md#SEG-010",
+        "07_SCRIPT/panel_reaction_script.md#SEG-012"
+      ],
+      "notes": "세 패널이 질문, 말 끊기, 반박, 감정 연결을 교차하며 각 Segment에서 하나의 완성문만 낭독하는 구조를 피한다."
+    },
+    "panel_reaction_function": {
+      "result": "PASS",
+      "evidence": [
+        "06_SCENE/reaction_segments.json#RSEG-001",
+        "06_SCENE/reaction_segments.json#RSEG-005",
+        "09_PRODUCTION/panel_reaction_script.md#RSEG-008"
+      ],
+      "notes": "가설 생성, 이상 탐지, 모순 지적, 가설 수정, 긴장 해소, 도덕 판단이 장면 진행에 맞춰 분포한다."
+    },
+    "audience_belief": {
+      "result": "PASS",
+      "evidence": [
+        "03_TIMELINE/audience_belief_timeline.json#scene_order-4",
+        "07_SCRIPT/final_script.md#SEG-011"
+      ],
+      "notes": "유진의 시험과 도윤의 거짓말은 시계 반사와 예약 호출이 공개된 뒤에만 확정해 조기 진실 공개를 막는다."
+    },
+    "shootability": {
+      "result": "PASS",
+      "evidence": [
+        "09_PRODUCTION/shooting_script.md#SEG-003",
+        "09_PRODUCTION/edit_script.md#SEG-020"
+      ],
+      "notes": "모든 Segment에 카메라 또는 편집 지시가 있고 패널 구간은 발화와 비발화 요소가 계획시간을 정확히 채운다."
+    },
+    "victim_dignity": {
+      "result": "PASS",
+      "evidence": [
+        "07_SCRIPT/final_script.md#SEG-016",
+        "09_PRODUCTION/shooting_script.md#SEG-016"
+      ],
+      "notes": "유진을 충격 이미지로 소비하지 않고 자신의 신호와 시험 책임을 설명하는 능동적 생존자로 촬영한다."
+    }
+  },
+  "issues": []
+}

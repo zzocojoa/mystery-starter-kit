@@ -289,7 +289,7 @@ def test_layer_duplication_and_audience_belief_mismatch_are_reported() -> None:
     drama = text_artifact(artifacts, "drama_script")
     panel = text_artifact(artifacts, "panel_reaction_script")
     drama_line = "[FACT:FACT-01] 지안은 기계 로그에서 7분의 공백을 발견한다."
-    panel_line = "7분의 공백이 이탈의 증거인지부터 확인해야 합니다."
+    panel_line = "[PANEL-01] 7분의 공백이 이탈의 증거인지부터 확인해야 합니다."
     duplication_codes = issue_codes(
         narration_duplication_issues(
             drama,
