@@ -2,6 +2,9 @@
 
 import ast
 import asyncio
+import os
+import subprocess
+import sys
 from pathlib import Path
 from typing import cast
 
@@ -21,6 +24,43 @@ from RUNTIME.tools.broker import invoke_tool, tool_definitions
 from VALIDATORS.io import load_json_object
 
 from .support import ROOT, create_runtime_project, create_runtime_repository
+
+
+def run_import_probe(source: str) -> subprocess.CompletedProcess[str]:
+    """새 Python Process에서 Import 순서 독립성을 검사한다."""
+    environment: dict[str, str] = dict(os.environ)
+    environment["PYTHONPATH"] = str(ROOT)
+    return subprocess.run(
+        [sys.executable, "-c", source],
+        cwd=ROOT,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def test_gate_transaction_import_does_not_require_engine_preload() -> None:
+    """Gate Transaction은 Runtime Engine 선행 Import 없이 로드되어야 한다."""
+    result = run_import_probe(
+        "from VALIDATORS.gate_transaction import audit_project; "
+        "print(audit_project.__name__)"
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "audit_project"
+
+
+def test_runtime_package_keeps_public_callable_exports() -> None:
+    """Runtime Package 공개 함수는 지연 Import 이후에도 호출 가능해야 한다."""
+    result = run_import_probe(
+        "from RUNTIME import build_execution_plan, execute_run, resume_run; "
+        "print(all(callable(value) for value in "
+        "(build_execution_plan, execute_run, resume_run)))"
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "True"
 
 
 def test_runtime_contracts_cross_validate_all_authorities() -> None:
