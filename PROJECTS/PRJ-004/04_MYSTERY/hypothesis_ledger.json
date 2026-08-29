@@ -1,0 +1,35 @@
+{
+  "project_id": "PRJ-004",
+  "hypotheses": [
+    {
+      "hypothesis_id": "HYP-01",
+      "status": "REJECTED",
+      "claim": "서지안이 민서의 오디션을 돕기 위해 기증 바이올린을 훔치고 젖은 케이스 이야기를 꾸몄다."
+    },
+    {
+      "hypothesis_id": "HYP-02",
+      "status": "REJECTED",
+      "claim": "장민서가 기증 바이올린을 자기 악기와 바꿔 오디션에 쓰려 했고 지안이 이를 감쌌다."
+    },
+    {
+      "hypothesis_id": "HYP-03",
+      "status": "REJECTED",
+      "claim": "누군가 자산표만 보고 검은 학교 케이스를 실수로 가져갔으며 내용물의 소유가 다른 줄 몰랐다."
+    },
+    {
+      "hypothesis_id": "HYP-04",
+      "status": "REJECTED",
+      "claim": "최동수가 개인 택배 통로를 이용해 악기 반출을 돕거나 직접 숨겼다."
+    },
+    {
+      "hypothesis_id": "HYP-05",
+      "status": "SUPPORTED",
+      "claim": "기증 바이올린은 신고 시점보다 앞서 학교에서 빠져 있었고 검은 케이스의 내용물은 대체 악기였다."
+    },
+    {
+      "hypothesis_id": "HYP-06",
+      "status": "CONFIRMED",
+      "claim": "배혜린과 오주리가 특혜 대여·파손·오반출을 숨기려고 소유 표현과 증언을 맞춰 서지안을 절도범으로 만들었다."
+    }
+  ]
+}

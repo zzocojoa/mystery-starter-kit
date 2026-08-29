@@ -1,0 +1,304 @@
+{
+  "project_id": "PRJ-004",
+  "events": [
+    {
+      "event_id": "EVT-01",
+      "start_minute": 970,
+      "end_minute": 980,
+      "location_id": "LOC-SCHOOL-MUSIC",
+      "participant_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "[2026-04-23 16:10 KST] 배혜린이 학교 승인 없이 기증 바이올린을 오주리에게 건네 오해인의 개인 오디션에 쓰게 한다."
+    },
+    {
+      "event_id": "EVT-02",
+      "start_minute": 19860,
+      "end_minute": 19870,
+      "location_id": "LOC-OH-HOME",
+      "participant_ids": [
+        "CHAR-04"
+      ],
+      "description": "[2026-05-06 19:00 KST] 오주리가 딸이 사용한 기증 바이올린 아래 옆판의 파손을 확인한다."
+    },
+    {
+      "event_id": "EVT-03",
+      "start_minute": 20775,
+      "end_minute": 20790,
+      "location_id": "LOC-REPAIR-SHOP",
+      "participant_ids": [
+        "CHAR-04",
+        "CHAR-06"
+      ],
+      "description": "[2026-05-07 10:15 KST] 오주리가 나은주에게 현금을 주고 공식 의뢰서 없이 기증 바이올린 수리를 맡긴다. 나은주는 기증 명판 문구와 파손 부위를 종이 수리표에 적는다."
+    },
+    {
+      "event_id": "EVT-04",
+      "start_minute": 31180,
+      "end_minute": 31190,
+      "location_id": "LOC-SCHOOL-MUSIC",
+      "participant_ids": [
+        "CHAR-03"
+      ],
+      "description": "[2026-05-14 15:40 KST] 재고 점검을 앞둔 배혜린이 기증품 부재를 감추려고 오해인의 개인 바이올린을 학교 자산표가 붙은 검은 케이스에 넣는다."
+    },
+    {
+      "event_id": "EVT-05",
+      "start_minute": 31200,
+      "end_minute": 31208,
+      "location_id": "LOC-SCHOOL-MUSIC",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "[2026-05-14 16:00 KST] 장민서가 비에 젖어 지퍼가 벌어진 천 케이스와 가족 바이올린을 들고 음악실에 도착한다."
+    },
+    {
+      "event_id": "EVT-06",
+      "start_minute": 31208,
+      "end_minute": 31225,
+      "location_id": "LOC-SCHOOL-MUSIC",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "[2026-05-14 16:08 KST] 서지안과 장민서가 젖은 케이스를 말리기 위해 내용물을 바꾼다. 민서의 가족 바이올린과 파란 실 활은 검은 학교 케이스로, 오해인의 개인 바이올린은 붉은 보관 케이스로 옮겨진다."
+    },
+    {
+      "event_id": "EVT-07",
+      "start_minute": 31225,
+      "end_minute": 31235,
+      "location_id": "LOC-SCHOOL-CORRIDOR",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "[2026-05-14 16:25 KST] 지안이 '젖은 가방에서 오늘 빼야 해요'라고 말하고 천 케이스를 수선하러 가져간다. 두 사람은 비공식 오디션을 숨기기로 한다."
+    },
+    {
+      "event_id": "EVT-08",
+      "start_minute": 31315,
+      "end_minute": 31320,
+      "location_id": "LOC-PHONE-CALL",
+      "participant_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "[2026-05-14 17:55 KST] 배혜린이 오주리에게 재고 점검 전에 '검은 케이스'를 가져가라고 지시한다. 그녀는 지안과 민서가 내용물을 다시 바꾼 사실을 모른다."
+    },
+    {
+      "event_id": "EVT-09",
+      "start_minute": 31325,
+      "end_minute": 31332,
+      "location_id": "LOC-SCHOOL-ENTRY",
+      "participant_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "description": "[2026-05-14 18:05 KST] 오주리가 음악실에서 검은 하드 케이스를 들고 나간다. 개인 택배를 받던 최동수가 18:12에 그녀의 퇴장을 본다."
+    },
+    {
+      "event_id": "EVT-10",
+      "start_minute": 31362,
+      "end_minute": 31368,
+      "location_id": "LOC-OH-HOME",
+      "participant_ids": [
+        "CHAR-04"
+      ],
+      "description": "[2026-05-14 18:42 KST] 오주리가 검은 케이스를 열고 파란 실 활과 외할머니의 자수 천을 보아 딸의 악기가 아니라 장민서의 악기임을 알아챈다."
+    },
+    {
+      "event_id": "EVT-11",
+      "start_minute": 31380,
+      "end_minute": 31398,
+      "location_id": "LOC-PHONE-CALL",
+      "participant_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "[2026-05-14 19:00 KST] 배혜린과 오주리가 특혜 대여와 오반출을 바로잡는 대신 기증 바이올린 도난 신고를 만들어 서지안에게 책임을 돌리기로 합의한다."
+    },
+    {
+      "event_id": "EVT-12",
+      "start_minute": 31445,
+      "end_minute": 31455,
+      "location_id": "LOC-SCHOOL-OFFICE",
+      "participant_ids": [
+        "CHAR-03"
+      ],
+      "description": "[2026-05-14 20:05 KST] 배혜린이 학교에 기증 바이올린과 검은 케이스가 사라졌다고 허위 보고하며 지안의 말을 절도 계획처럼 인용한다."
+    },
+    {
+      "event_id": "EVT-13",
+      "start_minute": 32150,
+      "end_minute": 32165,
+      "location_id": "LOC-SCHOOL-OFFICE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "description": "[2026-05-15 07:50 KST] 학교 조사가 시작되고 배혜린은 자산표가 붙은 케이스와 기증 바이올린을 같은 물건처럼 설명한다."
+    },
+    {
+      "event_id": "EVT-14",
+      "start_minute": 32165,
+      "end_minute": 32180,
+      "location_id": "LOC-SCHOOL-OFFICE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03",
+        "CHAR-05"
+      ],
+      "description": "[2026-05-15 08:05 KST] 지안의 가방에서 학교 어깨받침이 발견된다. 수선 목록은 확인되지 않은 채 절도 물증으로 취급된다."
+    },
+    {
+      "event_id": "EVT-15",
+      "start_minute": 32240,
+      "end_minute": 32255,
+      "location_id": "LOC-SCHOOL-PRACTICE",
+      "participant_ids": [
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "description": "[2026-05-15 09:20 KST] 장민서가 장학 추천을 잃을까 두려워 전날 지안과 따로 만난 사실을 부인한다."
+    },
+    {
+      "event_id": "EVT-16",
+      "start_minute": 32310,
+      "end_minute": 32325,
+      "location_id": "LOC-SCHOOL-OFFICE",
+      "participant_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "[2026-05-15 10:30 KST] 오주리가 조사에서 공개되지 않은 파란 실 활을 '학교 활'이라고 부르고, 배혜린은 검은 케이스를 '해인이 케이스'라고 했다가 말을 고친다."
+    },
+    {
+      "event_id": "EVT-17",
+      "start_minute": 32360,
+      "end_minute": 32370,
+      "location_id": "LOC-SCHOOL-ENTRY",
+      "participant_ids": [
+        "CHAR-05"
+      ],
+      "description": "[2026-05-15 11:20 KST] 최동수가 개인 택배 수령을 숨기려고 전날 학부모 출입이 없었다고 거짓말한다."
+    },
+    {
+      "event_id": "EVT-18",
+      "start_minute": 32430,
+      "end_minute": 32450,
+      "location_id": "LOC-SCHOOL-PRACTICE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "[2026-05-15 12:30 KST] 지안이 케이스 교체와 비공식 오디션 지원을 먼저 인정하고, 민서도 자신의 거짓말을 바로잡는다."
+    },
+    {
+      "event_id": "EVT-19",
+      "start_minute": 32470,
+      "end_minute": 32485,
+      "location_id": "LOC-SCHOOL-MUSIC",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "description": "[2026-05-15 13:10 KST] 붉은 학교 보관 케이스에서 오해인의 개인 바이올린이 발견되어 검은 케이스의 내용물이 이미 대체품이었다는 의문이 생긴다."
+    },
+    {
+      "event_id": "EVT-20",
+      "start_minute": 32540,
+      "end_minute": 32555,
+      "location_id": "LOC-REPAIR-SHOP",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-06"
+      ],
+      "description": "[2026-05-15 14:20 KST] 지안이 은하악기사를 찾아가지만 나은주는 무서류 수리 책임을 피하려 접수 사실을 부인한다."
+    },
+    {
+      "event_id": "EVT-21",
+      "start_minute": 32585,
+      "end_minute": 32605,
+      "location_id": "LOC-REPAIR-SHOP",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-06"
+      ],
+      "description": "[2026-05-15 15:05 KST] 나은주가 사건 전 접수일·기증 명판 문구·오주리 성이 적힌 원본 수리표와 수리 중인 기증 바이올린을 내놓는다."
+    },
+    {
+      "event_id": "EVT-22",
+      "start_minute": 32650,
+      "end_minute": 32665,
+      "location_id": "LOC-SCHOOL-ENTRY",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-05"
+      ],
+      "description": "[2026-05-15 16:10 KST] 최동수가 개인 택배 장부를 내놓고 오주리가 전날 검은 케이스를 들고 나갔다고 진술을 정정한다."
+    },
+    {
+      "event_id": "EVT-23",
+      "start_minute": 32700,
+      "end_minute": 32725,
+      "location_id": "LOC-COMMUNITY-CENTER",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "description": "[2026-05-15 17:00 KST] 지안과 민서가 세 악기와 다섯 케이스 이동을 표식·수리표·목격 진술로 재구성해 기증품은 애초 학교에 없었고 오주리가 민서의 악기를 가져갔음을 확인한다."
+    },
+    {
+      "event_id": "EVT-24",
+      "start_minute": 32740,
+      "end_minute": 32770,
+      "location_id": "LOC-COMMUNITY-CENTER",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "[2026-05-15 17:40 KST] 공개 조사에서 지안은 오주리의 선행지식과 배혜린의 소유 표현을 짚는다. 두 책임자는 장황한 자백이 아니라 이미 공개된 독립 증거들로 반박 불가능한 상태가 된다."
+    },
+    {
+      "event_id": "EVT-25",
+      "start_minute": 32770,
+      "end_minute": 32785,
+      "location_id": "LOC-COMMUNITY-CENTER",
+      "participant_ids": [
+        "CHAR-02",
+        "CHAR-04"
+      ],
+      "description": "[2026-05-15 18:10 KST] 오주리가 장민서의 가족 바이올린을 돌려준다. 민서는 꽃잎 긁힘과 파란 실 활을 직접 확인한다."
+    },
+    {
+      "event_id": "EVT-26",
+      "start_minute": 32830,
+      "end_minute": 32850,
+      "location_id": "LOC-SCHOOL-OFFICE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "[2026-05-15 19:10 KST] 배혜린은 오케스트라 업무에서 배제되고 오주리의 후원 권한은 중지된다. 지안은 누명에서 벗어나지만 보호성 침묵의 책임을 인정하고 계약 종료 뒤 떠나기로 한다."
+    },
+    {
+      "event_id": "EVT-27",
+      "start_minute": 54120,
+      "end_minute": 54135,
+      "location_id": "LOC-COMMUNITY-CENTER",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "[2026-05-30 14:00 KST] 민서가 되찾은 가족 바이올린으로 공개 오디션을 치르고, 지안은 누구에게도 문이 잠기지 않은 복도에서 연주를 듣는다."
+    }
+  ]
+}

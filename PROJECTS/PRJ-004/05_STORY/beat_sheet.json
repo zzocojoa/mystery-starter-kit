@@ -1,0 +1,56 @@
+{
+  "project_id": "PRJ-004",
+  "architecture": "ARCH-03_DUAL_INQUIRY",
+  "beats": [
+    {
+      "beat_id": "BEAT-01",
+      "type": "ACCUSATION_LOCK",
+      "purpose": "학교 내부 조사에서 케이스 자산표, 지안의 모호한 문장, 가방 속 어깨받침을 결합해 가장 그럴듯한 초기 혐의를 만든다. 감정 상태는 일상 업무에서 공개적 방어로 급변한다."
+    },
+    {
+      "beat_id": "BEAT-02",
+      "type": "PRIVATE_OWNERSHIP_SEED",
+      "purpose": "민서의 가족 바이올린과 꽃잎 긁힘·파란 실 활·자수 천을 먼저 보여 준다. 학교 자산과 개인 소유가 병렬로 존재함을 관객이 기억하게 한다."
+    },
+    {
+      "beat_id": "BEAT-03",
+      "type": "WITNESS_LANGUAGE_FRICTION",
+      "purpose": "오주리와 배혜린의 사소한 소유 표현 오류를 나란히 배치하고, 최동수의 출입 부인으로 지안 혐의를 유지한다. 정보는 늘지만 결론은 분산된다."
+    },
+    {
+      "beat_id": "BEAT-04",
+      "type": "ALLIED_LIE_PRESSURE",
+      "purpose": "민서의 부인이 지안의 침묵과 충돌하며 둘의 공모 가설을 강화한다. 지안은 학생을 보호할수록 자기 방어가 불가능해지는 선택 압박을 받는다."
+    },
+    {
+      "beat_id": "BEAT-05",
+      "type": "PROTECTIVE_LIE_ADMISSION",
+      "purpose": "지안과 민서가 케이스 교체와 비공식 오디션을 인정한다. 초기 문장의 의미와 어깨받침 Red Herring은 해소되지만, 검은 케이스를 실제로 다룬 기회는 확인되어 긴장을 유지한다."
+    },
+    {
+      "beat_id": "BEAT-06",
+      "type": "MIDPOINT_OBJECT_REVERSAL",
+      "purpose": "붉은 보관 케이스에서 해인의 개인 바이올린이 나오며, 신고 대상이 지안의 행동보다 먼저 학교에서 사라졌을 가능성을 연다. 첫 조사 축이 케이스에서 내용물로 전환된다."
+    },
+    {
+      "beat_id": "BEAT-07",
+      "type": "PARALLEL_DOCUMENT_INQUIRY",
+      "purpose": "학교 밖 수리점 조사에서 파손과 현금 의뢰, 사건 전 종이 수리표를 발견한다. 두 번째 조사 축이 기증품의 과거 이동을 복원하고 오주리에게 독립 동기를 부여한다."
+    },
+    {
+      "beat_id": "BEAT-08",
+      "type": "WITNESS_CORRECTION",
+      "purpose": "최동수가 작은 규정 위반을 공개하고 오주리의 반출을 증언한다. 지안 절도 가설은 무너지지만 오반출이 실수인지 고의인지 마지막 확인 과제가 남는다."
+    },
+    {
+      "beat_id": "BEAT-09",
+      "type": "CUSTODY_CHAIN_REVEAL",
+      "purpose": "세 악기와 케이스 이동을 재구성하고, 파란 실 활에 대한 선행지식·수리표·목격을 교차시킨다. 배혜린과 오주리의 공모는 자백이 아니라 이미 본 정보의 새 의미로 확정된다."
+    },
+    {
+      "beat_id": "BEAT-10",
+      "type": "BITTERSWEET_OWNERSHIP_RETURN",
+      "purpose": "악기와 연주 기회는 민서에게 돌아가고 지안은 누명에서 벗어나지만 보호성 침묵의 책임을 인정한다. 법적 책임과 관계의 도덕적 책임을 분리해 마무리한다."
+    }
+  ]
+}

@@ -1,0 +1,208 @@
+{
+  "project_id": "PRJ-004",
+  "reveals": [
+    {
+      "reveal_id": "REVEAL-01",
+      "scene_id": "SCN-01",
+      "fact_id": "FACT-01",
+      "information": "자산표는 검은 케이스 겉면에만 붙어 있다.",
+      "effect": "케이스와 내용물의 소유를 관객이 처음에는 같은 것으로 받아들인다."
+    },
+    {
+      "reveal_id": "REVEAL-02",
+      "scene_id": "SCN-01",
+      "fact_id": "FACT-02",
+      "information": "도난 신고 대상은 동문이 기증한 학교 공동 바이올린이다.",
+      "effect": "서지안의 고용과 공공 자산 책임이 걸린다."
+    },
+    {
+      "reveal_id": "REVEAL-03",
+      "scene_id": "SCN-01",
+      "fact_id": "FACT-18",
+      "information": "배혜린이 지안의 '젖은 가방에서 오늘 빼야 해요'라는 말을 인용한다.",
+      "effect": "일상 문장이 절도 계획처럼 들린다."
+    },
+    {
+      "reveal_id": "REVEAL-04",
+      "scene_id": "SCN-01",
+      "fact_id": "FACT-24",
+      "information": "지안의 가방에서 학교 어깨받침이 나오지만 수선 목록에 있던 공용 물품이다.",
+      "effect": "물증처럼 보이되 단독 확정은 불가능하다."
+    },
+    {
+      "reveal_id": "REVEAL-05",
+      "scene_id": "SCN-02",
+      "fact_id": "FACT-08",
+      "information": "민서의 가족 바이올린은 외할머니에게 물려받은 개인 악기다.",
+      "effect": "기증품과 별개의 두 번째 소유권 축을 세운다."
+    },
+    {
+      "reveal_id": "REVEAL-06",
+      "scene_id": "SCN-02",
+      "fact_id": "FACT-09",
+      "information": "가족 바이올린과 활에는 꽃잎 긁힘, 파란 실, 자수 천이 있다.",
+      "effect": "나중에 소유자를 확인할 비기술 표식이 공정하게 선행 배치된다."
+    },
+    {
+      "reveal_id": "REVEAL-07",
+      "scene_id": "SCN-03",
+      "fact_id": "FACT-19",
+      "information": "오주리가 공개되지 않은 파란 실 활을 '학교 활'이라고 부른다.",
+      "effect": "작은 말실수가 선행지식의 가능성을 만든다."
+    },
+    {
+      "reveal_id": "REVEAL-08",
+      "scene_id": "SCN-03",
+      "fact_id": "FACT-20",
+      "information": "배혜린이 검은 케이스를 '해인이 케이스'라고 했다가 '학교 케이스'로 고친다.",
+      "effect": "교사가 케이스를 특정 학생 소유처럼 알고 있었음을 암시한다."
+    },
+    {
+      "reveal_id": "REVEAL-09",
+      "scene_id": "SCN-04",
+      "fact_id": "FACT-13",
+      "information": "민서가 전날 지안과 따로 만난 사실을 부인한다.",
+      "effect": "민서와 지안의 공모 가설이 강해진다."
+    },
+    {
+      "reveal_id": "REVEAL-10",
+      "scene_id": "SCN-05",
+      "fact_id": "FACT-10",
+      "information": "지안과 민서가 젖은 천 케이스를 말리려고 악기의 케이스를 바꿨다.",
+      "effect": "지안의 침묵은 확인되지만 절도 목적은 재검토된다."
+    },
+    {
+      "reveal_id": "REVEAL-11",
+      "scene_id": "SCN-05",
+      "fact_id": "FACT-11",
+      "information": "교체 뒤 민서 악기는 검은 케이스, 다른 악기는 붉은 케이스에 들어갔다.",
+      "effect": "케이스 표식과 내용물의 분리가 명시된다."
+    },
+    {
+      "reveal_id": "REVEAL-12",
+      "scene_id": "SCN-05",
+      "fact_id": "FACT-12",
+      "information": "지안은 민서의 비공식 오디션을 보호하려 교체 사실을 숨겼다.",
+      "effect": "거짓말의 이유가 범행과 분리된다."
+    },
+    {
+      "reveal_id": "REVEAL-13",
+      "scene_id": "SCN-06",
+      "fact_id": "FACT-25",
+      "information": "붉은 보관 케이스에서 오해인의 개인 바이올린이 나온다.",
+      "effect": "지안이 기증품을 붉은 케이스에 숨겼다는 단순 해석이 무너진다."
+    },
+    {
+      "reveal_id": "REVEAL-14",
+      "scene_id": "SCN-07",
+      "fact_id": "FACT-04",
+      "information": "기증 명판이 달린 바이올린의 아래 옆판이 사건 전에 파손됐다.",
+      "effect": "도난 이전의 별도 사건이 드러난다."
+    },
+    {
+      "reveal_id": "REVEAL-15",
+      "scene_id": "SCN-07",
+      "fact_id": "FACT-05",
+      "information": "오주리가 학교에 알리지 않고 현금 수리를 의뢰했다.",
+      "effect": "오주리에게 독립적인 은폐 동기가 생긴다."
+    },
+    {
+      "reveal_id": "REVEAL-16",
+      "scene_id": "SCN-07",
+      "fact_id": "FACT-21",
+      "information": "종이 수리표에 기증 명판 문구, 파손 부위, 오주리 성, 사건 전 접수일이 함께 있다.",
+      "effect": "기술 로그가 아닌 동시 기입 문서가 기증품의 사전 부재를 지지한다."
+    },
+    {
+      "reveal_id": "REVEAL-17",
+      "scene_id": "SCN-07",
+      "fact_id": "FACT-22",
+      "information": "나은주는 무서류 수리 책임 때문에 처음 접수 사실을 숨겼다.",
+      "effect": "수리점 주인의 거짓말이 범행보다 자기보호였음이 해소된다."
+    },
+    {
+      "reveal_id": "REVEAL-18",
+      "scene_id": "SCN-08",
+      "fact_id": "FACT-15",
+      "information": "오주리가 사건 당일 18:12에 검은 케이스를 들고 학교를 나갔다.",
+      "effect": "반출 주체가 지안에서 오주리로 이동한다."
+    },
+    {
+      "reveal_id": "REVEAL-19",
+      "scene_id": "SCN-08",
+      "fact_id": "FACT-23",
+      "information": "최동수는 개인 택배를 감추려 출입을 부인했지만 오주리의 퇴장을 보았다.",
+      "effect": "시설 담당자의 거짓말이 해소되고 독립 목격이 확보된다."
+    },
+    {
+      "reveal_id": "REVEAL-20",
+      "scene_id": "SCN-09",
+      "fact_id": "FACT-03",
+      "information": "배혜린이 기증 바이올린을 오해인에게 무단 대여했다.",
+      "effect": "인과의 시작과 교사의 동기가 공개된다."
+    },
+    {
+      "reveal_id": "REVEAL-21",
+      "scene_id": "SCN-09",
+      "fact_id": "FACT-06",
+      "information": "기증 바이올린은 사건 당일 내내 수리점에 있었다.",
+      "effect": "Central Mystery의 위치 질문이 확정된다."
+    },
+    {
+      "reveal_id": "REVEAL-22",
+      "scene_id": "SCN-09",
+      "fact_id": "FACT-07",
+      "information": "배혜린은 기증품의 부재를 감추려고 오해인의 개인 바이올린을 검은 학교 케이스에 넣었다.",
+      "effect": "붉은 케이스에서 나온 악기가 왜 학교 케이스에 있었는지 확정된다."
+    },
+    {
+      "reveal_id": "REVEAL-23",
+      "scene_id": "SCN-09",
+      "fact_id": "FACT-14",
+      "information": "배혜린이 오주리에게 검은 케이스 회수를 지시했다.",
+      "effect": "오반출의 기회와 두 사람의 연결이 드러난다."
+    },
+    {
+      "reveal_id": "REVEAL-24",
+      "scene_id": "SCN-09",
+      "fact_id": "FACT-16",
+      "information": "오주리는 집에서 민서의 표식을 보고 다른 학생 악기임을 알았다.",
+      "effect": "단순 실수 가설이 고의 은폐로 수정된다."
+    },
+    {
+      "reveal_id": "REVEAL-25",
+      "scene_id": "SCN-09",
+      "fact_id": "FACT-17",
+      "information": "배혜린과 오주리가 허위 도난 신고와 지안 프레임에 합의했다.",
+      "effect": "이중 책임 구조가 확인된다."
+    },
+    {
+      "reveal_id": "REVEAL-26",
+      "scene_id": "SCN-09",
+      "fact_id": "FACT-26",
+      "information": "오주리의 활 묘사와 수리표가 서로 독립적으로 반출과 사전 수리를 입증한다.",
+      "effect": "자백 없이 최종 진실을 지지한다."
+    },
+    {
+      "reveal_id": "REVEAL-27",
+      "scene_id": "SCN-09",
+      "fact_id": "FACT-27",
+      "information": "두 책임자 모두 동기·수단·기회를 갖췄다.",
+      "effect": "결론이 행위 가능성과 인과 모두에서 닫힌다."
+    },
+    {
+      "reveal_id": "REVEAL-28",
+      "scene_id": "SCN-10",
+      "fact_id": "FACT-28",
+      "information": "악기는 반환되고 책임자들은 권한을 잃지만 지안도 침묵의 책임을 인정한다.",
+      "effect": "법적 무죄와 도덕적 책임을 분리한다."
+    },
+    {
+      "reveal_id": "REVEAL-29",
+      "scene_id": "SCN-10",
+      "fact_id": "FACT-29",
+      "information": "민서가 되찾은 가족 바이올린으로 공개 오디션을 연주한다.",
+      "effect": "소유와 목소리가 원래 주인에게 돌아간다."
+    }
+  ]
+}

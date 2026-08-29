@@ -1,0 +1,346 @@
+{
+  "$schema": "../../../STANDARD/schemas/presentation_plan.schema.json",
+  "schema_family": "presentation-plan",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-004",
+  "modes": [
+    "DRAMA",
+    "NARRATION",
+    "PANEL_REACTION"
+  ],
+  "segments": [
+    {
+      "segment_id": "SEG-001",
+      "segment_type": "NARRATION",
+      "scene_id": "SCN-01",
+      "start_sec": 0,
+      "duration_sec": 30,
+      "source_artifact": "narration_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-002",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-01",
+      "start_sec": 30,
+      "duration_sec": 40,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-01",
+        "FACT-02"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-01"
+      ]
+    },
+    {
+      "segment_id": "SEG-003",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-01",
+      "start_sec": 70,
+      "duration_sec": 45,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-18",
+        "FACT-24"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-02",
+        "CLUE-03"
+      ]
+    },
+    {
+      "segment_id": "SEG-004",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-01",
+      "reaction_segment_id": "RSEG-001",
+      "start_sec": 115,
+      "duration_sec": 40,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-005",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-02",
+      "start_sec": 155,
+      "duration_sec": 45,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-08"
+      ],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-006",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-02",
+      "start_sec": 200,
+      "duration_sec": 50,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-09"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-04"
+      ]
+    },
+    {
+      "segment_id": "SEG-007",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-02",
+      "reaction_segment_id": "RSEG-002",
+      "start_sec": 250,
+      "duration_sec": 40,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-008",
+      "segment_type": "NARRATION",
+      "scene_id": "SCN-03",
+      "start_sec": 290,
+      "duration_sec": 30,
+      "source_artifact": "narration_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-009",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-03",
+      "start_sec": 320,
+      "duration_sec": 100,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-19",
+        "FACT-20"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-05",
+        "CLUE-06",
+        "CLUE-12"
+      ]
+    },
+    {
+      "segment_id": "SEG-010",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-03",
+      "reaction_segment_id": "RSEG-003",
+      "start_sec": 420,
+      "duration_sec": 45,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-011",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-04",
+      "start_sec": 465,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-13"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-07"
+      ]
+    },
+    {
+      "segment_id": "SEG-012",
+      "segment_type": "NARRATION",
+      "scene_id": "SCN-04",
+      "start_sec": 555,
+      "duration_sec": 30,
+      "source_artifact": "narration_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-013",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-05",
+      "start_sec": 585,
+      "duration_sec": 105,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-10",
+        "FACT-11",
+        "FACT-12"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-08"
+      ]
+    },
+    {
+      "segment_id": "SEG-014",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-05",
+      "reaction_segment_id": "RSEG-004",
+      "start_sec": 690,
+      "duration_sec": 40,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-015",
+      "segment_type": "NARRATION",
+      "scene_id": "SCN-06",
+      "start_sec": 730,
+      "duration_sec": 30,
+      "source_artifact": "narration_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-016",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-06",
+      "start_sec": 760,
+      "duration_sec": 95,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-25"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-09"
+      ]
+    },
+    {
+      "segment_id": "SEG-017",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-06",
+      "reaction_segment_id": "RSEG-005",
+      "start_sec": 855,
+      "duration_sec": 45,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-018",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-07",
+      "start_sec": 900,
+      "duration_sec": 100,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-04",
+        "FACT-05",
+        "FACT-21",
+        "FACT-22"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-10",
+        "CLUE-11"
+      ]
+    },
+    {
+      "segment_id": "SEG-019",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-07",
+      "reaction_segment_id": "RSEG-006",
+      "start_sec": 1000,
+      "duration_sec": 45,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-020",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-08",
+      "start_sec": 1045,
+      "duration_sec": 105,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-15",
+        "FACT-23"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-13",
+        "CLUE-14"
+      ]
+    },
+    {
+      "segment_id": "SEG-021",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-08",
+      "reaction_segment_id": "RSEG-007",
+      "start_sec": 1150,
+      "duration_sec": 45,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-022",
+      "segment_type": "NARRATION",
+      "scene_id": "SCN-08",
+      "start_sec": 1195,
+      "duration_sec": 30,
+      "source_artifact": "narration_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-023",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-09",
+      "start_sec": 1225,
+      "duration_sec": 100,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-03",
+        "FACT-06",
+        "FACT-07",
+        "FACT-14",
+        "FACT-16",
+        "FACT-17",
+        "FACT-26",
+        "FACT-27"
+      ],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-024",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-09",
+      "reaction_segment_id": "RSEG-008",
+      "start_sec": 1325,
+      "duration_sec": 45,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-025",
+      "segment_type": "NARRATION",
+      "scene_id": "SCN-10",
+      "start_sec": 1370,
+      "duration_sec": 30,
+      "source_artifact": "narration_script",
+      "revealed_fact_ids": [
+        "FACT-28"
+      ],
+      "revealed_clue_ids": []
+    },
+    {
+      "segment_id": "SEG-026",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-10",
+      "start_sec": 1400,
+      "duration_sec": 100,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-29"
+      ],
+      "revealed_clue_ids": []
+    }
+  ]
+}

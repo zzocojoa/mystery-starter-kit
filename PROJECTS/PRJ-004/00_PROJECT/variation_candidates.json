@@ -1,0 +1,104 @@
+{
+  "project_id": "PRJ-004",
+  "story_seed_hash": "dd9ef24b31dd1c680ca5241cd9bd185486beac7345b250e18db4625d13b57003",
+  "candidate_count": 5,
+  "candidates": [
+    {
+      "candidate_id": "VAR-01",
+      "selection": {
+        "architecture": "ARCH-02_FALSE_SOLUTION",
+        "culprit_structure": "VICTIM_SELF_ENGINEERED",
+        "dramatic_engine": "INEVITABLE_DISCOVERY",
+        "incident_type": "MURDER",
+        "mystery_type": "WHEN",
+        "perspective": "SCREENLIFE",
+        "pressure_engine": "COUNTDOWN",
+        "primary_twist": "TW-14_SELF_CREATED_TRAP",
+        "protagonist_role": "CULPRIT",
+        "relationship_engine": "PROTECTIVE_LIE",
+        "setting": "APARTMENT",
+        "timeline_style": "REAL_TIME"
+      },
+      "signature": "10c339023b1d78e79fa94acd6be48899c68020fe767d016c5226fc99222c57fd",
+      "selection_status": "REJECTED"
+    },
+    {
+      "candidate_id": "VAR-02",
+      "selection": {
+        "architecture": "ARCH-03_DUAL_INQUIRY",
+        "culprit_structure": "DUAL",
+        "dramatic_engine": "TRUST_EROSION",
+        "incident_type": "FALSE_ACCUSATION",
+        "mystery_type": "WHERE",
+        "perspective": "INTERVIEW_BASED",
+        "pressure_engine": "PUBLIC_EXPOSURE",
+        "primary_twist": "TW-01_MISIDENTIFIED_OWNER",
+        "protagonist_role": "EMPLOYEE",
+        "relationship_engine": "BROKEN_TRUST",
+        "setting": "SCHOOL",
+        "timeline_style": "PARALLEL"
+      },
+      "signature": "80afe1a00a624d5510b246cd4efe5b828687df14357dd7347e71c9176486629d",
+      "selection_status": "APPROVED"
+    },
+    {
+      "candidate_id": "VAR-03",
+      "selection": {
+        "architecture": "ARCH-04_REVERSE_CAUSE",
+        "culprit_structure": "SINGLE",
+        "dramatic_engine": "SACRIFICE",
+        "incident_type": "KIDNAPPING",
+        "mystery_type": "WHETHER",
+        "perspective": "DOCUMENTARY",
+        "pressure_engine": "RESOURCE_COLLAPSE",
+        "primary_twist": "TW-03_FALSE_VICTIM",
+        "protagonist_role": "EX_PARTNER",
+        "relationship_engine": "MUTUAL_BLACKMAIL",
+        "setting": "GUESTHOUSE",
+        "timeline_style": "DUAL_TIMELINE"
+      },
+      "signature": "e1062e47a5c8bd867a9988b1ad1b6e5b240f9f71209ed86520583b864b3afc6f",
+      "selection_status": "REJECTED"
+    },
+    {
+      "candidate_id": "VAR-04",
+      "selection": {
+        "architecture": "ARCH-05_BELIEF_COLLAPSE",
+        "culprit_structure": "NO_CULPRIT",
+        "dramatic_engine": "IDENTITY_CRISIS",
+        "incident_type": "DISAPPEARANCE",
+        "mystery_type": "WHAT",
+        "perspective": "FOUND_FOOTAGE",
+        "pressure_engine": "LEGAL_THREAT",
+        "primary_twist": "TW-10_RESOLUTION_CHANGES_INCIDENT",
+        "protagonist_role": "VICTIM_FAMILY",
+        "relationship_engine": "DEPENDENCY",
+        "setting": "FACTORY",
+        "timeline_style": "FLASHBACK_DRIVEN"
+      },
+      "signature": "ff373aa40df15970525ffffe03fc24e43d595142579d19e515f8ce676ba841ee",
+      "selection_status": "REJECTED"
+    },
+    {
+      "candidate_id": "VAR-05",
+      "selection": {
+        "architecture": "ARCH-01_LINEAR_REVEAL",
+        "culprit_structure": "ACCIDENTAL",
+        "dramatic_engine": "BELIEF_REVERSAL",
+        "incident_type": "COVER_UP",
+        "mystery_type": "WHO",
+        "perspective": "MULTIPLE_POV",
+        "pressure_engine": "SOCIAL_ISOLATION",
+        "primary_twist": "TW-14_WITNESS_CAUSED_EVENT",
+        "protagonist_role": "FRIEND",
+        "relationship_engine": "RIVALRY",
+        "setting": "WAREHOUSE",
+        "timeline_style": "LINEAR"
+      },
+      "signature": "76858847b537badd48d3c17e7f36858adde844451cfef615a8a60865d3899af6",
+      "selection_status": "REJECTED"
+    }
+  ],
+  "approved_candidate_id": "VAR-02",
+  "override": null
+}

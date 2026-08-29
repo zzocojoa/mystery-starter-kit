@@ -1,0 +1,324 @@
+{
+  "project_id": "PRJ-004",
+  "source_hash": "ed4d62e29fd1fc02a8783060f31e4fcd73eed8ffe25b5284f3150520f6a9c281",
+  "approved_candidate_id": "VAR-02",
+  "result": "PASS",
+  "candidate_results": [
+    {
+      "candidate_id": "VAR-01",
+      "result": "PASS",
+      "comparisons": [
+        {
+          "project_id": "PRJ-001",
+          "similarity": 15.31,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 100.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 100.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        },
+        {
+          "project_id": "PRJ-002",
+          "similarity": 52.04,
+          "components": {
+            "mystery_type": 100.0,
+            "architecture": 100.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 100.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 100.0,
+            "relationship_engine": 100.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        },
+        {
+          "project_id": "PRJ-003",
+          "similarity": 27.55,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 100.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 100.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 100.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        }
+      ]
+    },
+    {
+      "candidate_id": "VAR-02",
+      "result": "PASS",
+      "comparisons": [
+        {
+          "project_id": "PRJ-001",
+          "similarity": 12.24,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 100.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        },
+        {
+          "project_id": "PRJ-002",
+          "similarity": 8.16,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 100.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        },
+        {
+          "project_id": "PRJ-003",
+          "similarity": 8.16,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 100.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        }
+      ]
+    },
+    {
+      "candidate_id": "VAR-03",
+      "result": "PASS",
+      "comparisons": [
+        {
+          "project_id": "PRJ-001",
+          "similarity": 8.16,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 100.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        },
+        {
+          "project_id": "PRJ-002",
+          "similarity": 0.0,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        },
+        {
+          "project_id": "PRJ-003",
+          "similarity": 32.65,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 100.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "incident_type": 100.0,
+            "setting": 100.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 100.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        }
+      ]
+    },
+    {
+      "candidate_id": "VAR-04",
+      "result": "PASS",
+      "comparisons": [
+        {
+          "project_id": "PRJ-001",
+          "similarity": 39.8,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 100.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 100.0,
+            "relationship_engine": 100.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 100.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        },
+        {
+          "project_id": "PRJ-002",
+          "similarity": 8.16,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 100.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        },
+        {
+          "project_id": "PRJ-003",
+          "similarity": 0.0,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        }
+      ]
+    },
+    {
+      "candidate_id": "VAR-05",
+      "result": "PASS",
+      "comparisons": [
+        {
+          "project_id": "PRJ-001",
+          "similarity": 0.0,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        },
+        {
+          "project_id": "PRJ-002",
+          "similarity": 0.0,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        },
+        {
+          "project_id": "PRJ-003",
+          "similarity": 23.47,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 100.0,
+            "timeline_style": 0.0,
+            "incident_type": 0.0,
+            "setting": 0.0,
+            "culprit_structure": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 100.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        }
+      ]
+    }
+  ],
+  "issues": []
+}

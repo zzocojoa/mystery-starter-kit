@@ -1,0 +1,105 @@
+{
+  "$schema": "../../../STANDARD/schemas/story_dna.schema.json",
+  "schema_family": "story-dna",
+  "schema_version": "1.3.0",
+  "project_id": "PRJ-004",
+  "story_source_mode": "ORIGINAL",
+  "story_dna": {
+    "working_title": "케이스 안의 이름",
+    "logline": "공립중학교의 기증 바이올린이 사라지고 계약직 오케스트라 코디네이터가 절도범으로 몰리자, 그녀는 자신도 숨겨 온 악기 교체를 인정하고 엇갈린 소유격과 인계 행동을 되짚어 누가 왜 다른 학생의 악기를 가져갔는지 밝힌다.",
+    "central_mystery": "도난 신고된 기증 바이올린은 그날 학교에 없었다면 어디에 있었으며, 누가 어떤 악기를 가져가 서지안을 범인으로 만들었는가?",
+    "emotional_question": "누군가를 지키려는 침묵은 언제 그 사람과 자신을 더 위험하게 만드는가?",
+    "mystery_type": "WHERE",
+    "architecture": "ARCH-03_DUAL_INQUIRY",
+    "protagonist_role": "EMPLOYEE",
+    "perspective": "INTERVIEW_BASED",
+    "narrator_reliability": "MULTIPLE_CONFLICTING",
+    "timeline_style": "PARALLEL",
+    "incident_type": "FALSE_ACCUSATION",
+    "setting": "SCHOOL",
+    "setting_logic": [
+      "OPEN_URBAN_CAMPUS",
+      "NEIGHBORHOOD_REPAIR_SHOP",
+      "COMMUNITY_CENTER_REHEARSAL_ROOM"
+    ],
+    "culprit_structure": "DUAL",
+    "causal_truth": "음악교사 배혜린은 후원 유지와 자신의 특혜 대여를 숨기려고 학교 기증 바이올린을 학부모 오주리의 딸에게 반출했고, 오주리는 딸이 악기를 손상하자 동네 수리점에 현금 수리를 맡겼다. 재고 확인 전날 배혜린은 오주리에게 학교 케이스 속 대체 악기를 회수하라고 했지만, 서지안과 장민서가 비를 피하려고 케이스를 바꿔 둔 탓에 오주리는 장민서의 가족 바이올린을 가져갔다. 두 사람은 잘못 가져간 사실을 안 뒤에도 기존 특혜와 손상을 감추기 위해 기증품 도난으로 신고하고 서지안에게 물증과 거짓 증언을 집중시켰다.",
+    "primary_twist": "TW-01_MISIDENTIFIED_OWNER",
+    "information_mechanism": [
+      "CONFLICTING_TESTIMONY",
+      "POSSESSIVE_LANGUAGE",
+      "OBJECT_CUSTODY_CHAIN",
+      "PARTIAL_DISCLOSURE"
+    ],
+    "clue_mechanism": [
+      "RELATIONAL",
+      "LINGUISTIC",
+      "BEHAVIORAL",
+      "TESTIMONIAL",
+      "DOCUMENTARY",
+      "PHYSICAL_OBJECT",
+      "OWNERSHIP",
+      "SOCIAL"
+    ],
+    "motive_class": "STATUS_PROTECTION",
+    "emotional_engine": "PROTECTIVE_SILENCE_VERSUS_PUBLIC_TRUST",
+    "relationship_engine": {
+      "primary": "BROKEN_TRUST",
+      "secondary": [
+        "CLASS_FAVORITISM",
+        "PARENT_TEACHER_COLLUSION",
+        "MENTOR_PROTEGE_SILENCE"
+      ],
+      "protagonist_counterpart_role": "STUDENT_PROTEGE"
+    },
+    "pressure_engine": {
+      "source": "PUBLIC_EXPOSURE",
+      "escalation": "CASCADE",
+      "stakes": [
+        "EMPLOYMENT",
+        "STUDENT_FUTURE",
+        "COMMUNITY_TRUST"
+      ]
+    },
+    "dramatic_engine": {
+      "primary": "TRUST_EROSION",
+      "secondary": [
+        "FALSE_ACCUSATION",
+        "CUSTODY_RECONSTRUCTION"
+      ],
+      "audience_emotion_curve": [
+        "CERTAINTY",
+        "DOUBT",
+        "DIVIDED_SYMPATHY",
+        "RECONTEXTUALIZATION",
+        "MORAL_ANGER",
+        "BITTERSWEET_RELIEF"
+      ]
+    },
+    "thematic_question": "공동체가 믿고 싶은 사람의 말과 정확히 확인해야 할 사실이 충돌할 때, 우리는 누구의 침묵을 죄로 읽는가?",
+    "audience_experience": {
+      "initial_belief": "서지안은 학생을 위한다는 명분으로 학교 악기를 빼돌렸고, 목격자들은 그 사실을 각자 다른 각도에서 보았다고 믿는다.",
+      "midpoint_shift": "서지안이 케이스를 바꾼 사실은 인정하지만 절도 목적은 부정하고, 증언 속 소유격과 물건 묘사가 서로 다른 악기를 가리킨다는 점이 드러난다.",
+      "final_reframe": "도난 신고의 대상부터 잘못 특정되어 있었고, 서지안의 보호성 거짓말은 범행이 아니라 두 책임자가 만든 프레임을 오래 유지시킨 원인이었음을 이해한다."
+    },
+    "audience_position": "CO_INVESTIGATOR",
+    "dramatic_irony": false,
+    "reveal_mode": "CUSTODY_CHAIN_RECONSTRUCTION",
+    "ending_type": "BITTERSWEET",
+    "ending_image": "수리된 장민서의 가족 바이올린이 빈 음악실에서 다시 울리고, 서지안은 닫힌 문밖이 아니라 열린 복도 끝에서 연주를 듣는다.",
+    "locked_constraint_attestation": {
+      "guesthouse_used": false,
+      "lodging_setting_used": false,
+      "closed_group_isolation_used": false,
+      "locked_exit_used": false,
+      "kidnapping_used": false,
+      "disappearance_used": false,
+      "self_staged_event_used": false,
+      "hidden_room_used": false,
+      "live_media_mechanism_used": false,
+      "technical_final_proof_used": false,
+      "countdown_rescue_used": false,
+      "public_record_repair_ending_used": false
+    }
+  }
+}

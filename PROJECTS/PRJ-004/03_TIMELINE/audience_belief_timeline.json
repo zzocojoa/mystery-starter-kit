@@ -1,0 +1,259 @@
+{
+  "project_id": "PRJ-004",
+  "belief_states": [
+    {
+      "scene_id": "SCN-01",
+      "belief": "지안이 기증 바이올린에 손댔고 젖은 가방이라는 말이 사전 계획일 수 있다.",
+      "confidence": 0.66,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-18",
+        "FACT-24"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01"
+      ]
+    },
+    {
+      "scene_id": "SCN-02",
+      "belief": "민서의 별도 개인 악기와 뚜렷한 표식이 있으므로 두 악기를 바꾸려는 공모 가능성도 있다.",
+      "confidence": 0.61,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-08",
+        "FACT-09",
+        "FACT-18",
+        "FACT-24"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-03",
+      "belief": "지안의 행동은 여전히 수상하지만 오주리와 배혜린이 케이스 내부나 이전 소유를 미리 안 듯한 말이 걸린다.",
+      "confidence": 0.52,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-08",
+        "FACT-09",
+        "FACT-18",
+        "FACT-19",
+        "FACT-20",
+        "FACT-24"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02",
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-04",
+      "belief": "민서까지 만남을 부인하므로 지안과 민서가 함께 무엇인가를 숨긴다는 부분은 확실해 보인다.",
+      "confidence": 0.68,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-08",
+        "FACT-09",
+        "FACT-13",
+        "FACT-18",
+        "FACT-19",
+        "FACT-20",
+        "FACT-24"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-05",
+      "belief": "지안은 케이스를 바꾸고 거짓말했지만 목적은 민서 보호였다. 도난은 가능해도 아직 증명되지 않았고 내용물 소유부터 다시 봐야 한다.",
+      "confidence": 0.56,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-18",
+        "FACT-19",
+        "FACT-20",
+        "FACT-24"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-05"
+      ]
+    },
+    {
+      "scene_id": "SCN-06",
+      "belief": "검은 케이스에 있던 것은 애초 기증품이 아니었을 가능성이 높다. 누군가 지안보다 먼저 학교 자산의 부재를 숨겼다.",
+      "confidence": 0.73,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-18",
+        "FACT-19",
+        "FACT-20",
+        "FACT-24",
+        "FACT-25"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03",
+        "HYP-05"
+      ]
+    },
+    {
+      "scene_id": "SCN-07",
+      "belief": "기증품은 사건 전에 파손되어 오주리 이름으로 수리 중이었고, 배혜린 또는 오주리가 그 부재를 감춘 쪽에 가깝다.",
+      "confidence": 0.84,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-04",
+        "FACT-05",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-18",
+        "FACT-19",
+        "FACT-20",
+        "FACT-21",
+        "FACT-22",
+        "FACT-24",
+        "FACT-25"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-05",
+        "HYP-06"
+      ]
+    },
+    {
+      "scene_id": "SCN-08",
+      "belief": "오주리가 검은 케이스를 직접 반출했다. 아직 실수인지 고의인지는 확정할 수 없지만 지안 절도 가설은 거의 무너졌다.",
+      "confidence": 0.86,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-04",
+        "FACT-05",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-15",
+        "FACT-18",
+        "FACT-19",
+        "FACT-20",
+        "FACT-21",
+        "FACT-22",
+        "FACT-23",
+        "FACT-24",
+        "FACT-25"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03",
+        "HYP-05",
+        "HYP-06"
+      ]
+    },
+    {
+      "scene_id": "SCN-09",
+      "belief": "배혜린과 오주리가 무단 대여와 파손을 감추려 잘못 가져온 민서 악기를 붙잡고 지안을 절도범으로 만들었다.",
+      "confidence": 0.98,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-14",
+        "FACT-15",
+        "FACT-16",
+        "FACT-17",
+        "FACT-18",
+        "FACT-19",
+        "FACT-20",
+        "FACT-21",
+        "FACT-22",
+        "FACT-23",
+        "FACT-24",
+        "FACT-25",
+        "FACT-26",
+        "FACT-27"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-05",
+        "HYP-06"
+      ]
+    },
+    {
+      "scene_id": "SCN-10",
+      "belief": "누명은 벗겨졌고 소유는 회복됐지만, 선의의 침묵도 권력자의 거짓말이 자리 잡을 공간을 만들었다.",
+      "confidence": 1.0,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-14",
+        "FACT-15",
+        "FACT-16",
+        "FACT-17",
+        "FACT-18",
+        "FACT-19",
+        "FACT-20",
+        "FACT-21",
+        "FACT-22",
+        "FACT-23",
+        "FACT-24",
+        "FACT-25",
+        "FACT-26",
+        "FACT-27",
+        "FACT-28",
+        "FACT-29"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-06"
+      ]
+    }
+  ]
+}

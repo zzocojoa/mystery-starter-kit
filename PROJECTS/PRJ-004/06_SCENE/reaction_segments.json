@@ -1,0 +1,424 @@
+{
+  "$schema": "../../../STANDARD/schemas/reaction_segments.schema.json",
+  "schema_family": "reaction-segments",
+  "schema_version": "2.1.0",
+  "project_id": "PRJ-004",
+  "reaction_segments": [
+    {
+      "reaction_segment_id": "RSEG-001",
+      "after_scene_id": "SCN-01",
+      "order": 1,
+      "start_sec": 115,
+      "duration_sec": 40,
+      "segment_function": "HYPOTHESIS_GENERATION",
+      "hypothesis_before": "기증 바이올린이 사라졌고 아직 특정 행동 주체가 없다.",
+      "hypothesis_after": "지안이 케이스를 다뤘을 가능성은 높지만 자산표가 내용물 소유까지 증명하는지는 열려 있다.",
+      "tone": "EARLY_SUSPICION",
+      "turns": [
+        {
+          "turn_id": "TURN-001-01",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "말만 들으면 지안 씨가 제일 먼저 걸려요. 빼야 한다고 했고, 학교 부속품도 가방에서 나왔잖아요. 다만 그게 악기를 훔쳤다는 뜻까지 바로 가는지는 모르겠어요.",
+          "evidence_ids": [
+            "CLUE-02",
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-02",
+            "FACT-18",
+            "FACT-24"
+          ],
+          "tone": "CAUTIOUSLY_SUSPICIOUS"
+        },
+        {
+          "turn_id": "TURN-001-02",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "저는 스티커 위치가 먼저 보여요. 학교 표시가 붙은 건 검은 케이스예요. 안에 든 악기가 언제나 같은 것이었다는 증거는 아직 하나도 없습니다.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02"
+          ],
+          "tone": "PRECISE"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-002",
+      "after_scene_id": "SCN-02",
+      "order": 2,
+      "start_sec": 250,
+      "duration_sec": 40,
+      "segment_function": "SUSPECT_DISCUSSION",
+      "hypothesis_before": "지안이 학교 악기를 빼돌렸을 가능성이 우세하다.",
+      "hypothesis_after": "민서의 개인 악기와 학교 기증품이 함께 있었으므로 '빼다'의 대상과 두 사람의 공모 가능성을 따로 봐야 한다.",
+      "tone": "PERSONAL_STAKES",
+      "turns": [
+        {
+          "turn_id": "TURN-002-01",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "민서는 저 긁힘을 흉터가 아니라 꽃잎이라고 부르네요. 파란 실도 직접 감았고요. 저 아이한테는 값보다 누가 물려줬는지가 먼저인 악기예요.",
+          "evidence_ids": [
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-08",
+            "FACT-09"
+          ],
+          "tone": "TENDER"
+        },
+        {
+          "turn_id": "TURN-002-02",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "이제 악기가 둘입니다. 그러면 '젖은 가방에서 빼자'는 말도 어느 악기를 가리켰는지 다시 물어야 해요. 문장은 같아도 대상이 달라지면 의미가 완전히 바뀝니다.",
+          "evidence_ids": [
+            "CLUE-02",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-08",
+            "FACT-09",
+            "FACT-18"
+          ],
+          "tone": "ANALYTICAL"
+        },
+        {
+          "turn_id": "TURN-002-03",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "그래도 지안 씨 가방의 어깨받침은 남아요. 민서 악기가 따로 있다는 사실만으로 학교 물건을 가진 이유까지 설명되지는 않았습니다.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-24"
+          ],
+          "tone": "RESISTANT"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-003",
+      "after_scene_id": "SCN-03",
+      "order": 3,
+      "start_sec": 420,
+      "duration_sec": 45,
+      "segment_function": "ANOMALY_DETECTION",
+      "hypothesis_before": "지안 외 반출자는 없고 다른 증언은 대체로 일치한다.",
+      "hypothesis_after": "오주리와 배혜린은 검은 케이스 내부 또는 이전 소유를 미리 알았을 가능성이 있다.",
+      "tone": "VERBAL_FRICTION",
+      "turns": [
+        {
+          "turn_id": "TURN-003-01",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "잠깐만요. 파란 실 활은 방금 민서 장면에서 우리만 봤어요. 조사에서 공개하지도 않았는데 오주리 씨가 왜 그걸 학교 활이라고 특정하죠?",
+          "evidence_ids": [
+            "CLUE-04",
+            "CLUE-05"
+          ],
+          "known_fact_ids": [
+            "FACT-09",
+            "FACT-19"
+          ],
+          "tone": "ALERT"
+        },
+        {
+          "turn_id": "TURN-003-02",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "그리고 선생님도 '해인이 케이스'라고 했다가 학교 케이스로 고쳤어요. 정말 늘 학교 물건이었다면 특정 학생 이름이 먼저 튀어나올 이유가 없죠.",
+          "evidence_ids": [
+            "CLUE-06"
+          ],
+          "known_fact_ids": [
+            "FACT-20"
+          ],
+          "tone": "SHARP"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-004",
+      "after_scene_id": "SCN-05",
+      "order": 4,
+      "start_sec": 690,
+      "duration_sec": 40,
+      "segment_function": "HYPOTHESIS_REVISION",
+      "hypothesis_before": "지안과 민서가 만남을 숨겼으므로 학교 악기 절도를 공모했다.",
+      "hypothesis_after": "두 사람은 규정 밖 오디션과 케이스 교체를 숨겼지만, 절도 여부는 각 순간의 내용물 소유를 따로 복원해야 한다.",
+      "tone": "REASSESSMENT",
+      "turns": [
+        {
+          "turn_id": "TURN-004-01",
+          "panelist_id": "PANEL-02",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "둘 다 거짓말한 건 맞아요. 그런데 숨기려던 건 도난이 아니라 오디션이었네요. 잘못한 부분과 뒤집어쓴 부분을 이제 분리해서 봐야 해요.",
+          "evidence_ids": [
+            "CLUE-02",
+            "CLUE-07"
+          ],
+          "known_fact_ids": [
+            "FACT-10",
+            "FACT-12",
+            "FACT-13",
+            "FACT-18"
+          ],
+          "tone": "EMPATHETIC_BUT_FIRM"
+        },
+        {
+          "turn_id": "TURN-004-02",
+          "panelist_id": "PANEL-03",
+          "function": "SUSPECT_DISCUSSION",
+          "spoken_line": "반대로 케이스를 실제로 바꿨다는 건 지안 씨에게 기회가 있었다는 뜻이기도 합니다. 선의였다는 설명만으로 악기 위치까지 자동으로 맞지는 않아요.",
+          "evidence_ids": [
+            "CLUE-08"
+          ],
+          "known_fact_ids": [
+            "FACT-10",
+            "FACT-11",
+            "FACT-12"
+          ],
+          "tone": "UNCONVINCED"
+        },
+        {
+          "turn_id": "TURN-004-03",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "맞아요. 질문을 바꾸죠. 누가 검은 케이스를 만졌나가 아니라, 그때마다 안에 어떤 악기가 있었나. 지금부터는 보관 경로 문제입니다.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-08"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-10",
+            "FACT-11"
+          ],
+          "tone": "DECISIVE"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-005",
+      "after_scene_id": "SCN-06",
+      "order": 5,
+      "start_sec": 855,
+      "duration_sec": 45,
+      "segment_function": "HYPOTHESIS_GENERATION",
+      "hypothesis_before": "지안이 교체 과정에서 기증 바이올린을 다른 악기로 바꿨을 수 있다.",
+      "hypothesis_after": "누군가 지안의 교체보다 앞서 해인의 개인 악기를 검은 학교 케이스에 넣고 기증품 부재를 숨겼다.",
+      "tone": "MIDPOINT_REVERSAL",
+      "turns": [
+        {
+          "turn_id": "TURN-005-01",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "붉은 케이스에서 나온 게 해인 악기라면, 지안 씨가 만지기 전 검은 케이스에도 기증품이 없었던 것 아닙니까? 앞선 교체가 하나 더 있었던 거예요.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-09"
+          ],
+          "known_fact_ids": [
+            "FACT-11",
+            "FACT-25"
+          ],
+          "tone": "ENERGIZED"
+        },
+        {
+          "turn_id": "TURN-005-02",
+          "panelist_id": "PANEL-02",
+          "function": "SUSPECT_DISCUSSION",
+          "spoken_line": "그러면 아까 선생님의 '해인이 케이스'라는 말도 달라져요. 케이스를 잘못 부른 게 아니라, 그 안에 넣어 둔 해인 악기를 생각한 말일 수 있겠네요.",
+          "evidence_ids": [
+            "CLUE-06",
+            "CLUE-09"
+          ],
+          "known_fact_ids": [
+            "FACT-20",
+            "FACT-25"
+          ],
+          "tone": "WARY"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-006",
+      "after_scene_id": "SCN-07",
+      "order": 6,
+      "start_sec": 1000,
+      "duration_sec": 45,
+      "segment_function": "HYPOTHESIS_REVISION",
+      "hypothesis_before": "기증품은 학교에서 누군가가 숨겼고 수리점은 도난품 처분에 가담했을 수 있다.",
+      "hypothesis_after": "기증품은 신고 전에 오주리 의뢰로 수리 중이었으며, 도난 신고 자체가 부재 원인을 감추는 장치일 가능성이 높다.",
+      "tone": "DOCUMENT_BREAKTHROUGH",
+      "turns": [
+        {
+          "turn_id": "TURN-006-01",
+          "panelist_id": "PANEL-02",
+          "function": "MORAL_REACTION",
+          "spoken_line": "나은주 씨도 자기 책임 때문에 처음엔 숨겼어요. 범행에 가담한 건 아니어도, 각자 작은 잘못을 지키는 동안 지안 씨한테 큰 잘못이 덮인 거네요.",
+          "evidence_ids": [
+            "CLUE-11"
+          ],
+          "known_fact_ids": [
+            "FACT-22"
+          ],
+          "tone": "SOBER"
+        },
+        {
+          "turn_id": "TURN-006-02",
+          "panelist_id": "PANEL-01",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "수리표 날짜가 도난 신고보다 먼저입니다. 기증 문구, 파손 부위, 오주리 성까지 한 종이에 있어요. 신고 당시 학교에서 훔칠 기증품이 없었다는 뜻입니다.",
+          "evidence_ids": [
+            "CLUE-10"
+          ],
+          "known_fact_ids": [
+            "FACT-04",
+            "FACT-05",
+            "FACT-21"
+          ],
+          "tone": "CERTAIN"
+        },
+        {
+          "turn_id": "TURN-006-03",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "그럼 검은 케이스 도난 신고는 물건 이름부터 틀렸어요. 이제 누가 기증품을 빌려 갔고, 왜 엉뚱한 내용물을 학교 자산이라고 불렀는지 봐야겠죠.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-09",
+            "CLUE-10"
+          ],
+          "known_fact_ids": [
+            "FACT-05",
+            "FACT-21",
+            "FACT-25"
+          ],
+          "tone": "PROBING"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-007",
+      "after_scene_id": "SCN-08",
+      "order": 7,
+      "start_sec": 1150,
+      "duration_sec": 45,
+      "segment_function": "HYPOTHESIS_REVISION",
+      "hypothesis_before": "오주리에게 수리 의뢰 동기는 있지만 검은 케이스 반출자는 확인되지 않았다.",
+      "hypothesis_after": "오주리가 케이스를 반출했고 내부 표식을 미리 말했으므로 잘못된 소유를 안 뒤 숨겼을 가능성이 높다.",
+      "tone": "PRE_REVEAL_PRESSURE",
+      "turns": [
+        {
+          "turn_id": "TURN-007-01",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "최동수 씨 거짓말은 택배 때문이었고, 반출자는 오주리 씨였네요. 다만 여기까지만 보면 딸 악기인 줄 알고 잘못 가져간 실수일 수도 있습니다.",
+          "evidence_ids": [
+            "CLUE-12",
+            "CLUE-13",
+            "CLUE-14"
+          ],
+          "known_fact_ids": [
+            "FACT-15",
+            "FACT-23"
+          ],
+          "tone": "CAUTIOUS"
+        },
+        {
+          "turn_id": "TURN-007-02",
+          "panelist_id": "PANEL-01",
+          "function": "EXPECTATION_BUILDING",
+          "spoken_line": "그 실수 가설을 파란 실이 막습니다. 오주리 씨는 케이스를 열어 보지 않고는 알 수 없는 활을 먼저 말했어요. 언제 열었고, 그 뒤 누구와 말했는지가 마지막 고리예요.",
+          "evidence_ids": [
+            "CLUE-04",
+            "CLUE-05",
+            "CLUE-13"
+          ],
+          "known_fact_ids": [
+            "FACT-09",
+            "FACT-15",
+            "FACT-19",
+            "FACT-23"
+          ],
+          "tone": "FOCUSED"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-008",
+      "after_scene_id": "SCN-09",
+      "order": 8,
+      "start_sec": 1325,
+      "duration_sec": 45,
+      "segment_function": "MORAL_REACTION",
+      "hypothesis_before": "오주리의 고의 은폐는 유력하지만 배혜린과의 공동 허위 신고는 아직 확정되지 않았다.",
+      "hypothesis_after": "무단 대여를 시작한 배혜린과 잘못된 소유를 확인한 오주리가 증언을 맞춰 지안을 누명 씌운 이중 책임이 확정됐다.",
+      "tone": "REVEAL_AFTERSHOCK",
+      "turns": [
+        {
+          "turn_id": "TURN-008-01",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "증거가 서로 기대지 않아요. 수리표는 기증품의 위치를, 최동수 씨는 반출자를, 파란 실 발언은 오주리 씨의 선행지식을 각각 증명합니다. 셋이 같은 경로를 가리켜요.",
+          "evidence_ids": [
+            "CLUE-05",
+            "CLUE-10",
+            "CLUE-13"
+          ],
+          "known_fact_ids": [
+            "FACT-06",
+            "FACT-15",
+            "FACT-16",
+            "FACT-21",
+            "FACT-23",
+            "FACT-26"
+          ],
+          "tone": "RESOLVED"
+        },
+        {
+          "turn_id": "TURN-008-02",
+          "panelist_id": "PANEL-02",
+          "function": "MORAL_REACTION",
+          "spoken_line": "두 사람은 계속 딸과 학교를 지킨다고 말했어요. 그런데 실제로 지운 건 민서의 이름이고, 대신 붙인 이름은 힘이 가장 약한 계약직 지안 씨였네요.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-04",
+            "CLUE-06"
+          ],
+          "known_fact_ids": [
+            "FACT-03",
+            "FACT-16",
+            "FACT-17",
+            "FACT-27"
+          ],
+          "tone": "ANGRY_SAD"
+        },
+        {
+          "turn_id": "TURN-008-03",
+          "panelist_id": "PANEL-03",
+          "function": "TENSION_RELEASE",
+          "spoken_line": "처음부터 케이스 이름만 믿지 않았으면 여기까지 안 왔겠죠. 결국 질문은 단순했어요. 겉에 뭐가 붙었나가 아니라, 안에 든 물건은 누구 것이었나.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-08",
+            "FACT-26"
+          ],
+          "tone": "QUIET_RELEASE"
+        }
+      ]
+    }
+  ]
+}

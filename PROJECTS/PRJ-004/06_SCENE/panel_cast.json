@@ -1,0 +1,51 @@
+{
+  "$schema": "../../../STANDARD/schemas/panel_cast.schema.json",
+  "schema_family": "panel-cast",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-004",
+  "panelists": [
+    {
+      "panelist_id": "PANEL-01",
+      "display_name": "한세진",
+      "persona": "LOGIC_ANALYST",
+      "voice_style": "짧은 문장으로 물건·말·시간을 분리한다. 결론보다 먼저 모순을 한 줄로 짚고, 확인되지 않은 부분은 질문형으로 남긴다.",
+      "allowed_functions": [
+        "ANOMALY_DETECTION",
+        "CONTRADICTION_DETECTION",
+        "HYPOTHESIS_GENERATION",
+        "HYPOTHESIS_REVISION",
+        "EXPECTATION_BUILDING"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    },
+    {
+      "panelist_id": "PANEL-02",
+      "display_name": "윤봄",
+      "persona": "EMOTIONAL_PROXY",
+      "voice_style": "사람이 왜 침묵하거나 말을 바꾸는지 감정과 권력 관계에서 본다. 따뜻하지만 피해를 가볍게 넘기지 않고, 말끝에 도덕적 질문을 남긴다.",
+      "allowed_functions": [
+        "EMOTIONAL_REACTION",
+        "SUSPECT_DISCUSSION",
+        "HYPOTHESIS_REVISION",
+        "MORAL_REACTION",
+        "TENSION_RELEASE"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    },
+    {
+      "panelist_id": "PANEL-03",
+      "display_name": "차도현",
+      "persona": "SKEPTIC",
+      "voice_style": "우세한 설명에 즉시 반례를 던지고, 같은 사실을 다른 동기로 읽는다. 빠르고 건조하지만 확정되지 않은 사람을 범인이라 부르지 않는다.",
+      "allowed_functions": [
+        "HYPOTHESIS_GENERATION",
+        "HYPOTHESIS_REVISION",
+        "CONTRADICTION_DETECTION",
+        "SUSPECT_DISCUSSION",
+        "EXPECTATION_BUILDING",
+        "TENSION_RELEASE"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    }
+  ]
+}

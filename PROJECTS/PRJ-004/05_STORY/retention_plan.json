@@ -1,0 +1,45 @@
+{
+  "project_id": "PRJ-004",
+  "checkpoints": [
+    {
+      "scene_id": "SCN-01",
+      "function": "OPEN_QUESTION: 케이스가 없는데 왜 지안의 가방에서 학교 부속품이 나왔는가를 남기고, 젖은 가방 문장을 절도 계획처럼 들리게 한다."
+    },
+    {
+      "scene_id": "SCN-02",
+      "function": "FAIRNESS_SEED: 민서 악기의 세 소유 표식을 감정적 기억으로 심어 관객이 나중에 스스로 연결할 수 있게 한다."
+    },
+    {
+      "scene_id": "SCN-03",
+      "function": "ANOMALY_CLUSTER: 오주리의 파란 실 활과 배혜린의 해인이 케이스라는 두 말실수를 설명 없이 연속 배치한다."
+    },
+    {
+      "scene_id": "SCN-04",
+      "function": "SOCIAL_PRESSURE: 민서의 부인으로 지안이 학생을 지킬지 자신을 지킬지 선택해야 하는 감정적 벽을 만든다."
+    },
+    {
+      "scene_id": "SCN-05",
+      "function": "HYPOTHESIS_REVISION: 보호성 거짓말은 드러나지만 절도 가설을 완전히 닫지 않아 관객이 동기와 행위를 분리하게 한다."
+    },
+    {
+      "scene_id": "SCN-06",
+      "function": "MIDPOINT_REVERSAL: 붉은 케이스의 해인 악기로 질문을 누가 가져갔나에서 기증품은 언제부터 없었나로 바꾼다."
+    },
+    {
+      "scene_id": "SCN-07",
+      "function": "PARALLEL_PAYOFF: 수리점의 종이 기록이 학교 진술과 충돌하며 오주리의 숨은 관계를 전면에 올린다."
+    },
+    {
+      "scene_id": "SCN-08",
+      "function": "PRE_REVEAL_GAP: 오주리의 반출을 확정하되 그녀가 내용물을 언제 알았는지는 남겨 Possible to deduce but Difficult to confirm 상태를 만든다."
+    },
+    {
+      "scene_id": "SCN-09",
+      "function": "REINTERPRETATION_PAYOFF: 초반의 파란 실과 소유 말실수가 선행지식 증거로 돌아오고 세 비기술 근거가 하나의 보관 경로를 완성한다."
+    },
+    {
+      "scene_id": "SCN-10",
+      "function": "EMOTIONAL_AFTERIMAGE: 닫히지 않은 주민센터 복도와 민서의 연주로 물리적 구조가 아닌 소유와 목소리의 회복을 남긴다."
+    }
+  ]
+}

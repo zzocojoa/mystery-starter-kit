@@ -1,0 +1,417 @@
+{
+  "$schema": "../../../STANDARD/schemas/editorial_review.schema.json",
+  "schema_family": "editorial-review",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-004",
+  "reviewer": {
+    "reviewer_id": "agent:continuity_critic",
+    "role": "CONTINUITY_CRITIC"
+  },
+  "reviewed_at": "2026-08-29T08:04:55.630984Z",
+  "artifact_hashes": {
+    "final_script": "672cb83137aee3b9cb0dacfe6be4d21ccbca408f0298ba33abd7ba869ed3116a",
+    "actual_timeline": "cd40039de4c9561a32801baa3f9183caa7ed1a9007d25f698de18150980ada93",
+    "viewer_timeline": "fbada08c7ef58a2d1097158377083f1a12efd1fbf9ba5f69eb3f734f62027806",
+    "audience_belief": "35fafb5ee51b5fc747174dc44c2972699a2e37f1c3fbcaa45349554115be81d7",
+    "panel_cast": "eee820a5dd2b6acd1c7dc840f0e9181fdf178d7ef03f38a154dd787d6c94c6cc",
+    "reaction_segments": "20c1b89f2edc0c23857aee873dbee4e9bef07e08408805f84fb5136077a660a6",
+    "presentation_plan": "3734923461085ada76f38d6079ec2236173c5dc437ff5f1fb9bfe1c4d3bd1081",
+    "panel_reaction_script": "7bedb881c0f120386975a7da929906928491cc61c46da4f7bc7677d0afc9b48f",
+    "shooting_script": "8b8826c671f0cfbbfeea3ed8e518ca0cc6fec84370d6cf832a1ebf55fc7e6e2e",
+    "narration": "248d16ff4d204605e02a17d58a6bae227d34d3c00599cf04536d491a3be4109b",
+    "production_panel_reaction_script": "ac929763117c3fb712ee1d2aaabe6fadfe025966b39378a9b4712578dcd5cfd0",
+    "subtitle_script": "77eb73f6e4994c85d525cdc7c912d919b219186abb15ea52433919c53b815744",
+    "edit_script": "f16fda4a072a33cb6fa35202d977c3fce9f0828b038185099ddd4b6b85a7b03f"
+  },
+  "runtime_evidence": {
+    "method": "WORD_COUNT_ESTIMATE",
+    "reading_rate_wpm": 150,
+    "planned_runtime_sec": 1500,
+    "planned_panel_duration_sec": 345,
+    "estimated_panel_spoken_duration_sec": 163.2,
+    "measured_panel_duration_sec": null,
+    "panel_segments": [
+      {
+        "segment_id": "SEG-004",
+        "reaction_segment_id": "RSEG-001",
+        "planned_duration_sec": 40,
+        "spoken_word_count": 43,
+        "estimated_spoken_duration_sec": 17.2,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 7,
+            "notes": "어깨받침 발견과 문제 발언을 교차 재생한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 3.8,
+            "notes": "윤봄이 스티커 위치를 확인하는 표정을 유지한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 12,
+            "notes": "케이스 소유와 내부 악기 소유를 분리해 표시한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-007",
+        "reaction_segment_id": "RSEG-002",
+        "planned_duration_sec": 40,
+        "spoken_word_count": 56,
+        "estimated_spoken_duration_sec": 22.4,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "B_ROLL",
+            "duration_sec": 8,
+            "notes": "꽃잎 긁힘, 파란 실, 자수 천을 순서대로 보여 준다."
+          },
+          {
+            "element_type": "CROSS_TALK_PAUSE",
+            "duration_sec": 2.6,
+            "notes": "차도현이 결론을 끊고 반론을 시작하는 호흡이다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 7,
+            "notes": "두 악기와 두 소유권 축을 화면에 정리한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-010",
+        "reaction_segment_id": "RSEG-003",
+        "planned_duration_sec": 45,
+        "spoken_word_count": 38,
+        "estimated_spoken_duration_sec": 15.2,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10,
+            "notes": "파란 실 발언과 해인이 케이스 말실수를 재생한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 10,
+            "notes": "공개 정보와 선행지식의 차이를 정리한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 4,
+            "notes": "패널이 두 말실수의 연결을 확인하는 정적이다."
+          },
+          {
+            "element_type": "TRANSITION",
+            "duration_sec": 5.8,
+            "notes": "학생 조사 장면으로 긴장을 넘긴다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-014",
+        "reaction_segment_id": "RSEG-004",
+        "planned_duration_sec": 40,
+        "spoken_word_count": 54,
+        "estimated_spoken_duration_sec": 21.6,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 8,
+            "notes": "지안과 민서의 교체 행동을 짧게 되짚는다."
+          },
+          {
+            "element_type": "CROSS_TALK_PAUSE",
+            "duration_sec": 3.4,
+            "notes": "선의와 기회의 충돌을 패널 호흡으로 남긴다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 7,
+            "notes": "케이스별 내용물 이동 경로를 갱신한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-017",
+        "reaction_segment_id": "RSEG-005",
+        "planned_duration_sec": 45,
+        "spoken_word_count": 44,
+        "estimated_spoken_duration_sec": 17.6,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 10,
+            "notes": "붉은 케이스에서 나온 해인 악기의 소유를 표시한다."
+          },
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 9,
+            "notes": "배혜린의 해인이 케이스 발언을 다시 들려준다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 4.4,
+            "notes": "말실수의 실제 의미가 바뀌는 반응을 유지한다."
+          },
+          {
+            "element_type": "TRANSITION",
+            "duration_sec": 4,
+            "notes": "수리점 조사로 화면을 전환한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-019",
+        "reaction_segment_id": "RSEG-006",
+        "planned_duration_sec": 45,
+        "spoken_word_count": 63,
+        "estimated_spoken_duration_sec": 25.2,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "B_ROLL",
+            "duration_sec": 7,
+            "notes": "종이 수리표의 필기 항목을 차례로 보여 준다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 8,
+            "notes": "수리 접수와 도난 신고의 선후관계를 정리한다."
+          },
+          {
+            "element_type": "TRANSITION",
+            "duration_sec": 4.8,
+            "notes": "학교 현관 목격 확인으로 이어 간다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-021",
+        "reaction_segment_id": "RSEG-007",
+        "planned_duration_sec": 45,
+        "spoken_word_count": 46,
+        "estimated_spoken_duration_sec": 18.4,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 9,
+            "notes": "오주리 반출 진술과 파란 실 발언을 연결 재생한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 4,
+            "notes": "단순 실수 가설이 흔들리는 표정을 유지한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 9,
+            "notes": "반출 후 케이스 개봉 여부를 질문으로 제시한다."
+          },
+          {
+            "element_type": "TRANSITION",
+            "duration_sec": 4.6,
+            "notes": "공개 조사 장면의 증거 배열로 전환한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-024",
+        "reaction_segment_id": "RSEG-008",
+        "planned_duration_sec": 45,
+        "spoken_word_count": 64,
+        "estimated_spoken_duration_sec": 25.6,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 7,
+            "notes": "수리표, 목격, 파란 실의 독립 근거 세 축을 표시한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 4,
+            "notes": "민서의 이름이 지워졌다는 도덕적 반응을 남긴다."
+          },
+          {
+            "element_type": "TRANSITION",
+            "duration_sec": 8.4,
+            "notes": "후속 조치와 오디션 에필로그로 감정을 낮춘다."
+          }
+        ]
+      }
+    ]
+  },
+  "result": "PASS",
+  "checks": {
+    "broadcast_format": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-023",
+          "excerpt_hash": "77d7aa32da9e6f94c7c65c4ea49a0e0fac78686f824c72a12f8753e79103f3f0"
+        },
+        {
+          "artifact": "edit_script",
+          "selector_type": "DOCUMENT",
+          "selector_id": "edit_script",
+          "excerpt_hash": "f16fda4a072a33cb6fa35202d977c3fce9f0828b038185099ddd4b6b85a7b03f"
+        }
+      ],
+      "notes": "26개 Segment가 방송 순서와 Marker를 보존하고, 최종 Reveal 및 25분 절대 편집표가 실제 대사·행동·전환으로 구성되어 있다."
+    },
+    "absolute_time": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "actual_timeline",
+          "selector_type": "EVENT_ID",
+          "selector_id": "EVT-09",
+          "excerpt_hash": "7eb1766f0826245f44a5695c122f9f70c1fe7b9f83a144502540820b23c3bb45"
+        },
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-018",
+          "excerpt_hash": "76247c3bbb232cd3d819e04e5aad7b37ca439a1782d80df431592bd2a3a5a675"
+        }
+      ],
+      "notes": "오주리의 18:12 반출 목격은 Actual Timeline과 장면 대사에서 일치하며 다른 사건 순서를 침범하지 않는다."
+    },
+    "dialogue_naturalness": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-009",
+          "excerpt_hash": "f50516d26f9556480eb0a733d2804a4733e68c48bda1ebd019bbd53ff4c6c2e2"
+        },
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-020",
+          "excerpt_hash": "3aab7c6d0347c6e6e8675b589df912b810a58d5390d9ba8306a4b637877ea512"
+        }
+      ],
+      "notes": "조사실의 말실수와 현관 담당자의 진술 정정이 각 인물의 압박·비밀·말투에서 발생하며 설명문식 자백에 의존하지 않는다."
+    },
+    "panel_reaction_function": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "reaction_segments",
+          "selector_type": "REACTION_SEGMENT_ID",
+          "selector_id": "RSEG-004",
+          "excerpt_hash": "8fdaeb16844358fffee01c6400528639bf9c3032fe77405dbb3970560b217455"
+        },
+        {
+          "artifact": "panel_reaction_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-014",
+          "excerpt_hash": "5bb8ae16bddbb4d71e5677a452bb2a97c7ef8d190074b8a5d659911bcf350c95"
+        }
+      ],
+      "notes": "패널은 이미 공개된 교체 사실로 가설을 수정하고, 선의와 범행 기회를 분리해 관객의 다음 질문을 만든다."
+    },
+    "audience_belief": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "viewer_timeline",
+          "selector_type": "FACT_ID",
+          "selector_id": "FACT-07",
+          "excerpt_hash": "e6a7c26c8337eaff68d35567cbc21465a97162c929dc51567fb231a52c64cf93"
+        },
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-023",
+          "excerpt_hash": "77d7aa32da9e6f94c7c65c4ea49a0e0fac78686f824c72a12f8753e79103f3f0"
+        }
+      ],
+      "notes": "배혜린의 사전 대체 행위는 SCN-09 전까지 가능성으로만 남고 Reveal 장면에서 독립 단서들과 함께 확정된다."
+    },
+    "shootability": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "shooting_script",
+          "selector_type": "DOCUMENT",
+          "selector_id": "shooting_script",
+          "excerpt_hash": "8b8826c671f0cfbbfeea3ed8e518ca0cc6fec84370d6cf832a1ebf55fc7e6e2e"
+        },
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-018",
+          "excerpt_hash": "76247c3bbb232cd3d819e04e5aad7b37ca439a1782d80df431592bd2a3a5a675"
+        }
+      ],
+      "notes": "10개 Scene의 공간·동선·소품·시선·Insert·Continuity가 촬영 단위로 지정되며 반출 목격 장면도 물리적으로 재현 가능하다."
+    },
+    "victim_dignity": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-025",
+          "excerpt_hash": "9d7cf6339daa5455d4d804daeb568d23d2750f1b3e595ea0e4a0ad84ebab080b"
+        },
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-026",
+          "excerpt_hash": "803060e62619169ad487a25e6a556e9af0c7027d8ad985a6f7e3ee873566ef05"
+        }
+      ],
+      "notes": "민서는 피해의 대상이나 반전 장치로 소비되지 않고 자신의 거짓말과 선택을 직접 말하며, 엔딩에서 가족 악기의 소유와 목소리를 회복한다."
+    }
+  },
+  "issues": []
+}

@@ -64,7 +64,12 @@ def test_novelty_index_passes_schema_and_preserves_pilot_order() -> None:
 
     assert collect_schema_errors(index, schema, "novelty_index") == []
     history = novelty_history(index)
-    assert [record["project_id"] for record in history] == ["PRJ-001", "PRJ-002", "PRJ-003"]
+    assert [record["project_id"] for record in history] == [
+        "PRJ-001",
+        "PRJ-002",
+        "PRJ-003",
+        "PRJ-004",
+    ]
 
 
 def test_production_ready_fingerprint_can_be_registered() -> None:

@@ -1,0 +1,65 @@
+{
+  "project_id": "PRJ-004",
+  "relationships": [
+    {
+      "relationship_id": "REL-01",
+      "from": "CHAR-01",
+      "to": "CHAR-02",
+      "engine": "BROKEN_TRUST: 지안은 민서를 보호하려 침묵하지만 그 침묵이 민서의 소유권과 자기 무죄를 동시에 약화한다. 두 사람은 각자의 규정 위반을 함께 인정할 때 신뢰를 회복한다."
+    },
+    {
+      "relationship_id": "REL-02",
+      "from": "CHAR-01",
+      "to": "CHAR-03",
+      "engine": "EMPLOYMENT_POWER: 정규 교사인 배혜린은 계약직 지안의 업무 관행을 증거처럼 통제하며, 지안은 교사의 권위보다 실제 물건 이동을 선택해야 한다."
+    },
+    {
+      "relationship_id": "REL-03",
+      "from": "CHAR-03",
+      "to": "CHAR-04",
+      "engine": "MUTUAL_COMPLICITY: 배혜린은 특혜 대여를 제공하고 오주리는 후원과 입시 영향력을 제공한다. 파손과 오반출 뒤 둘의 이해가 허위 신고로 결합한다."
+    },
+    {
+      "relationship_id": "REL-04",
+      "from": "CHAR-04",
+      "to": "CHAR-02",
+      "engine": "ERASED_OWNERSHIP: 오주리는 딸을 보호한다는 이유로 민서의 가족 악기를 학교 물건이라 부르며 민서의 소유와 기억을 지운다."
+    },
+    {
+      "relationship_id": "REL-05",
+      "from": "CHAR-03",
+      "to": "CHAR-02",
+      "engine": "GATEKEEPING: 배혜린은 추천과 장학 평가 권한으로 민서의 침묵을 유도하지만, 민서가 사실을 말하면서 그 권력이 약해진다."
+    },
+    {
+      "relationship_id": "REL-06",
+      "from": "CHAR-05",
+      "to": "CHAR-01",
+      "engine": "PARALLEL_LIES: 최동수와 지안 모두 타인을 해칠 의도 없이 일부 사실을 숨기지만, 최동수의 출입 부인이 지안에게 직접 불리하게 작동한다."
+    },
+    {
+      "relationship_id": "REL-07",
+      "from": "CHAR-06",
+      "to": "CHAR-04",
+      "engine": "OFF_BOOK_TRANSACTION: 오주리는 현금과 고객 비밀을 기대하고, 나은주는 기록을 지키되 의뢰인을 숨기려 한다. 종이 수리표가 둘의 이해를 깨뜨린다."
+    },
+    {
+      "relationship_id": "REL-08",
+      "from": "CHAR-06",
+      "to": "CHAR-01",
+      "engine": "RELUCTANT_ALLY: 나은주의 침묵은 지안의 혐의를 키우지만, 지안이 자기 비밀을 먼저 인정하는 모습을 보고 나은주도 원본 기록을 낸다."
+    },
+    {
+      "relationship_id": "REL-09",
+      "from": "CHAR-05",
+      "to": "CHAR-04",
+      "engine": "WITNESS_PRESSURE: 최동수는 오주리의 사회적 영향력과 자기 징계 위험 사이에서 목격을 부인하다가 물건을 든 사람과 물건의 주인을 분리해 증언한다."
+    },
+    {
+      "relationship_id": "REL-10",
+      "from": "CHAR-01",
+      "to": "CHAR-04",
+      "engine": "CLASS_AND_CREDIBILITY: 후원자 오주리의 단정적인 말이 계약직 지안의 모호한 침묵보다 먼저 믿어지지만, 지안은 소유 표식과 말의 선행지식을 연결해 신뢰 구도를 뒤집는다."
+    }
+  ]
+}

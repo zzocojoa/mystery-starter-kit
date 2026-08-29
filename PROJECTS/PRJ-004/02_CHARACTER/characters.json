@@ -1,0 +1,47 @@
+{
+  "project_id": "PRJ-004",
+  "characters": [
+    {
+      "character_id": "CHAR-01",
+      "name": "서지안",
+      "role": "PROTAGONIST_CONTRACT_ORCHESTRA_COORDINATOR",
+      "goal": "WANT: 계약과 학생들의 신뢰를 지킨다. NEED: 보호를 이유로 한 침묵도 타인을 해칠 수 있음을 받아들인다. GOAL: 사라진 악기의 실제 소유와 이동 경로를 밝힌다. FEAR: 민서의 기회가 자신 때문에 사라지고 절도 전력이 남는 것. CONFLICT: 진실을 말하면 민서의 비공식 오디션이 드러난다. MORAL_BOUNDARY: 훔치거나 증거를 만들지는 않는다. CRITICAL_CHOICE: 공개 조사에서 자신이 한 케이스 교체를 먼저 인정한다. ARC: 대신 침묵하는 보호자에서 불리한 사실까지 정확히 말하는 책임자로 변한다.",
+      "secret": "SECRET: 민서의 젖은 케이스를 바꾸고 주민센터 오디션을 도왔다. REASON_TO_LIE: 장학생 민서가 학교 추천을 어겼다는 이유로 기회를 잃지 않게 하려 한다. KNOWLEDGE_BOUNDARY: 교체 당시 두 악기의 외관은 알지만, 기증품 특혜 대여와 오주리의 반출은 모른다."
+    },
+    {
+      "character_id": "CHAR-02",
+      "name": "장민서",
+      "role": "STUDENT_SECONDARY_VICTIM_AND_TRUE_OWNER",
+      "goal": "WANT: 가족 바이올린으로 공개 오디션에 선다. NEED: 어른의 보호 뒤에 숨지 않고 자기 선택을 말한다. GOAL: 잃어버린 악기를 되찾고 지안의 설명을 뒷받침한다. FEAR: 장학 추천 취소와 외할머니의 유품 분실. CONFLICT: 진실을 말하면 자신의 규정 위반도 드러난다. MORAL_BOUNDARY: 다른 학생의 악기를 자기 것이라 주장하지 않는다. CRITICAL_CHOICE: 조사실에서 지안과 따로 만난 사실을 인정한다. ARC: 두려워 부인하던 학생에서 자기 몫의 진실을 말하는 연주자로 변한다.",
+      "secret": "SECRET: 학교 추천 없이 주민센터 오디션을 준비했고 지안과 케이스를 바꿨다. REASON_TO_LIE: 교사의 추천과 장학 자격을 잃을까 두렵다. KNOWLEDGE_BOUNDARY: 자기 악기의 꽃잎 긁힘과 파란 실 활, 교체 과정은 알지만 검은 케이스의 이전 내용물과 기증품 수리는 모른다."
+    },
+    {
+      "character_id": "CHAR-03",
+      "name": "배혜린",
+      "role": "MUSIC_TEACHER_AND_CO_CULPRIT",
+      "goal": "WANT: 후원과 오케스트라 성과를 유지한다. NEED: 학생 자산을 성과 도구로 취급한 책임을 인정해야 하지만 끝내 거부한다. GOAL: 재고 점검 전에 특혜 대여와 파손 흔적을 없애고 지안에게 책임을 고정한다. FEAR: 교사 지위와 후원, 입시 실적을 한꺼번에 잃는 것. CONFLICT: 사실을 숨길수록 케이스와 악기의 소유가 분리된다. MORAL_BOUNDARY: 처음에는 학생에게 직접 피해를 주지 않겠다고 믿지만, 누명을 설계하며 스스로 넘는다. CRITICAL_CHOICE: 잘못 반출된 악기를 돌려주는 대신 허위 도난 신고를 택한다. ARC: 통제력 있는 지도자에서 자기 언어의 소유 실수로 책임이 드러나는 인물로 무너진다.",
+      "secret": "SECRET: 기증 바이올린을 해인에게 몰래 빌려주고, 파손 뒤 수리점에 숨긴 채 해인의 개인 악기로 빈자리를 채웠다. REASON_TO_LIE: 특혜와 자산 관리 위반이 드러나면 지위와 후원을 잃는다. KNOWLEDGE_BOUNDARY: 대여·파손·대체 배치·오주리 지시는 알지만, 지안과 민서가 사건 당일 내용물을 다시 바꾼 사실은 신고 전까지 모른다."
+    },
+    {
+      "character_id": "CHAR-04",
+      "name": "오주리",
+      "role": "PTA_SPONSOR_PARENT_AND_CO_CULPRIT",
+      "goal": "WANT: 딸 해인의 입시 기회와 후원자 평판을 지킨다. NEED: 돈과 영향력으로 소유와 책임을 바꿀 수 없음을 인정해야 한다. GOAL: 딸의 대체 악기를 회수하고 수리 사실을 감춘다. FEAR: 딸이 특혜 수혜자로 낙인찍히고 자신이 절도 책임을 지는 것. CONFLICT: 케이스를 열어 다른 학생의 물건임을 알고도 돌려주지 않는다. MORAL_BOUNDARY: 딸의 이름이 공개되지 않게 하려 했으나 다른 학생의 유품을 숨기며 넘는다. CRITICAL_CHOICE: 배혜린의 허위 신고 제안에 동의하고 공개되지 않은 활을 학교 물건이라고 부른다. ARC: 보호를 명분으로 소유를 지우던 후원자에서 자신이 본 물건의 세부로 거짓이 드러나는 책임자로 추락한다.",
+      "secret": "SECRET: 기증품 수리를 현금 의뢰했고 검은 케이스를 가져간 뒤 민서의 악기임을 알아챘다. REASON_TO_LIE: 딸의 특혜와 자신의 무단 반출을 동시에 숨기려 한다. KNOWLEDGE_BOUNDARY: 수리 의뢰와 반출, 케이스 내부의 파란 실 활은 알지만 지안·민서의 교체 목적은 모른다."
+    },
+    {
+      "character_id": "CHAR-05",
+      "name": "최동수",
+      "role": "FACILITIES_CHIEF_AND_RELUCTANT_WITNESS",
+      "goal": "WANT: 정년을 앞두고 문제 없이 근무를 마친다. NEED: 사소한 규정 위반을 감추려 더 큰 누명을 돕고 있음을 깨닫는다. GOAL: 개인 택배 반입 사실을 숨기면서 조사에서 빠져나간다. FEAR: 반복된 사적 택배 수령로 징계를 받는 것. CONFLICT: 학부모 출입이 없었다고 말하면 오주리의 반출 목격까지 지워진다. MORAL_BOUNDARY: 절도 누명을 직접 만들 생각은 없다. CRITICAL_CHOICE: 택배 장부를 내놓고 오주리를 봤다고 정정한다. ARC: 자기 흠을 지키는 방관자에서 더 큰 피해를 막기 위해 작은 잘못을 공개하는 증인으로 변한다.",
+      "secret": "SECRET: 근무 중 개인 택배를 학교 안에서 반복 수령했고 사건 당일 기사와 실랑이했다. REASON_TO_LIE: 내부 감사와 징계를 피하려 학부모 출입 자체를 부인한다. KNOWLEDGE_BOUNDARY: 오주리가 검은 케이스를 들고 나간 것은 봤지만 케이스 안의 악기와 공모는 모른다."
+    },
+    {
+      "character_id": "CHAR-06",
+      "name": "나은주",
+      "role": "INSTRUMENT_REPAIRER_AND_DOCUMENT_WITNESS",
+      "goal": "WANT: 오래 운영한 수리점의 신뢰와 거래처를 지킨다. NEED: 의뢰인의 비밀보다 실제 소유자의 권리가 먼저임을 선택한다. GOAL: 학교 승인 없는 현금 수리 관행이 알려지지 않게 한다. FEAR: 고가 악기 무서류 수리로 배상 책임과 거래 단절이 생기는 것. CONFLICT: 침묵하면 지안의 절도 혐의를 강화한다. MORAL_BOUNDARY: 수리 대상을 바꾸거나 기록을 조작하지 않는다. CRITICAL_CHOICE: 원본 종이 수리표와 수리 중인 기증품을 조사자에게 보여 준다. ARC: 고객 비밀을 방패로 삼던 장인에서 소유자의 피해를 막기 위해 자기 책임까지 증언하는 사람으로 변한다.",
+      "secret": "SECRET: 오주리에게 현금을 받고 학교 소유로 보이는 기증 바이올린을 공식 의뢰서 없이 수리했다. REASON_TO_LIE: 무서류 거래와 보관 책임을 피하려 한다. KNOWLEDGE_BOUNDARY: 기증 문구·파손·의뢰인·접수일은 알지만 학교 안의 케이스 교체와 허위 신고 공모는 모른다."
+    }
+  ]
+}

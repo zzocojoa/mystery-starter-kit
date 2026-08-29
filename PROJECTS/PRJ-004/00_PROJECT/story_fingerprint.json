@@ -1,0 +1,95 @@
+{
+  "schema_family": "story-fingerprint",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-004",
+  "story": {
+    "mystery_type": "WHERE",
+    "architecture": "ARCH-03_DUAL_INQUIRY",
+    "protagonist_role": "EMPLOYEE",
+    "primary_twist": "TW-01_MISIDENTIFIED_OWNER",
+    "timeline_style": "PARALLEL",
+    "incident_type": "FALSE_ACCUSATION",
+    "setting": "SCHOOL",
+    "culprit_structure": "DUAL",
+    "setting_logic": [
+      "OPEN_URBAN_CAMPUS",
+      "NEIGHBORHOOD_REPAIR_SHOP",
+      "COMMUNITY_CENTER_REHEARSAL_ROOM"
+    ],
+    "information_mechanism": [
+      "CONFLICTING_TESTIMONY",
+      "POSSESSIVE_LANGUAGE",
+      "OBJECT_CUSTODY_CHAIN",
+      "PARTIAL_DISCLOSURE"
+    ],
+    "relationship_engine": "BROKEN_TRUST",
+    "pressure_engine": "PUBLIC_EXPOSURE",
+    "dramatic_engine": "TRUST_EROSION"
+  },
+  "beat_signature": [
+    "ACCUSATION_LOCK",
+    "PRIVATE_OWNERSHIP_SEED",
+    "WITNESS_LANGUAGE_FRICTION",
+    "ALLIED_LIE_PRESSURE",
+    "PROTECTIVE_LIE_ADMISSION",
+    "MIDPOINT_OBJECT_REVERSAL",
+    "PARALLEL_DOCUMENT_INQUIRY",
+    "WITNESS_CORRECTION",
+    "CUSTODY_CHAIN_REVEAL",
+    "BITTERSWEET_OWNERSHIP_RETURN"
+  ],
+  "causal": {
+    "root_cause": "UNAUTHORIZED_FAVOR_LOAN_AND_STATUS_PROTECTION",
+    "mechanism": "OVERLAPPING_HUMAN_CUSTODY_SWAPS",
+    "concealment": "FALSE_OWNERSHIP_CLAIM_AND_COORDINATED_TESTIMONY",
+    "discovery_path": "LINGUISTIC_PRIOR_KNOWLEDGE_PLUS_PAPER_RECEIPT_AND_WITNESS",
+    "resolution": "NONTECHNICAL_CUSTODY_RECONSTRUCTION_AND_ACCOUNTABILITY"
+  },
+  "semantic_causal": {
+    "normalized_roles": [
+      "PRIVILEGE_GRANTER",
+      "STATUS_PROTECTING_PARENT",
+      "FALSELY_ACCUSED_CARETAKER",
+      "MINOR_TRUE_OWNER",
+      "RELUCTANT_REPAIR_WITNESS",
+      "SELF_PROTECTING_ENTRY_WITNESS"
+    ],
+    "character_function_chain": [
+      "UNAUTHORIZED_LOAN",
+      "DAMAGE",
+      "OFF_BOOK_REPAIR",
+      "SUBSTITUTE_OBJECT",
+      "INDEPENDENT_CASE_SWAP",
+      "WRONG_OBJECT_REMOVAL",
+      "OWNERSHIP_RECOGNITION",
+      "COORDINATED_FALSE_REPORT",
+      "FALSE_ACCUSATION",
+      "CONTRADICTION_LINKAGE",
+      "CUSTODY_RECONSTRUCTION"
+    ],
+    "audience_hypothesis_transitions": [
+      "EMPLOYEE_THEFT_SUSPICION",
+      "STUDENT_ASSISTANCE_HYPOTHESIS",
+      "CASE_CONTENTS_DOUBT",
+      "PREEXISTING_ABSENCE_HYPOTHESIS",
+      "PARENT_REMOVAL_SUSPICION",
+      "DUAL_COVERUP_CONFIRMATION"
+    ],
+    "edge_sequence": [
+      "ROOT_CAUSE>MECHANISM",
+      "MECHANISM>MECHANISM",
+      "MECHANISM>CONCEALMENT",
+      "CONCEALMENT>MECHANISM",
+      "MECHANISM>MECHANISM",
+      "MECHANISM>DISCOVERY",
+      "DISCOVERY>CONCEALMENT",
+      "CONCEALMENT>CONSEQUENCE",
+      "CONSEQUENCE>DISCOVERY",
+      "CONSEQUENCE>DISCOVERY",
+      "CONSEQUENCE>DISCOVERY",
+      "DISCOVERY>RESOLUTION",
+      "DISCOVERY>RESOLUTION",
+      "DISCOVERY>RESOLUTION"
+    ]
+  }
+}

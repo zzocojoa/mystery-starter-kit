@@ -1,0 +1,84 @@
+{
+  "project_id": "PRJ-004",
+  "result": "PASS",
+  "comparisons": [
+    {
+      "project_id": "PRJ-001",
+      "similarity": 8.21,
+      "components": {
+        "mystery_type": 0.0,
+        "architecture": 100.0,
+        "protagonist_role": 0.0,
+        "primary_twist": 0.0,
+        "timeline_style": 0.0,
+        "incident_type": 0.0,
+        "setting": 0.0,
+        "culprit_structure": 0.0,
+        "setting_logic": 0.0,
+        "information_mechanism": 0.0,
+        "relationship_engine": 0.0,
+        "pressure_engine": 0.0,
+        "dramatic_engine": 0.0,
+        "beat_signature": 0.0,
+        "causal": 0.0,
+        "semantic_causal": 7.5
+      },
+      "threshold": 60.0,
+      "causal_hard_collision": false,
+      "semantic_causal_collision": false
+    },
+    {
+      "project_id": "PRJ-002",
+      "similarity": 5.66,
+      "components": {
+        "mystery_type": 0.0,
+        "architecture": 0.0,
+        "protagonist_role": 0.0,
+        "primary_twist": 0.0,
+        "timeline_style": 0.0,
+        "incident_type": 0.0,
+        "setting": 0.0,
+        "culprit_structure": 0.0,
+        "setting_logic": 0.0,
+        "information_mechanism": 0.0,
+        "relationship_engine": 0.0,
+        "pressure_engine": 0.0,
+        "dramatic_engine": 100.0,
+        "beat_signature": 0.0,
+        "causal": 0.0,
+        "semantic_causal": 6.25
+      },
+      "threshold": 60.0,
+      "causal_hard_collision": false,
+      "semantic_causal_collision": false
+    },
+    {
+      "project_id": "PRJ-003",
+      "similarity": 5.53,
+      "components": {
+        "mystery_type": 0.0,
+        "architecture": 0.0,
+        "protagonist_role": 0.0,
+        "primary_twist": 0.0,
+        "timeline_style": 0.0,
+        "incident_type": 0.0,
+        "setting": 0.0,
+        "culprit_structure": 0.0,
+        "setting_logic": 0.0,
+        "information_mechanism": 0.0,
+        "relationship_engine": 100.0,
+        "pressure_engine": 0.0,
+        "dramatic_engine": 0.0,
+        "beat_signature": 0.0,
+        "causal": 0.0,
+        "semantic_causal": 5.36
+      },
+      "threshold": 60.0,
+      "causal_hard_collision": false,
+      "semantic_causal_collision": false
+    }
+  ],
+  "hard_collisions": [],
+  "semantic_hard_collisions": [],
+  "issues": []
+}

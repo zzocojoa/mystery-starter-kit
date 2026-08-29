@@ -1,0 +1,153 @@
+{
+  "project_id": "PRJ-004",
+  "nodes": [
+    {
+      "node_id": "CAUSE-01",
+      "type": "ROOT_CAUSE"
+    },
+    {
+      "node_id": "MECH-01",
+      "type": "MECHANISM"
+    },
+    {
+      "node_id": "MECH-02",
+      "type": "MECHANISM"
+    },
+    {
+      "node_id": "CONC-01",
+      "type": "CONCEALMENT"
+    },
+    {
+      "node_id": "MECH-03",
+      "type": "MECHANISM"
+    },
+    {
+      "node_id": "MECH-04",
+      "type": "MECHANISM"
+    },
+    {
+      "node_id": "DISC-01",
+      "type": "DISCOVERY"
+    },
+    {
+      "node_id": "CONC-02",
+      "type": "CONCEALMENT"
+    },
+    {
+      "node_id": "CONS-01",
+      "type": "CONSEQUENCE"
+    },
+    {
+      "node_id": "DISC-02",
+      "type": "DISCOVERY"
+    },
+    {
+      "node_id": "DISC-03",
+      "type": "DISCOVERY"
+    },
+    {
+      "node_id": "DISC-04",
+      "type": "DISCOVERY"
+    },
+    {
+      "node_id": "RES-01",
+      "type": "RESOLUTION"
+    }
+  ],
+  "edges": [
+    {
+      "from": "CAUSE-01",
+      "to": "MECH-01"
+    },
+    {
+      "from": "MECH-01",
+      "to": "MECH-02"
+    },
+    {
+      "from": "MECH-02",
+      "to": "CONC-01"
+    },
+    {
+      "from": "CONC-01",
+      "to": "MECH-03"
+    },
+    {
+      "from": "MECH-03",
+      "to": "MECH-04"
+    },
+    {
+      "from": "MECH-04",
+      "to": "DISC-01"
+    },
+    {
+      "from": "DISC-01",
+      "to": "CONC-02"
+    },
+    {
+      "from": "CONC-02",
+      "to": "CONS-01"
+    },
+    {
+      "from": "CONS-01",
+      "to": "DISC-02"
+    },
+    {
+      "from": "CONS-01",
+      "to": "DISC-03"
+    },
+    {
+      "from": "CONS-01",
+      "to": "DISC-04"
+    },
+    {
+      "from": "DISC-02",
+      "to": "RES-01"
+    },
+    {
+      "from": "DISC-03",
+      "to": "RES-01"
+    },
+    {
+      "from": "DISC-04",
+      "to": "RES-01"
+    }
+  ],
+  "fingerprint": {
+    "root_cause": "UNAUTHORIZED_FAVOR_LOAN_AND_STATUS_PROTECTION",
+    "mechanism": "OVERLAPPING_HUMAN_CUSTODY_SWAPS",
+    "concealment": "FALSE_OWNERSHIP_CLAIM_AND_COORDINATED_TESTIMONY",
+    "discovery_path": "LINGUISTIC_PRIOR_KNOWLEDGE_PLUS_PAPER_RECEIPT_AND_WITNESS",
+    "resolution": "NONTECHNICAL_CUSTODY_RECONSTRUCTION_AND_ACCOUNTABILITY"
+  },
+  "semantic_normalization": {
+    "normalized_roles": [
+      "PRIVILEGE_GRANTER",
+      "STATUS_PROTECTING_PARENT",
+      "FALSELY_ACCUSED_CARETAKER",
+      "MINOR_TRUE_OWNER",
+      "RELUCTANT_REPAIR_WITNESS",
+      "SELF_PROTECTING_ENTRY_WITNESS"
+    ],
+    "character_function_chain": [
+      "UNAUTHORIZED_LOAN",
+      "DAMAGE",
+      "OFF_BOOK_REPAIR",
+      "SUBSTITUTE_OBJECT",
+      "INDEPENDENT_CASE_SWAP",
+      "WRONG_OBJECT_REMOVAL",
+      "OWNERSHIP_RECOGNITION",
+      "COORDINATED_FALSE_REPORT",
+      "FALSE_ACCUSATION",
+      "CONTRADICTION_LINKAGE",
+      "CUSTODY_RECONSTRUCTION"
+    ],
+    "audience_hypothesis_transitions": [
+      "EMPLOYEE_THEFT_SUSPICION",
+      "STUDENT_ASSISTANCE_HYPOTHESIS",
+      "CASE_CONTENTS_DOUBT",
+      "PREEXISTING_ABSENCE_HYPOTHESIS",
+      "PARENT_REMOVAL_SUSPICION",
+      "DUAL_COVERUP_CONFIRMATION"
+    ]
+  }
+}
