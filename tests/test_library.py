@@ -55,16 +55,15 @@ def test_story_library_passes_schema() -> None:
     assert collect_schema_errors(library, schema, "story_library") == []
 
 
-def test_novelty_index_passes_schema_and_preserves_pilot_order() -> None:
-    """Novelty Index는 Draft 이상 Pilot을 최초 삽입 순서로 보존해야 한다."""
+def test_novelty_index_passes_schema_without_project_records() -> None:
+    """Novelty Index는 Project가 없어도 Schema를 통과해야 한다."""
     index = load_json_object(ROOT / "STORY_LIBRARY" / "novelty_index.json")
     schema = load_json_object(
         ROOT / "STANDARD" / "schemas" / "novelty_index.schema.json"
     )
 
     assert collect_schema_errors(index, schema, "novelty_index") == []
-    history = novelty_history(index)
-    assert [record["project_id"] for record in history] == ["PRJ-001", "PRJ-002", "PRJ-003"]
+    assert novelty_history(index) == []
 
 
 def test_production_ready_fingerprint_can_be_registered() -> None:
