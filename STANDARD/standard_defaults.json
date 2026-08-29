@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/standard_defaults.schema.json",
-  "defaults_version": "1.0.0",
+  "defaults_version": "1.1.0",
   "optional_capability_defaults": {
     "NARRATION_POLICY": {
       "enabled": false,
@@ -34,6 +34,72 @@
     },
     "THUMBNAIL_POLICY": {
       "mode": "UNSPECIFIED"
+    },
+    "CRIME_PSYCHOLOGY_POLICY": {
+      "enabled": false,
+      "primary_genres": ["CRIME_PSYCHOLOGICAL_THRILLER"],
+      "threat_types": ["CRIME", "PREDATORY"],
+      "require_psychological_pressure": false,
+      "technical_markers": ["TECHNICAL", "MACHINE_LOG"],
+      "max_technical_clue_ratio": 1.0,
+      "procedural_markers": ["POLICE_PROCEDURAL"]
+    },
+    "TRUST_AND_SAFETY_BETRAYAL_POLICY": {
+      "enabled": false,
+      "require_trusted_domain": false,
+      "require_safe_domain_expectation": false
+    },
+    "COERCIVE_CONTROL_POLICY": {
+      "enabled": false,
+      "require_warning_signals": false,
+      "require_boundary_erosion": false,
+      "require_control_tactics": false,
+      "require_exit_barriers": false
+    },
+    "VICTIM_CENTERED_POLICY": {
+      "enabled": false,
+      "require_agency_outcome": false,
+      "require_responsible_agent_payoff": false,
+      "prohibited_phrases": []
+    },
+    "EXPERT_ANALYSIS_POLICY": {
+      "enabled": false,
+      "true_story_requirement": "REQUIRED",
+      "inspired_requirement": "REQUIRED_OR_NA",
+      "original_requirement": "OPTIONAL",
+      "require_claim_evidence": false
+    },
+    "RISK_SIGNAL_AND_PUBLIC_VALUE_POLICY": {
+      "enabled": false,
+      "require_risk_signal_payoff": false
+    },
+    "SOURCE_DISCLOSURE_POLICY": {
+      "enabled": false,
+      "labels_by_source_mode": {
+        "ORIGINAL": "ORIGINAL_FICTION",
+        "USER_CASE": "INSPIRED_BY_TRUE_EVENTS",
+        "REFERENCE_INSPIRED": "INSPIRED_BY_TRUE_EVENTS",
+        "TRUE_STORY": "VERIFIED_TRUE_CASE",
+        "INSPIRED_BY_TRUE_EVENTS": "INSPIRED_BY_TRUE_EVENTS"
+      }
+    },
+    "CLINICAL_LABEL_POLICY": {
+      "enabled": false,
+      "controlled_terms": [],
+      "allowed_classifications": [
+        "CONFIRMED_DIAGNOSIS",
+        "EXPERT_ASSESSMENT",
+        "MEDIA_DESCRIPTION",
+        "NARRATOR_OPINION",
+        "UNVERIFIED_LABEL"
+      ],
+      "diagnosis_requires_expert": true,
+      "diagnosis_requires_evidence": true
+    },
+    "EPISODE_THEME_POLICY": {
+      "enabled": false,
+      "allowed_themes": ["UNSPECIFIED"],
+      "require_episode_theme": false
     }
   }
 }

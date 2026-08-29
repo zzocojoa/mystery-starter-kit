@@ -6,6 +6,7 @@
     "compatibility_report": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/compatibilityReport", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},
     "reference_profile": {"media_type": "application/json", "schema": "STANDARD/schemas/reference_profile.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},
     "variation_candidates": {"media_type": "application/json", "schema": "STANDARD/schemas/variation_candidates.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
+    "candidate_evaluation": {"media_type": "application/json", "schema": "STANDARD/schemas/candidate_evaluation.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "novelty_precheck": {"media_type": "application/json", "schema": "STANDARD/schemas/novelty_precheck.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "story_dna": {"media_type": "application/json", "schema": "STANDARD/schemas/story_dna.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},
     "case_input": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/caseInput", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},

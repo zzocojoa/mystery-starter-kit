@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml)
 
-Channel의 정체성을 유지하면서 Story 구조와 인과를 반복하지 않도록 설계한 미스터리 제작 Starter Kit다. Compatibility Negotiation, Full Story DNA, Presentation Contract v2.1, 10개 Agent Contract, Provider 독립 LLM Agent Runtime v1.0, Artifact Dependency Invalidation, Continuity/Causal/Novelty/Reference/Channel QA, 14개 Production Gate를 실행 코드로 제공한다.
+Channel의 정체성을 유지하면서 Story 구조와 인과를 반복하지 않도록 설계한 미스터리 제작 Starter Kit다. Project별 Channel Content Version Pinning, Compatibility Negotiation, Full Story DNA, Presentation Contract v2.1, 10개 Agent Contract, Provider 독립 LLM Agent Runtime v1.0, Artifact Dependency Invalidation, Continuity/Causal/Novelty/Reference/Channel QA, 14개 Production Gate를 실행 코드로 제공한다.
 
 ## Codex App 운영 모드
 
@@ -107,7 +107,7 @@ Reference 기반 Project는 후보 생성 전에 원문 JSON을 Project 밖에 �
 .venv/bin/mystery-kit reference-profile PROJECTS/PRJ-002 /secure/reference-source.json
 ```
 
-`compat`는 Project ID가 포함된 Compatibility Report를 만들고 `GATE-00`을 통과시킨다. Compatibility와 `GATE-00`이 모두 PASS가 아니면 `variations`는 실행되지 않는다.
+`compat`는 `production_config.channel_content_version`을 `channel_manifest.json`에서 해석하고 Channel ID, Schema/Content Version, DNA SHA-256이 포함된 Compatibility Report를 만든 뒤 `GATE-00`을 통과시킨다. 활성 Channel이 바뀌어도 기존 Project는 생성 당시 버전을 유지한다. Compatibility와 `GATE-00`이 모두 PASS가 아니면 `variations`는 실행되지 않는다.
 
 사용자가 주인공·사건 같은 일부 설정을 제공하는 경우 `production_config.json`의 `story_source_mode`를 `USER_CASE`로 설정하고 각 `user_case_constraints`를 `LOCKED`, `FLEXIBLE`, `UNKNOWN`으로 선언한다. `LOCKED` 값은 Variation과 Story DNA에서 변경할 수 없다.
 
@@ -131,7 +131,7 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 ## 구조
 
 - `STANDARD/`: v1.3.3 표준, Contract, Policy, Catalog, Dependency Graph, JSON Schema
-- `CHANNELS/`: 독립 Version의 Channel DNA
+- `CHANNELS/`: 활성/사용 가능 Content Version Registry와 독립 Version Channel DNA
 - `AGENTS/`: 10개 Agent Prompt와 계약 Manifest
 - `TEMPLATES/PROJECT/`: `00_PROJECT`~`09_PRODUCTION` Scaffold
 - `VALIDATORS/`: CLI, 상태 머신, Pipeline과 QA Engine

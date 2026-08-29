@@ -15,6 +15,8 @@ Narration은 관점, 감정, 기억, 해석, 시간 압축, 반전 보강에만 
 
 `script.write_layers`는 세 Layer를 분리 작성하고 `script.integrate`는 Presentation Plan의 모든 Segment를 Machine-readable Marker로 정확히 한 번 통합한다. Final Script는 Scene Treatment가 아니라 실제 방송 순서의 Broadcast Master다.
 
+Pinned Channel v2 정책에서는 Audience-facing Source Label을 정확히 표시하고 피해자 비난 표현을 사용하지 않는다. 임상 용어와 `EXPERT_ANALYSIS` 발화는 Story DNA의 분류 및 Claim-Evidence 경계를 넘지 않는다.
+
 ## 금지
 
 - Story DNA, Timeline, Clue Matrix를 대본 편의를 위해 수정하지 않는다.

@@ -22,7 +22,7 @@ from RUNTIME.core_tasks import (
     combined_artifacts,
     core_task_outputs,
     mapping_artifact,
-    runtime_validation_inputs,
+    runtime_validation_inputs_for_project,
     story_history,
 )
 from RUNTIME.errors import RuntimeExecutionError
@@ -783,7 +783,11 @@ async def execute_existing_run(
             presentation_schemas,
             policy,
             thresholds,
-        ) = runtime_validation_inputs(repository_root)
+        ) = runtime_validation_inputs_for_project(
+            repository_root,
+            production_config,
+            None,
+        )
         for gate_id in gate_ids(from_gate, current_run["to_gate"]):
             gate_started_at = utc_now()
             latest_run = load_run(project_path, current_run["run_id"])

@@ -16,6 +16,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def presentation_schemas() -> dict[str, dict[str, object]]:
     """Presentation Contract v2 Schema 묶음을 읽는다."""
     return {
+        "candidate_evaluation": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "candidate_evaluation.schema.json"
+        ),
         "panel_cast": load_json_object(
             ROOT / "STANDARD" / "schemas" / "panel_cast.schema.json"
         ),

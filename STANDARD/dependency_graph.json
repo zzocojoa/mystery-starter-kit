@@ -28,14 +28,19 @@
       "depends_on": ["production_config", "reference_profile"],
       "owner_agent": "variation_designer"
     },
+    "candidate_evaluation": {
+      "path": "00_PROJECT/candidate_evaluation.json",
+      "depends_on": ["production_config", "variation_candidates"],
+      "owner_agent": "variation_designer"
+    },
     "novelty_precheck": {
       "path": "08_QA/novelty_precheck.json",
-      "depends_on": ["variation_candidates"],
+      "depends_on": ["variation_candidates", "candidate_evaluation"],
       "owner_agent": "novelty_auditor"
     },
     "story_dna": {
       "path": "00_PROJECT/story_dna.json",
-      "depends_on": ["reference_profile", "variation_candidates", "novelty_precheck"],
+      "depends_on": ["reference_profile", "variation_candidates", "candidate_evaluation", "novelty_precheck"],
       "owner_agent": "story_architect"
     },
     "story_fingerprint": {
@@ -180,7 +185,7 @@
     },
     "channel_consistency_report": {
       "path": "08_QA/channel_consistency_report.json",
-      "depends_on": ["final_script", "presentation_plan", "production_config"],
+      "depends_on": ["story_dna", "case_input", "claim_evidence", "final_script", "presentation_plan", "production_config"],
       "owner_agent": "continuity_critic"
     },
     "validation_report": {

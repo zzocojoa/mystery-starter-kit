@@ -854,6 +854,62 @@ def context_artifact(request: LLMRequest, artifact_name: str) -> Mapping[str, ob
     return artifact
 
 
+def fake_candidate_evaluation(
+    project_id: str,
+    variations: Mapping[str, object],
+) -> dict[str, object]:
+    """Runtime 회귀용 Candidate 평가 근거를 결정론적으로 만든다."""
+    candidates = variations.get("candidates")
+    selected = variations.get("approved_candidate_id")
+    if not isinstance(candidates, list) or not isinstance(selected, str):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Candidate 평가용 승인 Variation이 없습니다.",
+            "variation.evaluate",
+            "variation_candidates",
+            {},
+        )
+    evaluations: list[dict[str, object]] = []
+    for index, candidate in enumerate(candidates):
+        if not isinstance(candidate, Mapping):
+            continue
+        candidate_id = candidate.get("candidate_id")
+        if not isinstance(candidate_id, str):
+            continue
+        approved = candidate_id == selected
+        score = 92 if approved else max(60, 84 - index)
+        evaluations.append(
+            {
+                "candidate_id": candidate_id,
+                "hard_filter_result": "PASS",
+                "crime_threat_score": score,
+                "psychological_immersion_score": score,
+                "trust_betrayal_score": score,
+                "victim_integrity_score": score,
+                "character_score": score,
+                "twist_score": score,
+                "novelty_score": score,
+                "production_score": score,
+                "total_score": score,
+                "decision": "APPROVED" if approved else "REJECTED",
+                "decision_reason": (
+                    "Hard Filter를 통과했고 전체 평가가 가장 높습니다."
+                    if approved
+                    else "승인 후보보다 종합 평가가 낮습니다."
+                ),
+            }
+        )
+    return {
+        "schema_family": "candidate-evaluation",
+        "schema_version": "1.0.0",
+        "project_id": project_id,
+        "selected_candidate_id": selected,
+        "evaluations": evaluations,
+    }
+
+
 def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, object]]:
     """Task ID를 검증 가능한 Agent Artifact Fixture에 대응한다."""
     metadata = request.metadata
@@ -869,6 +925,25 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             None,
             {},
         )
+    if task_id == "variation.evaluate":
+        variations = context_artifact(request, "variation_candidates")
+        if variations is None:
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Candidate 평가 Context가 없습니다.",
+                task_id,
+                "variation_candidates",
+                {},
+            )
+        return [
+            {
+                "artifact_name": "candidate_evaluation",
+                "media_type": "application/json",
+                "content": fake_candidate_evaluation(project_id, variations),
+            }
+        ]
     if task_id == "story.design_dna":
         return [
             {

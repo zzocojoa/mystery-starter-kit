@@ -13,7 +13,11 @@ from RUNTIME.contracts import (
     load_task_catalog,
     validate_runtime_contracts,
 )
-from RUNTIME.core_tasks import core_task_outputs, runtime_validation_inputs, story_history
+from RUNTIME.core_tasks import (
+    core_task_outputs,
+    runtime_validation_inputs_for_project,
+    story_history,
+)
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.gate_control import validate_gate
 from RUNTIME.models import ArtifactContract, RuntimeTask
@@ -960,6 +964,9 @@ def validate_gate_overlay(
         dependency_graph,
         sorted(required_artifacts),
     )
+    production_config = load_json_object(
+        workspace / "00_PROJECT" / "production_config.json"
+    )
     (
         channel,
         story_schema,
@@ -967,7 +974,11 @@ def validate_gate_overlay(
         presentation_schemas,
         policy,
         thresholds,
-    ) = runtime_validation_inputs(repository_root)
+    ) = runtime_validation_inputs_for_project(
+        repository_root,
+        production_config,
+        None,
+    )
     reference_material = (
         load_json_object(reference_source) if reference_source is not None else None
     )
@@ -1433,18 +1444,20 @@ def full_validation_report(
         repository_root / "STANDARD" / "dependency_graph.json"
     )
     artifacts = load_project_artifacts(project_path, dependency_graph)
+    production_config = load_json_object(
+        project_path / "00_PROJECT" / "production_config.json"
+    )
     (
-        default_channel,
+        channel,
         story_schema,
         fingerprint_schema,
         presentation_schemas,
         policy,
         thresholds,
-    ) = runtime_validation_inputs(repository_root)
-    channel = (
-        load_json_object(channel_path)
-        if channel_path is not None
-        else default_channel
+    ) = runtime_validation_inputs_for_project(
+        repository_root,
+        production_config,
+        channel_path,
     )
     reference_material = (
         load_json_object(reference_source) if reference_source is not None else None

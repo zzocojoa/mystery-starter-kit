@@ -15,6 +15,8 @@
 - GATE-03: Central Mystery, Final Truth, Causal Truth와 Facts가 완전하다.
 - GATE-06: Beat 구조가 선택 Architecture와 일치하고 각 Beat가 정보 또는 감정 상태를 바꾼다.
 
+Channel Content Version 2.0 이상에서는 Pinned Channel Policy가 요구하는 신뢰 영역, 안전 기대, 경고 신호, 경계 침식, 통제 과정, 피해자 이탈 장벽, 책임 주체·피해자 행위 주체성·위험 신호 회수, Source Label, 임상 용어 분류와 Expert Debrief Plan을 Story DNA 또는 Case에 명시한다. 1.1.0 Project에는 이 필드를 소급 생성하지 않는다.
+
 ## 금지
 
 - Scene Card 전에 대사를 작성하지 않는다.

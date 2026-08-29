@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/channel-manifest-1.0.0.json",
+  "title": "Channel Content Version Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "channel_id",
+    "display_name",
+    "active_content_version",
+    "available_versions",
+    "status"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "channel-manifest"},
+    "schema_version": {"$ref": "#/$defs/semanticVersion"},
+    "channel_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "display_name": {"type": "string", "minLength": 1},
+    "active_content_version": {"$ref": "#/$defs/semanticVersion"},
+    "available_versions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/channelVersion"}
+    },
+    "status": {"enum": ["ACTIVE", "INACTIVE"]}
+  },
+  "$defs": {
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "channelVersion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content_version", "channel_dna", "channel_dna_sha256"],
+      "properties": {
+        "content_version": {"$ref": "#/$defs/semanticVersion"},
+        "channel_dna": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+\\.json$"
+        },
+        "channel_dna_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  }
+}

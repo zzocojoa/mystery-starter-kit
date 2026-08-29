@@ -13,11 +13,15 @@ from uuid import uuid4
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.transactions import acquire_project_lock, release_project_lock
 from VALIDATORS.change_log import append_change_log
+from VALIDATORS.channel_registry import resolve_project_channel
 from VALIDATORS.cli import (
     evaluate_compatibility_documents,
     raise_for_configuration_schema_errors,
 )
-from VALIDATORS.compatibility import make_project_compatibility_report
+from VALIDATORS.compatibility import (
+    evaluate_channel_binding,
+    make_project_compatibility_report,
+)
 from VALIDATORS.dependency import (
     artifact_hash,
     dependency_artifacts,
@@ -106,7 +110,7 @@ def build_parser() -> argparse.ArgumentParser:
     compat_parser.add_argument(
         "--channel",
         type=Path,
-        default=ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json",
+        default=None,
     )
 
     variation_parser = subparsers.add_parser(
@@ -145,7 +149,7 @@ def build_parser() -> argparse.ArgumentParser:
     validate_parser.add_argument(
         "--channel",
         type=Path,
-        default=ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json",
+        default=None,
     )
     validate_parser.add_argument("--reference-source", type=Path)
 
@@ -210,7 +214,7 @@ def build_parser() -> argparse.ArgumentParser:
     audit_parser.add_argument(
         "--channel",
         type=Path,
-        default=ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json",
+        default=None,
     )
     audit_parser.add_argument("--reference-source", type=Path)
 
@@ -222,7 +226,7 @@ def build_parser() -> argparse.ArgumentParser:
     rebuild_parser.add_argument(
         "--channel",
         type=Path,
-        default=ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json",
+        default=None,
     )
     rebuild_parser.add_argument("--reference-source", type=Path)
     rebuild_parser.add_argument("--force", action="store_true")
@@ -669,7 +673,15 @@ def run_compat(args: argparse.Namespace) -> int:
         ROOT / "STANDARD" / "schemas" / "standard_defaults.schema.json"
     )
     channel_schema_path = ROOT / "STANDARD" / "schemas" / "channel_dna.schema.json"
-    channel = load_json_object(args.channel)
+    production_config = load_json_object(
+        args.project_path / "00_PROJECT" / "production_config.json"
+    )
+    channel_override = args.channel if isinstance(args.channel, Path) else None
+    channel, channel_manifest, channel_path = resolve_project_channel(
+        ROOT,
+        production_config,
+        channel_override,
+    )
     project_id = validate_project_compatibility_configuration(args.project_path, channel)
     report = evaluate_compatibility_documents(
         load_json_object(contract_path),
@@ -680,7 +692,13 @@ def run_compat(args: argparse.Namespace) -> int:
         load_json_object(channel_schema_path),
         str(contract_path),
         str(defaults_path),
-        str(args.channel),
+        str(channel_path),
+    )
+    report = evaluate_channel_binding(
+        report,
+        production_config,
+        channel_manifest,
+        channel,
     )
     project_report = make_project_compatibility_report(project_id, report)
     output_path = args.project_path / "00_PROJECT" / "compatibility_report.json"

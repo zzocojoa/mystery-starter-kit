@@ -76,6 +76,33 @@
         },
         "THUMBNAIL_POLICY": {
           "$ref": "#/$defs/genericPolicy"
+        },
+        "CRIME_PSYCHOLOGY_POLICY": {
+          "$ref": "#/$defs/crimePsychologyPolicy"
+        },
+        "TRUST_AND_SAFETY_BETRAYAL_POLICY": {
+          "$ref": "#/$defs/trustAndSafetyBetrayalPolicy"
+        },
+        "COERCIVE_CONTROL_POLICY": {
+          "$ref": "#/$defs/coerciveControlPolicy"
+        },
+        "VICTIM_CENTERED_POLICY": {
+          "$ref": "#/$defs/victimCenteredPolicy"
+        },
+        "EXPERT_ANALYSIS_POLICY": {
+          "$ref": "#/$defs/expertAnalysisPolicy"
+        },
+        "RISK_SIGNAL_AND_PUBLIC_VALUE_POLICY": {
+          "$ref": "#/$defs/riskSignalAndPublicValuePolicy"
+        },
+        "SOURCE_DISCLOSURE_POLICY": {
+          "$ref": "#/$defs/sourceDisclosurePolicy"
+        },
+        "CLINICAL_LABEL_POLICY": {
+          "$ref": "#/$defs/clinicalLabelPolicy"
+        },
+        "EPISODE_THEME_POLICY": {
+          "$ref": "#/$defs/episodeThemePolicy"
         }
       }
     }
@@ -232,6 +259,204 @@
           "$ref": "#/$defs/enumList"
         }
       }
+    },
+    "crimePsychologyPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "primary_genres",
+        "threat_types",
+        "require_psychological_pressure",
+        "technical_markers",
+        "max_technical_clue_ratio",
+        "procedural_markers"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "primary_genres": {"$ref": "#/$defs/enumList"},
+        "threat_types": {"$ref": "#/$defs/enumList"},
+        "require_psychological_pressure": {"type": "boolean"},
+        "technical_markers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/enumName"}
+        },
+        "max_technical_clue_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "procedural_markers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/enumName"}
+        }
+      }
+    },
+    "trustAndSafetyBetrayalPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "require_trusted_domain",
+        "require_safe_domain_expectation"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "require_trusted_domain": {"type": "boolean"},
+        "require_safe_domain_expectation": {"type": "boolean"}
+      }
+    },
+    "coerciveControlPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "require_warning_signals",
+        "require_boundary_erosion",
+        "require_control_tactics",
+        "require_exit_barriers"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "require_warning_signals": {"type": "boolean"},
+        "require_boundary_erosion": {"type": "boolean"},
+        "require_control_tactics": {"type": "boolean"},
+        "require_exit_barriers": {"type": "boolean"}
+      }
+    },
+    "victimCenteredPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "require_agency_outcome",
+        "require_responsible_agent_payoff",
+        "prohibited_phrases"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "require_agency_outcome": {"type": "boolean"},
+        "require_responsible_agent_payoff": {"type": "boolean"},
+        "prohibited_phrases": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "expertAnalysisPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "true_story_requirement",
+        "inspired_requirement",
+        "original_requirement",
+        "require_claim_evidence"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "true_story_requirement": {"const": "REQUIRED"},
+        "inspired_requirement": {
+          "enum": ["REQUIRED", "REQUIRED_OR_NA"]
+        },
+        "original_requirement": {"const": "OPTIONAL"},
+        "require_claim_evidence": {"type": "boolean"}
+      }
+    },
+    "riskSignalAndPublicValuePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "require_risk_signal_payoff"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "require_risk_signal_payoff": {"type": "boolean"}
+      }
+    },
+    "sourceDisclosurePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "labels_by_source_mode"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "labels_by_source_mode": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ORIGINAL",
+            "USER_CASE",
+            "REFERENCE_INSPIRED",
+            "TRUE_STORY",
+            "INSPIRED_BY_TRUE_EVENTS"
+          ],
+          "properties": {
+            "ORIGINAL": {"$ref": "#/$defs/sourceDisclosureLabel"},
+            "USER_CASE": {"$ref": "#/$defs/sourceDisclosureLabel"},
+            "REFERENCE_INSPIRED": {"$ref": "#/$defs/sourceDisclosureLabel"},
+            "TRUE_STORY": {"$ref": "#/$defs/sourceDisclosureLabel"},
+            "INSPIRED_BY_TRUE_EVENTS": {"$ref": "#/$defs/sourceDisclosureLabel"}
+          }
+        }
+      }
+    },
+    "clinicalLabelPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "controlled_terms",
+        "allowed_classifications",
+        "diagnosis_requires_expert",
+        "diagnosis_requires_evidence"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "controlled_terms": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "allowed_classifications": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/clinicalLabelClassification"}
+        },
+        "diagnosis_requires_expert": {"type": "boolean"},
+        "diagnosis_requires_evidence": {"type": "boolean"}
+      }
+    },
+    "episodeThemePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "allowed_themes", "require_episode_theme"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "allowed_themes": {"$ref": "#/$defs/enumList"},
+        "require_episode_theme": {"type": "boolean"}
+      }
+    },
+    "enumName": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "sourceDisclosureLabel": {
+      "enum": [
+        "VERIFIED_TRUE_CASE",
+        "INSPIRED_BY_TRUE_EVENTS",
+        "ORIGINAL_FICTION"
+      ]
+    },
+    "clinicalLabelClassification": {
+      "enum": [
+        "CONFIRMED_DIAGNOSIS",
+        "EXPERT_ASSESSMENT",
+        "MEDIA_DESCRIPTION",
+        "NARRATOR_OPINION",
+        "UNVERIFIED_LABEL"
+      ]
     },
     "genericPolicy": {
       "type": "object"

@@ -52,6 +52,7 @@ class ChannelSummary(TypedDict):
     schema_family: str
     schema_version: str
     content_version: str
+    channel_dna_sha256: str
 
 
 class ResolvedCapability(TypedDict):

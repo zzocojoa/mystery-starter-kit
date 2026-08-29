@@ -2,7 +2,9 @@
 
 from collections.abc import Mapping, Sequence
 
+from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.causal_validation import validate_causal_graph
+from VALIDATORS.channel_policy_v2 import validate_channel_policy_v2
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.editorial import (
@@ -21,6 +23,7 @@ from VALIDATORS.pipeline import (
     nonempty_string_issues,
     production_text_issues,
     schema_issues,
+    validate_compatibility_binding_current,
     validate_compatibility_gate,
     validate_fingerprint_current,
     validate_project_configuration,
@@ -96,14 +99,26 @@ def validate_gate(
         compatibility = artifact_document(artifacts, "compatibility_report")
         return [
             *validate_compatibility_gate(compatibility),
+            *validate_compatibility_binding_current(
+                compatibility,
+                production_config,
+                channel,
+            ),
             *validate_project_ids(artifacts, project_id),
             *validate_project_setup(manifest, production_config, channel),
         ]
     if gate_id == "GATE-01":
         variations = artifact_document(artifacts, "variation_candidates")
+        candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
         precheck = artifact_document(artifacts, "novelty_precheck")
         return [
             *validate_variation_gate(variations, channel),
+            *schema_issues(
+                candidate_evaluation,
+                presentation_schemas["candidate_evaluation"],
+                "00_PROJECT/candidate_evaluation.json",
+            ),
+            *validate_candidate_evaluation(variations, candidate_evaluation),
             *validate_variation_precheck(variations, precheck),
         ]
     if gate_id == "GATE-02":
@@ -315,6 +330,15 @@ def validate_gate(
                 production_config,
                 presentation,
             ),
+            *validate_channel_policy_v2(
+                channel,
+                story,
+                production_config,
+                case_input,
+                claims,
+                presentation,
+                final_script,
+            ),
         ]
     if gate_id == "GATE-13":
         return [
@@ -347,6 +371,15 @@ def validate_gate(
                 story,
                 production_config,
                 presentation,
+            ),
+            *validate_channel_policy_v2(
+                channel,
+                story,
+                production_config,
+                case_input,
+                claims,
+                presentation,
+                final_script,
             ),
             *production_text_issues(artifacts),
             *validate_production_presentation(

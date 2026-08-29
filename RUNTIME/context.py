@@ -8,6 +8,7 @@ from typing import cast
 
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.models import ContextItem, DataClass, RuntimeTask
+from VALIDATORS.channel_registry import resolve_project_channel
 from VALIDATORS.dependency import dependency_artifacts
 from VALIDATORS.io import load_json_object
 from VALIDATORS.models import ProjectState
@@ -149,6 +150,45 @@ def build_minimal_context(
                 trust_level="PUBLIC",
                 instructional=False,
                 content=dict(content) if isinstance(content, Mapping) else content,
+            )
+        )
+    if any(
+        Path(resource).name == "channel_manifest.json"
+        for resource in task["standard_resources"]
+    ):
+        production_content = overlay.get("production_config")
+        if production_content is None:
+            production_content = read_artifact_content(
+                project_path / "00_PROJECT" / "production_config.json"
+            )
+        if not isinstance(production_content, Mapping):
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Pinned Channel Context에는 Production Config 객체가 필요합니다.",
+                task_id,
+                "production_config",
+                {},
+            )
+        channel, _manifest, channel_path = resolve_project_channel(
+            repository_root,
+            production_content,
+            None,
+        )
+        items.append(
+            ContextItem(
+                context_id=f"CTX-{len(items) + 1:03d}",
+                artifact_name=(
+                    "resource:pinned_channel_dna:"
+                    f"{production_content.get('channel_content_version')}"
+                ),
+                media_type="application/json",
+                sha256=content_hash(channel),
+                status=f"CONTRACT:{channel_path.relative_to(repository_root)}",
+                trust_level="PUBLIC",
+                instructional=False,
+                content=channel,
             )
         )
     leaked = [item["artifact_name"] for item in items if "EXAMPLES" in item["artifact_name"]]

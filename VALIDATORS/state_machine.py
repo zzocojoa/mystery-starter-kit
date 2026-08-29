@@ -27,7 +27,11 @@ GATES: tuple[GateDefinition, ...] = (
     },
     {
         "gate_id": "GATE-01",
-        "required_artifacts": ("variation_candidates", "novelty_precheck"),
+        "required_artifacts": (
+            "variation_candidates",
+            "candidate_evaluation",
+            "novelty_precheck",
+        ),
         "target_state": "VARIATION_APPROVED",
     },
     {

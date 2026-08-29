@@ -5,6 +5,7 @@ from pathlib import Path
 
 from RUNTIME.providers.fake import (
     fake_broadcast_master,
+    fake_candidate_evaluation,
     fake_edit_script,
     fake_editorial_review,
     fake_panel_cast,
@@ -12,6 +13,7 @@ from RUNTIME.providers.fake import (
     fake_reaction_segments,
     fake_script_layers,
 )
+from VALIDATORS.compatibility import channel_dna_sha256
 from VALIDATORS.io import load_json_object
 from VALIDATORS.novelty import build_story_fingerprint, evaluate_variation_precheck
 from VALIDATORS.pipeline import ArtifactContent
@@ -26,6 +28,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     """GATE-00부터 GATE-13까지 통과하는 독립 Project를 만든다."""
     project_id = "PRJ-002"
+    channel = load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json")
     story_document = deepcopy(
         load_json_object(ROOT / "EXAMPLES" / "story_dna.example.json")
     )
@@ -69,6 +72,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "project_id": project_id,
         "standard_version": "1.3.3",
         "channel_id": "MYSTERY_MAIN",
+        "channel_content_version": "1.1.0",
         "approval_policy": "AUTO_CONTINUE",
         "story_source_mode": "ORIGINAL",
         "genre": "MYSTERY",
@@ -249,7 +253,18 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "channel_id": "MYSTERY_MAIN",
             "story_source_mode": "ORIGINAL",
         },
-        "compatibility_report": {"project_id": project_id, "compatibility": "PASS"},
+        "compatibility_report": {
+            "project_id": project_id,
+            "channel": {
+                "channel_id": "MYSTERY_MAIN",
+                "schema_family": "channel-dna",
+                "schema_version": "1.0.0",
+                "content_version": "1.1.0",
+                "channel_dna_sha256": channel_dna_sha256(channel),
+            },
+            "compatibility": "PASS",
+            "errors": [],
+        },
         "production_config": production_config,
         "reference_profile": {
             "project_id": project_id,
@@ -259,6 +274,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "prohibited_story_content": [],
         },
         "variation_candidates": variations,
+        "candidate_evaluation": fake_candidate_evaluation(project_id, variations),
         "novelty_precheck": novelty_precheck,
         "story_dna": story_document,
         "story_fingerprint": fingerprint,

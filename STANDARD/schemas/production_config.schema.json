@@ -8,6 +8,7 @@
     "project_id",
     "standard_version",
     "channel_id",
+    "channel_content_version",
     "approval_policy",
     "story_source_mode",
     "genre",
@@ -20,6 +21,7 @@
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "standard_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
     "channel_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "channel_content_version": {"$ref": "#/$defs/semanticVersion"},
     "approval_policy": {"enum": ["AUTO_CONTINUE", "HUMAN_REVIEW"]},
     "story_source_mode": {
       "enum": ["ORIGINAL", "USER_CASE", "REFERENCE_INSPIRED", "TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"]
@@ -58,6 +60,10 @@
     }
   ],
   "$defs": {
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
     "userCaseConstraint": {
       "type": "object",
       "additionalProperties": false,

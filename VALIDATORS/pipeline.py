@@ -5,8 +5,11 @@ from copy import deepcopy
 from pathlib import Path
 from typing import cast
 
+from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.causal_validation import validate_causal_graph
+from VALIDATORS.channel_policy_v2 import validate_channel_policy_v2
 from VALIDATORS.channel_validation import validate_channel_consistency
+from VALIDATORS.compatibility import channel_dna_sha256, parse_semantic_version
 from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.dependency import dependency_artifacts
 from VALIDATORS.editorial import (
@@ -14,7 +17,11 @@ from VALIDATORS.editorial import (
     runtime_evidence_issues,
     validate_editorial_review,
 )
-from VALIDATORS.exceptions import ConfigurationError, InputFileReadError
+from VALIDATORS.exceptions import (
+    ConfigurationError,
+    InputFileReadError,
+    InvalidSemanticVersionError,
+)
 from VALIDATORS.fact_validation import validate_fact_integrity
 from VALIDATORS.io import load_json_object
 from VALIDATORS.models import GateStatus, ProductionValidationReport, ValidationIssue
@@ -223,6 +230,58 @@ def validate_compatibility_gate(
     ]
 
 
+def validate_compatibility_binding_current(
+    compatibility_report: Mapping[str, object],
+    production_config: Mapping[str, object],
+    channel: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """저장된 Compatibility Report가 현재 Project 핀과 DNA를 가리키는지 검사한다."""
+    summary = compatibility_report.get("channel")
+    summary_mapping = summary if isinstance(summary, Mapping) else {}
+    expected_version = production_config.get("channel_content_version")
+    report_version = summary_mapping.get("content_version")
+    actual_version = channel.get("content_version")
+    versions_match = False
+    if all(
+        isinstance(value, str)
+        for value in (expected_version, report_version, actual_version)
+    ):
+        try:
+            versions_match = (
+                parse_semantic_version(str(expected_version))
+                == parse_semantic_version(str(report_version))
+                == parse_semantic_version(str(actual_version))
+            )
+        except InvalidSemanticVersionError:
+            versions_match = False
+    issues: list[ValidationIssue] = []
+    if not versions_match:
+        issues.append(
+            make_pipeline_issue(
+                "CHANNEL_CONTENT_VERSION_MISMATCH",
+                "Compatibility Report, Project 핀, 실제 Channel DNA 버전이 다릅니다.",
+                "00_PROJECT/compatibility_report.json",
+                {
+                    "project": expected_version,
+                    "report": report_version,
+                    "channel": actual_version,
+                },
+            )
+        )
+    expected_hash = summary_mapping.get("channel_dna_sha256")
+    actual_hash = channel_dna_sha256(channel)
+    if expected_hash != actual_hash:
+        issues.append(
+            make_pipeline_issue(
+                "CHANNEL_DNA_HASH_MISMATCH",
+                "Compatibility Report의 SHA-256과 현재 Channel DNA가 다릅니다.",
+                "00_PROJECT/compatibility_report.json",
+                {"expected": expected_hash, "actual": actual_hash},
+            )
+        )
+    return issues
+
+
 def validate_project_ids(
     artifacts: Mapping[str, ArtifactContent],
     project_id: str,
@@ -261,6 +320,10 @@ def validate_project_configuration(
             manifest.get("channel_id"),
             production_config.get("channel_id"),
             channel.get("channel_id"),
+        ),
+        "channel_content_version": (
+            production_config.get("channel_content_version"),
+            channel.get("content_version"),
         ),
         "story_source_mode": (
             manifest.get("story_source_mode"),
@@ -301,6 +364,10 @@ def validate_project_setup(
             manifest.get("channel_id"),
             production_config.get("channel_id"),
             channel.get("channel_id"),
+        ),
+        "channel_content_version": (
+            production_config.get("channel_content_version"),
+            channel.get("content_version"),
         ),
         "story_source_mode": (
             manifest.get("story_source_mode"),
@@ -577,6 +644,7 @@ def run_production_validation(
     production_config = artifact_document(artifacts, "production_config")
     reference_profile = artifact_document(artifacts, "reference_profile")
     variation_candidates = artifact_document(artifacts, "variation_candidates")
+    candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
     novelty_precheck = artifact_document(artifacts, "novelty_precheck")
     story_document = artifact_document(artifacts, "story_dna")
     fingerprint = artifact_document(artifacts, "story_fingerprint")
@@ -611,6 +679,11 @@ def run_production_validation(
 
     gate_00 = [
         *validate_compatibility_gate(compatibility),
+        *validate_compatibility_binding_current(
+            compatibility,
+            production_config,
+            channel,
+        ),
         *validate_project_ids(artifacts, project_id),
         *validate_project_configuration(
             project_manifest,
@@ -621,6 +694,15 @@ def run_production_validation(
     ]
     gate_01 = [
         *validate_variation_gate(variation_candidates, channel),
+        *schema_issues(
+            candidate_evaluation,
+            presentation_schemas["candidate_evaluation"],
+            "00_PROJECT/candidate_evaluation.json",
+        ),
+        *validate_candidate_evaluation(
+            variation_candidates,
+            candidate_evaluation,
+        ),
         *validate_variation_precheck(variation_candidates, novelty_precheck),
     ]
     gate_02 = [
@@ -803,6 +885,17 @@ def run_production_validation(
         story_document,
         production_config,
         presentation_plan,
+    )
+    gate_12.extend(
+        validate_channel_policy_v2(
+            channel,
+            story_document,
+            production_config,
+            case_input,
+            claim_evidence,
+            presentation_plan,
+            final_script,
+        )
     )
     gate_13 = [
         *production_text_issues(artifacts),

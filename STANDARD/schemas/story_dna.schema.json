@@ -191,6 +191,57 @@
         }
       }
     },
+    "clinicalLabel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["term", "classification", "asserted_as_fact"],
+      "properties": {
+        "term": {"type": "string", "minLength": 1},
+        "classification": {
+          "enum": [
+            "CONFIRMED_DIAGNOSIS",
+            "EXPERT_ASSESSMENT",
+            "MEDIA_DESCRIPTION",
+            "NARRATOR_OPINION",
+            "UNVERIFIED_LABEL"
+          ]
+        },
+        "claim_id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{2,}$"},
+        "expert_id": {"type": "string", "pattern": "^EXPERT-[0-9]{2,}$"},
+        "asserted_as_fact": {"type": "boolean"}
+      }
+    },
+    "expertDebriefPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["PLANNED", "NOT_APPLICABLE"]},
+        "expert_role": {"type": "string", "minLength": 1},
+        "claim_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[A-Z]+-[0-9]{2,}$"}
+        },
+        "na_reason": {"type": "string", "minLength": 1}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "PLANNED"}}},
+          "then": {
+            "required": ["expert_role", "claim_ids"],
+            "properties": {"claim_ids": {"minItems": 1}}
+          }
+        },
+        {
+          "if": {"properties": {"status": {"const": "NOT_APPLICABLE"}}},
+          "then": {
+            "required": ["na_reason"],
+            "properties": {"claim_ids": {"maxItems": 0}}
+          }
+        }
+      ]
+    },
     "storyDna": {
       "type": "object",
       "additionalProperties": true,
@@ -360,6 +411,70 @@
             "CIRCULAR",
             "MORAL_REVERSAL"
           ]
+        },
+        "threat_type": {
+          "$ref": "#/$defs/enumName"
+        },
+        "trusted_domain": {
+          "$ref": "#/$defs/enumName"
+        },
+        "safe_domain_expectation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "early_warning_signals": {
+          "$ref": "#/$defs/enumList"
+        },
+        "boundary_erosion_steps": {
+          "$ref": "#/$defs/enumList"
+        },
+        "control_tactics": {
+          "$ref": "#/$defs/enumList"
+        },
+        "victim_exit_barriers": {
+          "$ref": "#/$defs/enumList"
+        },
+        "harm_mechanism": {
+          "type": "string",
+          "minLength": 1
+        },
+        "responsible_agent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "responsible_agent_payoff": {
+          "type": "string",
+          "minLength": 1
+        },
+        "victim_agency_outcome": {
+          "type": "string",
+          "minLength": 1
+        },
+        "psychological_pressure": {
+          "type": "string",
+          "minLength": 1
+        },
+        "risk_signal_payoff": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_disclosure_mode": {
+          "enum": [
+            "VERIFIED_TRUE_CASE",
+            "INSPIRED_BY_TRUE_EVENTS",
+            "ORIGINAL_FICTION"
+          ]
+        },
+        "clinical_label_classification": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/clinicalLabel"}
+        },
+        "expert_debrief_plan": {
+          "$ref": "#/$defs/expertDebriefPlan"
+        },
+        "episode_theme": {
+          "$ref": "#/$defs/enumName"
         }
       }
     }

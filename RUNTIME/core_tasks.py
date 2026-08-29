@@ -5,9 +5,14 @@ from pathlib import Path
 
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.gate_control import validation_report_through
+from VALIDATORS.channel_policy_v2 import validate_channel_policy_v2
+from VALIDATORS.channel_registry import resolve_project_channel
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.cli import evaluate_compatibility_documents
-from VALIDATORS.compatibility import make_project_compatibility_report
+from VALIDATORS.compatibility import (
+    evaluate_channel_binding,
+    make_project_compatibility_report,
+)
 from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.exceptions import StoryLibraryError
 from VALIDATORS.io import load_json_object
@@ -125,6 +130,12 @@ def runtime_validation_inputs(
             repository_root / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
         ),
         {
+            "candidate_evaluation": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "candidate_evaluation.schema.json"
+            ),
             "panel_cast": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "panel_cast.schema.json"
             ),
@@ -146,6 +157,42 @@ def runtime_validation_inputs(
     )
 
 
+def runtime_validation_inputs_for_project(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    channel_override: Path | None,
+) -> tuple[
+    Mapping[str, object],
+    Mapping[str, object],
+    Mapping[str, object],
+    Mapping[str, Mapping[str, object]],
+    Mapping[str, object],
+    Mapping[str, object],
+]:
+    """Project 핀으로 Channel을 해석해 Gate 검증 입력을 반환한다."""
+    channel, _manifest, _channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        channel_override,
+    )
+    (
+        _active_channel,
+        story_schema,
+        fingerprint_schema,
+        presentation_schemas,
+        reference_policy,
+        novelty_thresholds,
+    ) = runtime_validation_inputs(repository_root)
+    return (
+        channel,
+        story_schema,
+        fingerprint_schema,
+        presentation_schemas,
+        reference_policy,
+        novelty_thresholds,
+    )
+
+
 def project_compatibility_output(
     repository_root: Path,
     artifacts: Mapping[str, ArtifactContent],
@@ -163,13 +210,18 @@ def project_compatibility_output(
             "project_manifest",
             {},
         )
+    production_config = mapping_artifact(artifacts, "production_config")
     contract_path = repository_root / "STANDARD" / "compatibility_contract.json"
     defaults_path = repository_root / "STANDARD" / "standard_defaults.json"
-    channel_path = repository_root / "CHANNELS" / "mystery_main" / "channel_dna.json"
+    channel, channel_manifest, channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        None,
+    )
     report = evaluate_compatibility_documents(
         load_json_object(contract_path),
         load_json_object(defaults_path),
-        load_json_object(channel_path),
+        channel,
         load_json_object(
             repository_root / "STANDARD" / "schemas" / "compatibility_contract.schema.json"
         ),
@@ -180,6 +232,12 @@ def project_compatibility_output(
         str(contract_path),
         str(defaults_path),
         str(channel_path),
+    )
+    report = evaluate_channel_binding(
+        report,
+        production_config,
+        channel_manifest,
+        channel,
     )
     return dict(make_project_compatibility_report(project_id, report))
 
@@ -419,11 +477,27 @@ def core_task_outputs(
             )
         }
     if task_id == "channel.consistency":
+        channel, _manifest, _channel_path = resolve_project_channel(
+            repository_root,
+            production_config,
+            None,
+        )
         issues = validate_channel_consistency(
-            load_json_object(repository_root / "CHANNELS" / "mystery_main" / "channel_dna.json"),
+            channel,
             mapping_artifact(artifacts, "story_dna"),
             production_config,
             mapping_artifact(artifacts, "presentation_plan"),
+        )
+        issues.extend(
+            validate_channel_policy_v2(
+                channel,
+                mapping_artifact(artifacts, "story_dna"),
+                production_config,
+                mapping_artifact(artifacts, "case_input"),
+                mapping_artifact(artifacts, "claim_evidence"),
+                mapping_artifact(artifacts, "presentation_plan"),
+                text_artifact(artifacts, "final_script"),
+            )
         )
         return {
             "channel_consistency_report": {
@@ -434,18 +508,22 @@ def core_task_outputs(
         }
     if task_id in {"orchestrator.validation", "production.finalize"}:
         (
-            channel,
+            validation_channel,
             story_schema,
             fingerprint_schema,
             presentation_schemas,
             policy,
             thresholds,
-        ) = runtime_validation_inputs(repository_root)
+        ) = runtime_validation_inputs_for_project(
+            repository_root,
+            production_config,
+            None,
+        )
         target_gate = "GATE-12" if task_id == "orchestrator.validation" else "GATE-13"
         validation_report = validation_report_through(
             target_gate,
             artifacts,
-            channel,
+            validation_channel,
             story_schema,
             fingerprint_schema,
             presentation_schemas,

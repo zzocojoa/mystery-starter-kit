@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/compatibility_contract.schema.json",
   "contract_family": "mystery-production-channel-dna",
-  "contract_version": "1.0.0",
+  "contract_version": "1.1.0",
   "channel_dna_interface": {
     "schema_family": "channel-dna",
     "supported_schema_versions": {
@@ -24,7 +24,16 @@
       "RETENTION_POLICY",
       "HOST_POLICY",
       "MUSIC_POLICY",
-      "THUMBNAIL_POLICY"
+      "THUMBNAIL_POLICY",
+      "CRIME_PSYCHOLOGY_POLICY",
+      "TRUST_AND_SAFETY_BETRAYAL_POLICY",
+      "COERCIVE_CONTROL_POLICY",
+      "VICTIM_CENTERED_POLICY",
+      "EXPERT_ANALYSIS_POLICY",
+      "RISK_SIGNAL_AND_PUBLIC_VALUE_POLICY",
+      "SOURCE_DISCLOSURE_POLICY",
+      "CLINICAL_LABEL_POLICY",
+      "EPISODE_THEME_POLICY"
     ]
   },
   "compatibility_policy": {
@@ -34,7 +43,7 @@
     "missing_required_capabilities": "FAIL",
     "unsupported_schema_family": "FAIL",
     "unsupported_schema_version": "FAIL",
-    "content_version_mismatch": "IGNORE"
+    "content_version_mismatch": "FAIL"
   },
   "fallback_policy": {
     "source": "standard_defaults.json",
