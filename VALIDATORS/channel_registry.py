@@ -3,7 +3,11 @@
 from collections.abc import Mapping
 from pathlib import Path
 
-from VALIDATORS.compatibility import manifest_version_entry, parse_semantic_version
+from VALIDATORS.compatibility import (
+    channel_dna_sha256,
+    manifest_version_entry,
+    parse_semantic_version,
+)
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object
 from VALIDATORS.schema_validation import collect_schema_errors
@@ -141,4 +145,35 @@ def resolve_project_channel(
         if channel_override is not None
         else entry_channel_path(manifest_path.parent, entry)
     )
-    return load_json_object(selected_path), manifest, selected_path
+    channel = load_json_object(selected_path)
+    channel_schema_path = (
+        repository_root / "STANDARD" / "schemas" / "channel_dna.schema.json"
+    )
+    channel_errors = collect_schema_errors(
+        channel,
+        load_json_object(channel_schema_path),
+        str(selected_path),
+    )
+    if channel_errors:
+        raise ConfigurationError(
+            "CHANNEL_DNA_SCHEMA_INVALID: Channel DNA가 Schema를 통과하지 못했습니다: "
+            f"path={selected_path}, errors={channel_errors}"
+        )
+    if channel.get("channel_id") != channel_id:
+        raise ConfigurationError(
+            "CHANNEL_ID_MISMATCH: Channel DNA ID가 Project Pin과 다릅니다: "
+            f"expected={channel_id}, actual={channel.get('channel_id')!r}"
+        )
+    if channel.get("content_version") != pinned_version:
+        raise ConfigurationError(
+            "CHANNEL_CONTENT_VERSION_MISMATCH: Channel DNA Content Version이 Project Pin과 "
+            f"다릅니다: expected={pinned_version}, actual={channel.get('content_version')!r}"
+        )
+    expected_hash = entry.get("channel_dna_sha256")
+    actual_hash = channel_dna_sha256(channel)
+    if not isinstance(expected_hash, str) or actual_hash != expected_hash:
+        raise ConfigurationError(
+            "CHANNEL_DNA_HASH_MISMATCH: Channel DNA가 Manifest의 Canonical Hash와 다릅니다: "
+            f"expected={expected_hash!r}, actual={actual_hash}"
+        )
+    return channel, manifest, selected_path

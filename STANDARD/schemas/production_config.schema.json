@@ -11,6 +11,7 @@
     "channel_content_version",
     "approval_policy",
     "story_source_mode",
+    "source_truth_classification",
     "genre",
     "tones",
     "target_runtime_minutes",
@@ -25,6 +26,13 @@
     "approval_policy": {"enum": ["AUTO_CONTINUE", "HUMAN_REVIEW"]},
     "story_source_mode": {
       "enum": ["ORIGINAL", "USER_CASE", "REFERENCE_INSPIRED", "TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"]
+    },
+    "source_truth_classification": {
+      "enum": [
+        "ORIGINAL_FICTION",
+        "VERIFIED_TRUE_CASE",
+        "INSPIRED_BY_TRUE_EVENTS"
+      ]
     },
     "user_case_constraints": {
       "type": "array",
@@ -56,6 +64,38 @@
       },
       "else": {
         "not": {"required": ["user_case_constraints"]}
+      }
+    },
+    {
+      "if": {
+        "properties": {"story_source_mode": {"const": "ORIGINAL"}}
+      },
+      "then": {
+        "properties": {
+          "source_truth_classification": {"const": "ORIGINAL_FICTION"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"story_source_mode": {"const": "TRUE_STORY"}}
+      },
+      "then": {
+        "properties": {
+          "source_truth_classification": {"const": "VERIFIED_TRUE_CASE"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "story_source_mode": {"const": "INSPIRED_BY_TRUE_EVENTS"}
+        }
+      },
+      "then": {
+        "properties": {
+          "source_truth_classification": {"const": "INSPIRED_BY_TRUE_EVENTS"}
+        }
       }
     }
   ],

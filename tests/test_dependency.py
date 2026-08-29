@@ -4,6 +4,7 @@ from pathlib import Path
 
 from VALIDATORS.dependency import (
     artifact_hash,
+    artifact_required_for_project,
     build_initial_project_state,
     invalidate_artifact_dependents,
     validate_dependency_graph,
@@ -44,3 +45,39 @@ def test_story_dna_change_invalidates_all_downstream_artifacts() -> None:
     assert changed_state["artifacts"]["validation_report"]["status"] == "DIRTY"
     assert changed_state["artifacts"]["edit_script"]["status"] == "DIRTY"
     assert state["artifacts"]["story_dna"]["status"] == "MISSING"
+
+
+def test_v2_disabled_optional_capability_does_not_require_artifact() -> None:
+    """v2 버전만으로 비활성 Optional Capability Artifact를 강제하지 않는다."""
+    definition = {
+        "required_when_capability_enabled": "EXPERT_ANALYSIS_POLICY",
+        "required_when_source_truth": ["VERIFIED_TRUE_CASE"],
+    }
+    channel = {"capabilities": {"EXPERT_ANALYSIS_POLICY": {"enabled": False}}}
+    config = {
+        "channel_content_version": "2.0.0",
+        "source_truth_classification": "VERIFIED_TRUE_CASE",
+    }
+
+    assert not artifact_required_for_project(definition, channel, config, {})
+
+
+def test_expert_script_requires_enabled_policy_truth_and_planned_status() -> None:
+    """Expert Script는 Capability, 사실성, 계획 상태가 모두 충족될 때만 필수다."""
+    definition = {
+        "required_when_capability_enabled": "EXPERT_ANALYSIS_POLICY",
+        "required_when_source_truth": ["VERIFIED_TRUE_CASE"],
+        "required_when_plan_status": {"artifact": "expert_segments", "status": "PLANNED"},
+    }
+    channel = {"capabilities": {"EXPERT_ANALYSIS_POLICY": {"enabled": True}}}
+    config = {
+        "channel_content_version": "2.0.0",
+        "source_truth_classification": "VERIFIED_TRUE_CASE",
+    }
+
+    assert artifact_required_for_project(
+        definition, channel, config, {"expert_segments": {"status": "PLANNED"}}
+    )
+    assert not artifact_required_for_project(
+        definition, channel, config, {"expert_segments": {"status": "NOT_APPLICABLE"}}
+    )

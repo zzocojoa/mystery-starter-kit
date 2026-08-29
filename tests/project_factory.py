@@ -13,6 +13,8 @@ from RUNTIME.providers.fake import (
     fake_reaction_segments,
     fake_script_layers,
 )
+from VALIDATORS.candidate_approval import build_candidate_approval
+from VALIDATORS.candidate_eligibility import build_candidate_eligibility
 from VALIDATORS.compatibility import channel_dna_sha256
 from VALIDATORS.io import load_json_object
 from VALIDATORS.novelty import build_story_fingerprint, evaluate_variation_precheck
@@ -29,11 +31,30 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     """GATE-00부터 GATE-13까지 통과하는 독립 Project를 만든다."""
     project_id = "PRJ-002"
     channel = load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json")
+    production_config: dict[str, object] = {
+        "project_id": project_id,
+        "standard_version": "1.3.3",
+        "channel_id": "MYSTERY_MAIN",
+        "channel_content_version": "1.1.0",
+        "approval_policy": "AUTO_CONTINUE",
+        "story_source_mode": "ORIGINAL",
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "genre": "MYSTERY",
+        "tones": ["GROUNDED", "SUSPENSEFUL"],
+        "target_runtime_minutes": 2,
+        "runtime_tolerance_ratio": 0.1,
+    }
     story_document = deepcopy(
         load_json_object(ROOT / "EXAMPLES" / "story_dna.example.json")
     )
     catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
-    variations = generate_variation_candidates(project_id, "공장 교대 중 사라진 작업자", 5, catalog)
+    variations = generate_variation_candidates(
+        project_id,
+        "공장 교대 중 사라진 작업자",
+        5,
+        catalog,
+        "ORIGINAL_FICTION",
+    )
     candidates = variations["candidates"]
     story_dna = story_document["story_dna"]
     assert isinstance(candidates, list)
@@ -66,10 +87,17 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     dramatic_engine["primary"] = selection["dramatic_engine"]
     thresholds = load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json")
     novelty_precheck = evaluate_variation_precheck(variations, [], thresholds)
+    candidate_eligibility = build_candidate_eligibility(
+        production_config,
+        channel,
+        variations,
+        novelty_precheck,
+    )
     candidate_evaluation = fake_candidate_evaluation(
         project_id,
         variations,
         novelty_precheck,
+        candidate_eligibility,
     )
     recommended_candidate_id = candidate_evaluation["recommended_candidate_id"]
     assert isinstance(recommended_candidate_id, str)
@@ -78,18 +106,17 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         recommended_candidate_id,
     )
 
-    production_config: dict[str, object] = {
-        "project_id": project_id,
-        "standard_version": "1.3.3",
-        "channel_id": "MYSTERY_MAIN",
-        "channel_content_version": "1.1.0",
-        "approval_policy": "AUTO_CONTINUE",
-        "story_source_mode": "ORIGINAL",
-        "genre": "MYSTERY",
-        "tones": ["GROUNDED", "SUSPENSEFUL"],
-        "target_runtime_minutes": 2,
-        "runtime_tolerance_ratio": 0.1,
-    }
+    candidate_approval = build_candidate_approval(
+        project_id,
+        recommended_candidate_id,
+        recommended_candidate_id,
+        "SYSTEM",
+        "테스트 자동 승인",
+        "2025-01-01T00:00:00Z",
+        variations,
+        novelty_precheck,
+        candidate_evaluation,
+    )
     case_input: dict[str, object] = {
         "project_id": project_id,
         "title_working": "교대 기록의 7분",
@@ -285,7 +312,9 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "prohibited_story_content": [],
         },
         "variation_candidates": variations,
+        "candidate_eligibility": candidate_eligibility,
         "candidate_evaluation": candidate_evaluation,
+        "candidate_approval": candidate_approval,
         "novelty_precheck": novelty_precheck,
         "story_dna": story_document,
         "story_fingerprint": fingerprint,

@@ -703,6 +703,11 @@ async def execute_existing_run(
     agent_manifest = load_json_object(repository_root / "AGENTS" / "manifest.json")
     dependency_graph = load_json_object(repository_root / "STANDARD" / "dependency_graph.json")
     production_config = load_json_object(project_path / "00_PROJECT" / "production_config.json")
+    runtime_validation_inputs_for_project(
+        repository_root,
+        production_config,
+        None,
+    )
     source_mode = production_config.get("story_source_mode")
     if not isinstance(source_mode, str):
         raise RuntimeExecutionError(
@@ -976,7 +981,11 @@ async def execute_existing_run(
                     gate_outputs,
                     dependency_graph,
                 )
-                staged_artifacts = load_project_artifacts(staging_path, dependency_graph)
+                staged_artifacts = load_project_artifacts(
+                    staging_path,
+                    dependency_graph,
+                    channel,
+                )
                 current_run = update_run_status(
                     project_path,
                     current_run,

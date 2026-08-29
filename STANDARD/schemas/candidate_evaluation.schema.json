@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/candidate-evaluation-1.1.0.json",
-  "title": "Variation Candidate Evaluation v1.1",
+  "$id": "https://example.local/schemas/candidate-evaluation-1.2.0.json",
+  "title": "Variation Candidate Soft Evaluation v1.2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,32 +17,27 @@
   "properties": {
     "$schema": {"type": "string"},
     "schema_family": {"const": "candidate-evaluation"},
-    "schema_version": {"const": "1.1.0"},
+    "schema_version": {"const": "1.2.0"},
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "weights": {"$ref": "#/$defs/dimensions"},
     "input_hashes": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["variation_candidates", "novelty_precheck"],
+      "required": [
+        "variation_candidates",
+        "novelty_precheck",
+        "candidate_eligibility"
+      ],
       "properties": {
         "variation_candidates": {"$ref": "#/$defs/hash"},
-        "novelty_precheck": {"$ref": "#/$defs/hash"}
+        "novelty_precheck": {"$ref": "#/$defs/hash"},
+        "candidate_eligibility": {"$ref": "#/$defs/hash"}
       }
     },
     "novelty_report_hash": {"$ref": "#/$defs/hash"},
     "recommended_candidate_id": {
       "type": "string",
       "pattern": "^VAR-[0-9]{2,}$"
-    },
-    "human_override": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["candidate_id", "actor", "reason"],
-      "properties": {
-        "candidate_id": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
-        "actor": {"type": "string", "minLength": 1},
-        "reason": {"type": "string", "minLength": 1}
-      }
     },
     "evaluations": {
       "type": "array",
@@ -113,10 +108,7 @@
       "additionalProperties": false,
       "required": [
         "candidate_id",
-        "hard_filter_result",
-        "hard_filter_reasons",
         "dimension_evidence",
-        "novelty_result",
         "crime_threat_score",
         "psychological_immersion_score",
         "trust_betrayal_score",
@@ -131,10 +123,7 @@
       ],
       "properties": {
         "candidate_id": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
-        "hard_filter_result": {"enum": ["PASS", "FAIL"]},
-        "hard_filter_reasons": {"$ref": "#/$defs/evidenceList"},
         "dimension_evidence": {"$ref": "#/$defs/dimensionEvidence"},
-        "novelty_result": {"enum": ["PASS", "FAIL"]},
         "crime_threat_score": {"$ref": "#/$defs/score"},
         "psychological_immersion_score": {"$ref": "#/$defs/score"},
         "trust_betrayal_score": {"$ref": "#/$defs/score"},

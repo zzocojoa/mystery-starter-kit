@@ -7,11 +7,7 @@ from pathlib import Path
 import pytest
 
 from VALIDATORS.channel_registry import resolve_project_channel
-from VALIDATORS.compatibility import (
-    channel_dna_sha256,
-    evaluate_channel_binding,
-    evaluate_compatibility,
-)
+from VALIDATORS.compatibility import channel_dna_sha256
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object, write_json_object
 
@@ -27,6 +23,10 @@ def test_existing_project_keeps_v1_1_after_v2_activation(tmp_path: Path) -> None
     shutil.copy2(
         ROOT / "STANDARD" / "schemas" / "channel_manifest.schema.json",
         schema_directory / "channel_manifest.schema.json",
+    )
+    shutil.copy2(
+        ROOT / "STANDARD" / "schemas" / "channel_dna.schema.json",
+        schema_directory / "channel_dna.schema.json",
     )
     channel_directory = repository_root / "CHANNELS" / "mystery_main"
     v1_channel = load_json_object(channel_directory / "channel_dna.json")
@@ -101,6 +101,10 @@ def test_snapshot_change_fails_manifest_hash_binding(tmp_path: Path) -> None:
         ROOT / "STANDARD" / "schemas" / "channel_manifest.schema.json",
         schema_directory / "channel_manifest.schema.json",
     )
+    shutil.copy2(
+        ROOT / "STANDARD" / "schemas" / "channel_dna.schema.json",
+        schema_directory / "channel_dna.schema.json",
+    )
     snapshot_path = (
         repository_root
         / "CHANNELS"
@@ -112,30 +116,12 @@ def test_snapshot_change_fails_manifest_hash_binding(tmp_path: Path) -> None:
     changed = load_json_object(snapshot_path)
     changed["display_name"] = "변조된 Channel"
     write_json_object(snapshot_path, changed)
-    channel, manifest, _resolved_path = resolve_project_channel(
-        repository_root,
-        {
-            "channel_id": "MYSTERY_MAIN",
-            "channel_content_version": "1.1.0",
-        },
-        None,
-    )
-    report = evaluate_channel_binding(
-        evaluate_compatibility(
-            load_json_object(ROOT / "STANDARD" / "compatibility_contract.json"),
-            load_json_object(ROOT / "STANDARD" / "standard_defaults.json"),
-            channel,
-        ),
-        {
-            "channel_id": "MYSTERY_MAIN",
-            "channel_content_version": "1.1.0",
-        },
-        manifest,
-        channel,
-    )
-
-    assert report["compatibility"] == "FAIL"
-    assert any(
-        error["code"] == "CHANNEL_DNA_HASH_MISMATCH"
-        for error in report["errors"]
-    )
+    with pytest.raises(ConfigurationError, match="CHANNEL_DNA_HASH_MISMATCH"):
+        resolve_project_channel(
+            repository_root,
+            {
+                "channel_id": "MYSTERY_MAIN",
+                "channel_content_version": "1.1.0",
+            },
+            None,
+        )

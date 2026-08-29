@@ -15,6 +15,7 @@ from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.models import LLMRequest, LLMResponse, ProviderDescriptor, TokenUsage
 from RUNTIME.providers.fake import agent_result_document
 from RUNTIME.providers.in_process import InProcessProviderAdapter
+from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object, write_json_object
 
 from .support import create_runtime_project, create_runtime_repository
@@ -124,7 +125,7 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
     trace_lines = (
         project_path / "00_PROJECT" / "process_trace.jsonl"
     ).read_text(encoding="utf-8").splitlines()
-    assert len(trace_lines) == 24
+    assert len(trace_lines) == 26
     novelty_entries = novelty_index["entries"]
     assert isinstance(novelty_entries, list)
     runtime_entry = next(
@@ -134,6 +135,50 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
     )
     assert runtime_entry["status"] == "EDITORIAL_PENDING"
     assert isinstance(runtime_entry["fingerprint"], dict)
+
+
+def test_channel_tamper_fails_before_any_llm_call(tmp_path: Path) -> None:
+    """GATE-00 뒤 Channel DNA 변조는 다음 실행의 첫 LLM 호출 전에 차단한다."""
+    repository_root = create_runtime_repository(tmp_path)
+    project_path = create_runtime_project(repository_root, "PRJ-939")
+    asyncio.run(
+        execute_run(
+            repository_root,
+            project_path,
+            "GATE-00",
+            "GATE-00",
+            "default",
+            None,
+            None,
+        )
+    )
+    channel_path = repository_root / "CHANNELS/mystery_main/versions/1.1.0/channel_dna.json"
+    channel = load_json_object(channel_path)
+    identity = channel["identity"]
+    assert isinstance(identity, dict)
+    identity["statement"] = "변조된 채널 정체성"
+    write_json_object(channel_path, channel)
+    call_count = 0
+
+    async def counting_handler(request: LLMRequest) -> LLMResponse:
+        """호출 여부만 세고 호출되면 명시적으로 실패한다."""
+        nonlocal call_count
+        call_count += 1
+        raise AssertionError(f"LLM 호출 금지: {request.metadata.get('task_id')}")
+
+    with pytest.raises(ConfigurationError, match="CHANNEL_DNA_HASH_MISMATCH"):
+        asyncio.run(
+            execute_run(
+                repository_root,
+                project_path,
+                "GATE-01",
+                "GATE-01",
+                "default",
+                None,
+                {"fake": fake_adapter(counting_handler)},
+            )
+        )
+    assert call_count == 0
 
 
 def test_unauthorized_provider_output_never_changes_canonical_artifact(tmp_path: Path) -> None:

@@ -31,6 +31,8 @@ GATES: tuple[GateDefinition, ...] = (
             "variation_candidates",
             "candidate_evaluation",
             "novelty_precheck",
+            "candidate_eligibility",
+            "candidate_approval",
         ),
         "target_state": "VARIATION_APPROVED",
     },

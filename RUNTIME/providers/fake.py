@@ -862,11 +862,12 @@ def fake_candidate_evaluation(
     project_id: str,
     variations: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
+    candidate_eligibility: Mapping[str, object],
 ) -> dict[str, object]:
     """Runtime 회귀용 Candidate 평가 근거를 결정론적으로 만든다."""
     candidates = variations.get("candidates")
-    raw_novelty_results = novelty_precheck.get("candidate_results")
-    if not isinstance(candidates, list) or not isinstance(raw_novelty_results, list):
+    raw_eligible_ids = candidate_eligibility.get("eligible_candidate_ids")
+    if not isinstance(candidates, list) or not isinstance(raw_eligible_ids, list):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
             False,
@@ -876,11 +877,7 @@ def fake_candidate_evaluation(
             "candidate_evaluation",
             {},
         )
-    novelty_results = {
-        str(result.get("candidate_id")): result.get("result")
-        for result in raw_novelty_results
-        if isinstance(result, Mapping) and isinstance(result.get("candidate_id"), str)
-    }
+    eligible_ids = {value for value in raw_eligible_ids if isinstance(value, str)}
     weights: dict[str, float] = {
         "crime_threat_score": 15.0,
         "psychological_immersion_score": 15.0,
@@ -898,23 +895,16 @@ def fake_candidate_evaluation(
         candidate_id = candidate.get("candidate_id")
         if not isinstance(candidate_id, str):
             continue
-        novelty_result = novelty_results.get(candidate_id)
-        if novelty_result not in {"PASS", "FAIL"}:
-            raise RuntimeExecutionError(
-                "RUNTIME_CONFIGURATION_ERROR",
-                False,
-                "TASK",
-                "Candidate별 Novelty 결과가 없습니다.",
-                "variation.evaluate",
-                "novelty_precheck",
-                {"candidate_id": candidate_id},
-            )
         base_score = float(max(65, 92 - index * 3))
         dimension_scores = {
-            field: (95.0 if field == "novelty_score" and novelty_result == "PASS" else base_score)
+            field: (
+                95.0
+                if field == "novelty_score" and candidate_id in eligible_ids
+                else base_score
+            )
             for field in SCORE_FIELDS
         }
-        if novelty_result == "FAIL":
+        if candidate_id not in eligible_ids:
             dimension_scores["novelty_score"] = 0.0
         total_score = round(
             sum(
@@ -926,24 +916,17 @@ def fake_candidate_evaluation(
         evaluations.append(
             {
                 "candidate_id": candidate_id,
-                "hard_filter_result": "PASS",
-                "hard_filter_reasons": ["금지 구조와 제작 불가능 요소가 없습니다."],
                 "dimension_evidence": {
                     field: [f"{candidate_id}의 {field} 구조 선택을 검토했습니다."]
                     for field in SCORE_FIELDS
                 },
-                "novelty_result": novelty_result,
                 **dimension_scores,
                 "total_score": total_score,
                 "decision": "REJECTED",
                 "decision_reason": "전체 적격 후보의 가중 점수를 비교합니다.",
             }
         )
-    eligible = [
-        record
-        for record in evaluations
-        if record["hard_filter_result"] == "PASS" and record["novelty_result"] == "PASS"
-    ]
+    eligible = [record for record in evaluations if record["candidate_id"] in eligible_ids]
     if not eligible:
         raise RuntimeExecutionError(
             "GATE_REJECTED",
@@ -965,10 +948,14 @@ def fake_candidate_evaluation(
             record["decision_reason"] = "적격 후보 중 재계산 가중 점수가 가장 높습니다."
         else:
             record["decision_reason"] = "추천 후보보다 가중 점수가 낮거나 Novelty가 실패했습니다."
-    input_hashes = candidate_evaluation_input_hashes(variations, novelty_precheck)
+    input_hashes = candidate_evaluation_input_hashes(
+        variations,
+        novelty_precheck,
+        candidate_eligibility,
+    )
     return {
         "schema_family": "candidate-evaluation",
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "project_id": project_id,
         "weights": weights,
         "input_hashes": input_hashes,
@@ -996,7 +983,8 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
     if task_id == "variation.evaluate":
         variations = context_artifact(request, "variation_candidates")
         novelty_precheck = context_artifact(request, "novelty_precheck")
-        if variations is None or novelty_precheck is None:
+        candidate_eligibility = context_artifact(request, "candidate_eligibility")
+        if variations is None or novelty_precheck is None or candidate_eligibility is None:
             raise RuntimeExecutionError(
                 "RUNTIME_CONFIGURATION_ERROR",
                 False,
@@ -1014,6 +1002,7 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     project_id,
                     variations,
                     novelty_precheck,
+                    candidate_eligibility,
                 ),
             }
         ]

@@ -5,6 +5,8 @@ from copy import deepcopy
 from pathlib import Path
 from typing import cast
 
+from VALIDATORS.candidate_approval import validate_candidate_approval
+from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.causal_validation import validate_causal_graph
 from VALIDATORS.channel_policy_v2 import (
@@ -15,7 +17,7 @@ from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.compatibility import channel_dna_sha256, parse_semantic_version
 from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.dependency import (
-    artifact_required_for_channel_version,
+    artifact_required_for_project,
     dependency_artifacts,
 )
 from VALIDATORS.editorial import (
@@ -46,6 +48,10 @@ from VALIDATORS.reference_validation import (
     validate_reference_collision,
 )
 from VALIDATORS.schema_validation import collect_schema_errors
+from VALIDATORS.source_truth import (
+    source_truth_configuration_issues,
+    source_truth_requires_evidence,
+)
 from VALIDATORS.story_validation import (
     validate_reference_profile_alignment,
     validate_story_dna_semantics,
@@ -84,23 +90,22 @@ def read_text(path: Path) -> str:
 def load_project_artifacts(
     project_path: Path,
     dependency_graph: Mapping[str, object],
+    channel: Mapping[str, object],
 ) -> dict[str, ArtifactContent]:
     """Project Pin에서 필수인 모든 Artifact와 기존 선택 Artifact를 읽는다."""
     production_config = load_json_object(
         project_path / "00_PROJECT" / "production_config.json"
     )
-    channel_content_version = production_config.get("channel_content_version")
-    if not isinstance(channel_content_version, str):
-        raise ConfigurationError(
-            "production_config.channel_content_version 문자열이 필요합니다."
-        )
     definitions = dependency_artifacts(dependency_graph)
+    existing_artifacts = load_existing_project_artifacts(project_path, dependency_graph)
     artifact_names = [
         artifact_name
         for artifact_name, definition in definitions.items()
-        if artifact_required_for_channel_version(
+        if artifact_required_for_project(
             definition,
-            channel_content_version,
+            channel,
+            production_config,
+            existing_artifacts,
         )
         or (
             isinstance(definition.get("path"), str)
@@ -233,21 +238,35 @@ def optional_schema_issues(
 def required_channel_artifact_issues(
     artifacts: Mapping[str, ArtifactContent],
     production_config: Mapping[str, object],
+    channel: Mapping[str, object],
     artifact_names: Sequence[str],
 ) -> list[ValidationIssue]:
-    """v2 Project의 First-class Artifact 누락을 명시적 Issue로 보고한다."""
-    version = production_config.get("channel_content_version")
-    if not isinstance(version, str) or parse_semantic_version(version) < (2, 0, 0):
-        return []
+    """후속 의미 검증에서 요구되는 Artifact 누락을 명시적으로 보고한다."""
+    capability_by_artifact = {
+        "crime_psychology": "CRIME_PSYCHOLOGY_POLICY",
+        "source_disclosure": "SOURCE_DISCLOSURE_POLICY",
+        "clinical_labels": "CLINICAL_LABEL_POLICY",
+        "expert_segments": "EXPERT_ANALYSIS_POLICY",
+        "expert_analysis_script": "EXPERT_ANALYSIS_POLICY",
+        "production_expert_analysis_script": "EXPERT_ANALYSIS_POLICY",
+    }
+    capabilities = channel.get("capabilities")
+    capability_values = capabilities if isinstance(capabilities, Mapping) else {}
     return [
         make_pipeline_issue(
             "REQUIRED_CHANNEL_ARTIFACT_MISSING",
             "Channel Content Version이 요구하는 First-class Artifact가 없습니다.",
             artifact_name,
-            {"artifact_name": artifact_name, "channel_content_version": version},
+            {"artifact_name": artifact_name},
         )
         for artifact_name in artifact_names
         if artifact_name not in artifacts
+        and isinstance(capability_values.get(capability_by_artifact[artifact_name]), Mapping)
+        and cast(
+            Mapping[str, object],
+            capability_values[capability_by_artifact[artifact_name]],
+        ).get("enabled")
+        is True
     ]
 
 
@@ -735,7 +754,9 @@ def run_production_validation(
     production_config = artifact_document(artifacts, "production_config")
     reference_profile = artifact_document(artifacts, "reference_profile")
     variation_candidates = artifact_document(artifacts, "variation_candidates")
+    candidate_eligibility = artifact_document(artifacts, "candidate_eligibility")
     candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
+    candidate_approval = artifact_document(artifacts, "candidate_approval")
     novelty_precheck = artifact_document(artifacts, "novelty_precheck")
     story_document = artifact_document(artifacts, "story_dna")
     fingerprint = artifact_document(artifacts, "story_fingerprint")
@@ -771,15 +792,20 @@ def run_production_validation(
     project_id = production_config.get("project_id")
     if not isinstance(project_id, str):
         raise ConfigurationError("production_config.project_id 문자열이 필요합니다.")
-    channel_content_version = production_config.get("channel_content_version")
-    if not isinstance(channel_content_version, str):
-        raise ConfigurationError(
-            "production_config.channel_content_version 문자열이 필요합니다."
-        )
-    v2_artifacts_required = parse_semantic_version(channel_content_version) >= (
-        2,
-        0,
-        0,
+    capabilities = channel.get("capabilities")
+    expert_policy = (
+        capabilities.get("EXPERT_ANALYSIS_POLICY")
+        if isinstance(capabilities, Mapping)
+        else None
+    )
+    expert_document = artifacts.get("expert_segments")
+    expert_script_required = (
+        isinstance(expert_policy, Mapping)
+        and expert_policy.get("enabled") is True
+        and production_config.get("source_truth_classification")
+        in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}
+        and isinstance(expert_document, Mapping)
+        and expert_document.get("status") == "PLANNED"
     )
 
     gate_00 = [
@@ -796,13 +822,24 @@ def run_production_validation(
             story_document,
             channel,
         ),
+        *source_truth_configuration_issues(production_config),
     ]
     gate_01 = [
         *validate_variation_gate(variation_candidates, channel),
         *schema_issues(
+            candidate_eligibility,
+            presentation_schemas["candidate_eligibility"],
+            "08_QA/candidate_eligibility.json",
+        ),
+        *schema_issues(
             candidate_evaluation,
             presentation_schemas["candidate_evaluation"],
             "00_PROJECT/candidate_evaluation.json",
+        ),
+        *schema_issues(
+            candidate_approval,
+            presentation_schemas["candidate_approval"],
+            "00_PROJECT/candidate_approval.json",
         ),
         *schema_issues(
             novelty_precheck,
@@ -813,6 +850,21 @@ def run_production_validation(
             variation_candidates,
             candidate_evaluation,
             novelty_precheck,
+            candidate_eligibility,
+        ),
+        *validate_candidate_eligibility(
+            production_config,
+            channel,
+            variation_candidates,
+            novelty_precheck,
+            candidate_eligibility,
+        ),
+        *validate_candidate_approval(
+            variation_candidates,
+            novelty_precheck,
+            candidate_eligibility,
+            candidate_evaluation,
+            candidate_approval,
         ),
         *validate_variation_precheck(variation_candidates, novelty_precheck),
     ]
@@ -833,6 +885,7 @@ def run_production_validation(
         *required_channel_artifact_issues(
             artifacts,
             production_config,
+            channel,
             ("crime_psychology", "source_disclosure", "clinical_labels"),
         ),
         *optional_schema_issues(
@@ -854,10 +907,9 @@ def run_production_validation(
             "01_CASE/clinical_labels.json",
         ),
     ]
-    if story_document.get("story_source_mode") in {
-        "TRUE_STORY",
-        "INSPIRED_BY_TRUE_EVENTS",
-    }:
+    if source_truth_requires_evidence(
+        production_config.get("source_truth_classification")
+    ):
         gate_03.extend(nonempty_list_issues(sources, "sources", "01_CASE/sources.json"))
         gate_03.extend(
             nonempty_list_issues(
@@ -868,7 +920,7 @@ def run_production_validation(
         )
         gate_03.extend(
             validate_fact_integrity(
-                story_document.get("story_source_mode"),
+                production_config.get("source_truth_classification"),
                 facts,
                 sources,
                 claim_evidence,
@@ -941,6 +993,7 @@ def run_production_validation(
         *required_channel_artifact_issues(
             artifacts,
             production_config,
+            channel,
             ("expert_segments",),
         ),
         *optional_schema_issues(
@@ -965,6 +1018,7 @@ def run_production_validation(
         *required_channel_artifact_issues(
             artifacts,
             production_config,
+            channel,
             ("expert_analysis_script",),
         ),
         *validate_script_integrity_v2(
@@ -1049,9 +1103,10 @@ def run_production_validation(
         *required_channel_artifact_issues(
             artifacts,
             production_config,
+            channel,
             ("production_expert_analysis_script",),
         ),
-        *production_text_issues(artifacts, v2_artifacts_required),
+        *production_text_issues(artifacts, expert_script_required),
         *validate_production_presentation(
             presentation_plan,
             reaction_segments,

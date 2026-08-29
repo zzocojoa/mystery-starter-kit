@@ -2,6 +2,8 @@
 
 from collections.abc import Mapping, Sequence
 
+from VALIDATORS.candidate_approval import validate_candidate_approval
+from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.causal_validation import validate_causal_graph
 from VALIDATORS.channel_policy_v2 import (
@@ -44,6 +46,7 @@ from VALIDATORS.presentation_validation import (
     validate_script_integrity_v2,
 )
 from VALIDATORS.reference_validation import build_story_element_profile
+from VALIDATORS.source_truth import source_truth_requires_evidence
 from VALIDATORS.state_machine import gate_index
 from VALIDATORS.story_validation import (
     validate_reference_profile_alignment,
@@ -113,14 +116,26 @@ def validate_gate(
         ]
     if gate_id == "GATE-01":
         variations = artifact_document(artifacts, "variation_candidates")
+        eligibility = artifact_document(artifacts, "candidate_eligibility")
         candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
+        approval = artifact_document(artifacts, "candidate_approval")
         precheck = artifact_document(artifacts, "novelty_precheck")
         return [
             *validate_variation_gate(variations, channel),
             *schema_issues(
+                eligibility,
+                presentation_schemas["candidate_eligibility"],
+                "08_QA/candidate_eligibility.json",
+            ),
+            *schema_issues(
                 candidate_evaluation,
                 presentation_schemas["candidate_evaluation"],
                 "00_PROJECT/candidate_evaluation.json",
+            ),
+            *schema_issues(
+                approval,
+                presentation_schemas["candidate_approval"],
+                "00_PROJECT/candidate_approval.json",
             ),
             *schema_issues(
                 precheck,
@@ -131,6 +146,21 @@ def validate_gate(
                 variations,
                 candidate_evaluation,
                 precheck,
+                eligibility,
+            ),
+            *validate_candidate_eligibility(
+                production_config,
+                channel,
+                variations,
+                precheck,
+                eligibility,
+            ),
+            *validate_candidate_approval(
+                variations,
+                precheck,
+                eligibility,
+                candidate_evaluation,
+                approval,
             ),
             *validate_variation_precheck(variations, precheck),
         ]
@@ -179,11 +209,12 @@ def validate_gate(
                 "01_CASE/clinical_labels.json",
             ),
         ]
-        if story.get("story_source_mode") in {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}:
+        source_truth = production_config.get("source_truth_classification")
+        if source_truth_requires_evidence(source_truth):
             issues.extend(nonempty_list_issues(sources, "sources", "01_CASE/sources.json"))
             issues.extend(nonempty_list_issues(claims, "claims", "01_CASE/claim_evidence.json"))
             issues.extend(
-                validate_fact_integrity(story.get("story_source_mode"), facts, sources, claims)
+                validate_fact_integrity(source_truth, facts, sources, claims)
             )
         return issues
     characters = artifact_document(artifacts, "characters")

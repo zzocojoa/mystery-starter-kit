@@ -616,26 +616,26 @@ def claim_sources(claim_evidence: Mapping[str, object]) -> dict[str, set[str]]:
 
 def expert_required(
     policy: Mapping[str, object],
-    source_mode: object,
+    source_truth: object,
     expert_document: Mapping[str, object],
 ) -> bool:
     """Source Mode와 명시적 N/A를 사용해 Expert 필요 여부를 계산한다."""
-    if source_mode == "TRUE_STORY":
+    if source_truth == "VERIFIED_TRUE_CASE":
         return policy.get("true_story_requirement") == "REQUIRED"
-    if source_mode == "INSPIRED_BY_TRUE_EVENTS":
+    if source_truth == "INSPIRED_BY_TRUE_EVENTS":
         requirement = policy.get("inspired_requirement")
         return requirement == "REQUIRED" or (
             requirement == "REQUIRED_OR_NA"
             and expert_document.get("status") != "NOT_APPLICABLE"
         )
-    if source_mode == "ORIGINAL":
+    if source_truth == "ORIGINAL_FICTION":
         return policy.get("original_requirement") == "REQUIRED"
     return False
 
 
 def validate_expert_policy(
     policy: Mapping[str, object],
-    source_mode: object,
+    source_truth: object,
     claim_evidence: Mapping[str, object],
     expert_document: Mapping[str, object],
     presentation_plan: Mapping[str, object],
@@ -651,13 +651,13 @@ def validate_expert_policy(
         if segment.get("segment_type") == "EXPERT_ANALYSIS"
     ]
     issues: list[ValidationIssue] = []
-    if expert_required(policy, source_mode, expert_document) and not records:
+    if expert_required(policy, source_truth, expert_document) and not records:
         issues.append(
             make_policy_issue(
                 "EXPERT_ANALYSIS_REQUIRED",
                 "Source Mode 정책상 전문가 분석 Segment가 필요합니다.",
                 "06_SCENE/expert_segments.json",
-                {"story_source_mode": source_mode},
+                {"source_truth_classification": source_truth},
             )
         )
     invalid_roles = sorted(
@@ -782,16 +782,18 @@ def validate_expert_policy(
 
 def validate_source_disclosure(
     policy: Mapping[str, object],
-    source_mode: object,
+    source_truth: object,
     disclosure: Mapping[str, object],
     final_script: str,
 ) -> list[ValidationIssue]:
-    """내부 Source Mode와 정확한 Audience Label 문구를 검증한다."""
-    labels = policy.get("labels_by_source_mode")
-    expected_mode = labels.get(source_mode) if isinstance(labels, Mapping) else None
+    """Source Truth와 정확한 Audience Label 문구를 검증한다."""
+    labels = policy.get("labels_by_source_truth")
+    expected_mode = labels.get(source_truth) if isinstance(labels, Mapping) else None
+    if expected_mode is None:
+        expected_mode = source_truth
     actual_mode = disclosure.get("internal_mode")
     label_text = disclosure.get("audience_label_text")
-    if source_mode == "ORIGINAL" and actual_mode != "ORIGINAL_FICTION":
+    if source_truth == "ORIGINAL_FICTION" and actual_mode != "ORIGINAL_FICTION":
         return [
             make_policy_issue(
                 "FICTION_PRESENTED_AS_TRUE",
@@ -969,7 +971,7 @@ def validate_channel_policy_v2(
     capabilities = mapping_or_empty(channel, "capabilities")
     story_dna = mapping_or_empty(inputs["story_document"], "story_dna")
     crime = inputs["crime_psychology"]
-    source_mode = production_config.get("story_source_mode")
+    source_truth = production_config.get("source_truth_classification")
     issues: list[ValidationIssue] = []
     crime_policy = enabled_policy(capabilities, "CRIME_PSYCHOLOGY_POLICY")
     if crime_policy is not None:
@@ -1029,7 +1031,7 @@ def validate_channel_policy_v2(
         issues.extend(
             validate_expert_policy(
                 expert_policy,
-                source_mode,
+                source_truth,
                 inputs["claim_evidence"],
                 inputs["expert_segments"],
                 inputs["presentation_plan"],
@@ -1043,7 +1045,7 @@ def validate_channel_policy_v2(
         issues.extend(
             validate_source_disclosure(
                 source_policy,
-                source_mode,
+                source_truth,
                 inputs["source_disclosure"],
                 inputs["final_script"],
             )

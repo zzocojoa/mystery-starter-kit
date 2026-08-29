@@ -1,11 +1,15 @@
 """통합 CLI의 실제 디렉터리 E2E 검증."""
 
+import os
 from collections.abc import Mapping
 from pathlib import Path
 
+import pytest
 from project_factory import make_complete_project_artifacts
 
 from RUNTIME.providers.fake import fake_candidate_evaluation
+from VALIDATORS.candidate_eligibility import build_candidate_eligibility
+from VALIDATORS.channel_registry import resolve_project_channel
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.pipeline import ArtifactContent
 from VALIDATORS.production_cli import ROOT, run_cli
@@ -20,7 +24,13 @@ def write_candidate_evaluation(project_path: Path) -> str:
     precheck = load_json_object(project_path / "08_QA" / "novelty_precheck.json")
     project_id = variations.get("project_id")
     assert isinstance(project_id, str)
-    evaluation = fake_candidate_evaluation(project_id, variations, precheck)
+    config = load_json_object(project_path / "00_PROJECT" / "production_config.json")
+    channel, _manifest, _path = resolve_project_channel(ROOT, config, None)
+    eligibility = build_candidate_eligibility(config, channel, variations, precheck)
+    write_json_object(project_path / "08_QA" / "candidate_eligibility.json", eligibility)
+    evaluation = fake_candidate_evaluation(
+        project_id, variations, precheck, eligibility
+    )
     write_json_object(
         project_path / "00_PROJECT" / "candidate_evaluation.json",
         evaluation,
@@ -83,11 +93,15 @@ def test_validate_audits_without_reconstructing_state(tmp_path: Path) -> None:
     for generated_artifact in (
         "compatibility_report",
         "variation_candidates",
+        "candidate_eligibility",
         "candidate_evaluation",
+        "candidate_approval",
         "novelty_precheck",
     ):
         del artifacts[generated_artifact]
     write_complete_artifacts(project_path, artifacts)
+    refreshed_recommendation = write_candidate_evaluation(project_path)
+    assert run_cli(["approve", str(project_path), refreshed_recommendation]) == 0
     state_path = project_path / "00_PROJECT" / "project_state.json"
     state_before = state_path.read_bytes()
 
@@ -398,8 +412,9 @@ def test_migrate_channel_pin_preserves_story_artifacts(tmp_path: Path) -> None:
     preserved_before = {
         path.relative_to(project_path).as_posix(): path.read_bytes()
         for path in project_path.rglob("*")
-        if path.is_file()
-        and path.relative_to(project_path).as_posix() not in excluded
+            if path.is_file()
+            and ".runtime" not in path.relative_to(project_path).parts
+            and path.relative_to(project_path).as_posix() not in excluded
     }
 
     result = run_cli(
@@ -420,8 +435,9 @@ def test_migrate_channel_pin_preserves_story_artifacts(tmp_path: Path) -> None:
     preserved_after = {
         path.relative_to(project_path).as_posix(): path.read_bytes()
         for path in project_path.rglob("*")
-        if path.is_file()
-        and path.relative_to(project_path).as_posix() not in excluded
+            if path.is_file()
+            and ".runtime" not in path.relative_to(project_path).parts
+            and path.relative_to(project_path).as_posix() not in excluded
     }
 
     assert result == 0
@@ -437,6 +453,80 @@ def test_migrate_channel_pin_preserves_story_artifacts(tmp_path: Path) -> None:
     assert readiness["process_revision"] == 2
     assert readiness["process_start_gate"] == "GATE-00"
     assert preserved_after == preserved_before
+    canonical_paths = [
+        project_path / "00_PROJECT" / name
+        for name in (
+            "production_config.json",
+            "compatibility_report.json",
+            "project_state.json",
+            "change_log.jsonl",
+        )
+    ]
+    first_migration = {path: path.read_bytes() for path in canonical_paths}
+    assert run_cli(
+        [
+            "migrate-channel-pin",
+            str(project_path),
+            "--channel-content-version",
+            "1.1.0",
+        ]
+    ) == 0
+    assert {path: path.read_bytes() for path in canonical_paths} == first_migration
+
+
+@pytest.mark.parametrize("failure_stage", [1, 2, 3, 4])
+def test_migrate_channel_pin_rolls_back_each_write_stage(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    failure_stage: int,
+) -> None:
+    """Migration의 네 Canonical 교체 단계 중 어디서 실패해도 전부 복구한다."""
+    projects_root = tmp_path / f"projects-{failure_stage}"
+    assert run_cli(
+        [
+            "init",
+            f"PRJ-91{failure_stage}",
+            "--projects-root",
+            str(projects_root),
+            "--created-at",
+            "2026-08-25T00:00:00Z",
+        ]
+    ) == 0
+    project_path = projects_root / f"PRJ-91{failure_stage}"
+    canonical_paths = [
+        project_path / "00_PROJECT" / name
+        for name in (
+            "production_config.json",
+            "compatibility_report.json",
+            "project_state.json",
+            "change_log.jsonl",
+        )
+    ]
+    before = {path: path.read_bytes() for path in canonical_paths}
+    original_replace = os.replace
+    calls = 0
+
+    def fail_once(
+        source: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        destination: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+    ) -> None:
+        """지정된 Canonical 교체 단계에서 한 번만 실패한다."""
+        nonlocal calls
+        calls += 1
+        if calls == failure_stage:
+            raise OSError("injected migration write failure")
+        original_replace(source, destination)
+
+    monkeypatch.setattr("RUNTIME.transactions.os.replace", fail_once)
+    assert run_cli(
+        [
+            "migrate-channel-pin",
+            str(project_path),
+            "--channel-content-version",
+            "1.1.0",
+        ]
+    ) == 2
+    assert {path: path.read_bytes() for path in canonical_paths} == before
 
 
 def test_migrate_channel_pin_rejects_unregistered_version(tmp_path: Path) -> None:
@@ -544,16 +634,11 @@ def test_failed_project_compatibility_blocks_variations(tmp_path: Path) -> None:
             "5",
         ]
     )
-    report = load_json_object(
-        project_path / "00_PROJECT" / "compatibility_report.json"
-    )
     state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
 
-    assert compat_code == 1
+    assert compat_code == 2
     assert variation_code == 2
-    assert report["project_id"] == "PRJ-006"
-    assert report["compatibility"] == "FAIL"
-    assert state["state"] == "BLOCKED"
+    assert state["state"] == "INITIALIZED"
     assert state["current_gate"] == "NONE"
 
 

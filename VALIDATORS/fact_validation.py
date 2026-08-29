@@ -5,8 +5,7 @@ from collections.abc import Mapping
 from VALIDATORS.continuity import require_records, require_string, require_string_array
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.models import ValidationIssue
-
-FACT_BASED_MODES = {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}
+from VALIDATORS.source_truth import source_truth_requires_evidence
 
 
 def make_fact_issue(
@@ -43,13 +42,13 @@ def record_ids(
 
 
 def validate_fact_integrity(
-    story_source_mode: object,
+    source_truth_classification: object,
     facts_document: Mapping[str, object],
     sources_document: Mapping[str, object],
     claims_document: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """사실 기반 Mode에서 근거와 각색 표시가 분리되어 있는지 검사한다."""
-    if story_source_mode not in FACT_BASED_MODES:
+    if not source_truth_requires_evidence(source_truth_classification):
         return []
     source_ids = record_ids(sources_document, "sources", "source_id", "sources")
     fact_records = require_records(facts_document, "facts", "facts")

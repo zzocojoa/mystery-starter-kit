@@ -11,9 +11,16 @@ from typing import cast
 from uuid import uuid4
 
 from RUNTIME.errors import RuntimeExecutionError
-from RUNTIME.transactions import acquire_project_lock, release_project_lock
+from RUNTIME.output_gateway import encoded_artifact
+from RUNTIME.transactions import (
+    acquire_project_lock,
+    commit_gate_transaction,
+    release_project_lock,
+)
+from VALIDATORS.candidate_approval import build_candidate_approval
+from VALIDATORS.candidate_eligibility import build_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
-from VALIDATORS.change_log import append_change_log
+from VALIDATORS.change_log import append_change_log, change_log_bytes
 from VALIDATORS.channel_registry import (
     registered_channel_relative_path,
     resolve_project_channel,
@@ -72,6 +79,7 @@ from VALIDATORS.pipeline import load_selected_project_artifacts
 from VALIDATORS.reference_validation import sanitize_reference_profile
 from VALIDATORS.scaffold import create_project_scaffold
 from VALIDATORS.schema_validation import collect_schema_errors
+from VALIDATORS.source_truth import require_source_truth_classification
 from VALIDATORS.state_machine import GATES, advance_gate, gate_index
 from VALIDATORS.variation import (
     apply_user_case_constraints,
@@ -131,6 +139,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     approve_parser.add_argument("project_path", type=Path)
     approve_parser.add_argument("candidate_id")
+    approve_parser.add_argument("--override", action="store_true")
+    approve_parser.add_argument("--actor")
+    approve_parser.add_argument("--reason")
+
+    eligibility_parser = subparsers.add_parser(
+        "candidate-eligibility",
+        help="Core 정책으로 Candidate 적격성을 판정합니다.",
+    )
+    eligibility_parser.add_argument("project_path", type=Path)
 
     precheck_parser = subparsers.add_parser(
         "precheck",
@@ -856,7 +873,6 @@ def run_migrate_channel_pin(args: argparse.Namespace) -> int:
     try:
         config_path = project_path / "00_PROJECT" / "production_config.json"
         report_path = project_path / "00_PROJECT" / "compatibility_report.json"
-        state_path = project_path / "00_PROJECT" / "project_state.json"
         current_config = load_json_object(config_path)
         migrated_config = deepcopy(current_config)
         migrated_config["channel_content_version"] = requested_version
@@ -877,7 +893,7 @@ def run_migrate_channel_pin(args: argparse.Namespace) -> int:
                 "Project ID가 Manifest와 Production Config에서 다릅니다: "
                 f"manifest={project_id}, config={migrated_config.get('project_id')!r}"
             )
-        project_report, channel, channel_path = make_compatibility_report_for_config(
+        project_report, channel, _channel_path = make_compatibility_report_for_config(
             project_id,
             migrated_config,
             None,
@@ -897,29 +913,63 @@ def run_migrate_channel_pin(args: argparse.Namespace) -> int:
             ROOT / "STANDARD" / "dependency_graph.json"
         )
         current_state = load_project_state(project_path)
+        config_bytes = encoded_artifact(migrated_config, "application/json")
+        report_bytes = encoded_artifact(project_report, "application/json")
+        if (
+            current_config.get("channel_content_version") == requested_version
+            and config_path.read_bytes() == config_bytes
+            and report_path.read_bytes() == report_bytes
+        ):
+            next_state = current_state
+            print(
+                json.dumps(
+                    {
+                        "project_id": project_id,
+                        "channel_content_version": requested_version,
+                        "current_gate": next_state["current_gate"],
+                        "project_state": next_state["state"],
+                        "compatibility": project_report["compatibility"],
+                        "changed": False,
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            return 0
         migrated_at = utc_now()
-        write_json_object(config_path, migrated_config)
-        write_json_object(report_path, project_report)
         next_state = invalidate_channel_pin_state(
             current_state,
             dependency_graph,
-            artifact_hash(config_path.read_bytes()),
-            artifact_hash(report_path.read_bytes()),
+            artifact_hash(config_bytes),
+            artifact_hash(report_bytes),
             migrated_at,
         )
-        write_json_object(state_path, next_state)
         channel_summary = project_report["channel"]
-        append_change_log(
-            project_path,
+        log_path = project_path / "00_PROJECT" / "change_log.jsonl"
+        existing_log = log_path.read_bytes() if log_path.is_file() else b""
+        next_log = change_log_bytes(
+            existing_log,
             "CHANNEL_CONTENT_VERSION_PIN_MIGRATED",
             {
                 "previous_version": current_config.get("channel_content_version"),
                 "channel_content_version": requested_version,
                 "relative_path": channel_summary.get("relative_path"),
-                "channel_path": str(channel_path),
                 "process_revision": next_state["readiness"]["process_revision"],
             },
             migrated_at,
+        )
+        commit_gate_transaction(
+            project_path,
+            run_id,
+            "CHANNEL_PIN_MIGRATION",
+            project_path,
+            {},
+            dependency_graph,
+            next_state,
+            {
+                "00_PROJECT/production_config.json": config_bytes,
+                "00_PROJECT/compatibility_report.json": report_bytes,
+                "00_PROJECT/change_log.jsonl": next_log,
+            },
         )
     finally:
         release_project_lock(lock_path, run_id)
@@ -943,15 +993,19 @@ def run_variations(args: argparse.Namespace) -> int:
     project_id = project_id_from_manifest(args.project_path)
     require_variation_prerequisites(args.project_path, project_id)
     catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
+    production_config = load_json_object(
+        args.project_path / "00_PROJECT" / "production_config.json"
+    )
     candidates = generate_variation_candidates(
         project_id,
         args.seed,
         args.count,
         catalog,
+        require_source_truth_classification(production_config),
     )
     candidates = apply_user_case_constraints(
         candidates,
-        load_json_object(args.project_path / "00_PROJECT" / "production_config.json"),
+        production_config,
     )
     output_path = args.project_path / "00_PROJECT" / "variation_candidates.json"
     write_json_object(output_path, candidates)
@@ -989,6 +1043,21 @@ def run_validate(args: argparse.Namespace) -> int:
     return 0 if validation["result"] == "PASS" else 1
 
 
+def run_candidate_eligibility(args: argparse.Namespace) -> int:
+    """현재 Channel과 Novelty 입력으로 Core 적격성을 기록한다."""
+    config = load_json_object(args.project_path / "00_PROJECT" / "production_config.json")
+    channel, _manifest, _path = resolve_project_channel(ROOT, config, None)
+    variations = load_json_object(
+        args.project_path / "00_PROJECT" / "variation_candidates.json"
+    )
+    novelty = load_json_object(args.project_path / "08_QA" / "novelty_precheck.json")
+    eligibility = build_candidate_eligibility(config, channel, variations, novelty)
+    output_path = args.project_path / "08_QA" / "candidate_eligibility.json"
+    write_json_object(output_path, eligibility)
+    print(output_path)
+    return 0
+
+
 def run_approve(args: argparse.Namespace) -> int:
     """최신 Novelty와 평가 근거를 통과한 Variation 후보를 승인한다."""
     path = args.project_path / "00_PROJECT" / "variation_candidates.json"
@@ -1018,6 +1087,8 @@ def run_approve(args: argparse.Namespace) -> int:
         )
     novelty_path = args.project_path / "08_QA" / "novelty_precheck.json"
     novelty_precheck = load_json_object(novelty_path)
+    eligibility_path = args.project_path / "08_QA" / "candidate_eligibility.json"
+    candidate_eligibility = load_json_object(eligibility_path)
     novelty_schema_errors = collect_schema_errors(
         novelty_precheck,
         load_json_object(
@@ -1035,6 +1106,7 @@ def run_approve(args: argparse.Namespace) -> int:
         document,
         evaluation,
         novelty_precheck,
+        candidate_eligibility,
     )
     if evaluation_issues:
         issue = evaluation_issues[0]
@@ -1043,21 +1115,57 @@ def run_approve(args: argparse.Namespace) -> int:
             issue["message"],
             issue["context"],
         )
-    approved = approve_variation_candidate(document, args.candidate_id)
-    approval_issues = validate_candidate_evaluation(
-        approved,
-        evaluation,
-        novelty_precheck,
-    )
-    if approval_issues:
-        issue = approval_issues[0]
+    recommended = evaluation.get("recommended_candidate_id")
+    if not isinstance(recommended, str):
         raise GateTransactionError(
-            issue["code"],
-            issue["message"],
-            issue["context"],
+            "CANDIDATE_EVALUATION_REQUIRED",
+            "추천 Candidate ID가 필요합니다.",
+            {},
         )
-    write_json_object(path, approved)
+    eligible_ids = candidate_eligibility.get("eligible_candidate_ids")
+    if not isinstance(eligible_ids, list) or args.candidate_id not in eligible_ids:
+        raise GateTransactionError(
+            "CANDIDATE_APPROVAL_INELIGIBLE",
+            "Core 적격성 판정을 통과하지 못한 후보는 승인할 수 없습니다.",
+            {"candidate_id": args.candidate_id},
+        )
+    is_override = args.candidate_id != recommended
+    if is_override and (
+        args.override is not True
+        or not isinstance(args.actor, str)
+        or not args.actor
+        or not isinstance(args.reason, str)
+        or not args.reason
+    ):
+        raise GateTransactionError(
+            "CANDIDATE_HUMAN_OVERRIDE_REQUIRED",
+            "비추천 후보 승인에는 --override --actor --reason이 모두 필요합니다.",
+            {"candidate_id": args.candidate_id, "recommended_candidate_id": recommended},
+        )
+    if not is_override and args.override:
+        raise GateTransactionError(
+            "CANDIDATE_OVERRIDE_NOT_REQUIRED",
+            "추천 후보에는 Human Override를 사용할 수 없습니다.",
+            {"candidate_id": args.candidate_id},
+        )
+    approved = approve_variation_candidate(document, args.candidate_id)
     changed_at = utc_now()
+    approval = build_candidate_approval(
+        project_id_from_manifest(args.project_path),
+        args.candidate_id,
+        recommended,
+        args.actor if is_override else "SYSTEM",
+        args.reason if is_override else "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다.",
+        changed_at,
+        document,
+        novelty_precheck,
+        evaluation,
+    )
+    write_json_object(path, approved)
+    write_json_object(
+        args.project_path / "00_PROJECT" / "candidate_approval.json",
+        approval,
+    )
     record_artifact_change(
         args.project_path,
         "variation_candidates",
@@ -1457,6 +1565,8 @@ def run_cli(argv: Sequence[str]) -> int:
             return run_validate(args)
         if args.command == "approve":
             return run_approve(args)
+        if args.command == "candidate-eligibility":
+            return run_candidate_eligibility(args)
         if args.command == "reference-profile":
             return run_reference_profile(args)
         if args.command == "precheck":

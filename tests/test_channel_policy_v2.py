@@ -64,11 +64,9 @@ def v2_channel() -> dict[str, object]:
             },
             "SOURCE_DISCLOSURE_POLICY": {
                 "enabled": True,
-                "labels_by_source_mode": {
-                    "ORIGINAL": "ORIGINAL_FICTION",
-                    "USER_CASE": "INSPIRED_BY_TRUE_EVENTS",
-                    "REFERENCE_INSPIRED": "INSPIRED_BY_TRUE_EVENTS",
-                    "TRUE_STORY": "VERIFIED_TRUE_CASE",
+                "labels_by_source_truth": {
+                    "ORIGINAL_FICTION": "ORIGINAL_FICTION",
+                    "VERIFIED_TRUE_CASE": "VERIFIED_TRUE_CASE",
                     "INSPIRED_BY_TRUE_EVENTS": "INSPIRED_BY_TRUE_EVENTS",
                 },
             },
@@ -121,6 +119,7 @@ def v2_artifacts() -> dict[str, object]:
             "channel_id": "MYSTERY_MAIN",
             "channel_content_version": "2.0.0",
             "story_source_mode": "ORIGINAL",
+            "source_truth_classification": "ORIGINAL_FICTION",
             "genre": "CRIME_PSYCHOLOGICAL_THRILLER",
         },
         "story_dna": {
@@ -277,6 +276,7 @@ def configure_supported_true_story_expert(
     assert isinstance(expert_segments, dict)
     assert isinstance(presentation, dict)
     config["story_source_mode"] = "TRUE_STORY"
+    config["source_truth_classification"] = "VERIFIED_TRUE_CASE"
     disclosure["internal_mode"] = "VERIFIED_TRUE_CASE"
     disclosure["audience_label_text"] = "실제 사건을 바탕으로 재구성했습니다."
     artifacts["claim_evidence"] = {
@@ -503,6 +503,7 @@ def test_true_story_requires_expert_analysis() -> None:
     assert isinstance(config, dict)
     assert isinstance(disclosure, dict)
     config["story_source_mode"] = "TRUE_STORY"
+    config["source_truth_classification"] = "VERIFIED_TRUE_CASE"
     disclosure["internal_mode"] = "VERIFIED_TRUE_CASE"
     disclosure["audience_label_text"] = "실제 사건을 바탕으로 재구성했습니다."
     artifacts["final_script"] = "실제 사건을 바탕으로 재구성했습니다."

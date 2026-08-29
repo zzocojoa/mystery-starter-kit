@@ -75,11 +75,9 @@
     },
     "SOURCE_DISCLOSURE_POLICY": {
       "enabled": false,
-      "labels_by_source_mode": {
-        "ORIGINAL": "ORIGINAL_FICTION",
-        "USER_CASE": "INSPIRED_BY_TRUE_EVENTS",
-        "REFERENCE_INSPIRED": "INSPIRED_BY_TRUE_EVENTS",
-        "TRUE_STORY": "VERIFIED_TRUE_CASE",
+      "labels_by_source_truth": {
+        "ORIGINAL_FICTION": "ORIGINAL_FICTION",
+        "VERIFIED_TRUE_CASE": "VERIFIED_TRUE_CASE",
         "INSPIRED_BY_TRUE_EVENTS": "INSPIRED_BY_TRUE_EVENTS"
       }
     },

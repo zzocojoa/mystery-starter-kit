@@ -58,8 +58,12 @@ def test_generator_returns_reproducible_distinct_candidates() -> None:
     """같은 Seed는 동일하고 후보끼리는 다른 다축 조합을 생성해야 한다."""
     catalog = load_json_object(CATALOG_PATH)
 
-    first = generate_variation_candidates("PRJ-001", "폐쇄된 관제실", 5, catalog)
-    second = generate_variation_candidates("PRJ-001", "폐쇄된 관제실", 5, catalog)
+    first = generate_variation_candidates(
+        "PRJ-001", "폐쇄된 관제실", 5, catalog, "ORIGINAL_FICTION"
+    )
+    second = generate_variation_candidates(
+        "PRJ-001", "폐쇄된 관제실", 5, catalog, "ORIGINAL_FICTION"
+    )
 
     assert first == second
     candidates = first["candidates"]
@@ -73,7 +77,9 @@ def test_generator_returns_reproducible_distinct_candidates() -> None:
 def test_generator_avoids_dimension_repetition_until_choices_are_exhausted() -> None:
     """선택지가 충분한 Dimension은 후보 수만큼 서로 다른 값을 사용해야 한다."""
     catalog = load_json_object(CATALOG_PATH)
-    generated = generate_variation_candidates("PRJ-004", "open-city-seed", 5, catalog)
+    generated = generate_variation_candidates(
+        "PRJ-004", "open-city-seed", 5, catalog, "ORIGINAL_FICTION"
+    )
     dimensions = catalog.get("dimensions")
     candidates = generated.get("candidates")
     assert isinstance(dimensions, dict)
@@ -96,13 +102,17 @@ def test_generator_rejects_too_few_candidates() -> None:
     catalog = load_json_object(CATALOG_PATH)
 
     with pytest.raises(ConfigurationError, match="3개 이상"):
-        generate_variation_candidates("PRJ-001", "seed", 2, catalog)
+        generate_variation_candidates(
+            "PRJ-001", "seed", 2, catalog, "ORIGINAL_FICTION"
+        )
 
 
 def test_approval_marks_exactly_one_candidate_without_mutating_input() -> None:
     """후보 승인은 입력을 바꾸지 않고 정확히 하나만 APPROVED로 표시해야 한다."""
     catalog = load_json_object(CATALOG_PATH)
-    candidates = generate_variation_candidates("PRJ-001", "seed", 5, catalog)
+    candidates = generate_variation_candidates(
+        "PRJ-001", "seed", 5, catalog, "ORIGINAL_FICTION"
+    )
 
     approved = approve_variation_candidate(candidates, "VAR-03")
 
@@ -120,7 +130,9 @@ def test_approval_marks_exactly_one_candidate_without_mutating_input() -> None:
 def test_user_case_locked_dimensions_are_applied_without_mutating_candidates() -> None:
     """LOCKED 사용자 입력은 모든 후보에 적용하고 원본 후보는 변경하지 않아야 한다."""
     catalog = load_json_object(CATALOG_PATH)
-    candidates = generate_variation_candidates("PRJ-001", "seed", 5, catalog)
+    candidates = generate_variation_candidates(
+        "PRJ-001", "seed", 5, catalog, "ORIGINAL_FICTION"
+    )
     production_config = {
         "story_source_mode": "USER_CASE",
         "user_case_constraints": [

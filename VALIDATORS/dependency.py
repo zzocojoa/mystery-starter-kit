@@ -53,6 +53,46 @@ def artifact_required_for_channel_version(
     )
 
 
+def artifact_required_for_project(
+    definition: Mapping[str, object],
+    channel: Mapping[str, object],
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, object],
+) -> bool:
+    """Channel Capability, Source Truth와 Plan 상태로 Artifact 필수성을 판정한다."""
+    minimum = definition.get("minimum_channel_content_version")
+    if isinstance(minimum, str):
+        content_version = production_config.get("channel_content_version")
+        if not isinstance(content_version, str):
+            raise ConfigurationError("channel_content_version 문자열이 필요합니다.")
+        if parse_semantic_version(content_version) < parse_semantic_version(minimum):
+            return False
+    capability_id = definition.get("required_when_capability_enabled")
+    if isinstance(capability_id, str):
+        capabilities = channel.get("capabilities")
+        capability = (
+            capabilities.get(capability_id)
+            if isinstance(capabilities, Mapping)
+            else None
+        )
+        if not isinstance(capability, Mapping) or capability.get("enabled") is not True:
+            return False
+    source_truths = definition.get("required_when_source_truth")
+    if (
+        isinstance(source_truths, list)
+        and production_config.get("source_truth_classification") not in source_truths
+    ):
+        return False
+    plan_rule = definition.get("required_when_plan_status")
+    if isinstance(plan_rule, Mapping):
+        artifact_name = plan_rule.get("artifact")
+        status = plan_rule.get("status")
+        plan = artifacts.get(artifact_name) if isinstance(artifact_name, str) else None
+        if not isinstance(plan, Mapping) or plan.get("status") != status:
+            return False
+    return True
+
+
 def validate_dependency_graph(graph: Mapping[str, object]) -> None:
     """알 수 없는 참조와 순환 의존성을 발견하면 명시적으로 실패한다."""
     artifacts = dependency_artifacts(graph)

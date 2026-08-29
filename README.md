@@ -1,4 +1,8 @@
-# Mystery Starter Kit v1.3.3
+# Mystery Starter Kit
+
+- Package: `1.4.0`
+- Production Standard: `1.3.3`
+- Active Channel Content: `1.1.0`
 
 [![CI](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml)
 
@@ -97,9 +101,13 @@ Codex App이 필요에 따라 호출할 수 있는 결정론적 제작 보조 �
 .venv/bin/mystery-kit variations PROJECTS/PRJ-002 \
   --seed "공장 교대 중 사라진 작업자" \
   --count 5
-.venv/bin/mystery-kit approve PROJECTS/PRJ-002 VAR-03
 .venv/bin/mystery-kit precheck PROJECTS/PRJ-002
+.venv/bin/mystery-kit candidate-eligibility PROJECTS/PRJ-002
+# Codex가 00_PROJECT/candidate_evaluation.json의 Soft 평가 근거를 작성한다.
+.venv/bin/mystery-kit approve PROJECTS/PRJ-002 VAR-03
 ```
+
+후보 생성과 Soft 점수·근거는 Variation Designer/Codex의 후보 데이터다. `candidate_eligibility.json`의 Hard Filter·Novelty 적격성 및 `candidate_approval.json`의 최종 승인 권한은 Runtime Core가 소유한다. 추천 후보가 아닌 적격 후보를 승인할 때만 `approve ... --override --actor ... --reason ...`을 명시한다.
 
 Reference 기반 Project는 후보 생성 전에 원문 JSON을 Project 밖에 보관하고 정제 Profile만 만든다.
 

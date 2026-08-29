@@ -7,9 +7,19 @@ from hashlib import sha256
 from math import gcd
 
 from VALIDATORS.exceptions import ConfigurationError
+from VALIDATORS.source_truth import SOURCE_TRUTH_CLASSIFICATIONS
 
 PROJECT_ID_PATTERN = re.compile(r"^PRJ-[0-9]{3,}$")
 USER_CASE_STATUSES = {"LOCKED", "FLEXIBLE", "UNKNOWN"}
+CRIME_INCIDENTS = {
+    "MURDER",
+    "BLACKMAIL",
+    "FRAUD",
+    "KIDNAPPING",
+    "THEFT",
+    "COVER_UP",
+    "FALSE_ACCUSATION",
+}
 
 
 def require_dimensions(catalog: Mapping[str, object]) -> dict[str, list[str]]:
@@ -63,9 +73,79 @@ def choose_dimension_value(
     return choices[(offset + candidate_index * step) % len(choices)]
 
 
-def candidate_signature(selection: Mapping[str, str]) -> str:
-    """후보의 모든 Dimension 값을 결합한 구조 서명을 만든다."""
-    payload = "|".join(f"{key}={selection[key]}" for key in sorted(selection))
+def candidate_policy_profile(
+    selection: Mapping[str, str],
+    source_truth_classification: str,
+) -> dict[str, str]:
+    """Candidate 구조를 CORE 정책 비교용 최소 Profile로 변환한다."""
+    if source_truth_classification not in SOURCE_TRUTH_CLASSIFICATIONS:
+        raise ConfigurationError(
+            "Source Truth Classification이 올바르지 않습니다: "
+            f"value={source_truth_classification!r}"
+        )
+    incident_type = selection.get("incident_type")
+    culprit_structure = selection.get("culprit_structure")
+    setting = selection.get("setting")
+    pressure_engine = selection.get("pressure_engine")
+    perspective = selection.get("perspective")
+    relationship_engine = selection.get("relationship_engine")
+    dramatic_engine = selection.get("dramatic_engine")
+    required_values = {
+        "incident_type": incident_type,
+        "culprit_structure": culprit_structure,
+        "setting": setting,
+        "pressure_engine": pressure_engine,
+        "perspective": perspective,
+        "relationship_engine": relationship_engine,
+        "dramatic_engine": dramatic_engine,
+    }
+    missing = sorted(
+        key for key, value in required_values.items() if not isinstance(value, str)
+    )
+    if missing:
+        raise ConfigurationError(
+            f"Candidate Policy Profile 입력 Dimension이 없습니다: fields={missing}"
+        )
+    threat_type = (
+        "CRIME"
+        if incident_type in CRIME_INCIDENTS
+        else "PREDATORY"
+        if incident_type == "DISAPPEARANCE"
+        else "NONE"
+    )
+    technical_dependency_level = (
+        "MEDIUM"
+        if perspective in {"FOUND_FOOTAGE", "SCREENLIFE"}
+        else "LOW"
+    )
+    episode_theme = (
+        "TRUST_BETRAYAL"
+        if relationship_engine == "BROKEN_TRUST"
+        or dramatic_engine == "TRUST_EROSION"
+        else "UNSPECIFIED"
+    )
+    return {
+        "threat_type": threat_type,
+        "trusted_domain": str(setting),
+        "incident_type": str(incident_type),
+        "culprit_structure": str(culprit_structure),
+        "psychological_engine": str(pressure_engine),
+        "technical_dependency_level": technical_dependency_level,
+        "source_truth_classification": source_truth_classification,
+        "episode_theme": episode_theme,
+    }
+
+
+def candidate_signature(
+    selection: Mapping[str, str],
+    policy_profile: Mapping[str, str],
+) -> str:
+    """후보 Dimension과 정책 Profile을 결합한 구조 서명을 만든다."""
+    values = {
+        **{f"selection.{key}": value for key, value in selection.items()},
+        **{f"profile.{key}": value for key, value in policy_profile.items()},
+    }
+    payload = "|".join(f"{key}={values[key]}" for key in sorted(values))
     return sha256(payload.encode()).hexdigest()
 
 
@@ -74,6 +154,7 @@ def generate_variation_candidates(
     story_seed: str,
     candidate_count: int,
     catalog: Mapping[str, object],
+    source_truth_classification: str,
 ) -> dict[str, object]:
     """Story 문장을 쓰지 않고 구조적으로 구분되는 후보군을 생성한다."""
     if PROJECT_ID_PATTERN.fullmatch(project_id) is None:
@@ -100,7 +181,11 @@ def generate_variation_candidates(
             )
             for dimension_index, (name, choices) in enumerate(dimension_items)
         }
-        signature = candidate_signature(selection)
+        policy_profile = candidate_policy_profile(
+            selection,
+            source_truth_classification,
+        )
+        signature = candidate_signature(selection, policy_profile)
         if signature in signatures:
             raise ConfigurationError(
                 "Variation Catalog의 조합 수가 부족해 후보가 충돌했습니다: "
@@ -111,6 +196,7 @@ def generate_variation_candidates(
             {
                 "candidate_id": f"VAR-{candidate_index + 1:02d}",
                 "selection": selection,
+                "policy_profile": policy_profile,
                 "signature": signature,
                 "selection_status": "PENDING",
             }
@@ -214,7 +300,17 @@ def apply_user_case_constraints(
                 if not isinstance(field, str) or not isinstance(value, str):
                     raise ConfigurationError("검증된 LOCKED Constraint 형식이 손상됐습니다.")
                 selection[field] = value
-        signature = candidate_signature(selection)
+        policy_profile = candidate.get("policy_profile")
+        if not isinstance(policy_profile, dict):
+            raise ConfigurationError("Variation Candidate policy_profile 객체가 필요합니다.")
+        source_truth = policy_profile.get("source_truth_classification")
+        if not isinstance(source_truth, str):
+            raise ConfigurationError(
+                "Variation Candidate source_truth_classification 문자열이 필요합니다."
+            )
+        refreshed_profile = candidate_policy_profile(selection, source_truth)
+        candidate["policy_profile"] = refreshed_profile
+        signature = candidate_signature(selection, refreshed_profile)
         if signature in signatures:
             raise ConfigurationError(
                 "USER_CASE LOCKED 값 적용 후 Variation 후보가 충돌했습니다: "

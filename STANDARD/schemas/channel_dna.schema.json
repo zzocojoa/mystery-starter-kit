@@ -378,24 +378,20 @@
     "sourceDisclosurePolicy": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["enabled", "labels_by_source_mode"],
+      "required": ["enabled", "labels_by_source_truth"],
       "properties": {
         "enabled": {"type": "boolean"},
-        "labels_by_source_mode": {
+        "labels_by_source_truth": {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "ORIGINAL",
-            "USER_CASE",
-            "REFERENCE_INSPIRED",
-            "TRUE_STORY",
+            "ORIGINAL_FICTION",
+            "VERIFIED_TRUE_CASE",
             "INSPIRED_BY_TRUE_EVENTS"
           ],
           "properties": {
-            "ORIGINAL": {"$ref": "#/$defs/sourceDisclosureLabel"},
-            "USER_CASE": {"$ref": "#/$defs/sourceDisclosureLabel"},
-            "REFERENCE_INSPIRED": {"$ref": "#/$defs/sourceDisclosureLabel"},
-            "TRUE_STORY": {"$ref": "#/$defs/sourceDisclosureLabel"},
+            "ORIGINAL_FICTION": {"$ref": "#/$defs/sourceDisclosureLabel"},
+            "VERIFIED_TRUE_CASE": {"$ref": "#/$defs/sourceDisclosureLabel"},
             "INSPIRED_BY_TRUE_EVENTS": {"$ref": "#/$defs/sourceDisclosureLabel"}
           }
         }

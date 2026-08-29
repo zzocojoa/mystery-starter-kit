@@ -17,6 +17,12 @@ ROOT = Path(__file__).resolve().parents[1]
 def presentation_schemas() -> dict[str, dict[str, object]]:
     """Presentation Contract v2 Schema 묶음을 읽는다."""
     return {
+        "candidate_eligibility": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "candidate_eligibility.schema.json"
+        ),
+        "candidate_approval": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "candidate_approval.schema.json"
+        ),
         "candidate_evaluation": load_json_object(
             ROOT / "STANDARD" / "schemas" / "candidate_evaluation.schema.json"
         ),

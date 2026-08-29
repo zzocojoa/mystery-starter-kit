@@ -6,6 +6,7 @@
   "channel_content_version": "1.1.0",
   "approval_policy": "AUTO_CONTINUE",
   "story_source_mode": "ORIGINAL",
+  "source_truth_classification": "ORIGINAL_FICTION",
   "genre": "MYSTERY",
   "tones": ["GROUNDED", "SUSPENSEFUL"],
   "target_runtime_minutes": 25,

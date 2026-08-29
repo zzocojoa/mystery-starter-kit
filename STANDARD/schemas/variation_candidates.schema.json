@@ -22,7 +22,13 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["candidate_id", "selection", "signature", "selection_status"],
+        "required": [
+          "candidate_id",
+          "selection",
+          "policy_profile",
+          "signature",
+          "selection_status"
+        ],
         "properties": {
           "candidate_id": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
           "selection": {
@@ -30,6 +36,7 @@
             "minProperties": 10,
             "additionalProperties": {"type": "string", "minLength": 1}
           },
+          "policy_profile": {"$ref": "#/$defs/policyProfile"},
           "signature": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
           "selection_status": {"enum": ["PENDING", "APPROVED", "REJECTED"]}
         }
@@ -40,5 +47,43 @@
       "pattern": "^VAR-[0-9]{2,}$"
     },
     "override": {"type": ["object", "null"]}
+  },
+  "$defs": {
+    "enumName": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "policyProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "threat_type",
+        "trusted_domain",
+        "incident_type",
+        "culprit_structure",
+        "psychological_engine",
+        "technical_dependency_level",
+        "source_truth_classification",
+        "episode_theme"
+      ],
+      "properties": {
+        "threat_type": {"$ref": "#/$defs/enumName"},
+        "trusted_domain": {"$ref": "#/$defs/enumName"},
+        "incident_type": {"$ref": "#/$defs/enumName"},
+        "culprit_structure": {"$ref": "#/$defs/enumName"},
+        "psychological_engine": {"$ref": "#/$defs/enumName"},
+        "technical_dependency_level": {
+          "enum": ["LOW", "MEDIUM", "HIGH", "FINAL_PROOF"]
+        },
+        "source_truth_classification": {
+          "enum": [
+            "ORIGINAL_FICTION",
+            "VERIFIED_TRUE_CASE",
+            "INSPIRED_BY_TRUE_EVENTS"
+          ]
+        },
+        "episode_theme": {"$ref": "#/$defs/enumName"}
+      }
+    }
   }
 }

@@ -45,6 +45,27 @@
           },
           "minimum_channel_content_version": {
             "$ref": "#/$defs/semanticVersion"
+          },
+          "required_when_capability_enabled": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "required_when_source_truth": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": ["ORIGINAL_FICTION", "VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]
+            }
+          },
+          "required_when_plan_status": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["artifact", "status"],
+            "properties": {
+              "artifact": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "status": {"type": "string", "minLength": 1}
+            }
           }
         }
       }

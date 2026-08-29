@@ -5,6 +5,8 @@ from pathlib import Path
 
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.gate_control import validation_report_through
+from VALIDATORS.candidate_approval import build_candidate_approval
+from VALIDATORS.candidate_eligibility import build_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.channel_policy_v2 import (
     build_channel_policy_inputs,
@@ -35,6 +37,7 @@ from VALIDATORS.reference_validation import (
     sanitize_reference_profile,
     validate_reference_collision,
 )
+from VALIDATORS.source_truth import require_source_truth_classification
 from VALIDATORS.variation import (
     apply_user_case_constraints,
     approve_variation_candidate,
@@ -142,6 +145,18 @@ def runtime_validation_inputs(
                 / "STANDARD"
                 / "schemas"
                 / "candidate_evaluation.schema.json"
+            ),
+            "candidate_eligibility": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "candidate_eligibility.schema.json"
+            ),
+            "candidate_approval": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "candidate_approval.schema.json"
             ),
             "novelty_precheck": load_json_object(
                 repository_root
@@ -341,6 +356,7 @@ def variation_output(
         f"{project_id}:runtime-v1",
         5,
         load_json_object(repository_root / "STANDARD" / "variation_catalog.json"),
+        require_source_truth_classification(production_config),
     )
     return apply_user_case_constraints(candidates, production_config)
 
@@ -349,12 +365,14 @@ def approved_variation_output(
     variations: Mapping[str, object],
     candidate_evaluation: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
-) -> dict[str, object]:
+    candidate_eligibility: Mapping[str, object],
+) -> tuple[dict[str, object], str]:
     """검증된 평가가 추천한 Candidate 하나를 승인한다."""
     issues = validate_candidate_evaluation(
         variations,
         candidate_evaluation,
         novelty_precheck,
+        candidate_eligibility,
     )
     if issues:
         first_issue = issues[0]
@@ -382,34 +400,15 @@ def approved_variation_output(
             {"validation_code": "CANDIDATE_EVALUATION_REQUIRED"},
         )
     approved = approve_variation_candidate(variations, candidate_id)
-    approval_issues = validate_candidate_evaluation(
-        approved,
-        candidate_evaluation,
-        novelty_precheck,
-    )
-    if approval_issues:
-        first_issue = approval_issues[0]
-        raise RuntimeExecutionError(
-            "GATE_REJECTED",
-            False,
-            "TASK",
-            first_issue["message"],
-            "variation.approve",
-            "candidate_evaluation",
-            {
-                "validation_code": first_issue["code"],
-                **first_issue["context"],
-            },
-        )
-    return approved
+    return approved, candidate_id
 
 
 def evidence_outputs(
     project_id: str,
-    source_mode: object,
+    source_truth: object,
 ) -> dict[str, object]:
-    """Fiction은 빈 Evidence를 만들고 사실 기반 Mode는 명시적 Human 입력을 요구한다."""
-    if source_mode in {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}:
+    """Fiction은 빈 Evidence를 만들고 사실 기반 분류는 Human 입력을 요구한다."""
+    if source_truth in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}:
         raise RuntimeExecutionError(
             "HUMAN_APPROVAL_REQUIRED",
             False,
@@ -417,7 +416,7 @@ def evidence_outputs(
             "사실 기반 Project에는 검증된 Source와 Claim-Evidence 입력이 필요합니다.",
             "reference.build_evidence",
             None,
-            {"story_source_mode": source_mode},
+            {"source_truth_classification": source_truth},
         )
     return {
         "sources": {"project_id": project_id, "sources": []},
@@ -545,16 +544,68 @@ def core_task_outputs(
                 load_json_object(repository_root / "STANDARD" / "novelty_thresholds.json"),
             )
         }
-    if task_id == "variation.approve":
+    if task_id == "variation.eligibility":
+        channel, _manifest, _channel_path = resolve_project_channel(
+            repository_root,
+            production_config,
+            None,
+        )
         return {
-            "variation_candidates": approved_variation_output(
+            "candidate_eligibility": build_candidate_eligibility(
+                production_config,
+                channel,
                 mapping_artifact(artifacts, "variation_candidates"),
-                mapping_artifact(artifacts, "candidate_evaluation"),
                 mapping_artifact(artifacts, "novelty_precheck"),
             )
         }
+    if task_id == "variation.approve":
+        variations = mapping_artifact(artifacts, "variation_candidates")
+        evaluation = mapping_artifact(artifacts, "candidate_evaluation")
+        novelty = mapping_artifact(artifacts, "novelty_precheck")
+        eligibility = mapping_artifact(artifacts, "candidate_eligibility")
+        approved, _candidate_id = approved_variation_output(
+            variations,
+            evaluation,
+            novelty,
+            eligibility,
+        )
+        return {
+            "variation_candidates": approved,
+        }
+    if task_id == "variation.record_approval":
+        variations = mapping_artifact(artifacts, "variation_candidates")
+        evaluation = mapping_artifact(artifacts, "candidate_evaluation")
+        novelty = mapping_artifact(artifacts, "novelty_precheck")
+        selected_candidate_id = variations.get("approved_candidate_id")
+        recommended = evaluation.get("recommended_candidate_id")
+        if not isinstance(selected_candidate_id, str) or not isinstance(recommended, str):
+            raise RuntimeExecutionError(
+                "GATE_REJECTED",
+                False,
+                "TASK",
+                "승인 또는 추천 Candidate ID가 없습니다.",
+                task_id,
+                "candidate_approval",
+                {},
+            )
+        return {
+            "candidate_approval": build_candidate_approval(
+                project_id,
+                selected_candidate_id,
+                recommended,
+                "SYSTEM",
+                "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다.",
+                "1970-01-01T00:00:00Z",
+                variations,
+                novelty,
+                evaluation,
+            ),
+        }
     if task_id == "reference.build_evidence":
-        return evidence_outputs(project_id, production_config.get("story_source_mode"))
+        return evidence_outputs(
+            project_id,
+            production_config.get("source_truth_classification"),
+        )
     if task_id == "continuity.deterministic":
         report = validate_continuity(
             production_config,

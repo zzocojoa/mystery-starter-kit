@@ -495,6 +495,14 @@ def task_open_unlocked(
 ) -> dict[str, object]:
     """Project Lock 안에서 격리 Workspace와 권한 Snapshot을 생성한다."""
     validate_runtime_contracts(repository_root)
+    production_config = load_json_object(
+        project_path / "00_PROJECT" / "production_config.json"
+    )
+    runtime_validation_inputs_for_project(
+        repository_root,
+        production_config,
+        None,
+    )
     active = open_task_record(repository_root, project_path)
     if active is not None:
         raise GateTransactionError(
@@ -1476,7 +1484,6 @@ def full_validation_report(
     dependency_graph = load_json_object(
         repository_root / "STANDARD" / "dependency_graph.json"
     )
-    artifacts = load_project_artifacts(project_path, dependency_graph)
     production_config = load_json_object(
         project_path / "00_PROJECT" / "production_config.json"
     )
@@ -1492,6 +1499,7 @@ def full_validation_report(
         production_config,
         channel_path,
     )
+    artifacts = load_project_artifacts(project_path, dependency_graph, channel)
     reference_material = (
         load_json_object(reference_source) if reference_source is not None else None
     )

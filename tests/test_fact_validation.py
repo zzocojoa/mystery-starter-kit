@@ -44,7 +44,7 @@ def test_complete_fact_evidence_chain_passes() -> None:
     """Fact, Inference, Dramatization 경계와 Evidence가 완전하면 통과해야 한다."""
     facts, sources, claims = make_fact_artifacts()
 
-    assert validate_fact_integrity("TRUE_STORY", facts, sources, claims) == []
+    assert validate_fact_integrity("VERIFIED_TRUE_CASE", facts, sources, claims) == []
 
 
 def test_fact_evidence_bundle_passes_schema() -> None:
@@ -65,7 +65,7 @@ def test_fact_evidence_bundle_passes_schema() -> None:
 def test_original_story_does_not_require_external_evidence() -> None:
     """Original Fiction에는 외부 Source Ledger를 강제하지 않아야 한다."""
     assert validate_fact_integrity(
-        "ORIGINAL",
+        "ORIGINAL_FICTION",
         {"facts": []},
         {"sources": []},
         {"claims": []},
@@ -85,7 +85,9 @@ def test_missing_evidence_and_disguised_dramatization_fail() -> None:
     factual["source_ids"] = ["SRC-404"]
     dramatization["presented_as_fact"] = True
 
-    issues = validate_fact_integrity("TRUE_STORY", changed_facts, sources, claims)
+    issues = validate_fact_integrity(
+        "VERIFIED_TRUE_CASE", changed_facts, sources, claims
+    )
     codes = {issue["code"] for issue in issues}
 
     assert "FACT_EVIDENCE_MISSING" in codes

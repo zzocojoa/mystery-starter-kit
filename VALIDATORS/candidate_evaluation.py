@@ -49,11 +49,13 @@ def document_sha256(document: Mapping[str, object]) -> str:
 def candidate_evaluation_input_hashes(
     variations: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
+    candidate_eligibility: Mapping[str, object],
 ) -> dict[str, str]:
-    """승인 상태와 무관한 평가 입력 Hash를 계산한다."""
+    """권한 판정과 분리된 Soft 평가 입력 Hash를 계산한다."""
     return {
         "variation_candidates": variation_precheck_source_hash(variations),
         "novelty_precheck": document_sha256(novelty_precheck),
+        "candidate_eligibility": document_sha256(candidate_eligibility),
     }
 
 
@@ -85,24 +87,6 @@ def number_value(value: object) -> float | None:
     if not isinstance(value, int | float) or isinstance(value, bool):
         return None
     return float(value)
-
-
-def novelty_results(
-    novelty_precheck: Mapping[str, object],
-) -> dict[str, str]:
-    """Novelty Precheck의 Candidate별 결과를 색인한다."""
-    raw_results = novelty_precheck.get("candidate_results")
-    if not isinstance(raw_results, list):
-        return {}
-    results: dict[str, str] = {}
-    for raw_result in raw_results:
-        if not isinstance(raw_result, Mapping):
-            continue
-        candidate_id = raw_result.get("candidate_id")
-        result = raw_result.get("result")
-        if isinstance(candidate_id, str) and isinstance(result, str):
-            results[candidate_id] = result
-    return results
 
 
 def validate_evaluation_completeness(
@@ -218,16 +202,17 @@ def validate_weighted_scores(
     return issues
 
 
-def validate_hashes_and_novelty(
+def validate_input_hashes(
     variations: Mapping[str, object],
     evaluation: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
-    records: list[Mapping[str, object]],
+    candidate_eligibility: Mapping[str, object],
 ) -> list[ValidationIssue]:
-    """평가 입력 Hash와 Candidate별 Novelty 결과를 검증한다."""
+    """Soft 평가가 현재 Core 입력에 결속되었는지 검증한다."""
     expected_hashes = candidate_evaluation_input_hashes(
         variations,
         novelty_precheck,
+        candidate_eligibility,
     )
     actual_hashes = evaluation.get("input_hashes")
     issues: list[ValidationIssue] = []
@@ -258,43 +243,23 @@ def validate_hashes_and_novelty(
                 },
             )
         )
-    precheck_results = novelty_results(novelty_precheck)
-    for record in records:
-        candidate_id = record.get("candidate_id")
-        if not isinstance(candidate_id, str):
-            continue
-        declared = record.get("novelty_result")
-        actual = precheck_results.get(candidate_id)
-        if declared != actual:
-            issues.append(
-                make_candidate_issue(
-                    "CANDIDATE_NOVELTY_RESULT_MISMATCH",
-                    "Candidate 평가의 Novelty 결과가 Precheck와 다릅니다.",
-                    {
-                        "candidate_id": candidate_id,
-                        "declared": declared,
-                        "actual": actual,
-                    },
-                )
-            )
     return issues
 
 
-def eligible_record(record: Mapping[str, object]) -> bool:
-    """Hard Filter와 Novelty를 모두 통과한 평가인지 판정한다."""
-    return (
-        record.get("hard_filter_result") == "PASS"
-        and record.get("novelty_result") == "PASS"
-        and number_value(record.get("total_score")) is not None
-    )
+def eligible_candidate_ids(document: Mapping[str, object]) -> set[str]:
+    """Core 적격성 Artifact에서 승인 가능 Candidate ID를 읽는다."""
+    values = document.get("eligible_candidate_ids")
+    if not isinstance(values, list):
+        return set()
+    return {value for value in values if isinstance(value, str)}
 
 
 def validate_recommendation(
-    variations: Mapping[str, object],
     evaluation: Mapping[str, object],
     records: list[Mapping[str, object]],
+    candidate_eligibility: Mapping[str, object],
 ) -> list[ValidationIssue]:
-    """추천 후보가 적격 최고점이며 승인 후보와 일치하는지 검증한다."""
+    """추천 후보가 Core 적격 후보 중 최고 Soft 점수인지 검증한다."""
     recommended_id = evaluation.get("recommended_candidate_id")
     recommended_records = [
         record for record in records if record.get("decision") == "RECOMMENDED"
@@ -317,23 +282,21 @@ def validate_recommendation(
         )
         return issues
     selected_record = recommended_records[0]
-    if selected_record.get("hard_filter_result") != "PASS":
+    eligible_ids = eligible_candidate_ids(candidate_eligibility)
+    if recommended_id not in eligible_ids:
         issues.append(
             make_candidate_issue(
-                "CANDIDATE_HARD_FILTER_FAILED",
-                "Hard Filter를 통과하지 못한 후보를 추천하거나 승인할 수 없습니다.",
+                "CANDIDATE_RECOMMENDATION_INELIGIBLE",
+                "Core 적격성 판정을 통과하지 못한 후보를 추천할 수 없습니다.",
                 {"candidate_id": recommended_id},
             )
         )
-    if selected_record.get("novelty_result") != "PASS":
-        issues.append(
-            make_candidate_issue(
-                "CANDIDATE_NOVELTY_FAILED",
-                "Novelty Precheck를 통과하지 못한 후보를 추천하거나 승인할 수 없습니다.",
-                {"candidate_id": recommended_id},
-            )
-        )
-    eligible = [record for record in records if eligible_record(record)]
+    eligible = [
+        record
+        for record in records
+        if record.get("candidate_id") in eligible_ids
+        and number_value(record.get("total_score")) is not None
+    ]
     highest_score = max(
         (number_value(record.get("total_score")) or 0.0 for record in eligible),
         default=-1.0,
@@ -347,66 +310,11 @@ def validate_recommendation(
         issues.append(
             make_candidate_issue(
                 "CANDIDATE_NOT_HIGHEST_WEIGHTED_SCORE",
-                "Hard Filter와 Novelty를 통과한 후보 중 최고 가중 점수를 추천해야 합니다.",
+                "Core 적격 후보 중 최고 가중 점수를 추천해야 합니다.",
                 {
                     "candidate_id": recommended_id,
                     "selected_score": selected_score,
                     "highest_score": highest_score,
-                },
-            )
-        )
-    approved_id = variations.get("approved_candidate_id")
-    if not isinstance(approved_id, str):
-        return issues
-    approved_record = next(
-        (record for record in records if record.get("candidate_id") == approved_id),
-        None,
-    )
-    if approved_record is None or not eligible_record(approved_record):
-        issues.append(
-            make_candidate_issue(
-                "CANDIDATE_APPROVAL_INELIGIBLE",
-                "승인 후보는 Hard Filter와 Novelty를 모두 통과해야 합니다.",
-                {"candidate_id": approved_id},
-            )
-        )
-    if (
-        approved_record is not None
-        and approved_record.get("hard_filter_result") != "PASS"
-    ):
-        issues.append(
-            make_candidate_issue(
-                "CANDIDATE_HARD_FILTER_FAILED",
-                "Hard Filter를 통과하지 못한 후보를 승인할 수 없습니다.",
-                {"candidate_id": approved_id},
-            )
-        )
-    if approved_record is not None and approved_record.get("novelty_result") != "PASS":
-        issues.append(
-            make_candidate_issue(
-                "CANDIDATE_NOVELTY_FAILED",
-                "Novelty Precheck를 통과하지 못한 후보를 승인할 수 없습니다.",
-                {"candidate_id": approved_id},
-            )
-        )
-    if approved_id == recommended_id:
-        return issues
-    override = evaluation.get("human_override")
-    if (
-        not isinstance(override, Mapping)
-        or override.get("candidate_id") != approved_id
-        or not isinstance(override.get("actor"), str)
-        or not override.get("actor")
-        or not isinstance(override.get("reason"), str)
-        or not override.get("reason")
-    ):
-        issues.append(
-            make_candidate_issue(
-                "CANDIDATE_HUMAN_OVERRIDE_REQUIRED",
-                "추천 후보가 아닌 후보의 승인에는 Hash에 포함된 Human Override가 필요합니다.",
-                {
-                    "approved_candidate_id": approved_id,
-                    "recommended_candidate_id": recommended_id,
                 },
             )
         )
@@ -417,17 +325,18 @@ def validate_candidate_evaluation(
     variations: Mapping[str, object],
     evaluation: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
+    candidate_eligibility: Mapping[str, object],
 ) -> list[ValidationIssue]:
-    """Candidate 평가의 완전성, 근거, 신규성, 승인 정합성을 검증한다."""
+    """Candidate Soft 평가의 완전성, 근거와 추천 정합성을 검증한다."""
     records = evaluation_records(evaluation)
     return [
         *validate_evaluation_completeness(variations, records),
         *validate_weighted_scores(evaluation, records),
-        *validate_hashes_and_novelty(
+        *validate_input_hashes(
             variations,
             evaluation,
             novelty_precheck,
-            records,
+            candidate_eligibility,
         ),
-        *validate_recommendation(variations, evaluation, records),
+        *validate_recommendation(evaluation, records, candidate_eligibility),
     ]
