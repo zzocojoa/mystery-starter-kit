@@ -1,0 +1,173 @@
+{
+  "project_id": "PRJ-003",
+  "reveals": [
+    {
+      "reveal_id": "REVEAL-01",
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "fact_id": "FACT-03",
+      "information": "윤서나가 모월재 전체를 비공개 인터뷰 명목으로 예약했다.",
+      "effect": "실종 전 마지막 약속에 참석자 전원이 묶인다."
+    },
+    {
+      "reveal_id": "REVEAL-02",
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "fact_id": "FACT-16",
+      "information": "강태준이 5년 전 핵심 답변을 방송본에서 삭제했다.",
+      "effect": "주인공의 편향과 죄책감을 먼저 드러낸다."
+    },
+    {
+      "reveal_id": "REVEAL-21",
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "fact_id": "FACT-14",
+      "information": "5년 전 한유진은 지역 청년기금 심사 조작을 내부고발했고 박민규는 회의 참석을 부인했다.",
+      "effect": "현재 인터뷰가 복원하려는 과거 기록의 윤곽을 제공한다."
+    },
+    {
+      "reveal_id": "REVEAL-03",
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "fact_id": "FACT-06",
+      "information": "박민규가 19시 7분 18초에 과거와 같은 부인 문장을 말한다.",
+      "effect": "평범해 보이는 문장을 공정한 핵심 단서로 심는다."
+    },
+    {
+      "reveal_id": "REVEAL-04",
+      "scene_id": "SCN-03",
+      "scene_order": 3,
+      "fact_id": "FACT-08",
+      "information": "첫 납치 화면 구석에 CAM-11이 표시된다.",
+      "effect": "관객은 이를 11번 객실로 오해한다."
+    },
+    {
+      "reveal_id": "REVEAL-05",
+      "scene_id": "SCN-04",
+      "scene_order": 4,
+      "fact_id": "FACT-04",
+      "information": "윤서나는 들어왔지만 나간 장면이 없다.",
+      "effect": "납치범이 건물 안에 있다는 가설을 강화한다."
+    },
+    {
+      "reveal_id": "REVEAL-06",
+      "scene_id": "SCN-04",
+      "scene_order": 4,
+      "fact_id": "FACT-05",
+      "information": "CCTV에는 음성이 없고 서비스 공간은 사각이다.",
+      "effect": "최도식에게 수상한 기회를 부여한다."
+    },
+    {
+      "reveal_id": "REVEAL-07",
+      "scene_id": "SCN-05",
+      "scene_order": 5,
+      "fact_id": "FACT-01",
+      "information": "등록 객실은 열 개뿐이다.",
+      "effect": "존재하지 않는 방의 수수께끼를 전면화한다."
+    },
+    {
+      "reveal_id": "REVEAL-08",
+      "scene_id": "SCN-05",
+      "scene_order": 5,
+      "fact_id": "FACT-19",
+      "information": "붉은 토큰은 증언자의 음성 트랙과 연결돼 있다.",
+      "effect": "몸값 표식이라는 첫 해석에 균열을 낸다."
+    },
+    {
+      "reveal_id": "REVEAL-09",
+      "scene_id": "SCN-06",
+      "scene_order": 6,
+      "fact_id": "FACT-08",
+      "information": "CAM-11은 객실 번호가 아니라 스위처 입력명이다.",
+      "effect": "공간 추리에서 영상 제작 방식 추리로 질문을 바꾼다."
+    },
+    {
+      "reveal_id": "REVEAL-10",
+      "scene_id": "SCN-07",
+      "scene_order": 7,
+      "fact_id": "FACT-11",
+      "information": "두 번째 영상에 중앙 복도의 세 번 마루 소리가 담긴다.",
+      "effect": "촬영 장소가 모월재 안임을 지지한다."
+    },
+    {
+      "reveal_id": "REVEAL-11",
+      "scene_id": "SCN-08",
+      "scene_order": 8,
+      "fact_id": "FACT-10",
+      "information": "납치 영상과 인터뷰 영상의 카메라 메타데이터가 연속된다.",
+      "effect": "사전 녹화 가설을 약화한다."
+    },
+    {
+      "reveal_id": "REVEAL-12",
+      "scene_id": "SCN-08",
+      "scene_order": 8,
+      "fact_id": "FACT-12",
+      "information": "금속 물병에 사라진 3번 소프트박스 라벨이 비친다.",
+      "effect": "납치 세트가 인터뷰 장비로 만들어졌음을 증명한다."
+    },
+    {
+      "reveal_id": "REVEAL-13",
+      "scene_id": "SCN-09",
+      "scene_order": 9,
+      "fact_id": "FACT-02",
+      "information": "주방 옆에는 평면도에서 빠진 옛 암실이 있다.",
+      "effect": "최도식 범인설을 거의 확정하는 False Solution을 만든다."
+    },
+    {
+      "reveal_id": "REVEAL-14",
+      "scene_id": "SCN-09",
+      "scene_order": 9,
+      "fact_id": "FACT-13",
+      "information": "최도식은 공간을 숨겼지만 촬영에는 참여하지 않았다.",
+      "effect": "거짓말의 범위와 납치 행위를 분리한다."
+    },
+    {
+      "reveal_id": "REVEAL-15",
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "fact_id": "FACT-07",
+      "information": "박민규의 부인 문장 3초 뒤 자동 공개가 시작됐다.",
+      "effect": "Witness가 현재 사건을 발생시켰다는 반전을 연다."
+    },
+    {
+      "reveal_id": "REVEAL-16",
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "fact_id": "FACT-15",
+      "information": "원본 인터뷰에는 박민규의 회의 참석을 뒷받침하는 한유진의 답이 있다.",
+      "effect": "현재 미스터리의 목적을 과거 기록 복원으로 바꾼다."
+    },
+    {
+      "reveal_id": "REVEAL-17",
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "fact_id": "FACT-17",
+      "information": "윤서나는 원본 microSD를 자동 공개에 연결했다.",
+      "effect": "실종자가 사건을 설계했을 가능성을 확정적으로 높인다."
+    },
+    {
+      "reveal_id": "REVEAL-18",
+      "scene_id": "SCN-11",
+      "scene_order": 11,
+      "fact_id": "FACT-09",
+      "information": "윤서나는 옛 암실에서 납치 영상을 직접 촬영했다.",
+      "effect": "HOW 미스터리의 기계적 해답을 완성한다."
+    },
+    {
+      "reveal_id": "REVEAL-19",
+      "scene_id": "SCN-11",
+      "scene_order": 11,
+      "fact_id": "FACT-18",
+      "information": "계획은 20시 10분 안전 고백과 함께 끝나도록 설계됐다.",
+      "effect": "실제 신체 위해 가능성을 해소한다."
+    },
+    {
+      "reveal_id": "REVEAL-20",
+      "scene_id": "SCN-11",
+      "scene_order": 11,
+      "fact_id": "FACT-20",
+      "information": "강태준이 메타데이터, 마루 소리, 조명 반사로 동선을 재구성한다.",
+      "effect": "주인공이 과거의 편집이 아니라 현재의 전체 기록을 선택한다."
+    }
+  ]
+}

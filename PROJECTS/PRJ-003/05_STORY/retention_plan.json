@@ -1,0 +1,53 @@
+{
+  "project_id": "PRJ-003",
+  "checkpoints": [
+    {
+      "scene_id": "SCN-01",
+      "function": "QUESTION: 왜 윤서나는 과거 사건 당사자들을 불러 놓고 자신의 자리를 비웠는가?"
+    },
+    {
+      "scene_id": "SCN-02",
+      "function": "PARTIAL_ANSWER: 박민규의 반복 부인이 현재 갈등의 중심이라는 사실을 먼저 확인한다."
+    },
+    {
+      "scene_id": "SCN-03",
+      "function": "UPDATED_QUESTION: CAM-11로 송출되는 윤서나는 건물의 어느 방에 갇혀 있는가?"
+    },
+    {
+      "scene_id": "SCN-04",
+      "function": "PARTIAL_ANSWER: 퇴장 기록이 없어 내부 인물과 서비스 동선으로 용의 범위를 좁힌다."
+    },
+    {
+      "scene_id": "SCN-05",
+      "function": "CONTRADICTION: 객실은 열 개인데 화면에는 11이 표시된다."
+    },
+    {
+      "scene_id": "SCN-06",
+      "function": "UPDATED_QUESTION: 11이 장소가 아니라 입력명이라면 누가 영상을 제작하는가?"
+    },
+    {
+      "scene_id": "SCN-07",
+      "function": "PARTIAL_ANSWER: 마루 소리가 영상의 촬영 반경을 모월재 내부로 확정한다."
+    },
+    {
+      "scene_id": "SCN-08",
+      "function": "UPDATED_QUESTION: 인터뷰 장비가 실시간 납치 화면을 찍고 있다면 윤서나는 피해자인가 제작자인가?"
+    },
+    {
+      "scene_id": "SCN-09",
+      "function": "FALSE_ANSWER: 암실과 마스터키가 최도식 범인설을 완성한다."
+    },
+    {
+      "scene_id": "SCN-10",
+      "function": "CONTRADICTION: 최도식의 거짓말은 공간에만 해당하고 사건을 실제로 시작시킨 것은 박민규의 문장이다."
+    },
+    {
+      "scene_id": "SCN-11",
+      "function": "ANSWER: 윤서나가 자작 납치의 촬영 방식과 자동 공개의 목적을 스스로 밝힌다."
+    },
+    {
+      "scene_id": "SCN-12",
+      "function": "EMOTIONAL_AFTERSHOCK: 진실 공개가 속죄를 완성하지 않으며 기록의 주도권은 피해 당사자에게 있음을 남긴다."
+    }
+  ]
+}

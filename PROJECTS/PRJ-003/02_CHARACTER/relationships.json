@@ -1,0 +1,53 @@
+{
+  "project_id": "PRJ-003",
+  "relationships": [
+    {
+      "relationship_id": "REL-01",
+      "from": "CHAR-01",
+      "to": "CHAR-02",
+      "engine": "BROKEN_TRUST"
+    },
+    {
+      "relationship_id": "REL-02",
+      "from": "CHAR-02",
+      "to": "CHAR-05",
+      "engine": "ATONEMENT_DEBT"
+    },
+    {
+      "relationship_id": "REL-03",
+      "from": "CHAR-01",
+      "to": "CHAR-05",
+      "engine": "MORAL_DEBT"
+    },
+    {
+      "relationship_id": "REL-04",
+      "from": "CHAR-03",
+      "to": "CHAR-05",
+      "engine": "EVIDENCE_SUPPRESSION"
+    },
+    {
+      "relationship_id": "REL-05",
+      "from": "CHAR-04",
+      "to": "CHAR-02",
+      "engine": "TRANSACTIONAL_LOYALTY"
+    },
+    {
+      "relationship_id": "REL-06",
+      "from": "CHAR-06",
+      "to": "CHAR-01",
+      "engine": "PROFESSIONAL_RIVALRY"
+    },
+    {
+      "relationship_id": "REL-07",
+      "from": "CHAR-06",
+      "to": "CHAR-02",
+      "engine": "PROTECTIVE_SILENCE"
+    },
+    {
+      "relationship_id": "REL-08",
+      "from": "CHAR-01",
+      "to": "CHAR-03",
+      "engine": "ADVERSARIAL_DEPENDENCY"
+    }
+  ]
+}

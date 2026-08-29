@@ -1,0 +1,46 @@
+{
+  "project_id": "PRJ-003",
+  "architecture": "ARCH-02_FALSE_SOLUTION",
+  "beats": [
+    {
+      "beat_id": "BEAT-01",
+      "type": "UNFINISHED_INTERVIEW_HOOK",
+      "purpose": "윤서나의 빈 의자와 강태준의 과거 편집 책임을 함께 제시해 구조 질문과 감정 질문을 동시에 연다."
+    },
+    {
+      "beat_id": "BEAT-02",
+      "type": "WITNESS_TRIGGERED_DISAPPEARANCE",
+      "purpose": "박민규의 반복된 부인 직후 납치 화면을 출현시켜 사건을 시작하되 두 사건의 인과는 숨긴다."
+    },
+    {
+      "beat_id": "BEAT-03",
+      "type": "NONEXISTENT_ROOM_SEARCH",
+      "purpose": "퇴장 기록 부재와 존재하지 않는 11번 방으로 내부 납치 가설을 강화한다."
+    },
+    {
+      "beat_id": "BEAT-04",
+      "type": "LABEL_AND_SOUND_CONTRADICTION",
+      "purpose": "CAM-11과 복도 마루 소리를 재해석해 질문을 장소에서 영상 제작 방식으로 이동시킨다."
+    },
+    {
+      "beat_id": "BEAT-05",
+      "type": "LIVE_MEDIA_FORENSICS",
+      "purpose": "메타데이터와 조명 반사로 납치 화면이 같은 건물에서 실시간 제작된다는 부분 답을 준다."
+    },
+    {
+      "beat_id": "BEAT-06",
+      "type": "MANAGER_FALSE_SOLUTION",
+      "purpose": "숨겨진 암실과 최도식의 거짓말을 결합해 설득력 있는 범인 해답을 완성한 뒤 참여 범위의 부재로 무너뜨린다."
+    },
+    {
+      "beat_id": "BEAT-07",
+      "type": "TESTIMONY_CAUSAL_REVERSAL",
+      "purpose": "박민규의 문장이 납치 영상에 대한 반응이 아니라 사건을 시작시킨 명령이었음을 밝히고 과거 원본을 공개한다."
+    },
+    {
+      "beat_id": "BEAT-08",
+      "type": "VOLUNTARY_SELF_DISCLOSURE",
+      "purpose": "윤서나의 자작 연출과 강태준의 책임을 함께 공개하고, 기록의 최종 주도권을 한유진에게 돌린다."
+    }
+  ]
+}

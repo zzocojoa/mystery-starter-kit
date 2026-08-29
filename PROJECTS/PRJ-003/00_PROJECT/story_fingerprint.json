@@ -1,0 +1,84 @@
+{
+  "schema_family": "story-fingerprint",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-003",
+  "story": {
+    "mystery_type": "HOW",
+    "architecture": "ARCH-02_FALSE_SOLUTION",
+    "protagonist_role": "EX_PARTNER",
+    "primary_twist": "TW-14_WITNESS_CAUSED_EVENT",
+    "timeline_style": "REAL_TIME",
+    "incident_type": "KIDNAPPING",
+    "setting": "GUESTHOUSE",
+    "culprit_structure": "VICTIM_SELF_ENGINEERED",
+    "setting_logic": [
+      "RENOVATED_PHOTO_STUDIO_LAYOUT",
+      "SINGLE_GROUP_FULL_BOOKING",
+      "SHARED_CCTV_WITHOUT_AUDIO"
+    ],
+    "information_mechanism": [
+      "LIVE_INTERVIEW_FEED",
+      "AUTOMATED_TRANSCRIPT_RELEASE",
+      "SYNCHRONIZED_CAMERA_METADATA"
+    ],
+    "relationship_engine": "BROKEN_TRUST",
+    "pressure_engine": "SOCIAL_ISOLATION",
+    "dramatic_engine": "SACRIFICE"
+  },
+  "beat_signature": [
+    "UNFINISHED_INTERVIEW_HOOK",
+    "WITNESS_TRIGGERED_DISAPPEARANCE",
+    "NONEXISTENT_ROOM_SEARCH",
+    "LABEL_AND_SOUND_CONTRADICTION",
+    "LIVE_MEDIA_FORENSICS",
+    "MANAGER_FALSE_SOLUTION",
+    "TESTIMONY_CAUSAL_REVERSAL",
+    "VOLUNTARY_SELF_DISCLOSURE"
+  ],
+  "causal": {
+    "root_cause": "DELETED_WHISTLEBLOWER_INTERVIEW_AND_REPEATED_DENIAL",
+    "mechanism": "VOICE_TRIGGERED_SELF_STAGED_KIDNAPPING_LIVE_COMPOSITE",
+    "concealment": "CAMERA_INPUT_LABEL_MISREAD_AS_ROOM_AND_MANAGER_PRIVACY_LIE",
+    "discovery_path": "NO_EXIT_CAMERA_METADATA_REFLECTION_AND_TRIGGER_TIMESTAMP",
+    "resolution": "PUBLIC_RAW_INTERVIEW_RELEASE_AND_VOLUNTARY_SELF_DISCLOSURE"
+  },
+  "semantic_causal": {
+    "normalized_roles": [
+      "SUPPRESSED_TESTIMONY_RECORD",
+      "SELF_STAGED_MEDIA_EVENT",
+      "VOICE_TRIGGERED_PUBLICATION",
+      "SPATIAL_LABEL_MISREAD",
+      "TECHNICAL_FORENSIC_RECONSTRUCTION",
+      "VOLUNTARY_SELF_DISCLOSURE",
+      "PUBLIC_RECORD_REPAIR"
+    ],
+    "character_function_chain": [
+      "PAST_EDITORIAL_COMPLICITY",
+      "APPARENT_RESCUE_ATTEMPT",
+      "MEDIA_MECHANISM_DECONSTRUCTION",
+      "PUBLIC_RESPONSIBILITY_ACCEPTANCE",
+      "VICTIM_AGENCY_RESTORATION"
+    ],
+    "audience_hypothesis_transitions": [
+      "EXTERNAL_KIDNAPPER",
+      "SECRET_ROOM_CAPTIVITY",
+      "MANAGER_AS_STAGER",
+      "SELF_STAGED_LIVE_MEDIA_EVENT",
+      "PUBLIC_RECORD_REPAIR_WITH_ETHICAL_COST"
+    ],
+    "edge_sequence": [
+      "ROOT_CAUSE>MECHANISM",
+      "MECHANISM>MECHANISM",
+      "MECHANISM>CONCEALMENT",
+      "MECHANISM>CONCEALMENT",
+      "MECHANISM>CONSEQUENCE",
+      "CONCEALMENT>DISCOVERY",
+      "CONCEALMENT>DISCOVERY",
+      "CONCEALMENT>DISCOVERY",
+      "DISCOVERY>DISCOVERY",
+      "DISCOVERY>DISCOVERY",
+      "DISCOVERY>CONSEQUENCE",
+      "CONSEQUENCE>RESOLUTION"
+    ]
+  }
+}

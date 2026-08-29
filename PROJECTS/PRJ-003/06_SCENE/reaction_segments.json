@@ -1,0 +1,559 @@
+{
+  "$schema": "../../../STANDARD/schemas/reaction_segments.schema.json",
+  "schema_family": "reaction-segments",
+  "schema_version": "2.1.0",
+  "project_id": "PRJ-003",
+  "reaction_segments": [
+    {
+      "reaction_segment_id": "RSEG-001",
+      "after_scene_id": "SCN-02",
+      "order": 1,
+      "start_sec": 205,
+      "duration_sec": 25,
+      "segment_function": "HYPOTHESIS_GENERATION",
+      "hypothesis_before": "윤서나의 실종 원인과 박민규의 인터뷰는 별개다.",
+      "hypothesis_after": "박민규가 반복한 과거의 부인이 현재 실종을 작동시키는 열쇠일 수 있다.",
+      "tone": "TENSE_CURIOUS",
+      "turns": [
+        {
+          "turn_id": "TURN-001-01",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "같은 부인 문장을 말한 직후 신호가 끊겼어요. 우연보다 조건문처럼 들립니다.",
+          "evidence_ids": [
+            "CLUE-04",
+            "CLUE-09"
+          ],
+          "known_fact_ids": [
+            "FACT-06",
+            "FACT-14"
+          ],
+          "tone": "ANALYTIC"
+        },
+        {
+          "turn_id": "TURN-001-02",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "강태준이 이미 한 번 기록을 지웠다는 사실 때문에 이번 인터뷰도 안전하게 느껴지지 않아요.",
+          "evidence_ids": [
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-16"
+          ],
+          "tone": "UNEASY"
+        },
+        {
+          "turn_id": "TURN-001-03",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "다만 문장이 열쇠라면 누군가 그 말을 다시 할 거라고 확신했다는 뜻이죠.",
+          "evidence_ids": [
+            "CLUE-09"
+          ],
+          "known_fact_ids": [
+            "FACT-06"
+          ],
+          "tone": "SKEPTICAL"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-002",
+      "after_scene_id": "SCN-03",
+      "order": 2,
+      "start_sec": 325,
+      "duration_sec": 30,
+      "segment_function": "ANOMALY_DETECTION",
+      "hypothesis_before": "11번 방에서 윤서나가 감금 생중계를 보낸다.",
+      "hypothesis_after": "CAM-11이 방 번호인지 장비 표기인지 먼저 확인해야 한다.",
+      "tone": "ALARMED_FOCUSED",
+      "turns": [
+        {
+          "turn_id": "TURN-002-01",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "화면에는 11이 아니라 CAM-11이라고 적혀 있어요. 우리가 방 번호라고 먼저 읽은 겁니다.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-08"
+          ],
+          "tone": "FOCUSED"
+        },
+        {
+          "turn_id": "TURN-002-02",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "그렇다면 비밀 방보다 카메라가 어디에 연결됐는지를 찾아야 합니다.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-05"
+          ],
+          "known_fact_ids": [
+            "FACT-08"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-002-03",
+          "panelist_id": "PANEL-02",
+          "function": "EXPECTATION_BUILDING",
+          "spoken_line": "윤서나가 숫자를 가리킨 것도 장소를 알려 준 게 아닐 수 있겠네요.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-08"
+          ],
+          "tone": "WORRIED"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-003",
+      "after_scene_id": "SCN-04",
+      "order": 3,
+      "start_sec": 450,
+      "duration_sec": 25,
+      "segment_function": "SUSPECT_DISCUSSION",
+      "hypothesis_before": "외부 납치범이 윤서나를 데려갔다.",
+      "hypothesis_after": "서비스 동선과 열쇠를 아는 내부 인물이 윤서나를 숨겼을 가능성이 높다.",
+      "tone": "SUSPICIOUS",
+      "turns": [
+        {
+          "turn_id": "TURN-003-01",
+          "panelist_id": "PANEL-03",
+          "function": "SUSPECT_DISCUSSION",
+          "spoken_line": "나간 기록은 없고 사각지대는 관리인만 알아요. 지금은 최도식의 설명을 의심할 근거가 충분합니다.",
+          "evidence_ids": [
+            "CLUE-02",
+            "CLUE-08"
+          ],
+          "known_fact_ids": [
+            "FACT-04",
+            "FACT-05"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-003-02",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "마스터키의 번호 없는 열쇠가 서비스 공간을 연다면 내부 감금 가설이 성립합니다.",
+          "evidence_ids": [
+            "CLUE-08"
+          ],
+          "known_fact_ids": [
+            "FACT-05"
+          ],
+          "tone": "ANALYTIC"
+        },
+        {
+          "turn_id": "TURN-003-03",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "사생활 약속이 사람의 안전보다 앞설 수는 없어요. 지금 숨기는 말이 더 무섭습니다.",
+          "evidence_ids": [
+            "CLUE-08"
+          ],
+          "known_fact_ids": [
+            "FACT-04"
+          ],
+          "tone": "CONCERNED"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-004",
+      "after_scene_id": "SCN-05",
+      "order": 4,
+      "start_sec": 565,
+      "duration_sec": 30,
+      "segment_function": "CONTRADICTION_DETECTION",
+      "hypothesis_before": "최도식이 숨긴 11번 객실에 윤서나가 있다.",
+      "hypothesis_after": "등록 공간에는 11번 객실이 없고 숫자는 다른 체계의 표기일 수 있다.",
+      "tone": "PUZZLED",
+      "turns": [
+        {
+          "turn_id": "TURN-004-01",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "열 개 방을 모두 봤는데도 11을 객실 번호로 붙들고 있으면 같은 자리만 돌게 됩니다.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-004-02",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "붉은 토큰도 사람을 지정한 표식이 아니라 음성 트랙 식별자였어요. 숫자와 물건의 용도를 바꿔 읽어야 합니다.",
+          "evidence_ids": [
+            "CLUE-03",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-19"
+          ],
+          "tone": "ANALYTIC"
+        },
+        {
+          "turn_id": "TURN-004-03",
+          "panelist_id": "PANEL-02",
+          "function": "EXPECTATION_BUILDING",
+          "spoken_line": "그럼 다음 영상에서는 배경보다 소리와 장비를 먼저 봐야겠네요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01"
+          ],
+          "tone": "CAUTIOUS"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-005",
+      "after_scene_id": "SCN-06",
+      "order": 5,
+      "start_sec": 685,
+      "duration_sec": 25,
+      "segment_function": "HYPOTHESIS_REVISION",
+      "hypothesis_before": "11번 비밀 공간을 찾으면 윤서나를 구할 수 있다.",
+      "hypothesis_after": "영상 입력 CAM-11을 만드는 촬영 장비와 제작자를 찾아야 한다.",
+      "tone": "REFOCUSED",
+      "turns": [
+        {
+          "turn_id": "TURN-005-01",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "방을 찾는 수색은 끝났어요. 이제 CAM-11이 어느 카메라에서 들어오는지 추적해야 합니다.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-08"
+          ],
+          "tone": "DECISIVE"
+        },
+        {
+          "turn_id": "TURN-005-02",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "외부 해킹이라면 건물 구조와 상관없지만, 내부 장비라면 누군가 지금 이곳에서 촬영 중입니다.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-08"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-005-03",
+          "panelist_id": "PANEL-02",
+          "function": "EXPECTATION_BUILDING",
+          "spoken_line": "장소의 숫자가 풀렸는데도 윤서나의 위치는 더 불분명해졌어요.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-08"
+          ],
+          "tone": "UNEASY"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-006",
+      "after_scene_id": "SCN-07",
+      "order": 6,
+      "start_sec": 805,
+      "duration_sec": 30,
+      "segment_function": "ANOMALY_DETECTION",
+      "hypothesis_before": "납치 영상은 외부 장소에서 장비만 연결해 보낸다.",
+      "hypothesis_after": "영상은 모월재 중앙 복도 가까이에서 실시간 촬영된다.",
+      "tone": "TIGHTENING",
+      "turns": [
+        {
+          "turn_id": "TURN-006-01",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "세 번 이어지는 마루 소리가 영상에도 같은 간격으로 들어갔어요. 촬영 반경이 모월재 안으로 좁혀집니다.",
+          "evidence_ids": [
+            "CLUE-05"
+          ],
+          "known_fact_ids": [
+            "FACT-11"
+          ],
+          "tone": "ANALYTIC"
+        },
+        {
+          "turn_id": "TURN-006-02",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "그 시간 모두 인터뷰실에 있었다면 화면 밖에서 복도를 건넌 사람이 따로 있어야 해요.",
+          "evidence_ids": [
+            "CLUE-05"
+          ],
+          "known_fact_ids": [
+            "FACT-11"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-006-03",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "윤서나가 가까이 있다면 구조 요청을 왜 이렇게 어렵게 만들었는지가 더 큰 질문이에요.",
+          "evidence_ids": [
+            "CLUE-05"
+          ],
+          "known_fact_ids": [
+            "FACT-11"
+          ],
+          "tone": "CONCERNED"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-007",
+      "after_scene_id": "SCN-08",
+      "order": 7,
+      "start_sec": 935,
+      "duration_sec": 35,
+      "segment_function": "HYPOTHESIS_GENERATION",
+      "hypothesis_before": "내부 납치범이 별도 장비로 윤서나를 촬영한다.",
+      "hypothesis_after": "인터뷰 카메라 시스템 자체가 납치 장면을 번갈아 만들며 윤서나가 제작에 관여했을 수 있다.",
+      "tone": "SHOCKED_ANALYTIC",
+      "turns": [
+        {
+          "turn_id": "TURN-007-01",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "메타데이터가 이어지고 사라진 3번 조명이 비쳤다면 두 화면은 한 제작 시스템입니다. 윤서나가 카메라 밖의 피해자라고만 볼 수 없어요.",
+          "evidence_ids": [
+            "CLUE-06",
+            "CLUE-07"
+          ],
+          "known_fact_ids": [
+            "FACT-10",
+            "FACT-12"
+          ],
+          "tone": "ANALYTIC"
+        },
+        {
+          "turn_id": "TURN-007-02",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "공모 가능성은 생겼지만 자작이라고 단정할 증거는 아직 없습니다. 장비를 옮긴 다른 사람이 있을 수 있죠.",
+          "evidence_ids": [
+            "CLUE-06",
+            "CLUE-07"
+          ],
+          "known_fact_ids": [
+            "FACT-10",
+            "FACT-12"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-007-03",
+          "panelist_id": "PANEL-02",
+          "function": "EXPECTATION_BUILDING",
+          "spoken_line": "피해자와 제작자가 같은 사람일 수 있다는 의심은 구조의 의미까지 바꿉니다.",
+          "evidence_ids": [
+            "CLUE-06"
+          ],
+          "known_fact_ids": [
+            "FACT-12"
+          ],
+          "tone": "UNEASY"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-008",
+      "after_scene_id": "SCN-09",
+      "order": 8,
+      "start_sec": 1070,
+      "duration_sec": 30,
+      "segment_function": "SUSPECT_DISCUSSION",
+      "hypothesis_before": "최도식이 암실에서 납치 영상을 제작했다.",
+      "hypothesis_after": "최도식은 공간을 숨긴 협조자지만 촬영과 자동 공개의 주체라는 증거는 없다.",
+      "tone": "FALSE_CERTAINTY_BREAKING",
+      "turns": [
+        {
+          "turn_id": "TURN-008-01",
+          "panelist_id": "PANEL-03",
+          "function": "SUSPECT_DISCUSSION",
+          "spoken_line": "암실을 숨긴 거짓말은 확인됐지만 촬영에 참여했다는 증거는 없어요. 접근권과 범행 입증은 다릅니다.",
+          "evidence_ids": [
+            "CLUE-08"
+          ],
+          "known_fact_ids": [
+            "FACT-02",
+            "FACT-13"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-008-02",
+          "panelist_id": "PANEL-01",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "최도식이 제작자라면 메타데이터와 음성 트랙을 다룬 흔적이 있어야 하는데 현재 드러난 건 공간 협조뿐입니다.",
+          "evidence_ids": [
+            "CLUE-07",
+            "CLUE-08"
+          ],
+          "known_fact_ids": [
+            "FACT-02",
+            "FACT-10",
+            "FACT-13"
+          ],
+          "tone": "ANALYTIC"
+        },
+        {
+          "turn_id": "TURN-008-03",
+          "panelist_id": "PANEL-02",
+          "function": "MORAL_REACTION",
+          "spoken_line": "약속을 지킨다는 이유로 위험한 상황을 숨긴 책임은 남지만, 그 책임을 납치로 부풀려선 안 됩니다.",
+          "evidence_ids": [
+            "CLUE-08"
+          ],
+          "known_fact_ids": [
+            "FACT-13"
+          ],
+          "tone": "FIRM"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-009",
+      "after_scene_id": "SCN-10",
+      "order": 9,
+      "start_sec": 1205,
+      "duration_sec": 40,
+      "segment_function": "HYPOTHESIS_REVISION",
+      "hypothesis_before": "최도식 또는 미상의 내부 인물이 윤서나를 이용해 과거 원본을 공개한다.",
+      "hypothesis_after": "윤서나가 자작 납치를 설계했고 박민규의 반복 부인이 자동 공개를 작동시켰다.",
+      "tone": "REVELATORY",
+      "turns": [
+        {
+          "turn_id": "TURN-009-01",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "부인 문장 3초 뒤 공개가 시작됐고 원본까지 연결됐습니다. 윤서나가 박민규의 반복을 예상해 사건을 설계한 거예요.",
+          "evidence_ids": [
+            "CLUE-09",
+            "CLUE-10"
+          ],
+          "known_fact_ids": [
+            "FACT-07",
+            "FACT-15",
+            "FACT-17"
+          ],
+          "tone": "DECISIVE"
+        },
+        {
+          "turn_id": "TURN-009-02",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "박민규는 사건을 계획하지 않았지만 자기 거짓말로 현재 사건을 시작시켰습니다. Witness가 원인이 된다는 반전이네요.",
+          "evidence_ids": [
+            "CLUE-04",
+            "CLUE-09"
+          ],
+          "known_fact_ids": [
+            "FACT-07",
+            "FACT-15"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-009-03",
+          "panelist_id": "PANEL-02",
+          "function": "MORAL_REACTION",
+          "spoken_line": "원본을 복원할 이유는 이해해도 한유진이 동의하지 않은 연출이라면 윤서나의 희생만으로 정당화되진 않아요.",
+          "evidence_ids": [
+            "CLUE-10"
+          ],
+          "known_fact_ids": [
+            "FACT-15",
+            "FACT-17"
+          ],
+          "tone": "FIRM"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-010",
+      "after_scene_id": "SCN-11",
+      "order": 10,
+      "start_sec": 1365,
+      "duration_sec": 30,
+      "segment_function": "MORAL_REACTION",
+      "hypothesis_before": "자작 납치의 방식이 밝혀지면 사건은 해결된다.",
+      "hypothesis_after": "기계적 해답은 완성됐지만 기록을 지운 책임과 피해자의 선택은 별도로 남는다.",
+      "tone": "SOBER_RELEASE",
+      "turns": [
+        {
+          "turn_id": "TURN-010-01",
+          "panelist_id": "PANEL-02",
+          "function": "MORAL_REACTION",
+          "spoken_line": "윤서나가 자신도 조작자로 공개되는 대가를 냈지만 그 대가가 한유진에게 용서를 요구할 권리는 아닙니다.",
+          "evidence_ids": [
+            "CLUE-09"
+          ],
+          "known_fact_ids": [
+            "FACT-09",
+            "FACT-18",
+            "FACT-20"
+          ],
+          "tone": "SOBER"
+        },
+        {
+          "turn_id": "TURN-010-02",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "CAM-11, 마루 소리, 조명 반사, 메타데이터가 모두 하나의 촬영 동선으로 닫혔습니다. HOW의 답은 완전해요.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-05",
+            "CLUE-06",
+            "CLUE-07"
+          ],
+          "known_fact_ids": [
+            "FACT-09",
+            "FACT-20"
+          ],
+          "tone": "RESOLVED"
+        },
+        {
+          "turn_id": "TURN-010-03",
+          "panelist_id": "PANEL-03",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "사건이 끝났다고 관계까지 회복된 건 아닙니다. 공개된 진실과 받아들여진 사과는 다른 결과니까요.",
+          "evidence_ids": [
+            "CLUE-09"
+          ],
+          "known_fact_ids": [
+            "FACT-18"
+          ],
+          "tone": "SKEPTICAL"
+        }
+      ]
+    }
+  ]
+}
