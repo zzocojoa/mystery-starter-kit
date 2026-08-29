@@ -1,0 +1,104 @@
+{
+  "project_id": "PRJ-003",
+  "story_seed_hash": "6ca1f7068c836068a82e7c5fb0b203908319f122cde0295896d0c0047c857ed4",
+  "candidate_count": 5,
+  "candidates": [
+    {
+      "candidate_id": "VAR-01",
+      "selection": {
+        "architecture": "ARCH-02_FALSE_SOLUTION",
+        "culprit_structure": "VICTIM_SELF_ENGINEERED",
+        "dramatic_engine": "SACRIFICE",
+        "incident_type": "KIDNAPPING",
+        "mystery_type": "HOW",
+        "perspective": "INTERVIEW_BASED",
+        "pressure_engine": "SOCIAL_ISOLATION",
+        "primary_twist": "TW-14_WITNESS_CAUSED_EVENT",
+        "protagonist_role": "EX_PARTNER",
+        "relationship_engine": "BROKEN_TRUST",
+        "setting": "GUESTHOUSE",
+        "timeline_style": "REAL_TIME"
+      },
+      "signature": "987774def7686933a8774f670fbfc7a46a444825f39fcb1378e2e69663321a22",
+      "selection_status": "APPROVED"
+    },
+    {
+      "candidate_id": "VAR-02",
+      "selection": {
+        "architecture": "ARCH-03_DUAL_INQUIRY",
+        "culprit_structure": "NO_CULPRIT",
+        "dramatic_engine": "IDENTITY_CRISIS",
+        "incident_type": "DISAPPEARANCE",
+        "mystery_type": "WHEN",
+        "perspective": "DOCUMENTARY",
+        "pressure_engine": "EVIDENCE_DECAY",
+        "primary_twist": "TW-01_MISIDENTIFIED_OWNER",
+        "protagonist_role": "VICTIM_FAMILY",
+        "relationship_engine": "MUTUAL_BLACKMAIL",
+        "setting": "FACTORY",
+        "timeline_style": "PARALLEL"
+      },
+      "signature": "2719bf306606c95709a22d009288d0fec66dbcc3282f3b716181124de24f27ba",
+      "selection_status": "REJECTED"
+    },
+    {
+      "candidate_id": "VAR-03",
+      "selection": {
+        "architecture": "ARCH-04_REVERSE_CAUSE",
+        "culprit_structure": "VICTIM_SELF_ENGINEERED",
+        "dramatic_engine": "BELIEF_REVERSAL",
+        "incident_type": "COVER_UP",
+        "mystery_type": "WHERE",
+        "perspective": "FOUND_FOOTAGE",
+        "pressure_engine": "COUNTDOWN",
+        "primary_twist": "TW-14_WITNESS_CAUSED_EVENT",
+        "protagonist_role": "FRIEND",
+        "relationship_engine": "DEPENDENCY",
+        "setting": "WAREHOUSE",
+        "timeline_style": "DUAL_TIMELINE"
+      },
+      "signature": "4fd5ce4d077724046da3258e095d1d950021a983166bb2cb092d11401d6f2a4a",
+      "selection_status": "REJECTED"
+    },
+    {
+      "candidate_id": "VAR-04",
+      "selection": {
+        "architecture": "ARCH-05_BELIEF_COLLAPSE",
+        "culprit_structure": "NO_CULPRIT",
+        "dramatic_engine": "MORAL_DILEMMA",
+        "incident_type": "FRAUD",
+        "mystery_type": "WHETHER",
+        "perspective": "MULTIPLE_POV",
+        "pressure_engine": "PUBLIC_EXPOSURE",
+        "primary_twist": "TW-01_MISIDENTIFIED_OWNER",
+        "protagonist_role": "UNWITTING_PARTICIPANT",
+        "relationship_engine": "RIVALRY",
+        "setting": "HOSPITAL",
+        "timeline_style": "FLASHBACK_DRIVEN"
+      },
+      "signature": "d31d1442be36a4608d8e3cb473ce6b38e1b53c99cb8c09d1ff434c81d3eead27",
+      "selection_status": "REJECTED"
+    },
+    {
+      "candidate_id": "VAR-05",
+      "selection": {
+        "architecture": "ARCH-01_LINEAR_REVEAL",
+        "culprit_structure": "VICTIM_SELF_ENGINEERED",
+        "dramatic_engine": "INEVITABLE_DISCOVERY",
+        "incident_type": "NO_CRIME",
+        "mystery_type": "WHAT",
+        "perspective": "THIRD_PERSON_LIMITED",
+        "pressure_engine": "RESOURCE_COLLAPSE",
+        "primary_twist": "TW-14_WITNESS_CAUSED_EVENT",
+        "protagonist_role": "MANAGER",
+        "relationship_engine": "DEBT",
+        "setting": "HOTEL",
+        "timeline_style": "LINEAR"
+      },
+      "signature": "76853963bfc3b3d08527cb7ad96e3d2e4ae8713f86ea474fffafd636aa544648",
+      "selection_status": "REJECTED"
+    }
+  ],
+  "approved_candidate_id": "VAR-01",
+  "override": null
+}

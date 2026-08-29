@@ -1,0 +1,30 @@
+{
+  "project_id": "PRJ-003",
+  "hypotheses": [
+    {
+      "hypothesis_id": "HYP-01",
+      "status": "REJECTED",
+      "claim": "외부 납치범이 윤서나를 모월재 밖으로 옮긴 뒤 영상을 보낸다."
+    },
+    {
+      "hypothesis_id": "HYP-02",
+      "status": "REJECTED",
+      "claim": "모월재 내부 인물이 비밀 11번 객실에 윤서나를 감금했다."
+    },
+    {
+      "hypothesis_id": "HYP-03",
+      "status": "REJECTED",
+      "claim": "관리인 최도식이 옛 암실에서 납치 영상을 제작한다."
+    },
+    {
+      "hypothesis_id": "HYP-04",
+      "status": "REJECTED",
+      "claim": "납치 영상은 사건 전에 촬영된 사전 녹화본이다."
+    },
+    {
+      "hypothesis_id": "HYP-05",
+      "status": "CONFIRMED",
+      "claim": "윤서나가 같은 건물 안에서 자작 납치를 실시간 제작했고 박민규의 거짓 증언이 자동 공개를 작동시켰다."
+    }
+  ]
+}

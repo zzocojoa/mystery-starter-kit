@@ -1,0 +1,272 @@
+{
+  "project_id": "PRJ-003",
+  "belief_states": [
+    {
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "belief": "윤서나가 과거 편집 책임자들을 불러 놓고 약속 장소에서 사라졌다.",
+      "confidence": 0.45,
+      "known_fact_ids": [
+        "FACT-03",
+        "FACT-14",
+        "FACT-16"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01"
+      ]
+    },
+    {
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "belief": "박민규의 반복된 부인은 과거 사건의 방어 습관일 뿐 현재 실종과는 무관해 보인다.",
+      "confidence": 0.55,
+      "known_fact_ids": [
+        "FACT-03",
+        "FACT-14",
+        "FACT-06",
+        "FACT-16"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01"
+      ]
+    },
+    {
+      "scene_id": "SCN-03",
+      "scene_order": 3,
+      "belief": "윤서나는 건물 안 11번 방에 감금되어 실시간 구조 신호를 보내고 있다.",
+      "confidence": 0.78,
+      "known_fact_ids": [
+        "FACT-03",
+        "FACT-14",
+        "FACT-06",
+        "FACT-08",
+        "FACT-16"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-04",
+      "scene_order": 4,
+      "belief": "퇴장 기록이 없으므로 내부 구조를 아는 사람이 윤서나를 숨겼다.",
+      "confidence": 0.83,
+      "known_fact_ids": [
+        "FACT-03",
+        "FACT-14",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-08",
+        "FACT-16"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02",
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-05",
+      "scene_order": 5,
+      "belief": "11번 객실은 존재하지 않지만 최도식이 비공식 공간을 숨기고 있을 가능성이 높다.",
+      "confidence": 0.8,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-03",
+        "FACT-14",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-08",
+        "FACT-16",
+        "FACT-19"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-06",
+      "scene_order": 6,
+      "belief": "CAM-11은 장소가 아니라 영상 입력이다. 누군가 납치 장면을 제작 중이다.",
+      "confidence": 0.72,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-03",
+        "FACT-14",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-08",
+        "FACT-16",
+        "FACT-19"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03",
+        "HYP-04"
+      ]
+    },
+    {
+      "scene_id": "SCN-07",
+      "scene_order": 7,
+      "belief": "영상은 모월재 안에서 만들어졌고 화면 밖 촬영자가 복도를 오간다.",
+      "confidence": 0.82,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-03",
+        "FACT-14",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-08",
+        "FACT-11",
+        "FACT-16",
+        "FACT-19"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03",
+        "HYP-04"
+      ]
+    },
+    {
+      "scene_id": "SCN-08",
+      "scene_order": 8,
+      "belief": "납치 영상은 실시간이고 인터뷰 장비로 촬영된다. 윤서나도 제작에 관여했을 수 있다.",
+      "confidence": 0.76,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-03",
+        "FACT-14",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-08",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-16",
+        "FACT-19"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03",
+        "HYP-05"
+      ]
+    },
+    {
+      "scene_id": "SCN-09",
+      "scene_order": 9,
+      "belief": "숨겨진 암실 때문에 최도식이 납치 연출자라는 해답이 맞아 보이지만 촬영 관여 증거는 없다.",
+      "confidence": 0.68,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-14",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-08",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-16",
+        "FACT-19"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03",
+        "HYP-05"
+      ]
+    },
+    {
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "belief": "박민규의 부인 문장이 현재 사건을 시작시켰고 윤서나는 과거 원본을 공개하려 납치극을 설계했다.",
+      "confidence": 0.91,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-14",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-15",
+        "FACT-16",
+        "FACT-17",
+        "FACT-19"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-05"
+      ]
+    },
+    {
+      "scene_id": "SCN-11",
+      "scene_order": 11,
+      "belief": "윤서나는 같은 건물 안에서 자작 납치를 실시간 제작했고 자신의 신뢰를 희생해 삭제된 기록을 복원했다.",
+      "confidence": 1.0,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-14",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-15",
+        "FACT-16",
+        "FACT-17",
+        "FACT-18",
+        "FACT-19",
+        "FACT-20"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-05"
+      ]
+    },
+    {
+      "scene_id": "SCN-12",
+      "scene_order": 12,
+      "belief": "사건의 해답은 공개됐지만 누구도 한유진의 피해를 대신 용서하거나 서사의 재료로 소유할 수 없다.",
+      "confidence": 1.0,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-14",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-15",
+        "FACT-16",
+        "FACT-17",
+        "FACT-18",
+        "FACT-19",
+        "FACT-20"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-05"
+      ]
+    }
+  ]
+}

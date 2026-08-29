@@ -1,0 +1,343 @@
+{
+  "project_id": "PRJ-003",
+  "scenes": [
+    {
+      "scene_id": "SCN-01",
+      "order": 1,
+      "beat_id": "BEAT-01",
+      "estimated_seconds": 110,
+      "clue_ids": [],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-03"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-14"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-16"
+        },
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-14"
+        },
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-16"
+        }
+      ],
+      "summary": "모월재의 비공개 인터뷰 밤. 윤서나의 빈 의자와 전체 예약 사실이 불안을 만들고, 강태준은 한유진의 답을 자신이 지웠다고 인정한다. 시작 감정은 불편한 재회, 갈등은 책임 회피, 새 정보는 과거 내부고발과 편집 삭제, 숨긴 정보는 윤서나의 현재 위치다. Exit Hook은 윤서나의 예약 메시지가 자동 재생되는 순간이다."
+    },
+    {
+      "scene_id": "SCN-02",
+      "order": 2,
+      "beat_id": "BEAT-02",
+      "estimated_seconds": 120,
+      "clue_ids": [
+        "CLUE-04",
+        "CLUE-09"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-06"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-06"
+        }
+      ],
+      "summary": "박민규의 첫 인터뷰. 붉은 토큰 앞에서 그는 5년 전과 같은 부인 문장을 반복한다. 시작 감정은 방어, 갈등은 한유진의 구체 질문, 새 정보는 19시 7분 18초의 문장, 숨긴 정보는 음성 트리거다. Exit Hook은 3초 뒤 모니터 신호가 끊기는 것이다."
+    },
+    {
+      "scene_id": "SCN-03",
+      "order": 3,
+      "beat_id": "BEAT-02",
+      "estimated_seconds": 125,
+      "clue_ids": [
+        "CLUE-01",
+        "CLUE-05",
+        "CLUE-06",
+        "CLUE-07"
+      ],
+      "knowledge_claims": [],
+      "summary": "첫 납치 생중계. 검은 배경 속 윤서나, CAM-11 표시, 세 번의 마루 소리, 물병 반사를 공정하게 노출한다. 시작 감정은 충격, 갈등은 구조와 신고의 우선순위, 새 정보는 납치 화면, 숨긴 정보는 같은 촬영 시스템이다. Exit Hook은 화면 속 윤서나가 11이라는 숫자를 가리키는 장면이다."
+    },
+    {
+      "scene_id": "SCN-04",
+      "order": 4,
+      "beat_id": "BEAT-03",
+      "estimated_seconds": 120,
+      "clue_ids": [
+        "CLUE-02",
+        "CLUE-08"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-04"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-05"
+        }
+      ],
+      "summary": "현관 CCTV와 관리자실 확인. 윤서나는 들어왔지만 나가지 않았고 서비스 공간은 사각이다. 시작 감정은 긴급함, 갈등은 최도식의 사생활 약속, 새 정보는 무퇴장 기록과 사각지대, 숨긴 정보는 암실이다. Exit Hook은 최도식의 마스터키에 객실 번호 없는 열쇠가 하나 더 있다는 사실이다."
+    },
+    {
+      "scene_id": "SCN-05",
+      "order": 5,
+      "beat_id": "BEAT-03",
+      "estimated_seconds": 120,
+      "clue_ids": [
+        "CLUE-03",
+        "CLUE-04",
+        "CLUE-10"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-01"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-19"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-01"
+        },
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-01"
+        }
+      ],
+      "summary": "열 개 객실을 모두 확인하지만 윤서나는 없다. 배지아가 붉은 토큰이 음성 트랙 표식임을 알아보고 microSD를 감춘다. 시작 감정은 초조, 갈등은 박민규의 탈출 시도, 새 정보는 11번 객실 부재와 토큰 기능, 숨긴 정보는 원본 microSD다. Exit Hook은 강태준이 모니터의 CAM 표기를 다시 확대하는 것이다."
+    },
+    {
+      "scene_id": "SCN-06",
+      "order": 6,
+      "beat_id": "BEAT-04",
+      "estimated_seconds": 115,
+      "clue_ids": [
+        "CLUE-01",
+        "CLUE-03"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-08"
+        },
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-08"
+        }
+      ],
+      "summary": "CAM-11이 객실 번호가 아니라 영상 스위처 입력명임을 확인한다. 시작 감정은 확신의 붕괴, 갈등은 사전 녹화냐 실시간이냐, 새 정보는 숫자의 실제 기능, 숨긴 정보는 촬영 장소다. Exit Hook은 두 번째 영상에서 중앙 복도의 특유 소리가 들리는 순간이다."
+    },
+    {
+      "scene_id": "SCN-07",
+      "order": 7,
+      "beat_id": "BEAT-04",
+      "estimated_seconds": 125,
+      "clue_ids": [
+        "CLUE-05"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-11"
+        },
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-11"
+        }
+      ],
+      "summary": "배지아가 영상 파형의 세 번 소리를 복도 마루와 맞춘다. 시작 감정은 집중, 갈등은 누가 복도를 건넜는지에 대한 상호 의심, 새 정보는 촬영 반경이 모월재 내부라는 사실, 숨긴 정보는 윤서나가 직접 장비를 옮겼다는 점이다. Exit Hook은 물병 반사 속 숫자 3을 발견하는 것이다."
+    },
+    {
+      "scene_id": "SCN-08",
+      "order": 8,
+      "beat_id": "BEAT-05",
+      "estimated_seconds": 135,
+      "clue_ids": [
+        "CLUE-06",
+        "CLUE-07"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-10"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-12"
+        },
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-10"
+        },
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-12"
+        }
+      ],
+      "summary": "연속 메타데이터와 3번 소프트박스 반사를 결합해 납치 화면이 인터뷰 장비로 실시간 제작됐음을 입증한다. 시작 감정은 분석적 흥분, 갈등은 윤서나가 피해자인지 공모자인지, 새 정보는 동일 촬영계, 숨긴 정보는 암실과 자작 연출이다. Exit Hook은 최도식이 주방 옆 문을 막는 장면이다."
+    },
+    {
+      "scene_id": "SCN-09",
+      "order": 9,
+      "beat_id": "BEAT-06",
+      "estimated_seconds": 130,
+      "clue_ids": [
+        "CLUE-08"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-02"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-13"
+        },
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-02"
+        },
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-13"
+        }
+      ],
+      "summary": "최도식이 암실을 열고 빈 납치 세트가 드러난다. 마스터키와 평면도 거짓말 때문에 그가 범인으로 몰리지만 촬영 참여 흔적은 없다. 시작 감정은 분노, 갈등은 유력 용의자 추궁, 새 정보는 숨겨진 공간과 협조 범위, 숨긴 정보는 윤서나의 이동 경로다. Exit Hook은 자동 공개 타이머가 과거 원본을 불러오는 것이다."
+    },
+    {
+      "scene_id": "SCN-10",
+      "order": 10,
+      "beat_id": "BEAT-07",
+      "estimated_seconds": 145,
+      "clue_ids": [
+        "CLUE-04",
+        "CLUE-09",
+        "CLUE-10"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-07"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-15"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-17"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-07"
+        },
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-15"
+        },
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-17"
+        },
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-17"
+        }
+      ],
+      "summary": "과거 원본과 현재 자막 시각을 나란히 본다. 박민규의 부인 문장이 3초 뒤 자동 공개를 시작시켰고 microSD가 공개 절차에 연결됐음을 확인한다. 시작 감정은 확신, 갈등은 박민규와 강태준의 책임 전가, 새 정보는 Witness Trigger와 삭제 원본, 숨긴 정보는 윤서나의 최종 위치다. Exit Hook은 린넨 보관실에서 켜지는 녹음등이다."
+    },
+    {
+      "scene_id": "SCN-11",
+      "order": 11,
+      "beat_id": "BEAT-08",
+      "estimated_seconds": 150,
+      "clue_ids": [
+        "CLUE-02",
+        "CLUE-05",
+        "CLUE-06",
+        "CLUE-07",
+        "CLUE-09"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-09"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-18"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-20"
+        },
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-09"
+        }
+      ],
+      "summary": "강태준이 전체 촬영 동선을 재구성하고 윤서나가 린넨 보관실에서 나온다. 그녀는 자작 납치와 20시 10분 안전 종료를 인정한다. 시작 감정은 발견의 긴장, 갈등은 구조와 폭로의 의미, 새 정보는 완전한 HOW 해답, 숨긴 정보는 사라진다. Exit Hook은 한유진이 누구의 사과도 아직 받지 않겠다고 말하는 것이다."
+    },
+    {
+      "scene_id": "SCN-12",
+      "order": 12,
+      "beat_id": "BEAT-08",
+      "estimated_seconds": 105,
+      "clue_ids": [],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-16"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-14"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-15"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-16"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-17"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-18"
+        },
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-14"
+        },
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-15"
+        },
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-16"
+        },
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-17"
+        }
+      ],
+      "summary": "20시 10분 안전 고백이 공개된다. 강태준과 윤서나는 책임을 인정하지만 화해를 요구하지 않고, 한유진이 원본 공개 범위와 후속 인터뷰의 주도권을 정한다. 시작 감정은 안도, 갈등은 속죄의 소유권, 새 정보는 피해 당사자의 선택, 결말 감정은 씁쓸한 회복이다."
+    }
+  ]
+}
