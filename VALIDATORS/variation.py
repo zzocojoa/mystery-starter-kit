@@ -4,6 +4,7 @@ import re
 from collections.abc import Mapping
 from copy import deepcopy
 from hashlib import sha256
+from math import gcd
 
 from VALIDATORS.exceptions import ConfigurationError
 
@@ -39,6 +40,16 @@ def seed_offset(seed: str, dimension: str, size: int) -> int:
     return int(digest[:16], 16) % size
 
 
+def coprime_step(preferred_step: int, size: int) -> int:
+    """선택지 전체를 순회할 수 있는 가장 가까운 보폭을 반환한다."""
+    if size < 1:
+        raise ConfigurationError(f"Variation 선택지 개수가 올바르지 않습니다: size={size}")
+    step = preferred_step
+    while gcd(step, size) != 1:
+        step += 1
+    return step
+
+
 def choose_dimension_value(
     choices: list[str],
     seed: str,
@@ -48,7 +59,7 @@ def choose_dimension_value(
 ) -> str:
     """후보와 차원마다 다른 보폭으로 선택지를 결정한다."""
     offset = seed_offset(seed, dimension, len(choices))
-    step = dimension_index * 2 + 1
+    step = coprime_step(dimension_index * 2 + 1, len(choices))
     return choices[(offset + candidate_index * step) % len(choices)]
 
 

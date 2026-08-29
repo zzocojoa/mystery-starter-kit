@@ -70,6 +70,27 @@ def test_generator_returns_reproducible_distinct_candidates() -> None:
     assert collect_schema_errors(first, schema, "variation_candidates") == []
 
 
+def test_generator_avoids_dimension_repetition_until_choices_are_exhausted() -> None:
+    """선택지가 충분한 Dimension은 후보 수만큼 서로 다른 값을 사용해야 한다."""
+    catalog = load_json_object(CATALOG_PATH)
+    generated = generate_variation_candidates("PRJ-004", "open-city-seed", 5, catalog)
+    dimensions = catalog.get("dimensions")
+    candidates = generated.get("candidates")
+    assert isinstance(dimensions, dict)
+    assert isinstance(candidates, list)
+
+    for dimension, choices in dimensions.items():
+        assert isinstance(dimension, str)
+        assert isinstance(choices, list)
+        if len(choices) < len(candidates):
+            continue
+        selected = {
+            candidate["selection"][dimension]
+            for candidate in candidates
+        }
+        assert len(selected) == len(candidates), dimension
+
+
 def test_generator_rejects_too_few_candidates() -> None:
     """비교가 불가능한 2개 이하 후보 요청은 명시적으로 실패해야 한다."""
     catalog = load_json_object(CATALOG_PATH)
