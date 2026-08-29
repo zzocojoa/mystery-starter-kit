@@ -9,6 +9,7 @@
     "contract_version",
     "channel_dna_interface",
     "compatibility_policy",
+    "project_binding_policy",
     "fallback_policy",
     "immutability_policy",
     "validation"
@@ -99,6 +100,26 @@
           "const": "FAIL"
         },
         "content_version_mismatch": {
+          "const": "IGNORE"
+        }
+      }
+    },
+    "project_binding_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_version_not_found",
+        "content_version_mismatch",
+        "channel_dna_hash_mismatch"
+      ],
+      "properties": {
+        "content_version_not_found": {
+          "const": "FAIL"
+        },
+        "content_version_mismatch": {
+          "const": "FAIL"
+        },
+        "channel_dna_hash_mismatch": {
           "const": "FAIL"
         }
       }

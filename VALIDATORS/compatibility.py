@@ -426,13 +426,16 @@ def evaluate_channel_binding(
 def make_project_compatibility_report(
     project_id: str,
     report: CompatibilityReport,
+    relative_path: str,
 ) -> ProjectCompatibilityReport:
     """Project ID와 호환성 판정 결과를 새 Project Report로 결합한다."""
+    channel = deepcopy(report["channel"])
+    channel["relative_path"] = relative_path
     return ProjectCompatibilityReport(
         project_id=project_id,
         contract_family=report["contract_family"],
         contract_version=report["contract_version"],
-        channel=deepcopy(report["channel"]),
+        channel=channel,
         compatibility=report["compatibility"],
         required_capabilities=deepcopy(report["required_capabilities"]),
         optional_capabilities=deepcopy(report["optional_capabilities"]),

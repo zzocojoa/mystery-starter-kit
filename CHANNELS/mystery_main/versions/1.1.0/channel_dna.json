@@ -1,0 +1,177 @@
+{
+  "$schema": "../../STANDARD/schemas/channel_dna.schema.json",
+  "schema_family": "channel-dna",
+  "schema_version": "1.0.0",
+  "content_version": "1.1.0",
+  "channel_id": "MYSTERY_MAIN",
+  "identity": {
+    "statement": "현실적인 일상 미스터리를 재연 드라마로 체험하게 하고 Narration과 Reaction을 교차시켜 관객이 가설을 갱신하며 진실에 접근하게 한다.",
+    "keywords": [
+      "GROUNDED",
+      "IMMERSIVE",
+      "CONVERSATIONAL",
+      "SUSPENSEFUL",
+      "AUDIENCE_PARTICIPATORY",
+      "REACTION_DRIVEN",
+      "FAIR_PLAY",
+      "ACCESSIBLE"
+    ]
+  },
+  "capabilities": {
+    "GENRE_POLICY": {
+      "allowed_genres": [
+        "MYSTERY",
+        "THRILLER",
+        "SUSPENSE",
+        "REACTION_DRAMA"
+      ],
+      "adjacent_genres": [
+        "CRIME",
+        "PSYCHOLOGICAL_MYSTERY",
+        "SOCIAL_THRILLER",
+        "DOMESTIC_MYSTERY",
+        "INVESTIGATION",
+        "MISSING_PERSON",
+        "NO_CRIME_MYSTERY"
+      ],
+      "realism": "GROUNDED",
+      "prohibited_resolutions": [
+        "UNEXPLAINED_SUPERNATURAL_FORCE",
+        "MAGIC_DEPENDENT_REVEAL",
+        "PSYCHIC_DEDUCTION"
+      ]
+    },
+    "TONE_POLICY": {
+      "primary_tones": [
+        "GROUNDED",
+        "IMMERSIVE",
+        "CONVERSATIONAL",
+        "SUSPENSEFUL",
+        "ACCESSIBLE"
+      ],
+      "prohibited_tones": [
+        "MELODRAMATIC_EXCESS",
+        "CONSTANT_COMEDY",
+        "DETACHED_LECTURE"
+      ]
+    },
+    "PRESENTATION_POLICY": {
+      "modes": [
+        "DRAMA",
+        "NARRATION",
+        "PANEL_REACTION"
+      ],
+      "audience_position": "CO_INVESTIGATOR",
+      "information_cycle": [
+        "DRAMA",
+        "PANEL_REACTION",
+        "INFORMATION",
+        "HYPOTHESIS_UPDATE"
+      ],
+      "mechanical_cycle_repetition": false
+    },
+    "AUDIENCE_CONTRACT": {
+      "fair_play": true,
+      "promises": [
+        "핵심 결론에 필요한 정보는 Reveal 전에 제시한다.",
+        "새 정보 투입보다 기존 정보의 재해석으로 반전을 만든다.",
+        "관객이 등장인물과 함께 가설을 세우고 수정할 기회를 준다.",
+        "설명되지 않는 초자연적 힘으로 현실 미스터리를 해결하지 않는다."
+      ]
+    },
+    "STORY_VARIATION_POLICY": {
+      "fixed_dimensions": [
+        "CHANNEL_IDENTITY",
+        "FAIR_PLAY",
+        "AUDIENCE_PARTICIPATION",
+        "DRAMA_NARRATION_REACTION_MIX"
+      ],
+      "variable_dimensions": [
+        "MYSTERY_TYPE",
+        "STORY_ARCHITECTURE",
+        "PROTAGONIST_ROLE",
+        "PERSPECTIVE",
+        "TIMELINE_STYLE",
+        "INCIDENT_TYPE",
+        "SETTING_LOGIC",
+        "CULPRIT_STRUCTURE",
+        "TWIST_FAMILY",
+        "INFORMATION_MECHANISM",
+        "CLUE_MECHANISM",
+        "EMOTIONAL_ENGINE",
+        "ENDING_TYPE"
+      ],
+      "minimum_candidates": 5,
+      "compare_recent_projects": [5, 10]
+    },
+    "NARRATION_POLICY": {
+      "enabled": true,
+      "purposes": [
+        "PERSPECTIVE",
+        "EMOTION",
+        "MEMORY",
+        "INTERPRETATION",
+        "TIME_COMPRESSION",
+        "REVEAL_REINFORCEMENT"
+      ],
+      "repeat_visible_information": false
+    },
+    "REACTION_POLICY": {
+      "enabled": true,
+      "target_ratio": {
+        "min": 0.15,
+        "max": 0.3
+      },
+      "functions": [
+        "EMOTIONAL_REACTION",
+        "ANOMALY_DETECTION",
+        "HYPOTHESIS_GENERATION",
+        "HYPOTHESIS_REVISION",
+        "CONTRADICTION_DETECTION",
+        "TENSION_RELEASE"
+      ],
+      "required_functions": [
+        "HYPOTHESIS_GENERATION",
+        "HYPOTHESIS_REVISION"
+      ],
+      "required_function_any_of": [
+        "ANOMALY_DETECTION",
+        "CONTRADICTION_DETECTION"
+      ]
+    },
+    "HUMOR_POLICY": {
+      "enabled": true,
+      "mode": "CONTROLLED_RELEASE",
+      "never_undermine": [
+        "VICTIM_HARM",
+        "CORE_REVEAL",
+        "EMOTIONAL_AFTERMATH"
+      ]
+    },
+    "VISUAL_POLICY": {
+      "mode": "REENACTMENT_FIRST",
+      "priorities": [
+        "SPATIAL_CLARITY",
+        "CLUE_VISIBILITY",
+        "REACTION_READABILITY"
+      ]
+    },
+    "PACING_POLICY": {
+      "mode": "MEDIUM_FAST",
+      "slowdown_allowed_for": [
+        "EMOTIONAL_WEIGHT",
+        "CLUE_COMPREHENSION",
+        "REVEAL_RECONTEXTUALIZATION"
+      ]
+    },
+    "RETENTION_POLICY": {
+      "mode": "HYPOTHESIS_DRIVEN",
+      "required_progression": [
+        "QUESTION",
+        "PARTIAL_ANSWER",
+        "CONTRADICTION",
+        "UPDATED_QUESTION"
+      ]
+    }
+  }
+}

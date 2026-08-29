@@ -69,7 +69,7 @@ def test_runtime_contracts_cross_validate_all_authorities() -> None:
 
     assert result["result"] == "PASS"
     assert result["runtime_version"] == "1.0.0"
-    assert result["task_count"] == 23
+    assert result["task_count"] == 24
 
 
 def test_runtime_has_no_provider_sdk_imports() -> None:

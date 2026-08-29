@@ -1317,6 +1317,7 @@ def validate_script_integrity_v2(
     drama_script: str,
     narration_script: str,
     panel_reaction_script: str,
+    expert_analysis_script: str,
     draft_script: str,
     final_script: str,
 ) -> list[ValidationIssue]:
@@ -1349,6 +1350,7 @@ def validate_script_integrity_v2(
                 "drama_script": drama_script,
                 "narration_script": narration_script,
                 "panel_reaction_script": panel_reaction_script,
+                "expert_analysis_script": expert_analysis_script,
             },
             final_script,
         )

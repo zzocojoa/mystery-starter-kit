@@ -83,9 +83,9 @@ Variation Designer는 Story 문장을 쓰기 전에 최소 5개 구조 후보를
 
 승인 후보는 정확히 하나다. Story DNA가 승인 후보와 다른 Dimension을 사용하려면 `variation_overrides`에 해당 Dimension을 명시하고 `override_reason`을 기록해야 한다. 선언되지 않은 변경은 `UNDECLARED_VARIATION_OVERRIDE`로 차단한다.
 
-`candidate_evaluation.json`은 모든 후보의 Hard Filter, Crime Threat, Psychological Immersion, Trust Betrayal, Victim Integrity, Character, Twist, Novelty, Production 점수와 최종 결정·근거를 보존한다. 승인 후보는 Hard Filter를 통과한 최고 종합 점수 후보여야 하며 Variation 승인 ID와 정확히 일치해야 한다.
+Novelty Precheck는 승인 전에 모든 후보를 Story History의 최근 5개·10개·전체 구조와 비교한다. Precheck Report는 승인 상태를 제외한 전체 Candidate 구조 Hash를 보존하며 후보가 바뀌면 오래된 Report로 차단된다.
 
-승인 직후 Novelty Precheck가 Story History의 최근 5개·10개·전체 구조와 비교한다. Precheck Report는 후보 Selection과 승인 ID의 Hash를 보존하며 후보가 바뀌면 오래된 Report로 차단된다.
+`candidate_evaluation.json`은 Novelty Precheck 후 모든 후보의 Hard Filter, Crime Threat, Psychological Immersion, Trust Betrayal, Victim Integrity, Character, Twist, Novelty, Production 점수·근거·입력 Hash를 보존한다. Runtime의 `variation.evaluate` Task 또는 같은 계약을 수행하는 Codex Gate Task가 이 Artifact를 작성한 뒤에만 승인할 수 있다. Validator가 가중치 합계와 Weighted Total을 재계산한다. 승인 후보는 Hard Filter와 Novelty를 통과한 최고점 추천 후보여야 하며, 다른 적격 후보를 승인하려면 현재 평가에 결합된 Human Override Actor와 Reason이 필요하다. 평가 없이 `approve`를 호출하면 `CANDIDATE_EVALUATION_REQUIRED`로 실패한다.
 
 ## 6. Agent Contract Pipeline
 
@@ -96,8 +96,8 @@ Variation Designer는 Story 문장을 쓰기 전에 최소 5개 구조 후보를
 | `story_architect` | Story DNA, Case, Beat, Retention | Story/Case/Story Structure Artifact |
 | `character_designer` | 인물·관계·지식 경계 | Characters, Relationships, Knowledge Matrix |
 | `mystery_designer` | 실제/시청 Timeline과 추리 구조 | Timelines, Clues, Hypotheses, Causal Graph |
-| `scene_designer` | Scene과 외부 Panel 추리 흐름을 설계 | Scene Cards, Panel Cast, Reaction Segments, Presentation Plan |
-| `script_writer` | 세 Script Layer를 Broadcast Master로 통합 | Drama, Narration, Panel Reaction, Draft, Final Script |
+| `scene_designer` | Scene과 외부 Panel·Expert 분석 흐름을 설계 | Scene Cards, Panel Cast, Reaction Segments, Expert Segments, Presentation Plan |
+| `script_writer` | 기본 세 Layer와 조건부 Expert Layer를 Broadcast Master로 통합 | Drama, Narration, Panel Reaction, Expert Analysis, Draft, Final Script |
 | `continuity_critic` | 시간·공간·지식·단서·채널·최종 편집 검사 | Continuity, Channel, Editorial Review |
 | `novelty_auditor` | 구조/Beat/Causal 중복 검사 | Story Fingerprint, Novelty Report |
 | `reference_auditor` | Reference 정제와 사실/충돌 검사 | Reference, Evidence, Collision Report |
@@ -114,21 +114,21 @@ Run과 Task 상태, 입력·Prompt·Schema Hash, Provider·Model·Token 사용�
 
 ```text
 00_PROJECT   설정, 호환성, 후보 평가, Story DNA, Fingerprint, State, Change Log, Process Trace
-01_CASE      Case Input, Facts, Sources, Claim-Evidence
+01_CASE      Case Input, Facts, Sources, Claim-Evidence, Crime Psychology, Source Disclosure, Clinical Labels
 02_CHARACTER Characters, Relationships, Knowledge Matrix
 03_TIMELINE  Actual, Viewer, Audience Belief Timeline
 04_MYSTERY   Clue Matrix, Hypothesis Ledger, Causal Graph
 05_STORY     Beat Sheet, Retention Plan
-06_SCENE     Scene Cards, Panel Cast, Reaction Segments, Presentation Plan
-07_SCRIPT    Drama, Narration, Panel Reaction Layer, Draft, Final Script
+06_SCENE     Scene Cards, Panel Cast, Reaction Segments, Expert Segments, Presentation Plan
+07_SCRIPT    Drama, Narration, Panel Reaction, Expert Analysis Layer, Draft, Final Script
 08_QA        Continuity, Novelty, Reference, Channel, 통합 Validation, Editorial Review
-09_PRODUCTION Shooting, Narration, Panel Reaction Cue, Subtitle, Edit Script
+09_PRODUCTION Shooting, Narration, Panel Reaction Cue, Expert Analysis Cue, Subtitle, Edit Script
 ```
 
 핵심 흐름은 다음과 같다.
 
 ```text
-Compatibility → Variations/Evaluation/Approval → Story DNA/Fingerprint
+Compatibility → Variations → All-candidate Novelty Precheck → Evaluation → Approval → Story DNA/Fingerprint
 → Case/Facts → Characters/Relationships/Knowledge
 → Actual/Viewer/Audience Timeline → Clues/Hypotheses/Causal Graph
 → Beats/Retention → Scenes/Panel/Presentation → 세 Script Layer → Broadcast Master
@@ -143,17 +143,17 @@ Compatibility → Variations/Evaluation/Approval → Story DNA/Fingerprint
 | `GATE-00` | Project Channel Content Version·DNA Hash가 고정된 Compatibility PASS, Production Config | `COMPATIBILITY_VALIDATED` |
 | `GATE-01` | 최소 후보 수, 전체 Candidate 평가 근거, 단일 승인, 최신 Novelty Precheck | `VARIATION_APPROVED` |
 | `GATE-02` | Story DNA와 승인 Variation/Override 정합성 | `STORY_DESIGNED` |
-| `GATE-03` | Case, Facts, Source Mode별 Evidence | `CASE_DEFINED` |
+| `GATE-03` | Case, Facts, Source Mode별 Evidence와 v2 Crime/Source/Clinical Artifact | `CASE_DEFINED` |
 | `GATE-04` | Character, Relationship, Knowledge | `CHARACTERS_DESIGNED` |
 | `GATE-05` | 3개 Timeline, Clue, Hypothesis, Causal DAG | `MYSTERY_DESIGNED` |
 | `GATE-06` | Beat와 Retention | `STORY_STRUCTURED` |
-| `GATE-07` | Scene, Panel Cast, Reaction Segment와 Presentation v2 | `SCENES_DESIGNED` |
-| `GATE-08` | 세 Layer, Draft와 Marker 기반 Broadcast Master | `SCRIPT_WRITTEN` |
+| `GATE-07` | Scene, Panel Cast, Reaction/Expert Segment와 Presentation v2 | `SCENES_DESIGNED` |
+| `GATE-08` | 기본 세 Layer, 조건부 Expert Layer, Draft와 Marker 기반 Broadcast Master | `SCRIPT_WRITTEN` |
 | `GATE-09` | Continuity QA | `SCRIPT_WRITTEN` |
 | `GATE-10` | 최종 Fingerprint 현재성과 Novelty QA | `SCRIPT_WRITTEN` |
 | `GATE-11` | Reference QA | `SCRIPT_WRITTEN` |
 | `GATE-12` | Channel QA와 통합 Validation | `QA_PASSED` |
-| `GATE-13` | 다섯 Production Artifact와 Editorial Review PASS | `EDITORIAL_REVIEW_REQUIRED` |
+| `GATE-13` | Panel·Expert를 분리한 여섯 Production Artifact와 Editorial Review PASS | `EDITORIAL_REVIEW_REQUIRED` |
 
 Gate는 순서를 건너뛸 수 없다. 필수 Artifact는 모두 `CLEAN`이어야 하며 실패하면 마지막 통과 Gate를 유지한 채 `BLOCKED`가 된다.
 
@@ -216,7 +216,7 @@ Channel Content Version 2.0 이상에서는 활성 Optional Capability에 따라
 - `panel_cast.json`은 공개 정보만 사용하는 서로 다른 Persona와 기능 구성을 가진 외부 Panelist를 최소 2명 정의한다.
 - `reaction_segments.json`은 Segment 시간·배치·가설 변화와 `turns[]`를 정의한다. 각 Turn은 화자, 기능, 실제 발화, 근거 Clue, 공개 Fact와 Tone을 독립적으로 보존한다.
 - `CHARACTER_REACTION`, `PANEL_REACTION`, `AUDIENCE_PROMPT`는 서로 다른 의미이며 비율에는 외부 `PANEL_REACTION`만 포함한다.
-- `EXPERT_ANALYSIS`는 조건부 Presentation Segment다. 외부 Panel Layer 안에 배치하되 Expert ID, Credentials, Claim ID와 Evidence Source ID를 별도로 보존한다.
+- `EXPERT_ANALYSIS`는 조건부 Presentation Segment다. Panel Reaction과 분리된 `expert_segments.json`과 `expert_analysis_script.md`를 Source로 사용하며 Expert Role, Credentials, Claim ID, Evidence Source ID, Confidence와 Limitations를 보존한다. Panel 의견을 Expert Fact로 승격시키지 않는다.
 - 가설 생성과 수정, 그리고 이상 탐지 또는 모순 탐지 기능을 실제 Reaction Segment에 포함한다.
 - `drama_script.md`, `narration_script.md`, `panel_reaction_script.md`는 분리 작성한다. Narration은 화면 행동이나 Panel 발화를 그대로 반복하지 않는다.
 - `draft_v01.md`와 `final_script.md`는 `SEGMENT`, `TYPE`, `SCENE`, `DURATION`, `END_SEGMENT` Marker로 모든 계획 Segment를 정확히 한 번, 같은 순서와 시간으로 통합한다. Final은 Layer 본문을 보존한 Broadcast Master다.
@@ -254,8 +254,9 @@ Runtime의 Human Approval은 Run ID, Task ID, 현재 입력 Artifact Hash에 결
 mystery-kit init PRJ-002
 mystery-kit compat PROJECTS/PRJ-002
 mystery-kit variations PROJECTS/PRJ-002 --seed "공장 교대 중 실종" --count 5
-mystery-kit approve PROJECTS/PRJ-002 VAR-03
 mystery-kit precheck PROJECTS/PRJ-002
+mystery-kit approve PROJECTS/PRJ-002 VAR-03
+mystery-kit migrate-channel-pin PROJECTS/PRJ-002 --channel-content-version 1.1.0
 mystery-kit reference-profile PROJECTS/PRJ-002 /secure/reference-source.json
 mystery-kit validate PROJECTS/PRJ-002
 mystery-kit task-open PROJECTS/PRJ-002 GATE-05
@@ -273,7 +274,7 @@ mystery-runtime doctor
 mystery-runtime plan PROJECTS/PRJ-RUNTIME-TEST
 mystery-runtime run PROJECTS/PRJ-RUNTIME-TEST --from GATE-00 --to GATE-13
 mystery-runtime status PROJECTS/PRJ-RUNTIME-TEST
-mystery-runtime approve RUN-... variation.generate --actor reviewer --reason "검토 완료"
+mystery-runtime approve RUN-... variation.approve --actor reviewer --reason "검토 완료"
 mystery-runtime resume RUN-...
 mystery-runtime cancel RUN-...
 mystery-runtime providers

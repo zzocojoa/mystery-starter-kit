@@ -86,6 +86,7 @@ def script_integrity_issues(
         text_artifact(artifacts, "drama_script"),
         text_artifact(artifacts, "narration_script"),
         text_artifact(artifacts, "panel_reaction_script"),
+        text_artifact(artifacts, "expert_analysis_script"),
         text_artifact(artifacts, "draft_script"),
         text_artifact(artifacts, "final_script"),
     )

@@ -148,12 +148,15 @@ def approved_selection_document(
     project_path: Path,
     dependency_graph: Mapping[str, object],
     overlay: Mapping[str, object],
+    allow_missing: bool,
 ) -> dict[str, str]:
     """승인 Variation Selection을 Provider Metadata용 문자열 사전으로 읽는다."""
     artifacts = combined_artifacts(project_path, dependency_graph, overlay)
     variations = mapping_artifact(artifacts, "variation_candidates")
     approved_id = variations.get("approved_candidate_id")
     candidates = variations.get("candidates")
+    if allow_missing and approved_id is None and isinstance(candidates, list):
+        return {}
     if not isinstance(approved_id, str) or not isinstance(candidates, list):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
@@ -557,7 +560,12 @@ async def execute_llm_task(
                 max_output_tokens,
                 source_mode,
                 target_runtime_minutes,
-                approved_selection_document(project_path, dependency_graph, gate_outputs),
+                approved_selection_document(
+                    project_path,
+                    dependency_graph,
+                    gate_outputs,
+                    task_id == "variation.evaluate",
+                ),
                 revision_issues,
                 starting_attempt,
                 transport_attempts,
@@ -848,7 +856,7 @@ async def execute_existing_run(
                         else capture_artifact_hashes(project_path, task["reads"], dependency_graph)
                     )
                     human_approval_needed = task["approval_required"] or (
-                        task_id == "variation.generate"
+                        task_id == "variation.approve"
                         and production_config.get("approval_policy") == "HUMAN_REVIEW"
                     )
                     approved = approval_is_current(

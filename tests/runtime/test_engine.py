@@ -124,7 +124,7 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
     trace_lines = (
         project_path / "00_PROJECT" / "process_trace.jsonl"
     ).read_text(encoding="utf-8").splitlines()
-    assert len(trace_lines) == 23
+    assert len(trace_lines) == 24
     novelty_entries = novelty_index["entries"]
     assert isinstance(novelty_entries, list)
     runtime_entry = next(
@@ -410,7 +410,7 @@ def test_human_approval_is_hash_bound_and_run_resumes(tmp_path: Path) -> None:
     assert isinstance(run_id, str)
     task_state = waiting["tasks"]
     assert isinstance(task_state, dict)
-    variation_state = task_state["variation.generate"]
+    variation_state = task_state["variation.approve"]
     assert isinstance(variation_state, dict)
     input_hashes = variation_state["input_hashes"]
     assert isinstance(input_hashes, dict)
@@ -420,21 +420,21 @@ def test_human_approval_is_hash_bound_and_run_resumes(tmp_path: Path) -> None:
     approval_document(
         repository_root,
         run_id,
-        "variation.generate",
+        "variation.approve",
         "runtime-reviewer",
         "후보 VAR-01의 구조적 차이를 검토함",
     )
     assert approval_is_current(
         project_path,
         run_id,
-        "variation.generate",
+        "variation.approve",
         input_hashes,
     )
     changed_hashes = {**input_hashes, "production_config": "changed"}
     assert not approval_is_current(
         project_path,
         run_id,
-        "variation.generate",
+        "variation.approve",
         changed_hashes,
     )
 

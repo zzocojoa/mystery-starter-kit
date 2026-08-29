@@ -243,8 +243,8 @@ def test_approved_variation_precheck_passes_schema_without_history() -> None:
     assert collect_schema_errors(report, schema, "novelty_precheck") == []
 
 
-def test_approved_variation_collision_fails_precheck() -> None:
-    """승인 후보의 구조가 최근 History와 같으면 Story 설계 전에 차단해야 한다."""
+def test_colliding_candidate_fails_while_other_candidates_remain_eligible() -> None:
+    """충돌 후보는 FAIL이지만 다른 PASS 후보는 평가 대상으로 남는다."""
     catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
     candidates = generate_variation_candidates("PRJ-002", "seed", 5, catalog)
     approved = approve_variation_candidate(candidates, "VAR-01")
@@ -259,12 +259,17 @@ def test_approved_variation_collision_fails_precheck() -> None:
 
     report = evaluate_variation_precheck(approved, history, thresholds)
 
-    assert report["result"] == "FAIL"
-    issues = report["issues"]
-    assert isinstance(issues, list)
-    assert [issue["code"] for issue in issues] == [
-        "APPROVED_VARIATION_SIMILARITY_EXCEEDED"
-    ]
+    assert report["result"] == "PASS"
+    results = report["candidate_results"]
+    assert isinstance(results, list)
+    first_result = results[0]
+    assert isinstance(first_result, dict)
+    assert first_result["candidate_id"] == "VAR-01"
+    assert first_result["result"] == "FAIL"
+    assert any(
+        isinstance(result, dict) and result.get("result") == "PASS"
+        for result in results[1:]
+    )
 
 
 def test_approved_variation_precheck_ignores_same_project_history() -> None:

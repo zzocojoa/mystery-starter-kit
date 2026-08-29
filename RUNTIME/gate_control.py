@@ -4,7 +4,11 @@ from collections.abc import Mapping, Sequence
 
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.causal_validation import validate_causal_graph
-from VALIDATORS.channel_policy_v2 import validate_channel_policy_v2
+from VALIDATORS.channel_policy_v2 import (
+    build_channel_policy_inputs,
+    v2_policy_applies,
+    validate_channel_policy_v2,
+)
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.editorial import (
@@ -118,7 +122,16 @@ def validate_gate(
                 presentation_schemas["candidate_evaluation"],
                 "00_PROJECT/candidate_evaluation.json",
             ),
-            *validate_candidate_evaluation(variations, candidate_evaluation),
+            *schema_issues(
+                precheck,
+                presentation_schemas["novelty_precheck"],
+                "08_QA/novelty_precheck.json",
+            ),
+            *validate_candidate_evaluation(
+                variations,
+                candidate_evaluation,
+                precheck,
+            ),
             *validate_variation_precheck(variations, precheck),
         ]
     if gate_id == "GATE-02":
@@ -137,8 +150,11 @@ def validate_gate(
     story = artifact_document(artifacts, "story_dna")
     case_input = artifact_document(artifacts, "case_input")
     facts = artifact_document(artifacts, "facts")
+    crime_psychology = artifact_document(artifacts, "crime_psychology")
     sources = artifact_document(artifacts, "sources")
     claims = artifact_document(artifacts, "claim_evidence")
+    source_disclosure = artifact_document(artifacts, "source_disclosure")
+    clinical_labels = artifact_document(artifacts, "clinical_labels")
     if gate_id == "GATE-03":
         issues = [
             *nonempty_string_issues(
@@ -147,6 +163,21 @@ def validate_gate(
                 "01_CASE/case_input.json",
             ),
             *nonempty_list_issues(facts, "facts", "01_CASE/facts.json"),
+            *schema_issues(
+                crime_psychology,
+                presentation_schemas["crime_psychology"],
+                "01_CASE/crime_psychology.json",
+            ),
+            *schema_issues(
+                source_disclosure,
+                presentation_schemas["source_disclosure"],
+                "01_CASE/source_disclosure.json",
+            ),
+            *schema_issues(
+                clinical_labels,
+                presentation_schemas["clinical_labels"],
+                "01_CASE/clinical_labels.json",
+            ),
         ]
         if story.get("story_source_mode") in {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}:
             issues.extend(nonempty_list_issues(sources, "sources", "01_CASE/sources.json"))
@@ -197,6 +228,7 @@ def validate_gate(
     scenes = artifact_document(artifacts, "scene_cards")
     panel_cast = artifact_document(artifacts, "panel_cast")
     reaction_segments = artifact_document(artifacts, "reaction_segments")
+    expert_segments = artifact_document(artifacts, "expert_segments")
     presentation = artifact_document(artifacts, "presentation_plan")
     if gate_id == "GATE-07":
         return [
@@ -215,6 +247,11 @@ def validate_gate(
                 presentation,
                 presentation_schemas["presentation_plan"],
                 "06_SCENE/presentation_plan.json",
+            ),
+            *schema_issues(
+                expert_segments,
+                presentation_schemas["expert_segments"],
+                "06_SCENE/expert_segments.json",
             ),
             *validate_presentation_design(
                 panel_cast,
@@ -251,6 +288,7 @@ def validate_gate(
                 artifact_text(artifacts, "drama_script"),
                 artifact_text(artifacts, "narration_script"),
                 artifact_text(artifacts, "panel_reaction_script"),
+                artifact_text(artifacts, "expert_analysis_script"),
                 artifact_text(artifacts, "draft_script"),
                 artifact_text(artifacts, "final_script"),
             ),
@@ -321,6 +359,7 @@ def validate_gate(
                 artifact_text(artifacts, "drama_script"),
                 artifact_text(artifacts, "narration_script"),
                 artifact_text(artifacts, "panel_reaction_script"),
+                artifact_text(artifacts, "expert_analysis_script"),
                 artifact_text(artifacts, "draft_script"),
                 final_script,
             ),
@@ -332,12 +371,7 @@ def validate_gate(
             ),
             *validate_channel_policy_v2(
                 channel,
-                story,
-                production_config,
-                case_input,
-                claims,
-                presentation,
-                final_script,
+                build_channel_policy_inputs(artifacts),
             ),
         ]
     if gate_id == "GATE-13":
@@ -363,6 +397,7 @@ def validate_gate(
                 artifact_text(artifacts, "drama_script"),
                 artifact_text(artifacts, "narration_script"),
                 artifact_text(artifacts, "panel_reaction_script"),
+                artifact_text(artifacts, "expert_analysis_script"),
                 artifact_text(artifacts, "draft_script"),
                 final_script,
             ),
@@ -374,14 +409,12 @@ def validate_gate(
             ),
             *validate_channel_policy_v2(
                 channel,
-                story,
-                production_config,
-                case_input,
-                claims,
-                presentation,
-                final_script,
+                build_channel_policy_inputs(artifacts),
             ),
-            *production_text_issues(artifacts),
+            *production_text_issues(
+                artifacts,
+                v2_policy_applies(production_config),
+            ),
             *validate_production_presentation(
                 presentation,
                 reaction_segments,

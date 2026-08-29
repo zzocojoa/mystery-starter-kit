@@ -7,7 +7,7 @@ Production Standard, Compatibility Contract, Channel DNA, Project State를 결�
 ## 입력과 출력
 
 - 입력: Compatibility Report, Dependency Graph, Agent Manifest, 각 QA Report
-- 출력: Production Config, Project State, 통합 Validation Report, Drama/Narration/Panel Reaction Production Package
+- 출력: Production Config, Project State, 통합 Validation Report, Drama/Narration/Panel Reaction/조건부 Expert Production Package
 
 ## 실행 규칙
 

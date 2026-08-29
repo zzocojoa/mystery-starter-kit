@@ -37,7 +37,11 @@ from RUNTIME.transactions import (
     release_project_lock,
     write_artifact,
 )
-from VALIDATORS.dependency import artifact_hash, dependency_artifacts
+from VALIDATORS.dependency import (
+    artifact_hash,
+    artifact_required_for_channel_version,
+    dependency_artifacts,
+)
 from VALIDATORS.exceptions import ConfigurationError, GateTransactionError
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.models import ProductionValidationReport, ProjectState
@@ -452,6 +456,35 @@ def canonical_artifact_drift(
                 }
             )
     return issues
+
+
+def audit_artifact_names(
+    project_path: Path,
+    dependency_graph: Mapping[str, object],
+) -> list[str]:
+    """Project Pin에서 필수이거나 실제 존재하는 Artifact를 감사 대상으로 선택한다."""
+    production_config = load_json_object(
+        project_path / "00_PROJECT" / "production_config.json"
+    )
+    channel_content_version = production_config.get("channel_content_version")
+    if not isinstance(channel_content_version, str):
+        raise ConfigurationError(
+            "production_config.channel_content_version 문자열이 필요합니다."
+        )
+    return sorted(
+        artifact_name
+        for artifact_name, definition in dependency_artifacts(
+            dependency_graph
+        ).items()
+        if artifact_required_for_channel_version(
+            definition,
+            channel_content_version,
+        )
+        or (
+            isinstance(definition.get("path"), str)
+            and (project_path / cast(str, definition["path"])).is_file()
+        )
+    )
 
 
 def task_open_unlocked(
@@ -1491,7 +1524,7 @@ def audit_project(
         project_path,
         dependency_graph,
         state,
-        sorted(dependency_artifacts(dependency_graph)),
+        audit_artifact_names(project_path, dependency_graph),
     )
     validation = full_validation_report(
         repository_root,

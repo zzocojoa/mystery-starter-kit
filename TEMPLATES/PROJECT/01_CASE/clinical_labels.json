@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../STANDARD/schemas/clinical_labels.schema.json",
+  "schema_family": "clinical-labels",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-000",
+  "labels": []
+}

@@ -40,7 +40,16 @@
         "content_version": {"$ref": "#/$defs/semanticVersion"},
         "channel_dna": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9._-]+\\.json$"
+          "allOf": [
+            {
+              "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*\\.json$"
+            },
+            {
+              "not": {
+                "pattern": "(^|/)\\.{1,2}(/|$)"
+              }
+            }
+          ]
         },
         "channel_dna_sha256": {
           "type": "string",

@@ -12,6 +12,10 @@ from RUNTIME.models import (
     ProviderDescriptor,
     TokenUsage,
 )
+from VALIDATORS.candidate_evaluation import (
+    SCORE_FIELDS,
+    candidate_evaluation_input_hashes,
+)
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
     make_editorial_evidence,
@@ -857,20 +861,36 @@ def context_artifact(request: LLMRequest, artifact_name: str) -> Mapping[str, ob
 def fake_candidate_evaluation(
     project_id: str,
     variations: Mapping[str, object],
+    novelty_precheck: Mapping[str, object],
 ) -> dict[str, object]:
     """Runtime 회귀용 Candidate 평가 근거를 결정론적으로 만든다."""
     candidates = variations.get("candidates")
-    selected = variations.get("approved_candidate_id")
-    if not isinstance(candidates, list) or not isinstance(selected, str):
+    raw_novelty_results = novelty_precheck.get("candidate_results")
+    if not isinstance(candidates, list) or not isinstance(raw_novelty_results, list):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
             False,
             "TASK",
-            "Candidate 평가용 승인 Variation이 없습니다.",
+            "Candidate 평가용 Variation 또는 Novelty Precheck가 없습니다.",
             "variation.evaluate",
-            "variation_candidates",
+            "candidate_evaluation",
             {},
         )
+    novelty_results = {
+        str(result.get("candidate_id")): result.get("result")
+        for result in raw_novelty_results
+        if isinstance(result, Mapping) and isinstance(result.get("candidate_id"), str)
+    }
+    weights: dict[str, float] = {
+        "crime_threat_score": 15.0,
+        "psychological_immersion_score": 15.0,
+        "trust_betrayal_score": 15.0,
+        "victim_integrity_score": 15.0,
+        "character_score": 10.0,
+        "twist_score": 10.0,
+        "novelty_score": 10.0,
+        "production_score": 10.0,
+    }
     evaluations: list[dict[str, object]] = []
     for index, candidate in enumerate(candidates):
         if not isinstance(candidate, Mapping):
@@ -878,34 +898,82 @@ def fake_candidate_evaluation(
         candidate_id = candidate.get("candidate_id")
         if not isinstance(candidate_id, str):
             continue
-        approved = candidate_id == selected
-        score = 92 if approved else max(60, 84 - index)
+        novelty_result = novelty_results.get(candidate_id)
+        if novelty_result not in {"PASS", "FAIL"}:
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Candidate별 Novelty 결과가 없습니다.",
+                "variation.evaluate",
+                "novelty_precheck",
+                {"candidate_id": candidate_id},
+            )
+        base_score = float(max(65, 92 - index * 3))
+        dimension_scores = {
+            field: (95.0 if field == "novelty_score" and novelty_result == "PASS" else base_score)
+            for field in SCORE_FIELDS
+        }
+        if novelty_result == "FAIL":
+            dimension_scores["novelty_score"] = 0.0
+        total_score = round(
+            sum(
+                dimension_scores[field] * weights[field] / 100.0
+                for field in SCORE_FIELDS
+            ),
+            2,
+        )
         evaluations.append(
             {
                 "candidate_id": candidate_id,
                 "hard_filter_result": "PASS",
-                "crime_threat_score": score,
-                "psychological_immersion_score": score,
-                "trust_betrayal_score": score,
-                "victim_integrity_score": score,
-                "character_score": score,
-                "twist_score": score,
-                "novelty_score": score,
-                "production_score": score,
-                "total_score": score,
-                "decision": "APPROVED" if approved else "REJECTED",
-                "decision_reason": (
-                    "Hard Filter를 통과했고 전체 평가가 가장 높습니다."
-                    if approved
-                    else "승인 후보보다 종합 평가가 낮습니다."
-                ),
+                "hard_filter_reasons": ["금지 구조와 제작 불가능 요소가 없습니다."],
+                "dimension_evidence": {
+                    field: [f"{candidate_id}의 {field} 구조 선택을 검토했습니다."]
+                    for field in SCORE_FIELDS
+                },
+                "novelty_result": novelty_result,
+                **dimension_scores,
+                "total_score": total_score,
+                "decision": "REJECTED",
+                "decision_reason": "전체 적격 후보의 가중 점수를 비교합니다.",
             }
         )
+    eligible = [
+        record
+        for record in evaluations
+        if record["hard_filter_result"] == "PASS" and record["novelty_result"] == "PASS"
+    ]
+    if not eligible:
+        raise RuntimeExecutionError(
+            "GATE_REJECTED",
+            False,
+            "TASK",
+            "추천할 Novelty PASS Candidate가 없습니다.",
+            "variation.evaluate",
+            "novelty_precheck",
+            {"validation_code": "ALL_VARIATION_CANDIDATES_NOVELTY_FAILED"},
+        )
+    recommended = max(
+        eligible,
+        key=lambda record: float(cast(float, record["total_score"])),
+    )
+    recommended_id = cast(str, recommended["candidate_id"])
+    for record in evaluations:
+        if record["candidate_id"] == recommended_id:
+            record["decision"] = "RECOMMENDED"
+            record["decision_reason"] = "적격 후보 중 재계산 가중 점수가 가장 높습니다."
+        else:
+            record["decision_reason"] = "추천 후보보다 가중 점수가 낮거나 Novelty가 실패했습니다."
+    input_hashes = candidate_evaluation_input_hashes(variations, novelty_precheck)
     return {
         "schema_family": "candidate-evaluation",
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "project_id": project_id,
-        "selected_candidate_id": selected,
+        "weights": weights,
+        "input_hashes": input_hashes,
+        "novelty_report_hash": input_hashes["novelty_precheck"],
+        "recommended_candidate_id": recommended_id,
         "evaluations": evaluations,
     }
 
@@ -927,21 +995,26 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
         )
     if task_id == "variation.evaluate":
         variations = context_artifact(request, "variation_candidates")
-        if variations is None:
+        novelty_precheck = context_artifact(request, "novelty_precheck")
+        if variations is None or novelty_precheck is None:
             raise RuntimeExecutionError(
                 "RUNTIME_CONFIGURATION_ERROR",
                 False,
                 "TASK",
-                "Candidate 평가 Context가 없습니다.",
+                "Candidate 평가용 Variation 또는 Novelty Context가 없습니다.",
                 task_id,
-                "variation_candidates",
+                "candidate_evaluation",
                 {},
             )
         return [
             {
                 "artifact_name": "candidate_evaluation",
                 "media_type": "application/json",
-                "content": fake_candidate_evaluation(project_id, variations),
+                "content": fake_candidate_evaluation(
+                    project_id,
+                    variations,
+                    novelty_precheck,
+                ),
             }
         ]
     if task_id == "story.design_dna":
@@ -983,6 +1056,19 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                         {"fact_id": "FACT-01", "statement": "기계 로그에 7분 공백이 있다."},
                         {"fact_id": "FACT-02", "statement": "안전 센서는 점검 모드였다."},
                     ],
+                },
+            },
+            {
+                "artifact_name": "crime_psychology",
+                "media_type": "application/json",
+                "content": {
+                    "schema_family": "crime-psychology",
+                    "schema_version": "1.0.0",
+                    "project_id": project_id,
+                    "applicable": False,
+                    "not_applicable_reason": (
+                        "Channel Content Version 1.1.0에서는 필수 정책이 아닙니다."
+                    ),
                 },
             },
         ]
@@ -1248,6 +1334,20 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "content": fake_reaction_segments(project_id, total_seconds),
             },
             {
+                "artifact_name": "expert_segments",
+                "media_type": "application/json",
+                "content": {
+                    "schema_family": "expert-segments",
+                    "schema_version": "1.0.0",
+                    "project_id": project_id,
+                    "status": "NOT_APPLICABLE",
+                    "not_applicable_reason": (
+                        "Channel Content Version 1.1.0에서는 전문가 분석이 선택 사항입니다."
+                    ),
+                    "segments": [],
+                },
+            },
+            {
                 "artifact_name": "presentation_plan",
                 "media_type": "application/json",
                 "content": fake_presentation_plan(project_id, total_seconds),
@@ -1255,13 +1355,24 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
         ]
     if task_id == "script.write_layers":
         layer_scripts = fake_script_layers(target_runtime_seconds(metadata))
-        return [
+        layer_outputs: list[dict[str, object]] = [
             {
                 "artifact_name": artifact_name,
                 "media_type": "text/markdown",
                 "content": content,
             }
             for artifact_name, content in layer_scripts.items()
+        ]
+        return [
+            *layer_outputs,
+            {
+                "artifact_name": "expert_analysis_script",
+                "media_type": "text/markdown",
+                "content": (
+                    "# Expert Analysis\n\n"
+                    "Channel Content Version 1.1.0에서는 적용 대상이 아닙니다."
+                ),
+            },
         ]
     if task_id == "script.integrate":
         broadcast_master = fake_broadcast_master(target_runtime_seconds(metadata))
@@ -1296,6 +1407,14 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     "RSEG-001 논리 패널 추리 Cue\n"
                     "RSEG-002 반론 패널 모순 탐지 Cue\n"
                     "RSEG-003 논리 패널 가설 수정 Cue"
+                ),
+            },
+            {
+                "artifact_name": "production_expert_analysis_script",
+                "media_type": "text/markdown",
+                "content": (
+                    "# Production Expert Analysis\n\n"
+                    "Channel Content Version 1.1.0에서는 적용 대상이 아닙니다."
                 ),
             },
             {

@@ -7,7 +7,7 @@ Reference 입력을 Style Feature만 남긴 sanitized Reference Profile로 변�
 ## 입력과 출력
 
 - 입력: Reference Policy, 명시적 Reference 입력, Sources, Claims, Final Script
-- 출력: Reference Profile, Sources, Claim Evidence, Reference Collision Report
+- 출력: Reference Profile, Sources, Claim Evidence, Source Disclosure, Clinical Labels, Reference Collision Report
 
 ## 허용과 금지
 

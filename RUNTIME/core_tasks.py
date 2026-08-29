@@ -5,8 +5,15 @@ from pathlib import Path
 
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.gate_control import validation_report_through
-from VALIDATORS.channel_policy_v2 import validate_channel_policy_v2
-from VALIDATORS.channel_registry import resolve_project_channel
+from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.channel_policy_v2 import (
+    build_channel_policy_inputs,
+    validate_channel_policy_v2,
+)
+from VALIDATORS.channel_registry import (
+    registered_channel_relative_path,
+    resolve_project_channel,
+)
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.cli import evaluate_compatibility_documents
 from VALIDATORS.compatibility import (
@@ -136,6 +143,24 @@ def runtime_validation_inputs(
                 / "schemas"
                 / "candidate_evaluation.schema.json"
             ),
+            "novelty_precheck": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "novelty_precheck.schema.json"
+            ),
+            "crime_psychology": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "crime_psychology.schema.json"
+            ),
+            "source_disclosure": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "source_disclosure.schema.json"
+            ),
+            "clinical_labels": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "clinical_labels.schema.json"
+            ),
+            "expert_segments": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "expert_segments.schema.json"
+            ),
             "panel_cast": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "panel_cast.schema.json"
             ),
@@ -239,7 +264,28 @@ def project_compatibility_output(
         channel_manifest,
         channel,
     )
-    return dict(make_project_compatibility_report(project_id, report))
+    pinned_version = production_config.get("channel_content_version")
+    if not isinstance(pinned_version, str):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "production_config.channel_content_version 문자열이 필요합니다.",
+            "project.compatibility",
+            "production_config",
+            {},
+        )
+    relative_path = registered_channel_relative_path(
+        channel_manifest,
+        pinned_version,
+    )
+    return dict(
+        make_project_compatibility_report(
+            project_id,
+            report,
+            relative_path,
+        )
+    )
 
 
 def reference_profile_output(
@@ -288,28 +334,74 @@ def variation_output(
     project_id: str,
     repository_root: Path,
     production_config: Mapping[str, object],
-    human_approved: bool,
 ) -> dict[str, object]:
-    """결정론적 후보 다섯 개를 생성하고 AUTO_CONTINUE에서 하나를 승인한다."""
+    """결정론적 후보 다섯 개를 승인하지 않은 상태로 생성한다."""
     candidates = generate_variation_candidates(
         project_id,
         f"{project_id}:runtime-v1",
         5,
         load_json_object(repository_root / "STANDARD" / "variation_catalog.json"),
     )
-    constrained = apply_user_case_constraints(candidates, production_config)
-    approval_policy = production_config.get("approval_policy")
-    if approval_policy == "HUMAN_REVIEW" and not human_approved:
+    return apply_user_case_constraints(candidates, production_config)
+
+
+def approved_variation_output(
+    variations: Mapping[str, object],
+    candidate_evaluation: Mapping[str, object],
+    novelty_precheck: Mapping[str, object],
+) -> dict[str, object]:
+    """검증된 평가가 추천한 Candidate 하나를 승인한다."""
+    issues = validate_candidate_evaluation(
+        variations,
+        candidate_evaluation,
+        novelty_precheck,
+    )
+    if issues:
+        first_issue = issues[0]
         raise RuntimeExecutionError(
-            "HUMAN_APPROVAL_REQUIRED",
+            "GATE_REJECTED",
             False,
             "TASK",
-            "Variation 후보 선택에 Human Approval이 필요합니다.",
-            "variation.generate",
-            "variation_candidates",
-            {"candidate_count": constrained.get("candidate_count")},
+            first_issue["message"],
+            "variation.approve",
+            "candidate_evaluation",
+            {
+                "validation_code": first_issue["code"],
+                **first_issue["context"],
+            },
         )
-    return approve_variation_candidate(constrained, "VAR-01")
+    candidate_id = candidate_evaluation.get("recommended_candidate_id")
+    if not isinstance(candidate_id, str):
+        raise RuntimeExecutionError(
+            "GATE_REJECTED",
+            False,
+            "TASK",
+            "Candidate 평가 추천 ID가 없습니다.",
+            "variation.approve",
+            "candidate_evaluation",
+            {"validation_code": "CANDIDATE_EVALUATION_REQUIRED"},
+        )
+    approved = approve_variation_candidate(variations, candidate_id)
+    approval_issues = validate_candidate_evaluation(
+        approved,
+        candidate_evaluation,
+        novelty_precheck,
+    )
+    if approval_issues:
+        first_issue = approval_issues[0]
+        raise RuntimeExecutionError(
+            "GATE_REJECTED",
+            False,
+            "TASK",
+            first_issue["message"],
+            "variation.approve",
+            "candidate_evaluation",
+            {
+                "validation_code": first_issue["code"],
+                **first_issue["context"],
+            },
+        )
+    return approved
 
 
 def evidence_outputs(
@@ -330,6 +422,19 @@ def evidence_outputs(
     return {
         "sources": {"project_id": project_id, "sources": []},
         "claim_evidence": {"project_id": project_id, "claims": []},
+        "source_disclosure": {
+            "schema_family": "source-disclosure",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "internal_mode": "ORIGINAL_FICTION",
+            "audience_label_text": "본 이야기는 창작입니다.",
+        },
+        "clinical_labels": {
+            "schema_family": "clinical-labels",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "labels": [],
+        },
     }
 
 
@@ -430,7 +535,6 @@ def core_task_outputs(
                 project_id,
                 repository_root,
                 production_config,
-                human_approved,
             )
         }
     if task_id == "novelty.variation_precheck":
@@ -439,6 +543,14 @@ def core_task_outputs(
                 mapping_artifact(artifacts, "variation_candidates"),
                 story_history(repository_root),
                 load_json_object(repository_root / "STANDARD" / "novelty_thresholds.json"),
+            )
+        }
+    if task_id == "variation.approve":
+        return {
+            "variation_candidates": approved_variation_output(
+                mapping_artifact(artifacts, "variation_candidates"),
+                mapping_artifact(artifacts, "candidate_evaluation"),
+                mapping_artifact(artifacts, "novelty_precheck"),
             )
         }
     if task_id == "reference.build_evidence":
@@ -491,12 +603,7 @@ def core_task_outputs(
         issues.extend(
             validate_channel_policy_v2(
                 channel,
-                mapping_artifact(artifacts, "story_dna"),
-                production_config,
-                mapping_artifact(artifacts, "case_input"),
-                mapping_artifact(artifacts, "claim_evidence"),
-                mapping_artifact(artifacts, "presentation_plan"),
-                text_artifact(artifacts, "final_script"),
+                build_channel_policy_inputs(artifacts),
             )
         )
         return {

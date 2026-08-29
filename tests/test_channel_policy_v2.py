@@ -4,7 +4,10 @@ from copy import deepcopy
 from pathlib import Path
 
 from RUNTIME.providers.fake import fake_presentation_plan
-from VALIDATORS.channel_policy_v2 import validate_channel_policy_v2
+from VALIDATORS.channel_policy_v2 import (
+    build_channel_policy_inputs,
+    validate_channel_policy_v2,
+)
 from VALIDATORS.io import load_json_object
 from VALIDATORS.schema_validation import collect_schema_errors
 
@@ -92,278 +95,449 @@ def v2_channel() -> dict[str, object]:
     return channel
 
 
-def v2_documents() -> tuple[
-    dict[str, object],
-    dict[str, object],
-    dict[str, object],
-    dict[str, object],
-    dict[str, object],
-    str,
-]:
-    """모든 v2 필수 정책을 만족하는 Project 문서 묶음을 만든다."""
-    config: dict[str, object] = {
-        "project_id": "PRJ-900",
-        "channel_id": "MYSTERY_MAIN",
-        "channel_content_version": "2.0.0",
-        "story_source_mode": "ORIGINAL",
-        "genre": "CRIME_PSYCHOLOGICAL_THRILLER",
+def process_step(
+    identifier_name: str,
+    identifier: str,
+    scene_id: str,
+    order: int,
+) -> dict[str, object]:
+    """순서가 있는 범죄 심리 과정 단계를 만든다."""
+    return {
+        identifier_name: identifier,
+        "actor_id": "CHAR-02",
+        "victim_id": "CHAR-01",
+        "scene_id": scene_id,
+        "order": order,
+        "description": f"{identifier}의 구체적 행동",
     }
-    story: dict[str, object] = {
-        "project_id": "PRJ-900",
-        "story_source_mode": "ORIGINAL",
+
+
+def v2_artifacts() -> dict[str, object]:
+    """모든 v2 필수 정책을 만족하는 First-class Artifact를 만든다."""
+    project_id = "PRJ-900"
+    return {
+        "production_config": {
+            "project_id": project_id,
+            "channel_id": "MYSTERY_MAIN",
+            "channel_content_version": "2.0.0",
+            "story_source_mode": "ORIGINAL",
+            "genre": "CRIME_PSYCHOLOGICAL_THRILLER",
+        },
         "story_dna": {
-            "architecture": "ARCH-20_TRUST_BETRAYAL",
-            "incident_type": "FRAUD",
-            "reveal_mode": "RELATIONAL_REFRAME",
-            "information_mechanism": ["TESTIMONIAL", "RELATIONAL"],
-            "clue_mechanism": ["LINGUISTIC", "BEHAVIORAL"],
-            "dramatic_engine": {"primary": "PSYCHOLOGICAL_PRESSURE"},
+            "project_id": project_id,
+            "story_source_mode": "ORIGINAL",
+            "story_dna": {
+                "architecture": "ARCH-20_TRUST_BETRAYAL",
+                "incident_type": "FRAUD",
+                "reveal_mode": "RELATIONAL_REFRAME",
+                "dramatic_engine": {"primary": "PSYCHOLOGICAL_PRESSURE"},
+                "episode_theme": "TRUST_BETRAYAL",
+            },
+        },
+        "case_input": {
+            "project_id": project_id,
+            "central_mystery": "누가 피해자의 신뢰를 이용해 송금을 조작했는가?",
+        },
+        "crime_psychology": {
+            "schema_family": "crime-psychology",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "applicable": True,
             "threat_type": "CRIME",
             "trusted_domain": "WORKPLACE",
             "safe_domain_expectation": "동료의 도움 요청은 안전하다고 믿었다.",
-            "early_warning_signals": ["PRIVATE_FAVOR_ESCALATION"],
-            "boundary_erosion_steps": ["PERSONAL_ACCOUNT_REQUEST"],
-            "control_tactics": ["SOCIAL_ISOLATION"],
-            "victim_exit_barriers": ["EMPLOYMENT_REPUTATION_RISK"],
+            "psychological_pressure": "거절하면 동료의 생계가 무너진다는 압박",
+            "early_warning_signals": [
+                process_step("warning_signal_id", "WARN-01", "SCN-01", 1)
+            ],
+            "boundary_erosion_steps": [
+                process_step("boundary_step_id", "BOUND-01", "SCN-01", 2)
+            ],
+            "control_tactics": [
+                process_step("control_tactic_id", "CTRL-01", "SCN-02", 3)
+            ],
+            "victim_exit_barriers": [
+                process_step("exit_barrier_id", "EXIT-01", "SCN-02", 4)
+            ],
             "harm_mechanism": "신뢰를 이용해 금전과 평판을 통제한다.",
+            "harm_event": {
+                "harm_event_id": "HARM-01",
+                "actor_id": "CHAR-02",
+                "victim_id": "CHAR-01",
+                "scene_id": "SCN-02",
+                "order": 5,
+            },
             "responsible_agent": "CHAR-02",
             "responsible_agent_payoff": "증언과 소유관계로 책임이 특정된다.",
-            "victim_agency_outcome": "피해자가 증거를 보존하고 경계를 회복한다.",
-            "psychological_pressure": "도움을 거절하면 동료가 피해를 본다는 압박",
-            "risk_signal_payoff": "초기 사적 부탁이 통제 패턴의 시작으로 재해석된다.",
-            "source_disclosure_mode": "ORIGINAL_FICTION",
-            "clinical_label_classification": [],
+            "victim_agency_outcome": {
+                "victim_id": "CHAR-01",
+                "ending_scene_id": "SCN-03",
+                "outcome": "피해자가 증거를 보존하고 경계를 회복한다.",
+            },
+            "risk_signal_payoff": "초기 사적 부탁이 통제의 시작으로 재해석된다.",
             "episode_theme": "TRUST_BETRAYAL",
         },
+        "claim_evidence": {"project_id": project_id, "claims": []},
+        "source_disclosure": {
+            "schema_family": "source-disclosure",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "internal_mode": "ORIGINAL_FICTION",
+            "audience_label_text": "본 이야기는 창작입니다.",
+        },
+        "clinical_labels": {
+            "schema_family": "clinical-labels",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "labels": [],
+        },
+        "characters": {
+            "project_id": project_id,
+            "characters": [
+                {"character_id": "CHAR-01", "role": "VICTIM"},
+                {"character_id": "CHAR-02", "role": "RESPONSIBLE_AGENT"},
+            ],
+        },
+        "clue_matrix": {
+            "project_id": project_id,
+            "clues": [
+                {
+                    "clue_id": "CLUE-01",
+                    "role": "CORE",
+                    "evidence_class": "TESTIMONIAL",
+                    "mechanism": "LINGUISTIC",
+                    "supports_final_reveal": True,
+                    "independent_ground_id": "GROUND-01",
+                },
+                {
+                    "clue_id": "CLUE-02",
+                    "role": "CORE",
+                    "evidence_class": "RELATIONAL",
+                    "mechanism": "OWNERSHIP",
+                    "supports_final_reveal": True,
+                    "independent_ground_id": "GROUND-02",
+                },
+                {
+                    "clue_id": "CLUE-03",
+                    "role": "CORE",
+                    "evidence_class": "PHYSICAL_OBJECT",
+                    "mechanism": "BEHAVIORAL",
+                    "supports_final_reveal": False,
+                },
+            ],
+        },
+        "scene_cards": {
+            "project_id": project_id,
+            "scenes": [
+                {"scene_id": "SCN-01", "order": 1},
+                {"scene_id": "SCN-02", "order": 2},
+                {"scene_id": "SCN-03", "order": 3},
+            ],
+        },
+        "expert_segments": {
+            "schema_family": "expert-segments",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "status": "NOT_APPLICABLE",
+            "not_applicable_reason": "순수 창작에서 전문가 사실 판정을 사용하지 않는다.",
+            "segments": [],
+        },
+        "presentation_plan": {"project_id": project_id, "segments": []},
+        "expert_analysis_script": "",
+        "production_expert_analysis_script": "",
+        "panel_reaction_script": "[PANEL-01] 방금 말은 앞 증언과 다르네요.",
+        "final_script": "본 이야기는 창작입니다.\n피해자는 스스로 증거를 보존했다.",
     }
-    case_input: dict[str, object] = {
-        "central_mystery": "누가 피해자의 신뢰를 이용해 송금을 조작했는가?"
-    }
-    claim_evidence: dict[str, object] = {"claims": []}
-    presentation: dict[str, object] = {"modes": [], "segments": []}
-    return (
-        config,
-        story,
-        case_input,
-        claim_evidence,
-        presentation,
-        "ORIGINAL_FICTION · 안전한 귀가 장면",
-    )
 
 
 def policy_codes(
     channel: dict[str, object],
-    config: dict[str, object],
-    story: dict[str, object],
-    case_input: dict[str, object],
-    claims: dict[str, object],
-    presentation: dict[str, object],
-    final_script: str,
+    artifacts: dict[str, object],
 ) -> set[str]:
     """v2 정책 Issue Code 집합을 반환한다."""
     return {
         issue["code"]
         for issue in validate_channel_policy_v2(
             channel,
-            story,
-            config,
-            case_input,
-            claims,
-            presentation,
-            final_script,
+            build_channel_policy_inputs(artifacts),
         )
     }
 
 
-def test_complete_v2_policy_documents_pass() -> None:
-    """완전한 v2 정책 문서는 추가 Issue 없이 통과해야 한다."""
-    config, story, case_input, claims, presentation, script = v2_documents()
+def configure_supported_true_story_expert(
+    artifacts: dict[str, object],
+) -> None:
+    """TRUE_STORY에 필요한 Source·Claim·Expert Script 연결을 구성한다."""
+    config = artifacts["production_config"]
+    disclosure = artifacts["source_disclosure"]
+    expert_segments = artifacts["expert_segments"]
+    presentation = artifacts["presentation_plan"]
+    assert isinstance(config, dict)
+    assert isinstance(disclosure, dict)
+    assert isinstance(expert_segments, dict)
+    assert isinstance(presentation, dict)
+    config["story_source_mode"] = "TRUE_STORY"
+    disclosure["internal_mode"] = "VERIFIED_TRUE_CASE"
+    disclosure["audience_label_text"] = "실제 사건을 바탕으로 재구성했습니다."
+    artifacts["claim_evidence"] = {
+        "project_id": "PRJ-900",
+        "claims": [
+            {
+                "claim_id": "CLAIM-01",
+                "evidence_source_ids": ["SOURCE-01"],
+            }
+        ],
+    }
+    expert_segments["status"] = "PLANNED"
+    expert_segments.pop("not_applicable_reason")
+    expert_segments["segments"] = [
+        {
+            "segment_id": "SEG-900",
+            "scene_id": "SCN-03",
+            "expert_id": "EXPERT-01",
+            "expert_role": "VICTIM_ADVOCATE",
+            "function": "RISK_CONTEXT",
+            "credentials": "피해자 지원 실무 12년",
+            "claim_ids": ["CLAIM-01"],
+            "evidence_source_ids": ["SOURCE-01"],
+            "spoken_line": "초기 사적 부탁은 경계를 테스트하는 신호로 볼 수 있습니다.",
+            "confidence": "MEDIUM",
+            "limitations": "개별 행동만으로 임상 진단을 할 수는 없습니다.",
+        }
+    ]
+    presentation["segments"] = [
+        {
+            "segment_id": "SEG-900",
+            "segment_type": "EXPERT_ANALYSIS",
+            "scene_id": "SCN-03",
+            "start_sec": 120,
+            "duration_sec": 30,
+            "source_artifact": "expert_analysis_script",
+            "revealed_fact_ids": [],
+            "revealed_clue_ids": [],
+        }
+    ]
+    script = (
+        "<!-- SEGMENT:SEG-900 TYPE:EXPERT_ANALYSIS SCENE:SCN-03 DURATION:30 -->\n"
+        "초기 사적 부탁은 경계를 테스트하는 신호로 볼 수 있습니다.\n"
+        "<!-- END_SEGMENT:SEG-900 -->"
+    )
+    artifacts["expert_analysis_script"] = script
+    artifacts["production_expert_analysis_script"] = script
+    artifacts["final_script"] = (
+        "실제 사건을 바탕으로 재구성했습니다.\n"
+        "피해자는 스스로 증거를 보존했다."
+    )
 
-    assert policy_codes(
-        v2_channel(), config, story, case_input, claims, presentation, script
-    ) == set()
+
+def test_complete_v2_policy_documents_pass() -> None:
+    """완전한 v2 First-class Artifact는 추가 Issue 없이 통과해야 한다."""
+    assert policy_codes(v2_channel(), v2_artifacts()) == set()
 
 
 def test_v1_1_project_does_not_receive_v2_rules() -> None:
-    """기존 1.1.0 Project에는 활성화된 v2 정책도 소급 적용하지 않는다."""
-    config: dict[str, object] = {
-        "channel_content_version": "1.1.0",
-        "story_source_mode": "TRUE_STORY",
-    }
+    """기존 1.1.0 Project에는 v2 정책을 소급 적용하지 않는다."""
+    artifacts = v2_artifacts()
+    config = artifacts["production_config"]
+    assert isinstance(config, dict)
+    config["channel_content_version"] = "1.1.0"
+    artifacts["crime_psychology"] = {}
+    artifacts["final_script"] = "피해자가 자초했다. 사이코패스다."
 
-    assert validate_channel_policy_v2(
+    assert policy_codes(v2_channel(), artifacts) == set()
+
+
+def test_episode_theme_missing_fails() -> None:
+    """v2 Case Trace에 Episode Theme이 없으면 실패한다."""
+    artifacts = v2_artifacts()
+    crime = artifacts["crime_psychology"]
+    assert isinstance(crime, dict)
+    crime.pop("episode_theme")
+
+    assert "EPISODE_THEME_MISSING" in policy_codes(v2_channel(), artifacts)
+
+
+def test_reversed_control_step_order_fails() -> None:
+    """경고보다 앞서 통제가 발생하면 인과 순서 검증이 실패한다."""
+    artifacts = v2_artifacts()
+    crime = artifacts["crime_psychology"]
+    assert isinstance(crime, dict)
+    tactics = crime["control_tactics"]
+    assert isinstance(tactics, list)
+    tactic = tactics[0]
+    assert isinstance(tactic, dict)
+    tactic["order"] = 1
+
+    assert "COERCIVE_CONTROL_ORDER_INVALID" in policy_codes(
         v2_channel(),
-        {"story_dna": {}},
-        config,
-        {},
-        {},
-        {},
-        "피해자가 자초했다. 사이코패스다.",
-    ) == []
-
-
-def test_trusted_domain_is_required_in_v2() -> None:
-    """v2에서 Trusted Domain이 없으면 실패해야 한다."""
-    config, story, case_input, claims, presentation, script = v2_documents()
-    story_dna = story["story_dna"]
-    assert isinstance(story_dna, dict)
-    story_dna.pop("trusted_domain")
-
-    assert "TRUSTED_DOMAIN_MISSING" in policy_codes(
-        v2_channel(), config, story, case_input, claims, presentation, script
+        artifacts,
     )
 
 
-def test_control_process_fields_are_required_in_v2() -> None:
-    """경고 신호·경계 침식·통제 과정·이탈 장벽 누락을 각각 판정한다."""
-    config, story, case_input, claims, presentation, script = v2_documents()
-    story_dna = story["story_dna"]
-    assert isinstance(story_dna, dict)
-    for key in (
-        "early_warning_signals",
-        "boundary_erosion_steps",
-        "control_tactics",
-        "victim_exit_barriers",
-    ):
-        story_dna.pop(key)
-
-    codes = policy_codes(
-        v2_channel(), config, story, case_input, claims, presentation, script
+def test_late_boundary_step_after_control_fails() -> None:
+    """하나의 경계 침식 단계라도 통제 뒤에 놓이면 순서 검증이 실패한다."""
+    artifacts = v2_artifacts()
+    crime = artifacts["crime_psychology"]
+    assert isinstance(crime, dict)
+    boundaries = crime["boundary_erosion_steps"]
+    assert isinstance(boundaries, list)
+    boundaries.append(
+        process_step("boundary_step_id", "BOUND-02", "SCN-02", 4)
     )
-    assert {
-        "EARLY_WARNING_SIGNAL_MISSING",
-        "BOUNDARY_EROSION_MISSING",
-        "COERCIVE_CONTROL_PROCESS_MISSING",
-        "VICTIM_EXIT_BARRIER_MISSING",
-    }.issubset(codes)
 
-
-def test_victim_blaming_language_fails() -> None:
-    """피해자 비난 표현은 Final Script에서 차단해야 한다."""
-    config, story, case_input, claims, presentation, _script = v2_documents()
-
-    assert "VICTIM_BLAMING_LANGUAGE" in policy_codes(
+    assert "COERCIVE_CONTROL_ORDER_INVALID" in policy_codes(
         v2_channel(),
-        config,
-        story,
-        case_input,
-        claims,
-        presentation,
-        "피해자가 자초했다.",
+        artifacts,
     )
 
 
-def test_true_story_requires_expert_analysis() -> None:
-    """TRUE_STORY에는 전문가 분석 Segment가 필요하다."""
-    config, story, case_input, claims, presentation, script = v2_documents()
-    config["story_source_mode"] = "TRUE_STORY"
-    story_dna = story["story_dna"]
-    assert isinstance(story_dna, dict)
-    story_dna["source_disclosure_mode"] = "VERIFIED_TRUE_CASE"
+def test_control_trace_must_reference_real_character_and_scene() -> None:
+    """통제 과정의 Actor·Victim·Scene ID는 실제 Artifact와 연결되어야 한다."""
+    artifacts = v2_artifacts()
+    crime = artifacts["crime_psychology"]
+    assert isinstance(crime, dict)
+    warnings = crime["early_warning_signals"]
+    assert isinstance(warnings, list)
+    warning = warnings[0]
+    assert isinstance(warning, dict)
+    warning["actor_id"] = "CHAR-99"
 
-    assert "EXPERT_ANALYSIS_REQUIRED" in policy_codes(
-        v2_channel(), config, story, case_input, claims, presentation, script
-    )
-
-
-def test_inspired_story_accepts_explicit_expert_na_reason() -> None:
-    """실화 모티프 Story는 전문가 분석 대신 명시적 N/A 근거를 사용할 수 있다."""
-    config, story, case_input, claims, presentation, _script = v2_documents()
-    config["story_source_mode"] = "INSPIRED_BY_TRUE_EVENTS"
-    story_dna = story["story_dna"]
-    assert isinstance(story_dna, dict)
-    story_dna["source_disclosure_mode"] = "INSPIRED_BY_TRUE_EVENTS"
-
-    missing_codes = policy_codes(
+    assert "CRIME_PSYCHOLOGY_TRACE_INVALID" in policy_codes(
         v2_channel(),
-        config,
-        story,
-        case_input,
-        claims,
-        presentation,
-        "INSPIRED_BY_TRUE_EVENTS · 재구성 장면",
+        artifacts,
     )
-    assert "EXPERT_ANALYSIS_REQUIRED" in missing_codes
 
-    story_dna["expert_debrief_plan"] = {
-        "status": "NOT_APPLICABLE",
-        "na_reason": "임상 판단을 다루지 않고 공개 기록의 위험 신호만 제시한다.",
-    }
-    accepted_codes = policy_codes(
+
+def test_victim_agency_must_reference_trace_victim() -> None:
+    """Ending의 Agency는 단순 등장인물이 아니라 실제 피해자와 연결되어야 한다."""
+    artifacts = v2_artifacts()
+    characters = artifacts["characters"]
+    crime = artifacts["crime_psychology"]
+    assert isinstance(characters, dict)
+    assert isinstance(crime, dict)
+    character_records = characters["characters"]
+    agency = crime["victim_agency_outcome"]
+    assert isinstance(character_records, list)
+    assert isinstance(agency, dict)
+    character_records.append({"character_id": "CHAR-03", "role": "WITNESS"})
+    agency["victim_id"] = "CHAR-03"
+
+    assert "VICTIM_AGENCY_OUTCOME_MISSING" in policy_codes(
         v2_channel(),
-        config,
-        story,
-        case_input,
-        claims,
-        presentation,
-        "INSPIRED_BY_TRUE_EVENTS · 재구성 장면",
-    )
-    assert "EXPERT_ANALYSIS_REQUIRED" not in accepted_codes
-    story_schema = load_json_object(
-        ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"
-    )
-    definitions = story_schema["$defs"]
-    assert isinstance(definitions, dict)
-    assert collect_schema_errors(
-        story_dna["expert_debrief_plan"],
-        definitions["expertDebriefPlan"],
-        "expert_debrief_plan",
-    ) == []
-
-
-def test_original_fiction_cannot_be_presented_as_true() -> None:
-    """ORIGINAL 창작물을 실화 Label로 표시하면 실패해야 한다."""
-    config, story, case_input, claims, presentation, script = v2_documents()
-    story_dna = story["story_dna"]
-    assert isinstance(story_dna, dict)
-    story_dna["source_disclosure_mode"] = "VERIFIED_TRUE_CASE"
-
-    assert "FICTION_PRESENTED_AS_TRUE" in policy_codes(
-        v2_channel(), config, story, case_input, claims, presentation, script
+        artifacts,
     )
 
 
-def test_unsupported_clinical_diagnosis_fails() -> None:
-    """통제 임상 용어를 분류와 근거 없이 사용하면 실패해야 한다."""
-    config, story, case_input, claims, presentation, _script = v2_documents()
-
-    assert "UNSUPPORTED_CLINICAL_DIAGNOSIS" in policy_codes(
-        v2_channel(),
-        config,
-        story,
-        case_input,
-        claims,
-        presentation,
-        "그는 사이코패스다.",
-    )
-
-
-def test_expert_claim_requires_claim_evidence_link() -> None:
-    """전문가 발화 Claim은 Evidence Source와 연결되어야 한다."""
-    config, story, case_input, claims, presentation, script = v2_documents()
-    config["story_source_mode"] = "TRUE_STORY"
-    story_dna = story["story_dna"]
-    assert isinstance(story_dna, dict)
-    story_dna["source_disclosure_mode"] = "VERIFIED_TRUE_CASE"
-    presentation["segments"] = [
+def test_technical_log_only_reveal_fails() -> None:
+    """기술 로그 하나만 Final Reveal을 지지하면 실패한다."""
+    artifacts = v2_artifacts()
+    clue_matrix = artifacts["clue_matrix"]
+    assert isinstance(clue_matrix, dict)
+    clue_matrix["clues"] = [
         {
-            "segment_id": "SEG-010",
-            "segment_type": "EXPERT_ANALYSIS",
-            "expert_analysis": {
-                "expert_id": "EXPERT-01",
-                "claim_ids": ["FACT-10"],
-                "evidence_source_ids": ["SOURCE-10"],
-            },
+            "clue_id": "CLUE-99",
+            "role": "CORE",
+            "evidence_class": "TECHNICAL",
+            "mechanism": "MACHINE_LOG",
+            "supports_final_reveal": True,
+            "independent_ground_id": "GROUND-99",
         }
     ]
 
-    assert "EXPERT_ANALYSIS_UNSUPPORTED_CLAIM" in policy_codes(
-        v2_channel(), config, story, case_input, claims, presentation, script
+    assert "TECHNICAL_PUZZLE_DOMINANCE" in policy_codes(
+        v2_channel(),
+        artifacts,
     )
 
 
-def test_expert_analysis_is_supported_as_conditional_segment() -> None:
-    """전문가 분석 Segment는 전문가와 Claim-Evidence 식별자를 가져야 한다."""
+def test_expert_marker_in_panel_script_fails() -> None:
+    """Expert 발화를 Panel Script에 넣으면 Layer 분리 검증이 실패한다."""
+    artifacts = v2_artifacts()
+    artifacts["panel_reaction_script"] = "[EXPERT-01] 이 행동은 진단을 입증합니다."
+
+    assert "PANEL_OPINION_USED_AS_EXPERT_FACT" in policy_codes(
+        v2_channel(),
+        artifacts,
+    )
+
+
+def test_audience_label_text_missing_fails() -> None:
+    """정확한 시청자 공개 문구가 Final Script에 없으면 실패한다."""
+    artifacts = v2_artifacts()
+    artifacts["final_script"] = "피해자는 증거를 보존했다."
+
+    assert "SOURCE_DISCLOSURE_MISSING" in policy_codes(
+        v2_channel(),
+        artifacts,
+    )
+
+
+def test_criminal_act_alone_cannot_confirm_psychopathy() -> None:
+    """범죄 행위만으로 사이코패스 진단을 확정하면 실패한다."""
+    artifacts = v2_artifacts()
+    clinical = artifacts["clinical_labels"]
+    assert isinstance(clinical, dict)
+    clinical["labels"] = [
+        {
+            "term": "사이코패스",
+            "subject_id": "CHAR-02",
+            "classification": "CONFIRMED_DIAGNOSIS",
+            "source_claim_ids": [],
+            "qualified_expert": False,
+            "documented_assessment": False,
+        }
+    ]
+    artifacts["final_script"] = "본 이야기는 창작입니다. 범죄를 저지른 사이코패스다."
+
+    codes = policy_codes(v2_channel(), artifacts)
+    assert "CRIMINAL_ACT_TREATED_AS_DIAGNOSIS" in codes
+    assert "CLINICAL_LABEL_SOURCE_MISSING" in codes
+    assert "UNSUPPORTED_CLINICAL_DIAGNOSIS" in codes
+
+
+def test_true_story_requires_expert_analysis() -> None:
+    """TRUE_STORY에 Expert Segment가 없으면 실패한다."""
+    artifacts = v2_artifacts()
+    config = artifacts["production_config"]
+    disclosure = artifacts["source_disclosure"]
+    assert isinstance(config, dict)
+    assert isinstance(disclosure, dict)
+    config["story_source_mode"] = "TRUE_STORY"
+    disclosure["internal_mode"] = "VERIFIED_TRUE_CASE"
+    disclosure["audience_label_text"] = "실제 사건을 바탕으로 재구성했습니다."
+    artifacts["final_script"] = "실제 사건을 바탕으로 재구성했습니다."
+
+    assert "EXPERT_ANALYSIS_REQUIRED" in policy_codes(v2_channel(), artifacts)
+
+
+def test_true_story_with_claim_evidence_expert_segment_passes() -> None:
+    """TRUE_STORY Expert가 실제 Claim·Source·대본과 연결되면 통과한다."""
+    artifacts = v2_artifacts()
+    configure_supported_true_story_expert(artifacts)
+
+    assert policy_codes(v2_channel(), artifacts) == set()
+
+
+def test_expert_claim_without_matching_evidence_fails() -> None:
+    """Expert Claim이 선언한 Source와 맞지 않으면 실패한다."""
+    artifacts = v2_artifacts()
+    configure_supported_true_story_expert(artifacts)
+    evidence = artifacts["claim_evidence"]
+    assert isinstance(evidence, dict)
+    claims = evidence["claims"]
+    assert isinstance(claims, list)
+    claim = claims[0]
+    assert isinstance(claim, dict)
+    claim["evidence_source_ids"] = ["SOURCE-99"]
+
+    assert "EXPERT_ANALYSIS_UNSUPPORTED_CLAIM" in policy_codes(
+        v2_channel(),
+        artifacts,
+    )
+
+
+def test_expert_analysis_source_must_be_expert_script() -> None:
+    """EXPERT_ANALYSIS Segment는 Panel Script를 Source로 사용할 수 없다."""
     presentation = fake_presentation_plan("PRJ-900", 120)
     modes = presentation["modes"]
     segments = presentation["segments"]
@@ -380,16 +554,26 @@ def test_expert_analysis_is_supported_as_conditional_segment() -> None:
             "source_artifact": "panel_reaction_script",
             "revealed_fact_ids": ["FACT-02"],
             "revealed_clue_ids": [],
-            "expert_analysis": {
-                "expert_id": "EXPERT-01",
-                "credentials": "임상심리전문가",
-                "claim_ids": ["FACT-02"],
-                "evidence_source_ids": ["SOURCE-01"],
-            },
         }
     )
     schema = load_json_object(
         ROOT / "STANDARD" / "schemas" / "presentation_plan.schema.json"
     )
 
-    assert collect_schema_errors(presentation, schema, "presentation_plan") == []
+    assert collect_schema_errors(presentation, schema, "presentation_plan")
+
+
+def test_first_class_v2_artifact_schemas_accept_complete_fixture() -> None:
+    """v2 First-class JSON Artifact는 각 Schema를 통과해야 한다."""
+    artifacts = v2_artifacts()
+    pairs = (
+        ("crime_psychology", "crime_psychology.schema.json"),
+        ("source_disclosure", "source_disclosure.schema.json"),
+        ("clinical_labels", "clinical_labels.schema.json"),
+        ("expert_segments", "expert_segments.schema.json"),
+    )
+    for artifact_name, schema_name in pairs:
+        artifact = artifacts[artifact_name]
+        assert isinstance(artifact, dict)
+        schema = load_json_object(ROOT / "STANDARD" / "schemas" / schema_name)
+        assert collect_schema_errors(artifact, schema, artifact_name) == []

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/source-disclosure-1.0.0.json",
+  "title": "Audience Source Disclosure",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "internal_mode",
+    "audience_label_text"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "source-disclosure"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "internal_mode": {
+      "enum": [
+        "ORIGINAL_FICTION",
+        "VERIFIED_TRUE_CASE",
+        "INSPIRED_BY_TRUE_EVENTS"
+      ]
+    },
+    "audience_label_text": {"type": "string", "minLength": 1}
+  }
+}

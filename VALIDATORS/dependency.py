@@ -5,6 +5,7 @@ from copy import deepcopy
 from hashlib import sha256
 from typing import cast
 
+from VALIDATORS.compatibility import parse_semantic_version
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.models import ArtifactState, ProjectState
 
@@ -32,6 +33,24 @@ def dependency_names(definition: Mapping[str, object], artifact_name: str) -> li
             f"depends_on은 문자열 배열이어야 합니다: artifact={artifact_name}"
         )
     return cast(list[str], depends_on.copy())
+
+
+def artifact_required_for_channel_version(
+    definition: Mapping[str, object],
+    channel_content_version: str,
+) -> bool:
+    """Artifact가 Project가 고정한 Channel Version에서 필수인지 판정한다."""
+    minimum = definition.get("minimum_channel_content_version")
+    if minimum is None:
+        return True
+    if not isinstance(minimum, str):
+        raise ConfigurationError(
+            "minimum_channel_content_version 문자열이 필요합니다: "
+            f"actual={minimum!r}"
+        )
+    return parse_semantic_version(channel_content_version) >= parse_semantic_version(
+        minimum
+    )
 
 
 def validate_dependency_graph(graph: Mapping[str, object]) -> None:

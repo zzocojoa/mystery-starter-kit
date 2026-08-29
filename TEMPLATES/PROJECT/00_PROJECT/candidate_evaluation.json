@@ -1,8 +1,11 @@
 {
   "$schema": "../../../STANDARD/schemas/candidate_evaluation.schema.json",
   "schema_family": "candidate-evaluation",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "project_id": "PRJ-000",
-  "selected_candidate_id": "VAR-00",
+  "weights": {},
+  "input_hashes": {},
+  "novelty_report_hash": null,
+  "recommended_candidate_id": null,
   "evaluations": []
 }

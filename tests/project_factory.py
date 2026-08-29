@@ -34,7 +34,6 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     )
     catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
     variations = generate_variation_candidates(project_id, "공장 교대 중 사라진 작업자", 5, catalog)
-    variations = approve_variation_candidate(variations, "VAR-01")
     candidates = variations["candidates"]
     story_dna = story_document["story_dna"]
     assert isinstance(candidates, list)
@@ -67,6 +66,17 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     dramatic_engine["primary"] = selection["dramatic_engine"]
     thresholds = load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json")
     novelty_precheck = evaluate_variation_precheck(variations, [], thresholds)
+    candidate_evaluation = fake_candidate_evaluation(
+        project_id,
+        variations,
+        novelty_precheck,
+    )
+    recommended_candidate_id = candidate_evaluation["recommended_candidate_id"]
+    assert isinstance(recommended_candidate_id, str)
+    variations = approve_variation_candidate(
+        variations,
+        recommended_candidate_id,
+    )
 
     production_config: dict[str, object] = {
         "project_id": project_id,
@@ -261,6 +271,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
                 "schema_version": "1.0.0",
                 "content_version": "1.1.0",
                 "channel_dna_sha256": channel_dna_sha256(channel),
+                "relative_path": "versions/1.1.0/channel_dna.json",
             },
             "compatibility": "PASS",
             "errors": [],
@@ -274,14 +285,36 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "prohibited_story_content": [],
         },
         "variation_candidates": variations,
-        "candidate_evaluation": fake_candidate_evaluation(project_id, variations),
+        "candidate_evaluation": candidate_evaluation,
         "novelty_precheck": novelty_precheck,
         "story_dna": story_document,
         "story_fingerprint": fingerprint,
         "case_input": case_input,
         "facts": facts,
+        "crime_psychology": {
+            "schema_family": "crime-psychology",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "applicable": False,
+            "not_applicable_reason": (
+                "Channel Content Version 1.1.0에서는 필수 정책이 아닙니다."
+            ),
+        },
         "sources": {"project_id": project_id, "sources": []},
         "claim_evidence": {"project_id": project_id, "claims": []},
+        "source_disclosure": {
+            "schema_family": "source-disclosure",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "internal_mode": "ORIGINAL_FICTION",
+            "audience_label_text": "본 이야기는 창작입니다.",
+        },
+        "clinical_labels": {
+            "schema_family": "clinical-labels",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "labels": [],
+        },
         "characters": characters,
         "relationships": relationships,
         "knowledge_matrix": knowledge_matrix,
@@ -334,8 +367,22 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "scene_cards": scene_cards,
         "panel_cast": fake_panel_cast(project_id),
         "reaction_segments": fake_reaction_segments(project_id, total_seconds),
+        "expert_segments": {
+            "schema_family": "expert-segments",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "status": "NOT_APPLICABLE",
+            "not_applicable_reason": (
+                "Channel Content Version 1.1.0에서는 전문가 분석이 선택 사항입니다."
+            ),
+            "segments": [],
+        },
         "presentation_plan": fake_presentation_plan(project_id, total_seconds),
         **layer_scripts,
+        "expert_analysis_script": (
+            "# Expert Analysis\n\n"
+            "Channel Content Version 1.1.0에서는 적용 대상이 아닙니다."
+        ),
         "draft_script": broadcast_master,
         "final_script": broadcast_master,
         "shooting_script": "SCN-01 통제실 와이드. SCN-02 이송 설비 클로즈업.",
@@ -344,6 +391,10 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "RSEG-001 논리 패널 Cue\n"
             "RSEG-002 반론 패널 Cue\n"
             "RSEG-003 논리 패널 Cue"
+        ),
+        "production_expert_analysis_script": (
+            "# Production Expert Analysis\n\n"
+            "Channel Content Version 1.1.0에서는 적용 대상이 아닙니다."
         ),
         "subtitle_script": "00:00 지안은 7분의 공백을 발견한다.",
         "edit_script": fake_edit_script(project_id, total_seconds),

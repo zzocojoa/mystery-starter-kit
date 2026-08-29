@@ -43,7 +43,12 @@
     "missing_required_capabilities": "FAIL",
     "unsupported_schema_family": "FAIL",
     "unsupported_schema_version": "FAIL",
-    "content_version_mismatch": "FAIL"
+    "content_version_mismatch": "IGNORE"
+  },
+  "project_binding_policy": {
+    "content_version_not_found": "FAIL",
+    "content_version_mismatch": "FAIL",
+    "channel_dna_hash_mismatch": "FAIL"
   },
   "fallback_policy": {
     "source": "standard_defaults.json",

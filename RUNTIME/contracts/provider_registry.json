@@ -10,7 +10,12 @@
       "credential_env": null,
       "endpoint": null,
       "data_policy": {
-        "allowed_classes": ["PUBLIC", "INTERNAL", "REFERENCE_SANITIZED"]
+        "allowed_classes": [
+          "PUBLIC",
+          "INTERNAL",
+          "SENSITIVE",
+          "REFERENCE_SANITIZED"
+        ]
       }
     }
   }

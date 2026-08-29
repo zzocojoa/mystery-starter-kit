@@ -5,10 +5,29 @@ from pathlib import Path
 
 from project_factory import make_complete_project_artifacts
 
+from RUNTIME.providers.fake import fake_candidate_evaluation
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.pipeline import ArtifactContent
 from VALIDATORS.production_cli import ROOT, run_cli
 from VALIDATORS.schema_validation import collect_schema_errors
+
+
+def write_candidate_evaluation(project_path: Path) -> str:
+    """현재 Variation과 Novelty Precheck에서 평가 Artifact를 작성한다."""
+    variations = load_json_object(
+        project_path / "00_PROJECT" / "variation_candidates.json"
+    )
+    precheck = load_json_object(project_path / "08_QA" / "novelty_precheck.json")
+    project_id = variations.get("project_id")
+    assert isinstance(project_id, str)
+    evaluation = fake_candidate_evaluation(project_id, variations, precheck)
+    write_json_object(
+        project_path / "00_PROJECT" / "candidate_evaluation.json",
+        evaluation,
+    )
+    recommended = evaluation["recommended_candidate_id"]
+    assert isinstance(recommended, str)
+    return recommended
 
 
 def write_complete_artifacts(
@@ -57,12 +76,14 @@ def test_validate_audits_without_reconstructing_state(tmp_path: Path) -> None:
             "5",
         ]
     )
-    approve_code = run_cli(["approve", str(project_path), "VAR-01"])
     precheck_code = run_cli(["precheck", str(project_path)])
+    recommended = write_candidate_evaluation(project_path)
+    approve_code = run_cli(["approve", str(project_path), recommended])
     artifacts = make_complete_project_artifacts()
     for generated_artifact in (
         "compatibility_report",
         "variation_candidates",
+        "candidate_evaluation",
         "novelty_precheck",
     ):
         del artifacts[generated_artifact]
@@ -277,8 +298,10 @@ def test_rebuild_state_requires_explicit_force(tmp_path: Path) -> None:
     assert state_path.read_bytes() == state_before
 
 
-def test_variation_approval_and_precheck_commands_form_gate_one(tmp_path: Path) -> None:
-    """후보 생성·승인·History Precheck 명령이 GATE-01 Artifact를 완성해야 한다."""
+def test_variation_precheck_evaluation_and_approval_form_gate_one(
+    tmp_path: Path,
+) -> None:
+    """후보·Precheck·평가·승인 순서가 GATE-01 계약을 만족한다."""
     projects_root = tmp_path / "projects"
     assert run_cli(
         [
@@ -307,15 +330,151 @@ def test_variation_approval_and_precheck_commands_form_gate_one(tmp_path: Path) 
             "5",
         ]
     ) == 0
-    assert run_cli(["approve", str(project_path), "VAR-01"]) == 0
     assert run_cli(["precheck", str(project_path)]) == 0
+    recommended = write_candidate_evaluation(project_path)
+    assert run_cli(["approve", str(project_path), recommended]) == 0
     report = load_json_object(project_path / "08_QA" / "novelty_precheck.json")
+    candidates = load_json_object(
+        project_path / "00_PROJECT" / "variation_candidates.json"
+    )
 
     assert report["result"] == "PASS"
-    assert report["approved_candidate_id"] == "VAR-01"
+    assert "approved_candidate_id" not in report
+    assert candidates["approved_candidate_id"] == recommended
     assert compatibility["project_id"] == "PRJ-004"
     assert compatibility["compatibility"] == "PASS"
     assert state["current_gate"] == "GATE-00"
+
+
+def test_approve_before_candidate_evaluation_fails(tmp_path: Path) -> None:
+    """Candidate Evaluation이 없으면 approve는 명시적으로 실패한다."""
+    projects_root = tmp_path / "projects"
+    assert run_cli(
+        [
+            "init",
+            "PRJ-008",
+            "--projects-root",
+            str(projects_root),
+            "--created-at",
+            "2026-08-25T00:00:00Z",
+        ]
+    ) == 0
+    project_path = projects_root / "PRJ-008"
+    assert run_cli(["compat", str(project_path)]) == 0
+    assert run_cli(
+        [
+            "variations",
+            str(project_path),
+            "--seed",
+            "평가 전 승인 차단",
+            "--count",
+            "5",
+        ]
+    ) == 0
+
+    assert run_cli(["approve", str(project_path), "VAR-01"]) == 2
+
+
+def test_migrate_channel_pin_preserves_story_artifacts(tmp_path: Path) -> None:
+    """Channel Pin Migration은 Story를 쓰지 않고 구성·보고·상태만 갱신한다."""
+    projects_root = tmp_path / "projects"
+    assert run_cli(
+        [
+            "init",
+            "PRJ-009",
+            "--projects-root",
+            str(projects_root),
+            "--created-at",
+            "2026-08-25T00:00:00Z",
+        ]
+    ) == 0
+    project_path = projects_root / "PRJ-009"
+    excluded = {
+        "00_PROJECT/production_config.json",
+        "00_PROJECT/compatibility_report.json",
+        "00_PROJECT/project_state.json",
+        "00_PROJECT/change_log.jsonl",
+    }
+    preserved_before = {
+        path.relative_to(project_path).as_posix(): path.read_bytes()
+        for path in project_path.rglob("*")
+        if path.is_file()
+        and path.relative_to(project_path).as_posix() not in excluded
+    }
+
+    result = run_cli(
+        [
+            "migrate-channel-pin",
+            str(project_path),
+            "--channel-content-version",
+            "1.1.0",
+        ]
+    )
+    config = load_json_object(
+        project_path / "00_PROJECT" / "production_config.json"
+    )
+    report = load_json_object(
+        project_path / "00_PROJECT" / "compatibility_report.json"
+    )
+    state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
+    preserved_after = {
+        path.relative_to(project_path).as_posix(): path.read_bytes()
+        for path in project_path.rglob("*")
+        if path.is_file()
+        and path.relative_to(project_path).as_posix() not in excluded
+    }
+
+    assert result == 0
+    assert config["channel_content_version"] == "1.1.0"
+    assert report["compatibility"] == "PASS"
+    channel_summary = report["channel"]
+    assert isinstance(channel_summary, dict)
+    assert channel_summary["relative_path"] == "versions/1.1.0/channel_dna.json"
+    assert state["state"] == "BLOCKED"
+    assert state["current_gate"] == "NONE"
+    readiness = state["readiness"]
+    assert isinstance(readiness, dict)
+    assert readiness["process_revision"] == 2
+    assert readiness["process_start_gate"] == "GATE-00"
+    assert preserved_after == preserved_before
+
+
+def test_migrate_channel_pin_rejects_unregistered_version(tmp_path: Path) -> None:
+    """등록되지 않은 Channel Pin Migration은 아무 파일도 바꾸지 않는다."""
+    projects_root = tmp_path / "projects"
+    assert run_cli(
+        [
+            "init",
+            "PRJ-010",
+            "--projects-root",
+            str(projects_root),
+            "--created-at",
+            "2026-08-25T00:00:00Z",
+        ]
+    ) == 0
+    project_path = projects_root / "PRJ-010"
+    before = {
+        path.relative_to(project_path).as_posix(): path.read_bytes()
+        for path in project_path.rglob("*")
+        if path.is_file()
+    }
+
+    result = run_cli(
+        [
+            "migrate-channel-pin",
+            str(project_path),
+            "--channel-content-version",
+            "9.9.9",
+        ]
+    )
+    after = {
+        path.relative_to(project_path).as_posix(): path.read_bytes()
+        for path in project_path.rglob("*")
+        if path.is_file()
+    }
+
+    assert result == 2
+    assert after == before
 
 
 def test_variations_require_project_compatibility_gate(tmp_path: Path) -> None:

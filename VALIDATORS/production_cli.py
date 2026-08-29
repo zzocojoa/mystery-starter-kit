@@ -12,8 +12,12 @@ from uuid import uuid4
 
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.transactions import acquire_project_lock, release_project_lock
+from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.change_log import append_change_log
-from VALIDATORS.channel_registry import resolve_project_channel
+from VALIDATORS.channel_registry import (
+    registered_channel_relative_path,
+    resolve_project_channel,
+)
 from VALIDATORS.cli import (
     evaluate_compatibility_documents,
     raise_for_configuration_schema_errors,
@@ -62,7 +66,7 @@ from VALIDATORS.library_store import (
     sync_novelty_production_ready,
     sync_novelty_revision,
 )
-from VALIDATORS.models import ProjectState, ValidationIssue
+from VALIDATORS.models import ProjectCompatibilityReport, ProjectState, ValidationIssue
 from VALIDATORS.novelty import evaluate_variation_precheck
 from VALIDATORS.pipeline import load_selected_project_artifacts
 from VALIDATORS.reference_validation import sanitize_reference_profile
@@ -130,7 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     precheck_parser = subparsers.add_parser(
         "precheck",
-        help="승인 Variation을 Story History와 사전 비교합니다.",
+        help="모든 Variation을 Story History와 사전 비교합니다.",
     )
     precheck_parser.add_argument("project_path", type=Path)
 
@@ -244,6 +248,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="승인 완료 Project를 Production Ready로 전이합니다.",
     )
     finalize_parser.add_argument("project_path", type=Path)
+
+    migrate_parser = subparsers.add_parser(
+        "migrate-channel-pin",
+        help="Story를 수정하지 않고 Project의 Channel Content Version Pin을 이전합니다.",
+    )
+    migrate_parser.add_argument("project_path", type=Path)
+    migrate_parser.add_argument(
+        "--channel-content-version",
+        required=True,
+    )
     return parser
 
 
@@ -325,6 +339,122 @@ def validate_project_compatibility_configuration(
             f"channel_id={channel_id!r}, fields={channel_id_mismatches}"
         )
     return project_id
+
+
+def make_compatibility_report_for_config(
+    project_id: str,
+    production_config: Mapping[str, object],
+    channel_override: Path | None,
+) -> tuple[ProjectCompatibilityReport, dict[str, object], Path]:
+    """Project Pin에 맞는 Channel로 Compatibility Report를 계산한다."""
+    contract_path = ROOT / "STANDARD" / "compatibility_contract.json"
+    defaults_path = ROOT / "STANDARD" / "standard_defaults.json"
+    channel_schema_path = ROOT / "STANDARD" / "schemas" / "channel_dna.schema.json"
+    channel, channel_manifest, channel_path = resolve_project_channel(
+        ROOT,
+        production_config,
+        channel_override,
+    )
+    report = evaluate_compatibility_documents(
+        load_json_object(contract_path),
+        load_json_object(defaults_path),
+        channel,
+        load_json_object(
+            ROOT / "STANDARD" / "schemas" / "compatibility_contract.schema.json"
+        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "standard_defaults.schema.json"),
+        load_json_object(channel_schema_path),
+        str(contract_path),
+        str(defaults_path),
+        str(channel_path),
+    )
+    bound_report = evaluate_channel_binding(
+        report,
+        production_config,
+        channel_manifest,
+        channel,
+    )
+    pinned_version = production_config.get("channel_content_version")
+    if not isinstance(pinned_version, str):
+        raise ConfigurationError(
+            "production_config.channel_content_version 문자열이 필요합니다."
+        )
+    relative_path = registered_channel_relative_path(
+        channel_manifest,
+        pinned_version,
+    )
+    project_report = make_project_compatibility_report(
+        project_id,
+        bound_report,
+        relative_path,
+    )
+    return project_report, channel, channel_path
+
+
+def expand_project_state_artifacts(
+    state: ProjectState,
+    dependency_graph: Mapping[str, object],
+) -> ProjectState:
+    """현재 Dependency Graph의 신규 Artifact를 MISSING 상태로 추가한다."""
+    next_state = deepcopy(state)
+    for artifact_name in dependency_artifacts(dependency_graph):
+        if artifact_name not in next_state["artifacts"]:
+            next_state["artifacts"][artifact_name] = {
+                "status": "MISSING",
+                "content_hash": None,
+                "invalidated_by": [],
+            }
+    return next_state
+
+
+def invalidate_channel_pin_state(
+    state: ProjectState,
+    dependency_graph: Mapping[str, object],
+    production_config_hash: str,
+    compatibility_report_hash: str,
+    updated_at: str,
+) -> ProjectState:
+    """Channel Pin 변경을 GATE-00부터 재검증하도록 상태에 전파한다."""
+    expanded = expand_project_state_artifacts(state, dependency_graph)
+    invalidated = invalidate_artifact_dependents(
+        dependency_graph,
+        expanded,
+        "compatibility_report",
+        compatibility_report_hash,
+        updated_at,
+    )
+    invalidated = mark_artifact_clean(
+        invalidated,
+        "compatibility_report",
+        compatibility_report_hash,
+        updated_at,
+    )
+    invalidated = invalidate_artifact_dependents(
+        dependency_graph,
+        invalidated,
+        "production_config",
+        production_config_hash,
+        updated_at,
+    )
+    invalidated = mark_artifact_clean(
+        invalidated,
+        "production_config",
+        production_config_hash,
+        updated_at,
+    )
+    next_state = deepcopy(invalidated)
+    next_state["state"] = "BLOCKED"
+    next_state["current_gate"] = "NONE"
+    next_state["readiness"] = {
+        "artifact_status": "INCOMPLETE",
+        "contract_status": "UNVALIDATED",
+        "process_status": "NONCONFORMANT",
+        "editorial_status": "NOT_REVIEWED",
+        "process_start_gate": "GATE-00",
+        "process_revision": state["readiness"]["process_revision"] + 1,
+    }
+    next_state["updated_at"] = updated_at
+    return next_state
 
 
 def synchronize_compatibility_state(
@@ -664,57 +794,36 @@ def run_init(args: argparse.Namespace) -> int:
 
 def run_compat(args: argparse.Namespace) -> int:
     """Project-aware Compatibility 판정과 GATE-00 전이를 실행한다."""
-    contract_path = ROOT / "STANDARD" / "compatibility_contract.json"
-    defaults_path = ROOT / "STANDARD" / "standard_defaults.json"
-    contract_schema_path = (
-        ROOT / "STANDARD" / "schemas" / "compatibility_contract.schema.json"
-    )
-    defaults_schema_path = (
-        ROOT / "STANDARD" / "schemas" / "standard_defaults.schema.json"
-    )
-    channel_schema_path = ROOT / "STANDARD" / "schemas" / "channel_dna.schema.json"
     production_config = load_json_object(
         args.project_path / "00_PROJECT" / "production_config.json"
     )
     channel_override = args.channel if isinstance(args.channel, Path) else None
-    channel, channel_manifest, channel_path = resolve_project_channel(
-        ROOT,
+    channel, _manifest, _channel_path = resolve_project_channel(
+        ROOT, production_config, channel_override
+    )
+    project_id = validate_project_compatibility_configuration(
+        args.project_path,
+        channel,
+    )
+    project_report, _channel, _resolved_path = make_compatibility_report_for_config(
+        project_id,
         production_config,
         channel_override,
     )
-    project_id = validate_project_compatibility_configuration(args.project_path, channel)
-    report = evaluate_compatibility_documents(
-        load_json_object(contract_path),
-        load_json_object(defaults_path),
-        channel,
-        load_json_object(contract_schema_path),
-        load_json_object(defaults_schema_path),
-        load_json_object(channel_schema_path),
-        str(contract_path),
-        str(defaults_path),
-        str(channel_path),
-    )
-    report = evaluate_channel_binding(
-        report,
-        production_config,
-        channel_manifest,
-        channel,
-    )
-    project_report = make_project_compatibility_report(project_id, report)
     output_path = args.project_path / "00_PROJECT" / "compatibility_report.json"
     write_json_object(output_path, project_report)
     changed_at = utc_now()
     state = synchronize_compatibility_state(
         args.project_path,
-        report["compatibility"] == "PASS",
+        project_report["compatibility"] == "PASS",
         changed_at,
     )
     append_change_log(
         args.project_path,
         "PROJECT_COMPATIBILITY_EVALUATED",
         {
-            "compatibility": report["compatibility"],
-            "error_count": len(report["errors"]),
+            "compatibility": project_report["compatibility"],
+            "error_count": len(cast(list[object], project_report["errors"])),
             "current_gate": state["current_gate"],
         },
         changed_at,
@@ -723,15 +832,110 @@ def run_compat(args: argparse.Namespace) -> int:
         json.dumps(
             {
                 "project_id": project_id,
-                "compatibility": report["compatibility"],
+                "compatibility": project_report["compatibility"],
                 "current_gate": state["current_gate"],
                 "report": str(output_path),
-                "error_count": len(report["errors"]),
+                "error_count": len(cast(list[object], project_report["errors"])),
             },
             ensure_ascii=False,
         )
     )
-    return 0 if report["compatibility"] == "PASS" else 1
+    return 0 if project_report["compatibility"] == "PASS" else 1
+
+
+def run_migrate_channel_pin(args: argparse.Namespace) -> int:
+    """Story Artifact를 보존하며 등록된 Channel Pin으로 이전한다."""
+    project_path = args.project_path.resolve()
+    requested_version = args.channel_content_version
+    if not isinstance(requested_version, str):
+        raise ConfigurationError(
+            "--channel-content-version 문자열이 필요합니다."
+        )
+    run_id = f"MIGRATE-{uuid4()}"
+    lock_path = acquire_project_lock(project_path, run_id)
+    try:
+        config_path = project_path / "00_PROJECT" / "production_config.json"
+        report_path = project_path / "00_PROJECT" / "compatibility_report.json"
+        state_path = project_path / "00_PROJECT" / "project_state.json"
+        current_config = load_json_object(config_path)
+        migrated_config = deepcopy(current_config)
+        migrated_config["channel_content_version"] = requested_version
+        config_schema = load_json_object(
+            ROOT / "STANDARD" / "schemas" / "production_config.schema.json"
+        )
+        raise_for_configuration_schema_errors(
+            collect_schema_errors(
+                migrated_config,
+                config_schema,
+                str(config_path),
+            ),
+            str(config_path),
+        )
+        project_id = project_id_from_manifest(project_path)
+        if migrated_config.get("project_id") != project_id:
+            raise ConfigurationError(
+                "Project ID가 Manifest와 Production Config에서 다릅니다: "
+                f"manifest={project_id}, config={migrated_config.get('project_id')!r}"
+            )
+        project_report, channel, channel_path = make_compatibility_report_for_config(
+            project_id,
+            migrated_config,
+            None,
+        )
+        if migrated_config.get("channel_id") != channel.get("channel_id"):
+            raise ConfigurationError(
+                "Channel ID가 Production Config와 등록 DNA에서 다릅니다: "
+                f"config={migrated_config.get('channel_id')!r}, "
+                f"channel={channel.get('channel_id')!r}"
+            )
+        if project_report.get("compatibility") != "PASS":
+            raise ConfigurationError(
+                "Channel Pin Migration Compatibility가 실패했습니다: "
+                f"errors={project_report.get('errors')!r}"
+            )
+        dependency_graph = load_json_object(
+            ROOT / "STANDARD" / "dependency_graph.json"
+        )
+        current_state = load_project_state(project_path)
+        migrated_at = utc_now()
+        write_json_object(config_path, migrated_config)
+        write_json_object(report_path, project_report)
+        next_state = invalidate_channel_pin_state(
+            current_state,
+            dependency_graph,
+            artifact_hash(config_path.read_bytes()),
+            artifact_hash(report_path.read_bytes()),
+            migrated_at,
+        )
+        write_json_object(state_path, next_state)
+        channel_summary = project_report["channel"]
+        append_change_log(
+            project_path,
+            "CHANNEL_CONTENT_VERSION_PIN_MIGRATED",
+            {
+                "previous_version": current_config.get("channel_content_version"),
+                "channel_content_version": requested_version,
+                "relative_path": channel_summary.get("relative_path"),
+                "channel_path": str(channel_path),
+                "process_revision": next_state["readiness"]["process_revision"],
+            },
+            migrated_at,
+        )
+    finally:
+        release_project_lock(lock_path, run_id)
+    print(
+        json.dumps(
+            {
+                "project_id": project_id,
+                "channel_content_version": requested_version,
+                "current_gate": next_state["current_gate"],
+                "project_state": next_state["state"],
+                "compatibility": project_report["compatibility"],
+            },
+            ensure_ascii=False,
+        )
+    )
+    return 0
 
 
 def run_variations(args: argparse.Namespace) -> int:
@@ -786,10 +990,72 @@ def run_validate(args: argparse.Namespace) -> int:
 
 
 def run_approve(args: argparse.Namespace) -> int:
-    """Variation 후보 승인 명령을 실행한다."""
+    """최신 Novelty와 평가 근거를 통과한 Variation 후보를 승인한다."""
     path = args.project_path / "00_PROJECT" / "variation_candidates.json"
     document = load_json_object(path)
+    evaluation_path = args.project_path / "00_PROJECT" / "candidate_evaluation.json"
+    evaluation = load_json_object(evaluation_path)
+    evaluations = evaluation.get("evaluations")
+    if not isinstance(evaluations, list) or not evaluations:
+        raise GateTransactionError(
+            "CANDIDATE_EVALUATION_REQUIRED",
+            "Variation 승인 전에 Candidate 평가가 필요합니다.",
+            {"path": str(evaluation_path)},
+        )
+    evaluation_schema = load_json_object(
+        ROOT / "STANDARD" / "schemas" / "candidate_evaluation.schema.json"
+    )
+    schema_errors = collect_schema_errors(
+        evaluation,
+        evaluation_schema,
+        str(evaluation_path),
+    )
+    if schema_errors:
+        raise GateTransactionError(
+            "CANDIDATE_EVALUATION_INVALID",
+            "Candidate 평가가 Schema를 통과하지 못했습니다.",
+            {"issues": schema_errors},
+        )
+    novelty_path = args.project_path / "08_QA" / "novelty_precheck.json"
+    novelty_precheck = load_json_object(novelty_path)
+    novelty_schema_errors = collect_schema_errors(
+        novelty_precheck,
+        load_json_object(
+            ROOT / "STANDARD" / "schemas" / "novelty_precheck.schema.json"
+        ),
+        str(novelty_path),
+    )
+    if novelty_schema_errors:
+        raise GateTransactionError(
+            "CANDIDATE_NOVELTY_PRECHECK_REQUIRED",
+            "Variation 승인 전에 전체 Candidate Novelty Precheck가 필요합니다.",
+            {"issues": novelty_schema_errors},
+        )
+    evaluation_issues = validate_candidate_evaluation(
+        document,
+        evaluation,
+        novelty_precheck,
+    )
+    if evaluation_issues:
+        issue = evaluation_issues[0]
+        raise GateTransactionError(
+            issue["code"],
+            issue["message"],
+            issue["context"],
+        )
     approved = approve_variation_candidate(document, args.candidate_id)
+    approval_issues = validate_candidate_evaluation(
+        approved,
+        evaluation,
+        novelty_precheck,
+    )
+    if approval_issues:
+        issue = approval_issues[0]
+        raise GateTransactionError(
+            issue["code"],
+            issue["message"],
+            issue["context"],
+        )
     write_json_object(path, approved)
     changed_at = utc_now()
     record_artifact_change(
@@ -839,7 +1105,7 @@ def run_reference_profile(args: argparse.Namespace) -> int:
 
 
 def run_precheck(args: argparse.Namespace) -> int:
-    """승인 Variation의 Story History Novelty Precheck를 실행한다."""
+    """전체 Variation의 Story History Novelty Precheck를 실행한다."""
     candidates = load_json_object(
         args.project_path / "00_PROJECT" / "variation_candidates.json"
     )
@@ -1215,6 +1481,8 @@ def run_cli(argv: Sequence[str]) -> int:
             return run_editorial_approve(args)
         if args.command == "production-finalize":
             return run_production_finalize(args)
+        if args.command == "migrate-channel-pin":
+            return run_migrate_channel_pin(args)
         raise ConfigurationError(f"알 수 없는 명령입니다: command={args.command}")
     except StarterKitError as error:
         print(f"ERROR: {error}", file=sys.stderr)

@@ -1,5 +1,6 @@
 """Compatibility부터 Production Ready까지의 전체 E2E Gate 검증."""
 
+from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
 
@@ -7,7 +8,7 @@ from project_factory import make_complete_project_artifacts
 
 from VALIDATORS.io import load_json_object
 from VALIDATORS.models import ProductionValidationReport
-from VALIDATORS.pipeline import run_production_validation
+from VALIDATORS.pipeline import ArtifactContent, run_production_validation
 from VALIDATORS.schema_validation import collect_schema_errors
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,6 +19,21 @@ def presentation_schemas() -> dict[str, dict[str, object]]:
     return {
         "candidate_evaluation": load_json_object(
             ROOT / "STANDARD" / "schemas" / "candidate_evaluation.schema.json"
+        ),
+        "novelty_precheck": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "novelty_precheck.schema.json"
+        ),
+        "crime_psychology": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "crime_psychology.schema.json"
+        ),
+        "source_disclosure": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "source_disclosure.schema.json"
+        ),
+        "clinical_labels": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "clinical_labels.schema.json"
+        ),
+        "expert_segments": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "expert_segments.schema.json"
         ),
         "panel_cast": load_json_object(
             ROOT / "STANDARD" / "schemas" / "panel_cast.schema.json"
@@ -33,8 +49,15 @@ def presentation_schemas() -> dict[str, dict[str, object]]:
 
 def run_complete_validation() -> ProductionValidationReport:
     """완전한 독립 Project를 기준 설정으로 검증한다."""
+    return run_artifact_validation(make_complete_project_artifacts())
+
+
+def run_artifact_validation(
+    artifacts: Mapping[str, ArtifactContent],
+) -> ProductionValidationReport:
+    """지정한 Project Artifact를 기준 설정으로 검증한다."""
     return run_production_validation(
-        make_complete_project_artifacts(),
+        artifacts,
         load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
         load_json_object(
@@ -61,6 +84,32 @@ def test_complete_project_passes_all_fourteen_gates() -> None:
     assert len(gate_results) == 14
     assert set(gate_results.values()) == {"PASS"}
     assert collect_schema_errors(report, report_schema, "generated_report") == []
+
+
+def test_legacy_v1_1_project_without_v2_artifacts_still_passes() -> None:
+    """v2 First-class Artifact가 없는 기존 1.1 Project는 소급 실패하지 않는다."""
+    artifacts = make_complete_project_artifacts()
+    v2_artifacts = (
+        "crime_psychology",
+        "source_disclosure",
+        "clinical_labels",
+        "expert_segments",
+        "expert_analysis_script",
+        "production_expert_analysis_script",
+    )
+    for artifact_name in v2_artifacts:
+        artifacts.pop(artifact_name)
+    editorial_review = artifacts["editorial_review"]
+    assert isinstance(editorial_review, dict)
+    hashes = editorial_review["artifact_hashes"]
+    assert isinstance(hashes, dict)
+    for artifact_name in v2_artifacts:
+        hashes.pop(artifact_name, None)
+
+    report = run_artifact_validation(artifacts)
+
+    assert report["result"] == "PASS"
+    assert set(report["gate_results"].values()) == {"PASS"}
 
 
 def test_causal_break_blocks_full_pipeline() -> None:

@@ -79,14 +79,40 @@ def entry_channel_path(
     relative_path = entry.get("channel_dna")
     if not isinstance(relative_path, str):
         raise ConfigurationError("Channel Manifest channel_dna 문자열이 필요합니다.")
+    path = Path(relative_path)
+    if path.is_absolute() or ".." in path.parts or "." in path.parts:
+        raise ConfigurationError(
+            "Channel DNA 상대 경로가 안전하지 않습니다: "
+            f"relative_path={relative_path!r}"
+        )
     resolved_directory = channel_directory_path.resolve()
-    resolved_path = (channel_directory_path / relative_path).resolve()
+    resolved_path = (channel_directory_path / path).resolve()
     if not resolved_path.is_relative_to(resolved_directory):
         raise ConfigurationError(
             "Channel DNA 경로가 Channel 디렉터리 밖을 가리킵니다: "
             f"path={resolved_path}"
         )
     return resolved_path
+
+
+def registered_channel_relative_path(
+    manifest: Mapping[str, object],
+    content_version: str,
+) -> str:
+    """등록된 Content Version의 Channel 상대 경로를 반환한다."""
+    entry = manifest_version_entry(manifest, content_version)
+    if entry is None:
+        raise ConfigurationError(
+            "CHANNEL_CONTENT_VERSION_NOT_FOUND: Project가 고정한 Channel Content "
+            f"Version이 Manifest에 없습니다: content_version={content_version}"
+        )
+    relative_path = entry.get("channel_dna")
+    if not isinstance(relative_path, str):
+        raise ConfigurationError(
+            "Channel Manifest Version 항목에 channel_dna 문자열이 필요합니다: "
+            f"content_version={content_version}"
+        )
+    return relative_path
 
 
 def resolve_project_channel(
@@ -105,16 +131,11 @@ def resolve_project_channel(
     manifest, manifest_path = load_validated_channel_manifest(repository_root, channel_id)
     entry = manifest_version_entry(manifest, pinned_version)
     if entry is None:
-        active_version = manifest.get("active_content_version")
-        if not isinstance(active_version, str):
-            raise ConfigurationError("Channel Manifest active_content_version이 필요합니다.")
-        active_entry = manifest_version_entry(manifest, active_version)
-        if active_entry is None:
-            raise ConfigurationError(
-                "Channel Manifest 활성 버전 항목을 해석할 수 없습니다: "
-                f"manifest={manifest_path}"
-            )
-        entry = active_entry
+        raise ConfigurationError(
+            "CHANNEL_CONTENT_VERSION_NOT_FOUND: Project가 고정한 Channel Content "
+            "Version이 Manifest에 없습니다: "
+            f"channel_id={channel_id}, content_version={pinned_version}"
+        )
     selected_path = (
         channel_override
         if channel_override is not None

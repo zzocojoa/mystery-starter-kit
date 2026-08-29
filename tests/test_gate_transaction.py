@@ -488,6 +488,7 @@ def test_task_open_excludes_same_gate_outputs_from_input_hashes(
     assert record["allowed_writes"] == [
         "draft_script",
         "drama_script",
+        "expert_analysis_script",
         "final_script",
         "narration_script",
         "panel_reaction_script",

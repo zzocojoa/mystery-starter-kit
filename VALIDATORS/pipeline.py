@@ -7,11 +7,17 @@ from typing import cast
 
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.causal_validation import validate_causal_graph
-from VALIDATORS.channel_policy_v2 import validate_channel_policy_v2
+from VALIDATORS.channel_policy_v2 import (
+    build_channel_policy_inputs,
+    validate_channel_policy_v2,
+)
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.compatibility import channel_dna_sha256, parse_semantic_version
 from VALIDATORS.continuity import validate_continuity
-from VALIDATORS.dependency import dependency_artifacts
+from VALIDATORS.dependency import (
+    artifact_required_for_channel_version,
+    dependency_artifacts,
+)
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
     runtime_evidence_issues,
@@ -79,11 +85,32 @@ def load_project_artifacts(
     project_path: Path,
     dependency_graph: Mapping[str, object],
 ) -> dict[str, ArtifactContent]:
-    """Dependency Graph에 선언된 모든 Project Artifact를 디스크에서 읽는다."""
+    """Project Pin에서 필수인 모든 Artifact와 기존 선택 Artifact를 읽는다."""
+    production_config = load_json_object(
+        project_path / "00_PROJECT" / "production_config.json"
+    )
+    channel_content_version = production_config.get("channel_content_version")
+    if not isinstance(channel_content_version, str):
+        raise ConfigurationError(
+            "production_config.channel_content_version 문자열이 필요합니다."
+        )
+    definitions = dependency_artifacts(dependency_graph)
+    artifact_names = [
+        artifact_name
+        for artifact_name, definition in definitions.items()
+        if artifact_required_for_channel_version(
+            definition,
+            channel_content_version,
+        )
+        or (
+            isinstance(definition.get("path"), str)
+            and (project_path / cast(str, definition["path"])).is_file()
+        )
+    ]
     return load_selected_project_artifacts(
         project_path,
         dependency_graph,
-        list(dependency_artifacts(dependency_graph)),
+        artifact_names,
     )
 
 
@@ -155,6 +182,21 @@ def artifact_text(
     return value
 
 
+def optional_artifact_text(
+    artifacts: Mapping[str, ArtifactContent],
+    artifact_name: str,
+) -> str:
+    """이전 1.1 Project에서 없을 수 있는 v2 Text Artifact를 읽는다."""
+    value = artifacts.get(artifact_name)
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        raise ConfigurationError(
+            f"Text Artifact가 필요합니다: artifact={artifact_name}"
+        )
+    return value
+
+
 def schema_issues(
     document: Mapping[str, object],
     schema: Mapping[str, object],
@@ -169,6 +211,43 @@ def schema_issues(
             error["context"],
         )
         for error in collect_schema_errors(document, schema, artifact)
+    ]
+
+
+def optional_schema_issues(
+    artifacts: Mapping[str, ArtifactContent],
+    artifact_name: str,
+    schema: Mapping[str, object],
+    artifact_path: str,
+) -> list[ValidationIssue]:
+    """선택 v2 Artifact가 존재할 때만 Schema를 검증한다."""
+    if artifact_name not in artifacts:
+        return []
+    return schema_issues(
+        artifact_document(artifacts, artifact_name),
+        schema,
+        artifact_path,
+    )
+
+
+def required_channel_artifact_issues(
+    artifacts: Mapping[str, ArtifactContent],
+    production_config: Mapping[str, object],
+    artifact_names: Sequence[str],
+) -> list[ValidationIssue]:
+    """v2 Project의 First-class Artifact 누락을 명시적 Issue로 보고한다."""
+    version = production_config.get("channel_content_version")
+    if not isinstance(version, str) or parse_semantic_version(version) < (2, 0, 0):
+        return []
+    return [
+        make_pipeline_issue(
+            "REQUIRED_CHANNEL_ARTIFACT_MISSING",
+            "Channel Content Version이 요구하는 First-class Artifact가 없습니다.",
+            artifact_name,
+            {"artifact_name": artifact_name, "channel_content_version": version},
+        )
+        for artifact_name in artifact_names
+        if artifact_name not in artifacts
     ]
 
 
@@ -445,7 +524,7 @@ def validate_variation_precheck(
     candidates_document: Mapping[str, object],
     precheck_document: Mapping[str, object],
 ) -> list[ValidationIssue]:
-    """Novelty Precheck가 현재 승인 후보를 PASS했는지 검사한다."""
+    """Novelty Precheck가 전체 후보와 현재 승인 후보를 PASS했는지 검사한다."""
     expected_hash = variation_precheck_source_hash(candidates_document)
     issues_value = precheck_document.get("issues")
     if not isinstance(issues_value, list):
@@ -460,20 +539,28 @@ def validate_variation_precheck(
                 {},
             )
         )
-    if (
-        precheck_document.get("approved_candidate_id")
-        != candidates_document.get("approved_candidate_id")
-        or precheck_document.get("result") != "PASS"
-    ):
+    approved_id = candidates_document.get("approved_candidate_id")
+    raw_results = precheck_document.get("candidate_results")
+    approved_result = None
+    if isinstance(raw_results, list):
+        approved_result = next(
+            (
+                result.get("result")
+                for result in raw_results
+                if isinstance(result, Mapping)
+                and result.get("candidate_id") == approved_id
+            ),
+            None,
+        )
+    if precheck_document.get("result") != "PASS" or approved_result != "PASS":
         issues.append(
             make_pipeline_issue(
                 "VARIATION_NOVELTY_PRECHECK_NOT_PASSED",
                 "현재 승인 Variation이 Novelty Precheck를 통과하지 못했습니다.",
                 "08_QA/novelty_precheck.json",
                 {
-                    "approved_candidate_id": candidates_document.get(
-                        "approved_candidate_id"
-                    )
+                    "approved_candidate_id": approved_id,
+                    "approved_candidate_result": approved_result,
                 },
             )
         )
@@ -599,16 +686,20 @@ def validate_reference_gate(
 
 def production_text_issues(
     artifacts: Mapping[str, ArtifactContent],
+    require_expert_script: bool,
 ) -> list[ValidationIssue]:
-    """다섯 가지 Production 인계 문서가 실제 내용을 갖는지 검사한다."""
-    issues: list[ValidationIssue] = []
-    for artifact_name in (
+    """Project Version에서 필수인 Production 인계 문서 내용을 검사한다."""
+    artifact_names = [
         "shooting_script",
         "narration",
         "production_panel_reaction_script",
         "subtitle_script",
         "edit_script",
-    ):
+    ]
+    if require_expert_script or "production_expert_analysis_script" in artifacts:
+        artifact_names.append("production_expert_analysis_script")
+    issues: list[ValidationIssue] = []
+    for artifact_name in artifact_names:
         content = artifact_text(artifacts, artifact_name)
         if not content.strip():
             issues.append(
@@ -670,12 +761,26 @@ def run_production_validation(
     drama_script = artifact_text(artifacts, "drama_script")
     narration_script = artifact_text(artifacts, "narration_script")
     panel_reaction_script = artifact_text(artifacts, "panel_reaction_script")
+    expert_analysis_script = optional_artifact_text(
+        artifacts,
+        "expert_analysis_script",
+    )
     draft_script = artifact_text(artifacts, "draft_script")
     final_script = artifact_text(artifacts, "final_script")
     editorial_review = artifact_document(artifacts, "editorial_review")
     project_id = production_config.get("project_id")
     if not isinstance(project_id, str):
         raise ConfigurationError("production_config.project_id 문자열이 필요합니다.")
+    channel_content_version = production_config.get("channel_content_version")
+    if not isinstance(channel_content_version, str):
+        raise ConfigurationError(
+            "production_config.channel_content_version 문자열이 필요합니다."
+        )
+    v2_artifacts_required = parse_semantic_version(channel_content_version) >= (
+        2,
+        0,
+        0,
+    )
 
     gate_00 = [
         *validate_compatibility_gate(compatibility),
@@ -699,9 +804,15 @@ def run_production_validation(
             presentation_schemas["candidate_evaluation"],
             "00_PROJECT/candidate_evaluation.json",
         ),
+        *schema_issues(
+            novelty_precheck,
+            presentation_schemas["novelty_precheck"],
+            "08_QA/novelty_precheck.json",
+        ),
         *validate_candidate_evaluation(
             variation_candidates,
             candidate_evaluation,
+            novelty_precheck,
         ),
         *validate_variation_precheck(variation_candidates, novelty_precheck),
     ]
@@ -719,6 +830,29 @@ def run_production_validation(
             "01_CASE/case_input.json",
         ),
         *nonempty_list_issues(facts, "facts", "01_CASE/facts.json"),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            ("crime_psychology", "source_disclosure", "clinical_labels"),
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "crime_psychology",
+            presentation_schemas["crime_psychology"],
+            "01_CASE/crime_psychology.json",
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "source_disclosure",
+            presentation_schemas["source_disclosure"],
+            "01_CASE/source_disclosure.json",
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "clinical_labels",
+            presentation_schemas["clinical_labels"],
+            "01_CASE/clinical_labels.json",
+        ),
     ]
     if story_document.get("story_source_mode") in {
         "TRUE_STORY",
@@ -804,6 +938,17 @@ def run_production_validation(
             presentation_schemas["presentation_plan"],
             "06_SCENE/presentation_plan.json",
         ),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            ("expert_segments",),
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "expert_segments",
+            presentation_schemas["expert_segments"],
+            "06_SCENE/expert_segments.json",
+        ),
         *validate_presentation_design(
             panel_cast,
             reaction_segments,
@@ -816,19 +961,27 @@ def run_production_validation(
             production_config,
         ),
     ]
-    gate_08 = validate_script_integrity_v2(
-        presentation_plan,
-        reaction_segments,
-        scene_cards,
-        viewer_timeline,
-        audience_belief,
-        actual_timeline,
-        drama_script,
-        narration_script,
-        panel_reaction_script,
-        draft_script,
-        final_script,
-    )
+    gate_08 = [
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            ("expert_analysis_script",),
+        ),
+        *validate_script_integrity_v2(
+            presentation_plan,
+            reaction_segments,
+            scene_cards,
+            viewer_timeline,
+            audience_belief,
+            actual_timeline,
+            drama_script,
+            narration_script,
+            panel_reaction_script,
+            expert_analysis_script,
+            draft_script,
+            final_script,
+        ),
+    ]
     continuity_report = validate_continuity(
         production_config,
         characters,
@@ -889,16 +1042,16 @@ def run_production_validation(
     gate_12.extend(
         validate_channel_policy_v2(
             channel,
-            story_document,
-            production_config,
-            case_input,
-            claim_evidence,
-            presentation_plan,
-            final_script,
+            build_channel_policy_inputs(artifacts),
         )
     )
     gate_13 = [
-        *production_text_issues(artifacts),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            ("production_expert_analysis_script",),
+        ),
+        *production_text_issues(artifacts, v2_artifacts_required),
         *validate_production_presentation(
             presentation_plan,
             reaction_segments,
