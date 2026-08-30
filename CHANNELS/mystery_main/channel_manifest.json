@@ -4,12 +4,17 @@
   "schema_version": "1.0.0",
   "channel_id": "MYSTERY_MAIN",
   "display_name": "미스터리 메인",
-  "active_content_version": "1.1.0",
+  "active_content_version": "2.0.0",
   "available_versions": [
     {
       "content_version": "1.1.0",
       "channel_dna": "versions/1.1.0/channel_dna.json",
       "channel_dna_sha256": "684c8c0f8dcdf6dabe734b35b300b7a98b31ff60cf7fe982e677f4cc22211ebc"
+    },
+    {
+      "content_version": "2.0.0",
+      "channel_dna": "versions/2.0.0/channel_dna.json",
+      "channel_dna_sha256": "d839c56f2c0daf5db6fb74e753287e0dc93659f2587ba9c6c8d4afd9b7a995e7"
     }
   ],
   "status": "ACTIVE"

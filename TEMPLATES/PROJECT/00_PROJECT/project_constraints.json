@@ -8,11 +8,11 @@
   "production_limits": {
     "max_locations": 5,
     "max_major_characters": 7,
-    "max_production_complexity": "EXTREME",
-    "max_special_effect_level": "HIGH",
-    "allow_child_actor": true,
-    "allow_moving_vehicle": true,
-    "max_graphic_violence": "GRAPHIC",
-    "enforce_final_footprint": false
+    "max_production_complexity": "HIGH",
+    "max_special_effect_level": "MEDIUM",
+    "allow_child_actor": false,
+    "allow_moving_vehicle": false,
+    "max_graphic_violence": "NON_GRAPHIC",
+    "enforce_final_footprint": true
   }
 }

@@ -67,7 +67,7 @@
     "script_writer": {
       "prompt_file": "script_writer.md",
       "stage": 7,
-      "reads": ["scene_cards", "presentation_plan", "panel_cast", "reaction_segments", "expert_segments", "viewer_timeline", "audience_belief", "knowledge_matrix", "clue_matrix", "claim_evidence", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script"],
+      "reads": ["scene_cards", "presentation_plan", "panel_cast", "reaction_segments", "expert_segments", "viewer_timeline", "audience_belief", "knowledge_matrix", "clue_matrix", "claim_evidence", "source_disclosure", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script"],
       "writes": ["drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "draft_script", "final_script"],
       "gates": ["GATE-08"],
       "requires_agents": ["scene_designer"],

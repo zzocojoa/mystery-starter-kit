@@ -98,6 +98,36 @@ def write_complete_artifacts(
             write_json_object(path, content)
 
 
+def configure_legacy_v1_project(project_path: Path) -> None:
+    """활성 v2 Scaffold를 기존 1.1 회귀 검증용 Pin과 제약으로 고정한다."""
+    config_path = project_path / "00_PROJECT" / "production_config.json"
+    constraints_path = project_path / "00_PROJECT" / "project_constraints.json"
+    config = load_json_object(config_path)
+    config.update(
+        {
+            "channel_content_version": "1.1.0",
+            "variation_engine_version": "1.0.0",
+            "variation_catalog_version": "1.0.0",
+            "genre": "MYSTERY",
+        }
+    )
+    constraints = load_json_object(constraints_path)
+    production_limits = constraints["production_limits"]
+    assert isinstance(production_limits, dict)
+    production_limits.update(
+        {
+            "max_production_complexity": "EXTREME",
+            "max_special_effect_level": "HIGH",
+            "allow_child_actor": True,
+            "allow_moving_vehicle": True,
+            "max_graphic_violence": "GRAPHIC",
+            "enforce_final_footprint": False,
+        }
+    )
+    write_json_object(config_path, config)
+    write_json_object(constraints_path, constraints)
+
+
 def test_validate_audits_without_reconstructing_state(tmp_path: Path) -> None:
     """전체 Artifact PASS도 Validate 단독으로 State나 Library를 승인하지 않는다."""
     projects_root = tmp_path / "projects"
@@ -112,6 +142,7 @@ def test_validate_audits_without_reconstructing_state(tmp_path: Path) -> None:
         ]
     )
     project_path = projects_root / "PRJ-002"
+    configure_legacy_v1_project(project_path)
     compat_code = run_cli(["compat", str(project_path)])
     variation_code = run_cli(
         [

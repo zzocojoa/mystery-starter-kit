@@ -50,7 +50,9 @@ def legacy_pool_inputs() -> tuple[
         ROOT / "TEMPLATES" / "PROJECT" / "00_PROJECT" / "project_constraints.json"
     )
     constraints["project_id"] = "PRJ-991"
-    channel = load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json")
+    channel = load_json_object(
+        ROOT / "CHANNELS" / "mystery_main" / "versions" / "1.1.0" / "channel_dna.json"
+    )
     projection = load_json_object(ROOT / "STANDARD" / "candidate_projection_contract.json")
     return config, constraints, channel, projection
 

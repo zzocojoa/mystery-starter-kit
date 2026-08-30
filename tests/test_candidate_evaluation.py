@@ -25,6 +25,18 @@ def project_constraints(project_id: str) -> dict[str, object]:
     """Test Project의 명시적 제작 제약을 반환한다."""
     document = load_json_object(ROOT / "TEMPLATES/PROJECT/00_PROJECT/project_constraints.json")
     document["project_id"] = project_id
+    production_limits = document["production_limits"]
+    assert isinstance(production_limits, dict)
+    production_limits.update(
+        {
+            "max_production_complexity": "EXTREME",
+            "max_special_effect_level": "HIGH",
+            "allow_child_actor": True,
+            "allow_moving_vehicle": True,
+            "max_graphic_violence": "GRAPHIC",
+            "enforce_final_footprint": False,
+        }
+    )
     return document
 
 
@@ -36,7 +48,9 @@ def candidate_inputs() -> tuple[dict[str, object], ...]:
         "source_truth_classification": "ORIGINAL_FICTION",
         "channel_content_version": "1.1.0",
     }
-    channel = load_json_object(ROOT / "CHANNELS/mystery_main/channel_dna.json")
+    channel = load_json_object(
+        ROOT / "CHANNELS/mystery_main/versions/1.1.0/channel_dna.json"
+    )
     variations = generate_variation_candidates(
         "PRJ-910", "candidate-evaluation", 5,
         load_json_object(ROOT / "STANDARD/variation_catalog.json"),

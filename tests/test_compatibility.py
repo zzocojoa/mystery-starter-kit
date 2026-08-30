@@ -237,7 +237,7 @@ def test_project_channel_binding_records_version_and_hash() -> None:
         evaluate_compatibility(contract, defaults, channel),
         {
             "channel_id": "MYSTERY_MAIN",
-            "channel_content_version": "1.1.0",
+            "channel_content_version": "2.0.0",
         },
         load_json_object(CHANNEL_MANIFEST_PATH),
         channel,
@@ -248,7 +248,7 @@ def test_project_channel_binding_records_version_and_hash() -> None:
         "channel_id": "MYSTERY_MAIN",
         "schema_family": "channel-dna",
         "schema_version": "1.0.0",
-        "content_version": "1.1.0",
+        "content_version": "2.0.0",
         "channel_dna_sha256": channel_dna_sha256(channel),
     }
 
@@ -257,12 +257,12 @@ def test_unregistered_content_version_fails_binding() -> None:
     """Manifest에 없는 Project 핀은 명시적 오류로 실패해야 한다."""
     contract, defaults, channel = load_core_documents()
     changed_channel = deepcopy(channel)
-    changed_channel["content_version"] = "2.0.0"
+    changed_channel["content_version"] = "9.9.9"
     report = evaluate_channel_binding(
         evaluate_compatibility(contract, defaults, changed_channel),
         {
             "channel_id": "MYSTERY_MAIN",
-            "channel_content_version": "2.0.0",
+            "channel_content_version": "9.9.9",
         },
         load_json_object(CHANNEL_MANIFEST_PATH),
         changed_channel,
@@ -281,15 +281,15 @@ def test_content_version_mismatch_fails_binding() -> None:
         evaluate_compatibility(contract, defaults, channel),
         {
             "channel_id": "MYSTERY_MAIN",
-            "channel_content_version": "2.0.0",
+            "channel_content_version": "1.1.0",
         },
         load_json_object(CHANNEL_MANIFEST_PATH),
         channel,
     )
 
     codes = {error["code"] for error in report["errors"]}
-    assert "CHANNEL_CONTENT_VERSION_NOT_FOUND" in codes
     assert "CHANNEL_CONTENT_VERSION_MISMATCH" in codes
+    assert "CHANNEL_DNA_HASH_MISMATCH" in codes
 
 
 def test_channel_hash_mismatch_fails_binding() -> None:
@@ -298,14 +298,17 @@ def test_channel_hash_mismatch_fails_binding() -> None:
     manifest = deepcopy(load_json_object(CHANNEL_MANIFEST_PATH))
     entries = manifest["available_versions"]
     assert isinstance(entries, list)
-    entry = entries[0]
-    assert isinstance(entry, dict)
+    entry = next(
+        item
+        for item in entries
+        if isinstance(item, dict) and item.get("content_version") == "2.0.0"
+    )
     entry["channel_dna_sha256"] = "0" * 64
     report = evaluate_channel_binding(
         evaluate_compatibility(contract, defaults, channel),
         {
             "channel_id": "MYSTERY_MAIN",
-            "channel_content_version": "1.1.0",
+            "channel_content_version": "2.0.0",
         },
         manifest,
         channel,

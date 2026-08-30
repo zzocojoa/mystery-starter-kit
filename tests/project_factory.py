@@ -32,7 +32,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     """GATE-00부터 GATE-13까지 통과하는 독립 Project를 만든다."""
     project_id = "PRJ-002"
-    channel = load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json")
+    channel = load_json_object(
+        ROOT / "CHANNELS" / "mystery_main" / "versions" / "1.1.0" / "channel_dna.json"
+    )
     production_config: dict[str, object] = {
         "project_id": project_id,
         "standard_version": "1.3.3",
@@ -53,6 +55,20 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         ROOT / "TEMPLATES/PROJECT/00_PROJECT/project_constraints.json"
     )
     project_constraints["project_id"] = project_id
+    production_limits = project_constraints["production_limits"]
+    assert isinstance(production_limits, dict)
+    production_limits.update(
+        {
+            "max_locations": 5,
+            "max_major_characters": 7,
+            "max_production_complexity": "EXTREME",
+            "max_special_effect_level": "HIGH",
+            "allow_child_actor": True,
+            "allow_moving_vehicle": True,
+            "max_graphic_violence": "GRAPHIC",
+            "enforce_final_footprint": False,
+        }
+    )
     variations = generate_eligible_candidate_pool(
         project_id,
         "공장 교대 중 사라진 작업자",
@@ -309,8 +325,8 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     }
     fingerprint = build_story_fingerprint(story_document, beat_sheet, causal_graph)
     total_seconds = 120
-    layer_scripts = fake_script_layers(total_seconds)
-    broadcast_master = fake_broadcast_master(total_seconds)
+    layer_scripts = fake_script_layers(total_seconds, None)
+    broadcast_master = fake_broadcast_master(total_seconds, None)
     artifacts: dict[str, ArtifactContent] = {
         "project_manifest": {
             "project_id": project_id,

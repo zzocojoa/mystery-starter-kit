@@ -13,6 +13,9 @@ from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.variation_registry import resolve_variation_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
+V1_CHANNEL_PATH = (
+    ROOT / "CHANNELS" / "mystery_main" / "versions" / "1.1.0" / "channel_dna.json"
+)
 
 
 def presentation_schemas() -> dict[str, dict[str, object]]:
@@ -77,7 +80,7 @@ def run_artifact_validation(
     """지정한 Project Artifact를 기준 설정으로 검증한다."""
     return run_production_validation(
         artifacts,
-        load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
+        load_json_object(V1_CHANNEL_PATH),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),
@@ -140,7 +143,7 @@ def test_causal_break_blocks_full_pipeline() -> None:
 
     report = run_production_validation(
         artifacts,
-        load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
+        load_json_object(V1_CHANNEL_PATH),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),
@@ -166,7 +169,7 @@ def test_undeclared_variation_override_blocks_story_gate() -> None:
 
     report = run_production_validation(
         artifacts,
-        load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
+        load_json_object(V1_CHANNEL_PATH),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),
@@ -190,7 +193,7 @@ def test_cross_project_artifact_is_rejected() -> None:
 
     report = run_production_validation(
         artifacts,
-        load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
+        load_json_object(V1_CHANNEL_PATH),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),

@@ -160,6 +160,7 @@ def evidence_input_document(
                 "subject_roles",
                 "relationships",
                 "events",
+                "responsible_agent_structure",
             ],
             "verified_relationships": [
                 {
@@ -171,10 +172,10 @@ def evidence_input_document(
             ],
             "verified_incident_type": "FRAUD",
             "verified_setting": "FACTORY",
-            "verified_responsible_agent_structure": None,
+            "verified_responsible_agent_structure": "SINGLE_AGENT",
             "verified_legal_outcome": None,
             "flexible_dimensions": [],
-            "unknown_dimensions": ["responsible_agent_structure", "legal_outcome"],
+            "unknown_dimensions": ["legal_outcome"],
             "source_claim_ids": ["FACT-01", "FACT-02"],
         },
         "source_disclosure": {
@@ -182,7 +183,11 @@ def evidence_input_document(
             "schema_version": "1.0.0",
             "project_id": project_id,
             "internal_mode": source_truth,
-            "audience_label_text": "검증된 공개 자료를 바탕으로 재구성했습니다.",
+            "audience_label_text": (
+                "실제 사건을 바탕으로 재구성했습니다."
+                if source_truth == "VERIFIED_TRUE_CASE"
+                else "실제 사건에서 모티프를 얻어 각색했습니다."
+            ),
         },
         "clinical_labels": {
             "schema_family": "clinical-labels",
@@ -254,7 +259,7 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
         .read_text(encoding="utf-8")
         .splitlines()
     )
-    assert len(trace_lines) == 26
+    assert len(trace_lines) == 32
     novelty_entries = novelty_index["entries"]
     assert isinstance(novelty_entries, list)
     runtime_entry = next(
@@ -268,6 +273,9 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
         "01_CASE/crime_psychology.json",
         "01_CASE/source_disclosure.json",
         "01_CASE/clinical_labels.json",
+    ):
+        assert (project_path / relative_path).is_file()
+    for relative_path in (
         "06_SCENE/expert_segments.json",
         "07_SCRIPT/expert_analysis_script.md",
         "09_PRODUCTION/expert_analysis_script.md",
