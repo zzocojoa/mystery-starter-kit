@@ -3,7 +3,7 @@
 ## 저장소 정책
 
 - 원격 저장소: `zzocojoa/mystery-starter-kit`
-- 공개 범위: Private
+- 공개 범위: Public
 - 기본 브랜치: `main`
 - 병합 방식: Squash Merge
 - 병합 후 작업 브랜치: 자동 삭제
@@ -20,7 +20,7 @@
 
 각 Matrix는 비편집 설치, `mystery-kit --help`, `mystery-runtime --help`, `mystery-runtime doctor` Smoke Test를 먼저 수행해 두 배포 Entry Point와 Runtime 계약도 확인한다.
 
-현재 비공개 저장소의 GitHub 요금제에서는 Branch Protection API를 사용할 수 없다. 따라서 다음 항목은 운영 정책으로 적용되며 GitHub 서버가 직접 강제하지는 않는다.
+`main` Branch Protection은 다음 항목을 GitHub 서버에서 강제한다.
 
 - Pull Request를 통한 변경
 - Python 3.11과 Python 3.14 Check 통과
@@ -29,7 +29,7 @@
 - Force Push와 Branch 삭제 금지
 - 미해결 Review Conversation이 있는 Pull Request 병합 금지
 
-GitHub Pro로 전환하거나 저장소를 공개로 변경하는 경우 위 항목을 `main` Branch Protection으로 활성화한다. 보호 기능만을 위해 비공개 저장소를 공개로 변경하지 않는다.
+단독 소유 저장소의 자기 승인 교착을 피하기 위해 필수 승인 수는 0이며, 관리자에게도 동일한 보호 규칙을 적용한다.
 
 ## Dependabot
 

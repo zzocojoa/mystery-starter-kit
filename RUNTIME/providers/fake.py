@@ -338,7 +338,10 @@ def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, obj
     }
 
 
-def fake_script_layers(total_seconds: int) -> dict[str, str]:
+def fake_script_layers(
+    total_seconds: int,
+    audience_label_text: str | None,
+) -> dict[str, str]:
     """Presentation Plan과 정확히 일치하는 세 Script Layer를 만든다."""
     reaction_duration = float(total_seconds) / 15.0
     main_duration = float(total_seconds) * 4.0 / 15.0
@@ -350,7 +353,14 @@ def fake_script_layers(total_seconds: int) -> dict[str, str]:
                     "DRAMA",
                     "SCN-01",
                     main_duration,
-                    "[FACT:FACT-01] 지안은 기계 로그에서 7분의 공백을 발견한다.",
+                    "\n".join(
+                        value
+                        for value in (
+                            audience_label_text,
+                            "[FACT:FACT-01] 지안은 기계 로그에서 7분의 공백을 발견한다.",
+                        )
+                        if value is not None
+                    ),
                 ),
                 broadcast_marker(
                     "SEG-005",
@@ -402,9 +412,12 @@ def fake_script_layers(total_seconds: int) -> dict[str, str]:
     }
 
 
-def fake_broadcast_master(total_seconds: int) -> str:
+def fake_broadcast_master(
+    total_seconds: int,
+    audience_label_text: str | None,
+) -> str:
     """세 Layer Segment를 방송 시간순으로 통합한다."""
-    layers = fake_script_layers(total_seconds)
+    layers = fake_script_layers(total_seconds, audience_label_text)
     layer_segments: dict[str, str] = {}
     for content in layers.values():
         for segment_id in ("SEG-001", "SEG-002", "SEG-003", "SEG-004", "SEG-005", "SEG-006"):
@@ -779,6 +792,11 @@ def story_document(
             },
             "reveal_mode": selection.get("reveal_mode", "TIMELINE_RECONSTRUCTION"),
             "ending_type": "BITTERSWEET",
+            **(
+                {"episode_theme": selection["episode_theme"]}
+                if "episode_theme" in selection
+                else {}
+            ),
         },
     }
 
@@ -788,7 +806,12 @@ def context_artifacts(request: LLMRequest) -> dict[str, object]:
     start_marker = '<CONTEXT_DATA instructional="false">\n'
     end_marker = "\n</CONTEXT_DATA>"
     user_messages = [message.content for message in request.messages if message.role == "user"]
-    if len(user_messages) != 1:
+    context_messages = [
+        message
+        for message in user_messages
+        if start_marker in message and end_marker in message
+    ]
+    if len(context_messages) != 1:
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
             False,
@@ -796,9 +819,12 @@ def context_artifacts(request: LLMRequest) -> dict[str, object]:
             "FakeProvider는 단일 User Prompt를 요구합니다.",
             request.metadata.get("task_id"),
             None,
-            {"user_message_count": len(user_messages)},
+            {
+                "user_message_count": len(user_messages),
+                "context_message_count": len(context_messages),
+            },
         )
-    content = user_messages[0]
+    content = context_messages[0]
     start = content.find(start_marker)
     end = content.find(end_marker, start + len(start_marker))
     if start < 0 or end < 0:
@@ -860,12 +886,33 @@ def context_artifact(request: LLMRequest, artifact_name: str) -> Mapping[str, ob
     return artifact
 
 
+def source_disclosure_label(request: LLMRequest) -> str:
+    """Source Disclosure Artifact의 검증 대상 Audience Label을 읽는다."""
+    disclosure = context_artifact(request, "source_disclosure")
+    label_text = disclosure.get("audience_label_text") if disclosure is not None else None
+    if not isinstance(label_text, str) or not label_text:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "FakeProvider Script 생성에는 Audience Source Label이 필요합니다.",
+            request.metadata.get("task_id"),
+            "source_disclosure",
+            {},
+        )
+    return label_text
+
+
 def fake_production_footprint_enabled(request: LLMRequest) -> bool:
     """Project Constraint가 활성화한 제작 메타데이터 Fixture 여부를 반환한다."""
     project_constraints = context_artifact(request, "project_constraints")
+    production_footprint = context_artifact(request, "production_footprint")
     return (
-        project_constraints is not None
-        and production_footprint_enforced(project_constraints)
+        production_footprint is not None
+        or (
+            project_constraints is not None
+            and production_footprint_enforced(project_constraints)
+        )
     )
 
 
@@ -1391,7 +1438,7 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                             "actor_id": "CHAR-01",
                             "victim_id": "CHAR-02",
                             "scene_id": "SCN-01",
-                            "order": 1,
+                            "order": 2,
                             "description": "거절을 개인적 배신으로 바꿔 말한다.",
                         }
                     ],
@@ -1401,7 +1448,7 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                             "actor_id": "CHAR-01",
                             "victim_id": "CHAR-02",
                             "scene_id": "SCN-02",
-                            "order": 1,
+                            "order": 3,
                             "description": "정보 접근을 통제한다.",
                         }
                     ],
@@ -1411,7 +1458,7 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                             "actor_id": "CHAR-01",
                             "victim_id": "CHAR-02",
                             "scene_id": "SCN-02",
-                            "order": 1,
+                            "order": 4,
                             "description": "평판 손실을 암시한다.",
                         }
                     ],
@@ -1421,7 +1468,7 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                         "actor_id": "CHAR-01",
                         "victim_id": "CHAR-02",
                         "scene_id": "SCN-02",
-                        "order": 1,
+                        "order": 5,
                     },
                     "responsible_agent": "CHAR-01",
                     "responsible_agent_structure": selected["responsible_agent_structure"],
@@ -1604,6 +1651,9 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                         {
                             "clue_id": "CLUE-01",
                             "role": "CORE",
+                            "evidence_class": "RELATIONAL",
+                            "independent_ground_id": "GROUND-01",
+                            "supports_final_reveal": True,
                             "introduced_scene_order": 1,
                             "introduced_scene_id": "SCN-01",
                             "resolved_scene_order": 2,
@@ -1611,7 +1661,10 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                         },
                         {
                             "clue_id": "CLUE-02",
-                            "role": "RED_HERRING",
+                            "role": "CORE",
+                            "evidence_class": "BEHAVIORAL",
+                            "independent_ground_id": "GROUND-02",
+                            "supports_final_reveal": True,
                             "introduced_scene_order": 1,
                             "introduced_scene_id": "SCN-01",
                             "resolved_scene_order": 2,
@@ -1776,7 +1829,10 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             }
         ]
     if task_id == "script.write_layers":
-        layer_scripts = fake_script_layers(target_runtime_seconds(metadata))
+        layer_scripts = fake_script_layers(
+            target_runtime_seconds(metadata),
+            source_disclosure_label(request),
+        )
         layer_outputs: list[dict[str, object]] = [
             {
                 "artifact_name": artifact_name,
@@ -1795,7 +1851,10 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             }
         ]
     if task_id == "script.integrate":
-        broadcast_master = fake_broadcast_master(target_runtime_seconds(metadata))
+        broadcast_master = fake_broadcast_master(
+            target_runtime_seconds(metadata),
+            source_disclosure_label(request),
+        )
         return [
             {
                 "artifact_name": "draft_script",

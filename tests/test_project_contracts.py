@@ -25,7 +25,10 @@ def test_production_config_template_passes_schema() -> None:
     schema = load_json_object(SCHEMA_ROOT / "production_config.schema.json")
 
     assert collect_schema_errors(document, schema, "production_config") == []
-    assert document["channel_content_version"] == "1.1.0"
+    assert document["channel_content_version"] == "2.0.0"
+    assert document["variation_engine_version"] == "2.0.0"
+    assert document["variation_catalog_version"] == "2.0.0"
+    assert document["genre"] == "CRIME_PSYCHOLOGICAL_THRILLER"
 
 
 def test_user_case_config_requires_explicit_constraint_statuses() -> None:

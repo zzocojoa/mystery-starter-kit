@@ -241,7 +241,7 @@
     },
     "draft_script": {
       "path": "07_SCRIPT/draft_v01.md",
-      "depends_on": ["drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "presentation_plan"],
+      "depends_on": ["drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "presentation_plan", "source_disclosure"],
       "owner_agent": "script_writer"
     },
     "final_script": {

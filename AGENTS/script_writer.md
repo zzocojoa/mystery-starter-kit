@@ -6,7 +6,7 @@
 
 ## 입력과 출력
 
-- 입력: Scene Cards, Presentation Plan, Panel Cast, Reaction Segments, Expert Segments, Viewer Timeline, Audience Belief, Knowledge Matrix, Clue Matrix, Claim Evidence
+- 입력: Scene Cards, Presentation Plan, Panel Cast, Reaction Segments, Expert Segments, Viewer Timeline, Audience Belief, Knowledge Matrix, Clue Matrix, Claim Evidence, Source Disclosure
 - 출력: Drama Script, Narration Script, Panel Reaction Script, Expert Analysis Script, Draft Script, Final Script
 
 ## 규칙

@@ -67,7 +67,9 @@ def presentation_design_issues(
         document(artifacts, "viewer_timeline"),
         document(artifacts, "facts"),
         document(artifacts, "clue_matrix"),
-        load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
+        load_json_object(
+            ROOT / "CHANNELS" / "mystery_main" / "versions" / "1.1.0" / "channel_dna.json"
+        ),
         document(artifacts, "production_config"),
     )
 

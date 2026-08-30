@@ -2,7 +2,7 @@
 
 - Package: `1.5.0`
 - Production Standard: `1.3.3`
-- Active Channel Content: `1.1.0`
+- Active Channel Content: `2.0.0`
 
 [![CI](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml)
 
@@ -156,8 +156,7 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 - `STANDARD/`: v1.3.3 표준, Contract, Policy, Catalog, Dependency Graph, JSON Schema
 - `CHANNELS/`: 활성/사용 가능 Content Version Registry와 독립 Version Channel DNA
 - `AGENTS/`: 10개 Agent Prompt와 계약 Manifest
-- `TEMPLATES/PROJECT/`: `00_PROJECT`~`09_PRODUCTION` Scaffold
-- `TEMPLATES/PROJECT_V2/`: 아직 활성화하지 않은 v2 Scaffold Override, 최종 Footprint 기본값 `true`
+- `TEMPLATES/PROJECT/`: 신규 Project용 Channel 2.0, Variation Engine/Catalog 2.0 `00_PROJECT`~`09_PRODUCTION` Scaffold. 최종 Production Footprint 검증을 기본 활성화한다.
 - `VALIDATORS/`: CLI, 상태 머신, Pipeline과 QA Engine
 - `RUNTIME/`: Provider 독립 실행 엔진, 계약, Schema, Adapter, 보안 경계
 - `RUNTIME_ADAPTERS/`: [선택적 In-process·Sidecar Provider 확장 Interface 가이드](RUNTIME_ADAPTERS/README.md)
