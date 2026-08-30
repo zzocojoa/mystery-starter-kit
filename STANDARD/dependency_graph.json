@@ -40,9 +40,27 @@
       "owner_agent": "reference_auditor",
       "required_when": {"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}
     },
+    "source_subjects": {
+      "path": "01_CASE/source_subjects.json",
+      "depends_on": ["production_config"],
+      "owner_agent": "reference_auditor",
+      "required_when": {"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}
+    },
+    "verified_event_ledger": {
+      "path": "01_CASE/verified_event_ledger.json",
+      "depends_on": ["source_subjects", "verified_fact_ledger"],
+      "owner_agent": "reference_auditor",
+      "required_when": {"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}
+    },
+    "source_truth_contract": {
+      "path": "01_CASE/source_truth_contract.json",
+      "depends_on": ["source_subjects", "verified_event_ledger", "verified_fact_ledger"],
+      "owner_agent": "reference_auditor",
+      "required_when": {"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}
+    },
     "variation_candidates": {
       "path": "00_PROJECT/variation_candidates.json",
-      "depends_on": ["production_config", "project_constraints", "reference_profile", "source_case_brief"],
+      "depends_on": ["production_config", "project_constraints", "reference_profile", "source_case_brief", "source_truth_contract"],
       "owner_agent": "variation_designer"
     },
     "candidate_evaluation": {
@@ -67,7 +85,7 @@
     },
     "story_dna": {
       "path": "00_PROJECT/story_dna.json",
-      "depends_on": ["reference_profile", "verified_fact_ledger", "variation_candidates", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "novelty_precheck"],
+      "depends_on": ["reference_profile", "verified_fact_ledger", "source_truth_contract", "variation_candidates", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "novelty_precheck"],
       "owner_agent": "story_architect"
     },
     "story_fingerprint": {
@@ -77,7 +95,7 @@
     },
     "case_input": {
       "path": "01_CASE/case_input.json",
-      "depends_on": ["story_dna"],
+      "depends_on": ["story_dna", "source_truth_contract"],
       "owner_agent": "story_architect"
     },
     "facts": {
@@ -109,13 +127,13 @@
     },
     "clinical_labels": {
       "path": "01_CASE/clinical_labels.json",
-      "depends_on": ["production_config", "claim_evidence"],
+      "depends_on": ["production_config", "claim_evidence", "source_subjects"],
       "owner_agent": "reference_auditor",
       "required_when": {"any": [{"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}, {"capability_enabled": "CLINICAL_LABEL_POLICY"}]}
     },
     "characters": {
       "path": "02_CHARACTER/characters.json",
-      "depends_on": ["case_input", "story_dna"],
+      "depends_on": ["case_input", "story_dna", "source_subjects", "source_truth_contract"],
       "owner_agent": "character_designer"
     },
     "relationships": {
@@ -130,7 +148,7 @@
     },
     "actual_timeline": {
       "path": "03_TIMELINE/actual_timeline.json",
-      "depends_on": ["case_input", "characters"],
+      "depends_on": ["case_input", "characters", "verified_event_ledger", "source_truth_contract"],
       "owner_agent": "mystery_designer"
     },
     "viewer_timeline": {

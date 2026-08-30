@@ -12,6 +12,10 @@ from RUNTIME.transactions import acquire_project_lock, release_project_lock
 from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.schema_validation import collect_schema_errors
+from VALIDATORS.source_truth_contract import (
+    source_truth_contract_sha256,
+    validate_source_truth_contract_integrity,
+)
 
 
 def evidence_input_path(project_path: Path, run_id: str) -> Path:
@@ -65,12 +69,18 @@ def validate_evidence_input(
         )
     disclosure = document.get("source_disclosure")
     clinical = document.get("clinical_labels")
+    source_subjects = document.get("source_subjects")
+    verified_events = document.get("verified_events")
+    truth_contract = document.get("source_truth_contract")
     if (
         not isinstance(disclosure, Mapping)
         or disclosure.get("project_id") != project_id
         or disclosure.get("internal_mode") != source_truth_classification
         or not isinstance(clinical, Mapping)
         or clinical.get("project_id") != project_id
+        or not isinstance(source_subjects, list)
+        or not isinstance(verified_events, list)
+        or not isinstance(truth_contract, Mapping)
     ):
         raise RuntimeExecutionError(
             "HUMAN_INPUT_SOURCE_TRUTH_MISMATCH",
@@ -95,6 +105,7 @@ def validate_evidence_input(
                 "actual": dict(bound) if isinstance(bound, Mapping) else {},
             },
         )
+    evidence_artifact_outputs(project_id, document)
 
 
 def submit_evidence_input(
@@ -219,11 +230,17 @@ def evidence_artifact_outputs(
     claims = document.get("claims")
     disclosure = document.get("source_disclosure")
     clinical = document.get("clinical_labels")
+    source_subjects = document.get("source_subjects")
+    verified_events = document.get("verified_events")
+    truth_contract_input = document.get("source_truth_contract")
     if (
         not isinstance(sources, list)
         or not isinstance(claims, list)
         or not isinstance(disclosure, Mapping)
         or not isinstance(clinical, Mapping)
+        or not isinstance(source_subjects, list)
+        or not isinstance(verified_events, list)
+        or not isinstance(truth_contract_input, Mapping)
     ):
         raise RuntimeExecutionError(
             "HUMAN_INPUT_INVALID",
@@ -234,52 +251,136 @@ def evidence_artifact_outputs(
             None,
             {},
         )
+    source_status_by_id: dict[str, object] = {}
+    for raw_source in sources:
+        if not isinstance(raw_source, Mapping) or not isinstance(raw_source.get("source_id"), str):
+            raise RuntimeExecutionError(
+                "HUMAN_INPUT_INVALID",
+                False,
+                "HUMAN_INPUT",
+                "Evidence Source ID가 없습니다.",
+                "reference.intake_evidence",
+                None,
+                {},
+            )
+        source_id = str(raw_source["source_id"])
+        if source_id in source_status_by_id:
+            raise RuntimeExecutionError(
+                "HUMAN_INPUT_INVALID",
+                False,
+                "HUMAN_INPUT",
+                "Evidence Source ID를 중복할 수 없습니다.",
+                "reference.intake_evidence",
+                None,
+                {"source_id": source_id},
+            )
+        source_status_by_id[source_id] = raw_source.get("verification_status")
     normalized_claims: list[dict[str, object]] = []
     verified_facts: list[dict[str, object]] = []
+    seen_fact_ids: set[str] = set()
     for raw_claim in claims:
         if not isinstance(raw_claim, Mapping):
             raise RuntimeExecutionError(
-                "HUMAN_INPUT_INVALID", False, "HUMAN_INPUT",
+                "HUMAN_INPUT_INVALID",
+                False,
+                "HUMAN_INPUT",
                 "Evidence Claim 객체가 손상되었습니다.",
-                "reference.intake_evidence", None, {},
+                "reference.intake_evidence",
+                None,
+                {},
             )
         claim = dict(raw_claim)
+        fact_id = claim.get("fact_id")
+        if not isinstance(fact_id, str) or fact_id in seen_fact_ids:
+            raise RuntimeExecutionError(
+                "HUMAN_INPUT_INVALID",
+                False,
+                "HUMAN_INPUT",
+                "Evidence Claim Fact ID가 없거나 중복됩니다.",
+                "reference.intake_evidence",
+                None,
+                {"fact_id": fact_id},
+            )
+        seen_fact_ids.add(fact_id)
         statement = claim.get("claim")
         if not isinstance(statement, str):
             raise RuntimeExecutionError(
-                "HUMAN_INPUT_INVALID", False, "HUMAN_INPUT",
+                "HUMAN_INPUT_INVALID",
+                False,
+                "HUMAN_INPUT",
                 "Evidence Claim 문장이 없습니다.",
-                "reference.intake_evidence", None, {},
+                "reference.intake_evidence",
+                None,
+                {},
             )
         statement_hash = sha256(" ".join(statement.split()).casefold().encode()).hexdigest()
         claim["canonical_claim_hash"] = statement_hash
         normalized_claims.append(claim)
         if claim.get("classification") == "FACT":
+            evidence_ids = claim.get("evidence_source_ids")
+            invalid_source_ids = (
+                sorted(
+                    source_id
+                    for source_id in evidence_ids
+                    if not isinstance(source_id, str)
+                    or source_status_by_id.get(source_id) != "VERIFIED"
+                )
+                if isinstance(evidence_ids, list)
+                else []
+            )
+            if not isinstance(evidence_ids, list) or not evidence_ids or invalid_source_ids:
+                raise RuntimeExecutionError(
+                    "HUMAN_INPUT_INVALID",
+                    False,
+                    "HUMAN_INPUT",
+                    "FACT Claim은 검증된 Source에만 결속되어야 합니다.",
+                    "reference.intake_evidence",
+                    None,
+                    {"fact_id": fact_id, "invalid_source_ids": invalid_source_ids},
+                )
             verified_facts.append(
                 {
                     "fact_id": claim["fact_id"],
                     "statement": statement,
                     "classification": "FACT",
                     "normalized_statement_hash": statement_hash,
-                    "source_ids": list(claim.get("evidence_source_ids", [])),
+                    "source_ids": list(evidence_ids),
                     "basis_fact_ids": [],
                     "presented_as_fact": True,
                 }
             )
     if not verified_facts:
         raise RuntimeExecutionError(
-            "HUMAN_INPUT_INVALID", False, "HUMAN_INPUT",
+            "HUMAN_INPUT_INVALID",
+            False,
+            "HUMAN_INPUT",
             "사실 기반 Project에는 하나 이상의 FACT Claim이 필요합니다.",
-            "reference.intake_evidence", None, {},
+            "reference.intake_evidence",
+            None,
+            {},
         )
-    source_ids = [
-        str(source["source_id"])
-        for source in sources
-        if isinstance(source, Mapping) and isinstance(source.get("source_id"), str)
-    ]
+    source_ids = list(source_status_by_id)
     fact_ids = [str(fact["fact_id"]) for fact in verified_facts]
+    subject_ids = [
+        str(subject["source_subject_id"])
+        for subject in source_subjects
+        if isinstance(subject, Mapping) and isinstance(subject.get("source_subject_id"), str)
+    ]
+    event_ids = [
+        str(event["verified_event_id"])
+        for event in verified_events
+        if isinstance(event, Mapping) and isinstance(event.get("verified_event_id"), str)
+    ]
+    truth_contract: dict[str, object] = {
+        "project_id": project_id,
+        "source_truth_classification": document["source_truth_classification"],
+        **dict(truth_contract_input),
+        "verified_subject_ids": subject_ids,
+        "verified_event_ids": event_ids,
+    }
+    truth_contract["contract_sha256"] = source_truth_contract_sha256(truth_contract)
     brief = " / ".join(str(fact["statement"]) for fact in verified_facts)
-    return {
+    outputs: dict[str, object] = {
         "sources": {"project_id": project_id, "sources": sources},
         "claim_evidence": {"project_id": project_id, "claims": normalized_claims},
         "source_case_brief": {
@@ -290,6 +391,26 @@ def evidence_artifact_outputs(
             "brief": brief,
         },
         "verified_fact_ledger": {"project_id": project_id, "facts": verified_facts},
+        "source_subjects": {"project_id": project_id, "subjects": source_subjects},
+        "verified_event_ledger": {"project_id": project_id, "events": verified_events},
+        "source_truth_contract": truth_contract,
         "source_disclosure": dict(disclosure),
         "clinical_labels": dict(clinical),
     }
+    integrity_issues = validate_source_truth_contract_integrity(
+        truth_contract,
+        cast(Mapping[str, object], outputs["source_subjects"]),
+        cast(Mapping[str, object], outputs["verified_event_ledger"]),
+        cast(Mapping[str, object], outputs["claim_evidence"]),
+    )
+    if integrity_issues:
+        raise RuntimeExecutionError(
+            "HUMAN_INPUT_INVALID",
+            False,
+            "HUMAN_INPUT",
+            "Source Truth Contract 참조 또는 Hash가 올바르지 않습니다.",
+            "reference.intake_evidence",
+            None,
+            {"issues": integrity_issues},
+        )
+    return outputs

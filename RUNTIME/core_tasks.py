@@ -42,10 +42,10 @@ from VALIDATORS.reference_validation import (
 )
 from VALIDATORS.source_truth import require_source_truth_classification
 from VALIDATORS.variation import (
-    apply_user_case_constraints,
     approve_variation_candidate,
-    generate_variation_candidates_for_project,
+    generate_eligible_candidate_pool,
 )
+from VALIDATORS.variation_registry import resolve_variation_runtime
 
 
 def combined_artifacts(
@@ -136,6 +136,14 @@ def runtime_validation_inputs(
     Mapping[str, object],
 ]:
     """Gate 검증에 필요한 Channel, Schema, Policy, Threshold를 반환한다."""
+    default_variation_runtime = resolve_variation_runtime(
+        repository_root,
+        {
+            "channel_content_version": "1.1.0",
+            "variation_engine_version": "1.0.0",
+            "variation_catalog_version": "1.0.0",
+        },
+    )
     return (
         load_json_object(repository_root / "CHANNELS" / "mystery_main" / "channel_dna.json"),
         load_json_object(repository_root / "STANDARD" / "schemas" / "story_dna.schema.json"),
@@ -144,28 +152,16 @@ def runtime_validation_inputs(
         ),
         {
             "candidate_evaluation": load_json_object(
-                repository_root
-                / "STANDARD"
-                / "schemas"
-                / "candidate_evaluation.schema.json"
+                repository_root / "STANDARD" / "schemas" / "candidate_evaluation.schema.json"
             ),
             "candidate_eligibility": load_json_object(
-                repository_root
-                / "STANDARD"
-                / "schemas"
-                / "candidate_eligibility.schema.json"
+                repository_root / "STANDARD" / "schemas" / "candidate_eligibility.schema.json"
             ),
             "candidate_approval": load_json_object(
-                repository_root
-                / "STANDARD"
-                / "schemas"
-                / "candidate_approval.schema.json"
+                repository_root / "STANDARD" / "schemas" / "candidate_approval.schema.json"
             ),
             "novelty_precheck": load_json_object(
-                repository_root
-                / "STANDARD"
-                / "schemas"
-                / "novelty_precheck.schema.json"
+                repository_root / "STANDARD" / "schemas" / "novelty_precheck.schema.json"
             ),
             "crime_psychology": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "crime_psychology.schema.json"
@@ -183,17 +179,16 @@ def runtime_validation_inputs(
                 repository_root / "STANDARD" / "schemas" / "panel_cast.schema.json"
             ),
             "reaction_segments": load_json_object(
-                repository_root
-                / "STANDARD"
-                / "schemas"
-                / "reaction_segments.schema.json"
+                repository_root / "STANDARD" / "schemas" / "reaction_segments.schema.json"
             ),
             "presentation_plan": load_json_object(
-                repository_root
-                / "STANDARD"
-                / "schemas"
-                / "presentation_plan.schema.json"
+                repository_root / "STANDARD" / "schemas" / "presentation_plan.schema.json"
             ),
+            "candidate_projection_contract": load_json_object(
+                repository_root / "STANDARD" / "candidate_projection_contract.json"
+            ),
+            "variation_catalog": default_variation_runtime["catalog"],
+            "variation_runtime": dict(default_variation_runtime),
         },
         load_json_object(repository_root / "STANDARD" / "reference_policy.json"),
         load_json_object(repository_root / "STANDARD" / "novelty_thresholds.json"),
@@ -226,11 +221,18 @@ def runtime_validation_inputs_for_project(
         reference_policy,
         novelty_thresholds,
     ) = runtime_validation_inputs(repository_root)
+    selected_schemas = dict(presentation_schemas)
+    variation_runtime = resolve_variation_runtime(
+        repository_root,
+        production_config,
+    )
+    selected_schemas["variation_catalog"] = variation_runtime["catalog"]
+    selected_schemas["variation_runtime"] = dict(variation_runtime)
     return (
         channel,
         story_schema,
         fingerprint_schema,
-        presentation_schemas,
+        selected_schemas,
         reference_policy,
         novelty_thresholds,
     )
@@ -354,6 +356,7 @@ def variation_output(
     production_config: Mapping[str, object],
     project_constraints: Mapping[str, object],
     source_case_brief: Mapping[str, object] | None,
+    source_truth_contract: Mapping[str, object] | None,
 ) -> dict[str, object]:
     """결정론적 후보 다섯 개를 승인하지 않은 상태로 생성한다."""
     channel, _manifest, _channel_path = resolve_project_channel(
@@ -363,17 +366,22 @@ def variation_output(
     )
     brief = source_case_brief.get("brief") if source_case_brief is not None else None
     seed = brief if isinstance(brief, str) else f"{project_id}:runtime-v1"
-    candidates = generate_variation_candidates_for_project(
+    runtime = resolve_variation_runtime(repository_root, production_config)
+    return generate_eligible_candidate_pool(
         project_id,
         seed,
         5,
-        load_json_object(repository_root / "STANDARD" / "variation_catalog.json"),
+        runtime,
         require_source_truth_classification(production_config),
         production_config,
         project_constraints,
         channel,
+        story_history(repository_root),
+        load_json_object(repository_root / "STANDARD" / "novelty_thresholds.json"),
+        load_json_object(repository_root / "STANDARD" / "candidate_projection_contract.json"),
+        source_truth_contract,
+        64,
     )
-    return apply_user_case_constraints(candidates, production_config)
 
 
 def approved_variation_output(
@@ -533,36 +541,63 @@ def resolved_clinical_labels_output(
     raw_characters = characters.get("characters")
     if not isinstance(raw_labels, list) or not isinstance(raw_characters, list):
         raise RuntimeExecutionError(
-            "RUNTIME_CONFIGURATION_ERROR", False, "TASK",
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
             "Clinical Label 또는 Character 배열이 없습니다.",
-            "reference.resolve_clinical_subjects", "clinical_labels", {},
+            "reference.resolve_clinical_subjects",
+            "clinical_labels",
+            {},
         )
-    character_ids = [
-        character.get("character_id")
-        for character in raw_characters
-        if isinstance(character, Mapping) and isinstance(character.get("character_id"), str)
-    ]
+    subject_mapping: dict[str, str] = {}
+    duplicated_subjects: set[str] = set()
+    for character in raw_characters:
+        if not isinstance(character, Mapping):
+            continue
+        source_subject_id = character.get("source_subject_id")
+        character_id = character.get("character_id")
+        if not isinstance(source_subject_id, str) or not isinstance(character_id, str):
+            continue
+        if source_subject_id in subject_mapping:
+            duplicated_subjects.add(source_subject_id)
+        subject_mapping[source_subject_id] = character_id
     labels: list[dict[str, object]] = []
     for raw_label in raw_labels:
         if not isinstance(raw_label, Mapping):
             raise RuntimeExecutionError(
-                "RUNTIME_CONFIGURATION_ERROR", False, "TASK",
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
                 "Clinical Label 객체가 손상되었습니다.",
-                "reference.resolve_clinical_subjects", "clinical_labels", {},
+                "reference.resolve_clinical_subjects",
+                "clinical_labels",
+                {},
             )
         label = dict(raw_label)
-        source_subject = label.pop("source_subject_id", None)
+        source_subject = label.get("source_subject_id")
         if source_subject is not None:
-            suffix = str(source_subject).removeprefix("SUBJECT-")
-            index = int(suffix) - 1 if suffix.isdigit() else -1
-            if index < 0 or index >= len(character_ids):
+            if source_subject in duplicated_subjects:
                 raise RuntimeExecutionError(
-                    "HUMAN_INPUT_INVALID", False, "TASK",
-                    "Evidence Subject를 생성된 Character에 연결할 수 없습니다.",
-                    "reference.resolve_clinical_subjects", "clinical_labels",
+                    "CLINICAL_SUBJECT_MAPPING_AMBIGUOUS",
+                    False,
+                    "TASK",
+                    "Evidence Subject가 여러 Character에 명시적으로 연결되었습니다.",
+                    "reference.resolve_clinical_subjects",
+                    "clinical_labels",
                     {"source_subject_id": source_subject},
                 )
-            label["subject_id"] = character_ids[index]
+            character_id = subject_mapping.get(str(source_subject))
+            if character_id is None:
+                raise RuntimeExecutionError(
+                    "CLINICAL_SUBJECT_MAPPING_MISSING",
+                    False,
+                    "TASK",
+                    "Evidence Subject에 명시적 Character Mapping이 없습니다.",
+                    "reference.resolve_clinical_subjects",
+                    "clinical_labels",
+                    {"source_subject_id": source_subject},
+                )
+            label["subject_id"] = character_id
         labels.append(label)
     return {**dict(clinical_labels), "labels": labels}
 
@@ -605,6 +640,7 @@ def core_task_outputs(
         }
     if task_id == "variation.generate":
         source_case_brief = artifacts.get("source_case_brief")
+        source_truth_contract = artifacts.get("source_truth_contract")
         return {
             "variation_candidates": variation_output(
                 project_id,
@@ -612,6 +648,7 @@ def core_task_outputs(
                 production_config,
                 mapping_artifact(artifacts, "project_constraints"),
                 source_case_brief if isinstance(source_case_brief, Mapping) else None,
+                source_truth_contract if isinstance(source_truth_contract, Mapping) else None,
             )
         }
     if task_id == "novelty.variation_precheck":
@@ -724,8 +761,15 @@ def core_task_outputs(
         )
         selected_outputs = {
             "reference.intake_evidence": (
-                "sources", "claim_evidence", "source_case_brief",
-                "verified_fact_ledger", "source_disclosure", "clinical_labels",
+                "sources",
+                "claim_evidence",
+                "source_case_brief",
+                "verified_fact_ledger",
+                "source_subjects",
+                "verified_event_ledger",
+                "source_truth_contract",
+                "source_disclosure",
+                "clinical_labels",
             ),
             "reference.initialize_fiction_evidence": ("sources", "claim_evidence"),
             "reference.build_source_disclosure": ("source_disclosure",),

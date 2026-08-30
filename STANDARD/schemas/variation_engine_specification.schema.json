@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/variation-engine-specification-1.0.0.json",
+  "type": "object",
+  "required": [
+    "schema_family",
+    "schema_version",
+    "variation_engine_version",
+    "algorithm_id",
+    "dimension_order",
+    "signature_payload",
+    "signature_digest"
+  ],
+  "properties": {
+    "schema_family": {"const": "variation-engine-specification"},
+    "schema_version": {"const": "1.0.0"},
+    "variation_engine_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "algorithm_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "dimension_order": {"type": "string", "minLength": 1},
+    "signature_payload": {"type": "string", "minLength": 1},
+    "signature_digest": {"const": "SHA-256"}
+  },
+  "additionalProperties": true
+}

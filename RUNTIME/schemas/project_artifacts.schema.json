@@ -52,6 +52,9 @@
         "final_truth": {"$ref": "#/$defs/nonEmptyString"},
         "causal_truth": {"$ref": "#/$defs/nonEmptyString"},
         "incident_type": {"type": "string"},
+        "setting": {"type": "string"},
+        "responsible_agent_structure": {"type": "string"},
+        "legal_outcome": {"type": ["string", "null"]},
         "victim": {"type": ["string", "null"]},
         "method": {"type": ["string", "null"]},
         "unique_objects": {"$ref": "#/$defs/stringList"},
@@ -101,11 +104,94 @@
         "facts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/fact"}}
       }
     },
+    "sourceSubjects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "subjects"],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/projectId"},
+        "subjects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source_subject_id", "pseudonym", "source_role", "related_fact_ids", "identity_disclosure_level"],
+            "properties": {
+              "source_subject_id": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"},
+              "pseudonym": {"$ref": "#/$defs/nonEmptyString"},
+              "source_role": {"$ref": "#/$defs/nonEmptyString"},
+              "related_fact_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/canonicalId"}},
+              "identity_disclosure_level": {"enum": ["PUBLIC", "PSEUDONYMIZED", "RESTRICTED"]}
+            }
+          }
+        }
+      }
+    },
+    "verifiedEventLedger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "events"],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/projectId"},
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["verified_event_id", "statement", "sequence", "participant_source_subject_ids", "source_claim_ids"],
+            "properties": {
+              "verified_event_id": {"type": "string", "pattern": "^VEVT-[0-9]{2,}$"},
+              "statement": {"$ref": "#/$defs/nonEmptyString"},
+              "sequence": {"type": "integer", "minimum": 1},
+              "setting": {"type": ["string", "null"]},
+              "participant_source_subject_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"}},
+              "source_claim_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/canonicalId"}}
+            }
+          }
+        }
+      }
+    },
+    "sourceTruthContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "source_truth_classification", "locked_dimensions", "verified_subject_ids", "verified_event_ids", "verified_relationships", "verified_incident_type", "verified_setting", "verified_responsible_agent_structure", "verified_legal_outcome", "flexible_dimensions", "unknown_dimensions", "source_claim_ids", "contract_sha256"],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/projectId"},
+        "source_truth_classification": {"enum": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]},
+        "locked_dimensions": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/nonEmptyString"}},
+        "verified_subject_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"}},
+        "verified_event_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^VEVT-[0-9]{2,}$"}},
+        "verified_relationships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from_source_subject_id", "to_source_subject_id", "relationship_type", "source_claim_ids"],
+            "properties": {
+              "from_source_subject_id": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"},
+              "to_source_subject_id": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"},
+              "relationship_type": {"$ref": "#/$defs/nonEmptyString"},
+              "source_claim_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/canonicalId"}}
+            }
+          }
+        },
+        "verified_incident_type": {"type": ["string", "null"]},
+        "verified_setting": {"type": ["string", "null"]},
+        "verified_responsible_agent_structure": {"type": ["string", "null"]},
+        "verified_legal_outcome": {"type": ["string", "null"]},
+        "flexible_dimensions": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/nonEmptyString"}},
+        "unknown_dimensions": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/nonEmptyString"}},
+        "source_claim_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/canonicalId"}},
+        "contract_sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
     "sources": {
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "sources"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "sources": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["source_id", "url"], "properties": {"source_id": {"$ref": "#/$defs/canonicalId"}, "url": {"$ref": "#/$defs/nonEmptyString"}, "title": {"type": "string"}, "publisher": {"type": "string"}, "published_at": {"type": "string"}, "source_type": {"enum": ["PRIMARY", "SECONDARY", "COURT_RECORD", "OFFICIAL_RECORD", "NEWS", "EXPERT_PUBLICATION"]}}}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "sources": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["source_id", "url", "retrieved_at", "evidence_locator", "verification_actor", "verification_status"], "properties": {"source_id": {"$ref": "#/$defs/canonicalId"}, "url": {"$ref": "#/$defs/nonEmptyString"}, "title": {"type": "string"}, "publisher": {"type": "string"}, "published_at": {"type": "string"}, "source_type": {"enum": ["PRIMARY", "SECONDARY", "COURT_RECORD", "OFFICIAL_RECORD", "NEWS", "EXPERT_PUBLICATION"]}, "retrieved_at": {"type": "string", "format": "date-time"}, "evidence_locator": {"$ref": "#/$defs/nonEmptyString"}, "source_snapshot_sha256": {"$ref": "#/$defs/hash"}, "archive_locator": {"$ref": "#/$defs/nonEmptyString"}, "verification_actor": {"$ref": "#/$defs/nonEmptyString"}, "verification_status": {"enum": ["VERIFIED", "REJECTED", "PENDING"]}}, "oneOf": [{"required": ["source_snapshot_sha256"], "not": {"required": ["archive_locator"]}}, {"required": ["archive_locator"], "not": {"required": ["source_snapshot_sha256"]}}]}}}
     },
     "claimEvidence": {
       "type": "object",
@@ -138,7 +224,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "characters"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "characters": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["character_id", "name", "role"], "properties": {"character_id": {"$ref": "#/$defs/canonicalId"}, "name": {"$ref": "#/$defs/nonEmptyString"}, "role": {"$ref": "#/$defs/nonEmptyString"}, "goal": {"type": "string"}, "secret": {"type": "string"}}}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "characters": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["character_id", "name", "role"], "properties": {"character_id": {"$ref": "#/$defs/canonicalId"}, "name": {"$ref": "#/$defs/nonEmptyString"}, "role": {"$ref": "#/$defs/nonEmptyString"}, "source_subject_id": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"}, "goal": {"type": "string"}, "secret": {"type": "string"}}}}}
     },
     "relationships": {
       "type": "object",
@@ -156,7 +242,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "events"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "events": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["event_id", "start_minute", "end_minute", "location_id", "participant_ids"], "properties": {"event_id": {"$ref": "#/$defs/canonicalId"}, "start_minute": {"type": "number", "minimum": 0}, "end_minute": {"type": "number", "exclusiveMinimum": 0}, "location_id": {"$ref": "#/$defs/nonEmptyString"}, "participant_ids": {"$ref": "#/$defs/nonEmptyStringList"}, "description": {"type": "string"}}}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "events": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["event_id", "start_minute", "end_minute", "location_id", "participant_ids"], "properties": {"event_id": {"$ref": "#/$defs/canonicalId"}, "source_event_id": {"type": "string", "pattern": "^VEVT-[0-9]{2,}$"}, "start_minute": {"type": "number", "minimum": 0}, "end_minute": {"type": "number", "exclusiveMinimum": 0}, "location_id": {"$ref": "#/$defs/nonEmptyString"}, "participant_ids": {"$ref": "#/$defs/nonEmptyStringList"}, "description": {"type": "string"}}}}}
     },
     "viewerTimeline": {
       "type": "object",
@@ -174,7 +260,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "clues"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "clues": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["clue_id", "role", "introduced_scene_order", "introduced_scene_id"], "properties": {"clue_id": {"$ref": "#/$defs/canonicalId"}, "role": {"enum": ["CORE", "RED_HERRING", "SUPPORTING"]}, "evidence_class": {"enum": ["RELATIONAL", "LINGUISTIC", "BEHAVIORAL", "TESTIMONIAL", "DOCUMENTARY", "PHYSICAL_OBJECT", "OWNERSHIP", "SOCIAL", "TECHNICAL"]}, "independent_ground_id": {"type": "string", "pattern": "^GROUND-[0-9]{2,}$"}, "supports_final_reveal": {"type": "boolean"}, "introduced_scene_order": {"type": "integer", "minimum": 1}, "introduced_scene_id": {"$ref": "#/$defs/canonicalId"}, "resolved_scene_order": {"type": ["integer", "null"], "minimum": 1}, "resolved_scene_id": {"type": ["string", "null"]}, "description": {"type": "string"}, "content": {"type": "string"}, "mechanism": {"type": "string"}, "first_interpretation": {"type": "string"}, "true_meaning": {"type": "string"}, "object": {"type": "string"}, "object_name": {"type": "string"}, "evidence_object": {"type": "string"}}}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "final_proof_mechanism": {"type": "string"}, "technical_dependency_level": {"type": "string"}, "clues": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["clue_id", "role", "introduced_scene_order", "introduced_scene_id"], "properties": {"clue_id": {"$ref": "#/$defs/canonicalId"}, "role": {"enum": ["CORE", "RED_HERRING", "SUPPORTING"]}, "evidence_class": {"enum": ["RELATIONAL", "LINGUISTIC", "BEHAVIORAL", "TESTIMONIAL", "DOCUMENTARY", "PHYSICAL_OBJECT", "OWNERSHIP", "SOCIAL", "TECHNICAL"]}, "independent_ground_id": {"type": "string", "pattern": "^GROUND-[0-9]{2,}$"}, "supports_final_reveal": {"type": "boolean"}, "introduced_scene_order": {"type": "integer", "minimum": 1}, "introduced_scene_id": {"$ref": "#/$defs/canonicalId"}, "resolved_scene_order": {"type": ["integer", "null"], "minimum": 1}, "resolved_scene_id": {"type": ["string", "null"]}, "description": {"type": "string"}, "content": {"type": "string"}, "mechanism": {"type": "string"}, "first_interpretation": {"type": "string"}, "true_meaning": {"type": "string"}, "object": {"type": "string"}, "object_name": {"type": "string"}, "evidence_object": {"type": "string"}}}}}
     },
     "hypothesisLedger": {
       "type": "object",

@@ -11,6 +11,9 @@
     "source_truth_classification",
     "sources",
     "claims",
+    "source_subjects",
+    "verified_events",
+    "source_truth_contract",
     "source_disclosure",
     "clinical_labels",
     "actor",
@@ -36,6 +39,17 @@
       "minItems": 1,
       "items": {"$ref": "#/$defs/claim"}
     },
+    "source_subjects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/sourceSubject"}
+    },
+    "verified_events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/verifiedEvent"}
+    },
+    "source_truth_contract": {"$ref": "#/$defs/sourceTruthContractInput"},
     "source_disclosure": {"$ref": "#/$defs/sourceDisclosure"},
     "clinical_labels": {"$ref": "#/$defs/clinicalLabels"},
     "actor": {"type": "string", "minLength": 1},
@@ -52,7 +66,7 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["source_id", "url", "title", "publisher", "published_at", "source_type"],
+      "required": ["source_id", "url", "title", "publisher", "published_at", "source_type", "retrieved_at", "evidence_locator", "verification_actor", "verification_status"],
       "properties": {
         "source_id": {"$ref": "#/$defs/canonicalId"},
         "url": {"type": "string", "format": "uri", "pattern": "^https?://"},
@@ -61,7 +75,69 @@
         "published_at": {"type": "string", "format": "date"},
         "source_type": {
           "enum": ["PRIMARY", "SECONDARY", "COURT_RECORD", "OFFICIAL_RECORD", "NEWS", "EXPERT_PUBLICATION"]
-        }
+        },
+        "retrieved_at": {"type": "string", "format": "date-time"},
+        "evidence_locator": {"type": "string", "minLength": 1},
+        "source_snapshot_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "archive_locator": {"type": "string", "minLength": 1},
+        "verification_actor": {"type": "string", "minLength": 1},
+        "verification_status": {"enum": ["VERIFIED", "REJECTED", "PENDING"]}
+      },
+      "oneOf": [
+        {"required": ["source_snapshot_sha256"], "not": {"required": ["archive_locator"]}},
+        {"required": ["archive_locator"], "not": {"required": ["source_snapshot_sha256"]}}
+      ]
+    },
+    "sourceSubject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_subject_id", "pseudonym", "source_role", "related_fact_ids", "identity_disclosure_level"],
+      "properties": {
+        "source_subject_id": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"},
+        "pseudonym": {"type": "string", "minLength": 1},
+        "source_role": {"type": "string", "minLength": 1},
+        "related_fact_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/canonicalId"}},
+        "identity_disclosure_level": {"enum": ["PUBLIC", "PSEUDONYMIZED", "RESTRICTED"]}
+      }
+    },
+    "verifiedRelationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from_source_subject_id", "to_source_subject_id", "relationship_type", "source_claim_ids"],
+      "properties": {
+        "from_source_subject_id": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"},
+        "to_source_subject_id": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"},
+        "relationship_type": {"type": "string", "minLength": 1},
+        "source_claim_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/canonicalId"}}
+      }
+    },
+    "verifiedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verified_event_id", "statement", "sequence", "participant_source_subject_ids", "source_claim_ids"],
+      "properties": {
+        "verified_event_id": {"type": "string", "pattern": "^VEVT-[0-9]{2,}$"},
+        "statement": {"type": "string", "minLength": 1},
+        "sequence": {"type": "integer", "minimum": 1},
+        "setting": {"type": ["string", "null"]},
+        "participant_source_subject_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"}},
+        "source_claim_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/canonicalId"}}
+      }
+    },
+    "sourceTruthContractInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["locked_dimensions", "verified_relationships", "verified_incident_type", "verified_setting", "verified_responsible_agent_structure", "verified_legal_outcome", "flexible_dimensions", "unknown_dimensions", "source_claim_ids"],
+      "properties": {
+        "locked_dimensions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "verified_relationships": {"type": "array", "items": {"$ref": "#/$defs/verifiedRelationship"}},
+        "verified_incident_type": {"type": ["string", "null"]},
+        "verified_setting": {"type": ["string", "null"]},
+        "verified_responsible_agent_structure": {"type": ["string", "null"]},
+        "verified_legal_outcome": {"type": ["string", "null"]},
+        "flexible_dimensions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "unknown_dimensions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "source_claim_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/canonicalId"}}
       }
     },
     "claim": {

@@ -32,7 +32,16 @@ def artifact_data_class(artifact_name: str) -> DataClass:
     """Artifact 이름에 따라 Provider Egress 분류를 반환한다."""
     if artifact_name == "reference_profile":
         return "REFERENCE_SANITIZED"
-    if artifact_name in {"sources", "claim_evidence"}:
+    if artifact_name in {
+        "sources",
+        "claim_evidence",
+        "source_case_brief",
+        "verified_fact_ledger",
+        "source_subjects",
+        "verified_event_ledger",
+        "source_truth_contract",
+        "clinical_labels",
+    }:
         return "SENSITIVE"
     return "INTERNAL"
 

@@ -1,0 +1,13 @@
+{
+  "schema_family": "variation-engine-specification",
+  "schema_version": "1.0.0",
+  "variation_engine_version": "1.0.0",
+  "algorithm_id": "LEGACY_MULTI_AXIS_V1",
+  "dimension_order": "LEXICOGRAPHIC",
+  "seed_material": "{story_seed}:{dimension}",
+  "seed_digest": "SHA-256_FIRST_16_HEX_MOD_ENUM_SIZE",
+  "step_rule": "NEXT_COPRIME_FROM_DIMENSION_INDEX_TIMES_2_PLUS_1",
+  "candidate_offset": "CANDIDATE_INDEX_TIMES_STEP",
+  "signature_payload": "SORTED_DIMENSION_EQUALS_VALUE_JOINED_BY_PIPE",
+  "signature_digest": "SHA-256"
+}

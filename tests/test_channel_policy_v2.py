@@ -16,9 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def v2_channel() -> dict[str, object]:
     """모든 신규 정책을 활성화한 v2 Channel Fixture를 만든다."""
-    channel = deepcopy(
-        load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json")
-    )
+    channel = deepcopy(load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"))
     channel["content_version"] = "2.0.0"
     capabilities = channel["capabilities"]
     assert isinstance(capabilities, dict)
@@ -144,20 +142,13 @@ def v2_artifacts() -> dict[str, object]:
             "applicable": True,
             "threat_type": "CRIME",
             "trusted_domain": "WORKPLACE",
+            "safe_domain_betrayal": "TRUST_ABUSED",
             "safe_domain_expectation": "동료의 도움 요청은 안전하다고 믿었다.",
             "psychological_pressure": "거절하면 동료의 생계가 무너진다는 압박",
-            "early_warning_signals": [
-                process_step("warning_signal_id", "WARN-01", "SCN-01", 1)
-            ],
-            "boundary_erosion_steps": [
-                process_step("boundary_step_id", "BOUND-01", "SCN-01", 2)
-            ],
-            "control_tactics": [
-                process_step("control_tactic_id", "CTRL-01", "SCN-02", 3)
-            ],
-            "victim_exit_barriers": [
-                process_step("exit_barrier_id", "EXIT-01", "SCN-02", 4)
-            ],
+            "early_warning_signals": [process_step("warning_signal_id", "WARN-01", "SCN-01", 1)],
+            "boundary_erosion_steps": [process_step("boundary_step_id", "BOUND-01", "SCN-01", 2)],
+            "control_tactics": [process_step("control_tactic_id", "CTRL-01", "SCN-02", 3)],
+            "victim_exit_barriers": [process_step("exit_barrier_id", "EXIT-01", "SCN-02", 4)],
             "harm_mechanism": "신뢰를 이용해 금전과 평판을 통제한다.",
             "harm_event": {
                 "harm_event_id": "HARM-01",
@@ -167,12 +158,14 @@ def v2_artifacts() -> dict[str, object]:
                 "order": 5,
             },
             "responsible_agent": "CHAR-02",
+            "responsible_agent_structure": "SINGLE_AGENT",
             "responsible_agent_payoff": "증언과 소유관계로 책임이 특정된다.",
             "victim_agency_outcome": {
                 "victim_id": "CHAR-01",
                 "ending_scene_id": "SCN-03",
                 "outcome": "피해자가 증거를 보존하고 경계를 회복한다.",
             },
+            "victim_agency_mode": "EVIDENCE_PRESERVED",
             "risk_signal_payoff": "초기 사적 부탁이 통제의 시작으로 재해석된다.",
             "episode_theme": "TRUST_BETRAYAL",
         },
@@ -325,8 +318,7 @@ def configure_supported_true_story_expert(
     artifacts["expert_analysis_script"] = script
     artifacts["production_expert_analysis_script"] = script
     artifacts["final_script"] = (
-        "실제 사건을 바탕으로 재구성했습니다.\n"
-        "피해자는 스스로 증거를 보존했다."
+        "실제 사건을 바탕으로 재구성했습니다.\n피해자는 스스로 증거를 보존했다."
     )
 
 
@@ -381,9 +373,7 @@ def test_late_boundary_step_after_control_fails() -> None:
     assert isinstance(crime, dict)
     boundaries = crime["boundary_erosion_steps"]
     assert isinstance(boundaries, list)
-    boundaries.append(
-        process_step("boundary_step_id", "BOUND-02", "SCN-02", 4)
-    )
+    boundaries.append(process_step("boundary_step_id", "BOUND-02", "SCN-02", 4))
 
     assert "COERCIVE_CONTROL_ORDER_INVALID" in policy_codes(
         v2_channel(),
@@ -557,9 +547,7 @@ def test_expert_analysis_source_must_be_expert_script() -> None:
             "revealed_clue_ids": [],
         }
     )
-    schema = load_json_object(
-        ROOT / "STANDARD" / "schemas" / "presentation_plan.schema.json"
-    )
+    schema = load_json_object(ROOT / "STANDARD" / "schemas" / "presentation_plan.schema.json")
 
     assert collect_schema_errors(presentation, schema, "presentation_plan")
 

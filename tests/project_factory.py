@@ -22,8 +22,9 @@ from VALIDATORS.novelty import build_story_fingerprint, evaluate_variation_prech
 from VALIDATORS.pipeline import ArtifactContent
 from VALIDATORS.variation import (
     approve_variation_candidate,
-    generate_variation_candidates_for_project,
+    generate_eligible_candidate_pool,
 )
+from VALIDATORS.variation_registry import resolve_variation_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -37,6 +38,8 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "standard_version": "1.3.3",
         "channel_id": "MYSTERY_MAIN",
         "channel_content_version": "1.1.0",
+        "variation_engine_version": "1.0.0",
+        "variation_catalog_version": "1.0.0",
         "approval_policy": "AUTO_CONTINUE",
         "story_source_mode": "ORIGINAL",
         "source_truth_classification": "ORIGINAL_FICTION",
@@ -45,23 +48,25 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "target_runtime_minutes": 2,
         "runtime_tolerance_ratio": 0.1,
     }
-    story_document = deepcopy(
-        load_json_object(ROOT / "EXAMPLES" / "story_dna.example.json")
-    )
+    story_document = deepcopy(load_json_object(ROOT / "EXAMPLES" / "story_dna.example.json"))
     project_constraints = load_json_object(
         ROOT / "TEMPLATES/PROJECT/00_PROJECT/project_constraints.json"
     )
     project_constraints["project_id"] = project_id
-    catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
-    variations = generate_variation_candidates_for_project(
+    variations = generate_eligible_candidate_pool(
         project_id,
         "공장 교대 중 사라진 작업자",
         5,
-        catalog,
+        resolve_variation_runtime(ROOT, production_config),
         "ORIGINAL_FICTION",
         production_config,
         project_constraints,
         channel,
+        [],
+        load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
+        load_json_object(ROOT / "STANDARD" / "candidate_projection_contract.json"),
+        None,
+        64,
     )
     candidates = variations["candidates"]
     story_dna = story_document["story_dna"]
@@ -137,6 +142,8 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "central_mystery": "작업자는 언제 통제 구역을 벗어났는가?",
         "final_truth": "작업자는 정지한 이송 설비의 점검 공간에 갇혔다.",
         "causal_truth": "센서 차단과 교대 기록 오류가 구조 지연을 만들었다.",
+        "incident_type": selection["incident_type"],
+        "setting": selection["setting"],
         "culprit": None,
         "culprit_motive": None,
         "restrictions": [],
@@ -288,9 +295,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
                 "beat_id": "BEAT-01",
                 "estimated_seconds": 60,
                 "clue_ids": ["CLUE-01", "CLUE-02"],
-                "knowledge_claims": [
-                    {"character_id": "CHAR-01", "fact_id": "FACT-01"}
-                ],
+                "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-01"}],
             },
             {
                 "scene_id": "SCN-02",
@@ -298,9 +303,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
                 "beat_id": "BEAT-02",
                 "estimated_seconds": 60,
                 "clue_ids": ["CLUE-01", "CLUE-02"],
-                "knowledge_claims": [
-                    {"character_id": "CHAR-01", "fact_id": "FACT-02"}
-                ],
+                "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-02"}],
             },
         ],
     }
@@ -351,9 +354,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "schema_version": "1.0.0",
             "project_id": project_id,
             "applicable": False,
-            "not_applicable_reason": (
-                "Channel Content Version 1.1.0에서는 필수 정책이 아닙니다."
-            ),
+            "not_applicable_reason": ("Channel Content Version 1.1.0에서는 필수 정책이 아닙니다."),
         },
         "sources": {"project_id": project_id, "sources": []},
         "claim_evidence": {"project_id": project_id, "claims": []},
@@ -435,17 +436,14 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "presentation_plan": fake_presentation_plan(project_id, total_seconds),
         **layer_scripts,
         "expert_analysis_script": (
-            "# Expert Analysis\n\n"
-            "Channel Content Version 1.1.0에서는 적용 대상이 아닙니다."
+            "# Expert Analysis\n\nChannel Content Version 1.1.0에서는 적용 대상이 아닙니다."
         ),
         "draft_script": broadcast_master,
         "final_script": broadcast_master,
         "shooting_script": "SCN-01 통제실 와이드. SCN-02 이송 설비 클로즈업.",
         "narration": "실종은 연쇄된 안전 실패였다.",
         "production_panel_reaction_script": (
-            "RSEG-001 논리 패널 Cue\n"
-            "RSEG-002 반론 패널 Cue\n"
-            "RSEG-003 논리 패널 Cue"
+            "RSEG-001 논리 패널 Cue\nRSEG-002 반론 패널 Cue\nRSEG-003 논리 패널 Cue"
         ),
         "production_expert_analysis_script": (
             "# Production Expert Analysis\n\n"

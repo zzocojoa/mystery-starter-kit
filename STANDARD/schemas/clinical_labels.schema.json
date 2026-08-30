@@ -47,7 +47,7 @@
         "qualified_expert": {"type": "boolean"},
         "documented_assessment": {"type": "boolean"}
       },
-      "oneOf": [
+      "anyOf": [
         {"required": ["subject_id"]},
         {"required": ["source_subject_id"]}
       ]

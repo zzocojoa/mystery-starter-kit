@@ -15,6 +15,7 @@
         "required": ["node_id", "type"],
         "properties": {
           "node_id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{2,}$"},
+          "source_event_id": {"type": "string", "pattern": "^VEVT-[0-9]{2,}$"},
           "type": {
             "enum": [
               "ROOT_CAUSE",

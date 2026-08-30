@@ -1,0 +1,18 @@
+{
+  "schema_family": "variation-engine-specification",
+  "schema_version": "1.0.0",
+  "variation_engine_version": "2.0.0",
+  "algorithm_id": "VERSIONED_ELIGIBLE_POOL_V2",
+  "dimension_order": "LEXICOGRAPHIC",
+  "seed_material": "{story_seed}:batch:{batch_nonce}",
+  "batch_pipeline": [
+    "GENERATE_BATCH",
+    "NOVELTY_PRECHECK",
+    "CORE_ELIGIBILITY",
+    "ELIGIBLE_POOL_MERGE"
+  ],
+  "deduplication": ["SIGNATURE", "INTERNAL_SELECTION_SIMILARITY"],
+  "canonical_id_assignment": "AFTER_ELIGIBLE_POOL_FINALIZATION",
+  "signature_payload": "SELECTION_AND_POLICY_PROFILE_CANONICAL_JSON",
+  "signature_digest": "SHA-256"
+}

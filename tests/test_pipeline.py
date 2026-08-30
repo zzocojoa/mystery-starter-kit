@@ -10,12 +10,21 @@ from VALIDATORS.io import load_json_object
 from VALIDATORS.models import ProductionValidationReport
 from VALIDATORS.pipeline import ArtifactContent, run_production_validation
 from VALIDATORS.schema_validation import collect_schema_errors
+from VALIDATORS.variation_registry import resolve_variation_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def presentation_schemas() -> dict[str, dict[str, object]]:
     """Presentation Contract v2 Schema 묶음을 읽는다."""
+    runtime = resolve_variation_runtime(
+        ROOT,
+        {
+            "channel_content_version": "1.1.0",
+            "variation_engine_version": "1.0.0",
+            "variation_catalog_version": "1.0.0",
+        },
+    )
     return {
         "candidate_eligibility": load_json_object(
             ROOT / "STANDARD" / "schemas" / "candidate_eligibility.schema.json"
@@ -41,15 +50,18 @@ def presentation_schemas() -> dict[str, dict[str, object]]:
         "expert_segments": load_json_object(
             ROOT / "STANDARD" / "schemas" / "expert_segments.schema.json"
         ),
-        "panel_cast": load_json_object(
-            ROOT / "STANDARD" / "schemas" / "panel_cast.schema.json"
-        ),
+        "panel_cast": load_json_object(ROOT / "STANDARD" / "schemas" / "panel_cast.schema.json"),
         "reaction_segments": load_json_object(
             ROOT / "STANDARD" / "schemas" / "reaction_segments.schema.json"
         ),
         "presentation_plan": load_json_object(
             ROOT / "STANDARD" / "schemas" / "presentation_plan.schema.json"
         ),
+        "candidate_projection_contract": load_json_object(
+            ROOT / "STANDARD" / "candidate_projection_contract.json"
+        ),
+        "variation_catalog": runtime["catalog"],
+        "variation_runtime": dict(runtime),
     }
 
 
@@ -66,9 +78,7 @@ def run_artifact_validation(
         artifacts,
         load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
@@ -131,9 +141,7 @@ def test_causal_break_blocks_full_pipeline() -> None:
         artifacts,
         load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
@@ -159,9 +167,7 @@ def test_undeclared_variation_override_blocks_story_gate() -> None:
         artifacts,
         load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
@@ -185,9 +191,7 @@ def test_cross_project_artifact_is_rejected() -> None:
         artifacts,
         load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),

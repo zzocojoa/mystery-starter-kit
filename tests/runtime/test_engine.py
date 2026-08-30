@@ -90,6 +90,11 @@ def evidence_input_document(
                 "publisher": "Example Court",
                 "published_at": "2026-08-20",
                 "source_type": "COURT_RECORD",
+                "retrieved_at": "2026-08-30T00:00:00Z",
+                "evidence_locator": "case-summary:paragraphs-1-2",
+                "source_snapshot_sha256": "a" * 64,
+                "verification_actor": "evidence-editor",
+                "verification_status": "VERIFIED",
             }
         ],
         "claims": [
@@ -114,6 +119,64 @@ def evidence_input_document(
                 "presented_as_fact": True,
             },
         ],
+        "source_subjects": [
+            {
+                "source_subject_id": "SUBJECT-01",
+                "pseudonym": "지안",
+                "source_role": "SUSPECT",
+                "related_fact_ids": ["FACT-01"],
+                "identity_disclosure_level": "PSEUDONYMIZED",
+            },
+            {
+                "source_subject_id": "SUBJECT-02",
+                "pseudonym": "태호",
+                "source_role": "MISSING_COWORKER",
+                "related_fact_ids": ["FACT-02"],
+                "identity_disclosure_level": "PSEUDONYMIZED",
+            },
+        ],
+        "verified_events": [
+            {
+                "verified_event_id": "VEVT-01",
+                "statement": "기계 로그에는 7분 공백이 있었다.",
+                "sequence": 1,
+                "setting": "FACTORY",
+                "participant_source_subject_ids": ["SUBJECT-01"],
+                "source_claim_ids": ["FACT-01"],
+            },
+            {
+                "verified_event_id": "VEVT-02",
+                "statement": "안전 센서는 점검 모드였다.",
+                "sequence": 2,
+                "setting": "FACTORY",
+                "participant_source_subject_ids": ["SUBJECT-02"],
+                "source_claim_ids": ["FACT-02"],
+            },
+        ],
+        "source_truth_contract": {
+            "locked_dimensions": [
+                "incident_type",
+                "setting",
+                "subject_roles",
+                "relationships",
+                "events",
+            ],
+            "verified_relationships": [
+                {
+                    "from_source_subject_id": "SUBJECT-01",
+                    "to_source_subject_id": "SUBJECT-02",
+                    "relationship_type": "TRUST_TO_RESPONSIBILITY",
+                    "source_claim_ids": ["FACT-01"],
+                }
+            ],
+            "verified_incident_type": "FRAUD",
+            "verified_setting": "FACTORY",
+            "verified_responsible_agent_structure": None,
+            "verified_legal_outcome": None,
+            "flexible_dimensions": [],
+            "unknown_dimensions": ["responsible_agent_structure", "legal_outcome"],
+            "source_claim_ids": ["FACT-01", "FACT-02"],
+        },
         "source_disclosure": {
             "schema_family": "source-disclosure",
             "schema_version": "1.0.0",
@@ -153,9 +216,7 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
 
     state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
     report = load_json_object(project_path / "08_QA" / "validation_report.json")
-    novelty_index = load_json_object(
-        repository_root / "STORY_LIBRARY" / "novelty_index.json"
-    )
+    novelty_index = load_json_object(repository_root / "STORY_LIBRARY" / "novelty_index.json")
     gate_results = report.get("gate_results")
     assert isinstance(gate_results, dict)
     story_path = project_path / "00_PROJECT" / "story_dna.json"
@@ -189,8 +250,10 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
     assert any(event["event_type"] == "RUN_COMPLETED" for event in events)
     assert len(list((project_path / ".runtime" / "transactions").glob("*/transaction.json"))) == 14
     trace_lines = (
-        project_path / "00_PROJECT" / "process_trace.jsonl"
-    ).read_text(encoding="utf-8").splitlines()
+        (project_path / "00_PROJECT" / "process_trace.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    )
     assert len(trace_lines) == 26
     novelty_entries = novelty_index["entries"]
     assert isinstance(novelty_entries, list)
@@ -212,10 +275,10 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
         assert not (project_path / relative_path).exists()
 
 
-def test_true_story_evidence_submission_resumes_same_run_and_commits_gate_three(
+def test_true_story_evidence_submission_resumes_same_run_through_gate_five(
     tmp_path: Path,
 ) -> None:
-    """사실 기반 Run은 Evidence 검증 후 같은 Run에서 GATE-03을 원자 Commit한다."""
+    """사실 기반 Run은 Evidence 검증 후 같은 Run에서 GATE-05까지 Truth를 유지한다."""
     repository_root = create_runtime_repository(tmp_path)
     project_path = create_runtime_project(repository_root, "PRJ-938")
     config_path = project_path / "00_PROJECT" / "production_config.json"
@@ -234,7 +297,7 @@ def test_true_story_evidence_submission_resumes_same_run_and_commits_gate_three(
                 repository_root,
                 project_path,
                 "GATE-00",
-                "GATE-03",
+                "GATE-05",
                 "default",
                 None,
                 None,
@@ -280,6 +343,37 @@ def test_true_story_evidence_submission_resumes_same_run_and_commits_gate_three(
         submit_evidence_input(project_path, run_id, raw_document)
     assert raw_error.value.code == "HUMAN_INPUT_INVALID"
 
+    pending_document = evidence_input_document(
+        "PRJ-938",
+        "VERIFIED_TRUE_CASE",
+        input_hashes,
+    )
+    pending_sources = pending_document["sources"]
+    assert isinstance(pending_sources, list)
+    pending_source = pending_sources[0]
+    assert isinstance(pending_source, dict)
+    pending_source["verification_status"] = "PENDING"
+    with pytest.raises(RuntimeExecutionError) as pending_error:
+        submit_evidence_input(project_path, run_id, pending_document)
+    assert pending_error.value.code == "HUMAN_INPUT_INVALID"
+
+    inferred_contract_document = evidence_input_document(
+        "PRJ-938",
+        "VERIFIED_TRUE_CASE",
+        input_hashes,
+    )
+    inferred_claims = inferred_contract_document["claims"]
+    assert isinstance(inferred_claims, list)
+    inferred_claim = inferred_claims[0]
+    assert isinstance(inferred_claim, dict)
+    inferred_claim["classification"] = "INFERENCE"
+    inferred_claim["evidence_source_ids"] = []
+    inferred_claim["basis_fact_ids"] = ["FACT-02"]
+    inferred_claim["presented_as_fact"] = False
+    with pytest.raises(RuntimeExecutionError) as inferred_contract_error:
+        submit_evidence_input(project_path, run_id, inferred_contract_document)
+    assert inferred_contract_error.value.code == "HUMAN_INPUT_INVALID"
+
     document = evidence_input_document(
         "PRJ-938",
         "VERIFIED_TRUE_CASE",
@@ -309,14 +403,21 @@ def test_true_story_evidence_submission_resumes_same_run_and_commits_gate_three(
     assert completed["status"] == "COMPLETED"
     assert completed["run_id"] == run_id
     state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
-    assert state["current_gate"] == "GATE-03"
+    assert state["current_gate"] == "GATE-05"
     for relative_path in (
         "01_CASE/sources.json",
+        "01_CASE/source_subjects.json",
         "01_CASE/claim_evidence.json",
         "01_CASE/source_case_brief.json",
         "01_CASE/verified_fact_ledger.json",
+        "01_CASE/verified_event_ledger.json",
+        "01_CASE/source_truth_contract.json",
         "01_CASE/source_disclosure.json",
         "01_CASE/clinical_labels.json",
+        "02_CHARACTER/characters.json",
+        "02_CHARACTER/relationships.json",
+        "03_TIMELINE/actual_timeline.json",
+        "04_MYSTERY/causal_graph.json",
     ):
         assert (project_path / relative_path).is_file()
     transaction_paths = sorted(
@@ -330,15 +431,16 @@ def test_true_story_evidence_submission_resumes_same_run_and_commits_gate_three(
     targets = gate_one["targets"]
     assert isinstance(targets, list)
     target_names = {
-        Path(str(target["target_path"])).name
-        for target in targets
-        if isinstance(target, dict)
+        Path(str(target["target_path"])).name for target in targets if isinstance(target, dict)
     }
     assert {
         "sources.json",
+        "source_subjects.json",
         "claim_evidence.json",
         "source_case_brief.json",
         "verified_fact_ledger.json",
+        "verified_event_ledger.json",
+        "source_truth_contract.json",
         "source_disclosure.json",
         "clinical_labels.json",
         "project_state.json",
@@ -352,8 +454,7 @@ def test_true_story_evidence_submission_resumes_same_run_and_commits_gate_three(
     assert isinstance(generated_facts, list)
     assert ledger_facts
     assert all(
-        isinstance(fact, dict) and fact.get("classification") == "FACT"
-        for fact in ledger_facts
+        isinstance(fact, dict) and fact.get("classification") == "FACT" for fact in ledger_facts
     )
     assert all(fact in generated_facts for fact in ledger_facts)
 
@@ -498,8 +599,7 @@ def test_retry_exhaustion_marks_project_blocked_without_artifact_commit(tmp_path
 
     state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
     run_documents = [
-        load_json_object(path)
-        for path in (project_path / ".runtime" / "runs").glob("*/run.json")
+        load_json_object(path) for path in (project_path / ".runtime" / "runs").glob("*/run.json")
     ]
     failed_runs = [document for document in run_documents if document["status"] == "FAILED"]
     assert len(failed_runs) == 1
@@ -712,9 +812,7 @@ def test_human_approval_is_hash_bound_and_run_resumes(tmp_path: Path) -> None:
         load_json_object(project_path / "00_PROJECT" / "project_state.json")["current_gate"]
         == "GATE-01"
     )
-    candidate_approval = load_json_object(
-        project_path / "00_PROJECT" / "candidate_approval.json"
-    )
+    candidate_approval = load_json_object(project_path / "00_PROJECT" / "candidate_approval.json")
     assert candidate_approval["approval_type"] == "HUMAN_CONFIRMATION"
     assert candidate_approval["approval_id"] == runtime_approval["approval_id"]
     assert candidate_approval["actor"] == "runtime-reviewer"

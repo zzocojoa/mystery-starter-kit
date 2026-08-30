@@ -1,0 +1,21 @@
+{
+  "schema_family": "project-state",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-990",
+  "state": "VARIATION_APPROVED",
+  "current_gate": "GATE-01",
+  "updated_at": "2026-08-01T00:00:00Z",
+  "readiness": {
+    "artifact_status": "INCOMPLETE",
+    "contract_status": "UNVALIDATED",
+    "process_status": "NONCONFORMANT",
+    "editorial_status": "NOT_REVIEWED",
+    "process_start_gate": "GATE-00",
+    "process_revision": 1
+  },
+  "artifacts": {
+    "production_config": {"status": "CLEAN", "content_hash": null, "invalidated_by": []},
+    "variation_candidates": {"status": "CLEAN", "content_hash": null, "invalidated_by": []},
+    "story_dna": {"status": "CLEAN", "content_hash": null, "invalidated_by": []}
+  }
+}

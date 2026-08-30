@@ -9,6 +9,8 @@
     "standard_version",
     "channel_id",
     "channel_content_version",
+    "variation_engine_version",
+    "variation_catalog_version",
     "approval_policy",
     "story_source_mode",
     "source_truth_classification",
@@ -23,6 +25,8 @@
     "standard_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
     "channel_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
     "channel_content_version": {"$ref": "#/$defs/semanticVersion"},
+    "variation_engine_version": {"$ref": "#/$defs/semanticVersion"},
+    "variation_catalog_version": {"$ref": "#/$defs/semanticVersion"},
     "approval_policy": {"enum": ["AUTO_CONTINUE", "HUMAN_REVIEW"]},
     "story_source_mode": {
       "enum": ["ORIGINAL", "USER_CASE", "REFERENCE_INSPIRED", "TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"]

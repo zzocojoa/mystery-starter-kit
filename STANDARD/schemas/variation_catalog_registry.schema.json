@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/variation-catalog-registry-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "catalogs"],
+  "properties": {
+    "schema_family": {"const": "variation-catalog-registry"},
+    "schema_version": {"const": "1.0.0"},
+    "catalogs": {
+      "type": "object",
+      "minProperties": 2,
+      "patternProperties": {
+        "^[0-9]+\\.[0-9]+\\.[0-9]+$": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "catalog_sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "^STANDARD/.+\\.json$"},
+            "catalog_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

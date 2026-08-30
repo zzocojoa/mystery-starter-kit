@@ -69,6 +69,13 @@ from VALIDATORS.gate_transaction import (
     trace_records,
 )
 from VALIDATORS.io import load_json_object, write_json_object
+from VALIDATORS.legacy_migration import (
+    default_project_constraints,
+    migrated_legacy_variations,
+    migration_review_reasons,
+    migration_status,
+    normalized_legacy_state,
+)
 from VALIDATORS.library import (
     make_history_record,
     novelty_history,
@@ -88,10 +95,10 @@ from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.source_truth import require_source_truth_classification
 from VALIDATORS.state_machine import GATES, advance_gate, gate_index
 from VALIDATORS.variation import (
-    apply_user_case_constraints,
     approve_variation_candidate,
-    generate_variation_candidates_for_project,
+    generate_eligible_candidate_pool,
 )
+from VALIDATORS.variation_registry import resolve_variation_runtime
 
 ROOT = Path.cwd().resolve()
 NOVELTY_CODES = {
@@ -289,6 +296,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--channel-content-version",
         required=True,
     )
+    legacy_migrate_parser = subparsers.add_parser(
+        "migrate-legacy-v1-1",
+        help="Story와 Script를 보존하며 Legacy v1.1 Project 계약을 이전합니다.",
+    )
+    legacy_migrate_parser.add_argument("project_path", type=Path)
     return parser
 
 
@@ -307,10 +319,9 @@ def repository_root_for_project(project_path: Path) -> Path:
     if resolved_project.is_relative_to(ROOT):
         return ROOT
     for parent in resolved_project.parents:
-        if (
-            (parent / "STANDARD" / "dependency_graph.json").is_file()
-            and (parent / "STORY_LIBRARY" / "novelty_index.json").is_file()
-        ):
+        if (parent / "STANDARD" / "dependency_graph.json").is_file() and (
+            parent / "STORY_LIBRARY" / "novelty_index.json"
+        ).is_file():
             return parent
     raise ConfigurationError(
         f"Project Repository Root를 찾을 수 없습니다: project_path={project_path}"
@@ -390,9 +401,7 @@ def make_compatibility_report_for_config(
         load_json_object(contract_path),
         load_json_object(defaults_path),
         channel,
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "compatibility_contract.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "compatibility_contract.schema.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "standard_defaults.schema.json"),
         load_json_object(channel_schema_path),
         str(contract_path),
@@ -407,9 +416,7 @@ def make_compatibility_report_for_config(
     )
     pinned_version = production_config.get("channel_content_version")
     if not isinstance(pinned_version, str):
-        raise ConfigurationError(
-            "production_config.channel_content_version 문자열이 필요합니다."
-        )
+        raise ConfigurationError("production_config.channel_content_version 문자열이 필요합니다.")
     relative_path = registered_channel_relative_path(
         channel_manifest,
         pinned_version,
@@ -508,9 +515,7 @@ def synchronize_compatibility_state(
     for artifact_name in gate_zero_artifacts:
         definition = definitions.get(artifact_name)
         if not isinstance(definition, Mapping):
-            raise ConfigurationError(
-                f"GATE-00 Artifact 정의가 없습니다: artifact={artifact_name}"
-            )
+            raise ConfigurationError(f"GATE-00 Artifact 정의가 없습니다: artifact={artifact_name}")
         relative_path = definition.get("path")
         if not isinstance(relative_path, str):
             raise ConfigurationError(
@@ -545,9 +550,8 @@ def synchronize_compatibility_state(
         )
 
     current_gate = next_state["current_gate"]
-    gate_zero_already_passed = (
-        current_gate != "NONE"
-        and gate_index(current_gate) >= gate_index("GATE-00")
+    gate_zero_already_passed = current_gate != "NONE" and gate_index(current_gate) >= gate_index(
+        "GATE-00"
     )
     if compatibility_passed and gate_zero_already_passed and not artifacts_changed:
         write_json_object(project_path / "00_PROJECT" / "project_state.json", next_state)
@@ -570,14 +574,9 @@ def synchronize_compatibility_state(
 def require_variation_prerequisites(project_path: Path, project_id: str) -> None:
     """Variation 생성 전에 Project-aware Compatibility PASS를 강제한다."""
     state = load_project_state(project_path)
-    report = load_json_object(
-        project_path / "00_PROJECT" / "compatibility_report.json"
-    )
+    report = load_json_object(project_path / "00_PROJECT" / "compatibility_report.json")
     current_gate = state["current_gate"]
-    gate_passed = (
-        current_gate != "NONE"
-        and gate_index(current_gate) >= gate_index("GATE-00")
-    )
+    gate_passed = current_gate != "NONE" and gate_index(current_gate) >= gate_index("GATE-00")
     if state["project_id"] != project_id:
         raise ConfigurationError(
             "Project State의 Project ID가 Manifest와 다릅니다: "
@@ -757,10 +756,7 @@ def mark_issue_artifacts_invalid(
         for artifact_name, definition in artifacts.items()
         if isinstance(definition.get("path"), str)
     }
-    invalid_names = {
-        path_to_name.get(issue["artifact"], issue["artifact"])
-        for issue in issues
-    }
+    invalid_names = {path_to_name.get(issue["artifact"], issue["artifact"]) for issue in issues}
     next_state = deepcopy(state)
     for artifact_name in invalid_names:
         artifact_state = next_state["artifacts"].get(artifact_name)
@@ -887,9 +883,7 @@ def run_migrate_channel_pin(args: argparse.Namespace) -> int:
     project_path = args.project_path.resolve()
     requested_version = args.channel_content_version
     if not isinstance(requested_version, str):
-        raise ConfigurationError(
-            "--channel-content-version 문자열이 필요합니다."
-        )
+        raise ConfigurationError("--channel-content-version 문자열이 필요합니다.")
     run_id = f"MIGRATE-{uuid4()}"
     lock_path = acquire_project_lock(project_path, run_id)
     try:
@@ -931,9 +925,7 @@ def run_migrate_channel_pin(args: argparse.Namespace) -> int:
                 "Channel Pin Migration Compatibility가 실패했습니다: "
                 f"errors={project_report.get('errors')!r}"
             )
-        dependency_graph = load_json_object(
-            ROOT / "STANDARD" / "dependency_graph.json"
-        )
+        dependency_graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
         current_state = load_project_state(project_path)
         config_bytes = encoded_artifact(migrated_config, "application/json")
         report_bytes = encoded_artifact(project_report, "application/json")
@@ -1010,11 +1002,164 @@ def run_migrate_channel_pin(args: argparse.Namespace) -> int:
     return 0
 
 
+def protected_story_script_hashes(project_path: Path) -> dict[str, str]:
+    """Migration에서 변경하면 안 되는 Story·Script 파일 Hash를 반환한다."""
+    paths = [project_path / "00_PROJECT" / "story_dna.json"]
+    paths.extend(sorted((project_path / "07_SCRIPT").glob("*")))
+    return {
+        str(path.relative_to(project_path)): artifact_hash(path.read_bytes())
+        for path in paths
+        if path.is_file()
+    }
+
+
+def run_migrate_legacy_v1_1(args: argparse.Namespace) -> int:
+    """Legacy v1.1 Project에 Version Pin과 Constraint를 원자적으로 추가한다."""
+    project_path = args.project_path.resolve()
+    run_id = f"MIGRATE-{uuid4()}"
+    lock_path = acquire_project_lock(project_path, run_id)
+    try:
+        project_id = project_id_from_manifest(project_path)
+        config_path = project_path / "00_PROJECT" / "production_config.json"
+        variation_path = project_path / "00_PROJECT" / "variation_candidates.json"
+        constraint_path = project_path / "00_PROJECT" / "project_constraints.json"
+        current_config = load_json_object(config_path)
+        if current_config.get("channel_content_version") != "1.1.0":
+            raise ConfigurationError(
+                "LEGACY_MIGRATION_VERSION_INVALID: Channel Content Version은 1.1.0이어야 합니다."
+            )
+        if (
+            current_config.get("variation_engine_version") is not None
+            or current_config.get("variation_catalog_version") is not None
+        ):
+            raise ConfigurationError(
+                "LEGACY_MIGRATION_NOT_REQUIRED: Variation Version Pin이 이미 존재합니다."
+            )
+        migrated_config = deepcopy(current_config)
+        migrated_config["variation_engine_version"] = "1.0.0"
+        migrated_config["variation_catalog_version"] = "1.0.0"
+        runtime = resolve_variation_runtime(ROOT, migrated_config)
+        legacy_variations = load_json_object(variation_path)
+        migrated_variations, signature_reproduced = migrated_legacy_variations(
+            legacy_variations,
+            runtime,
+        )
+        constraint_template = load_json_object(
+            ROOT / "TEMPLATES" / "PROJECT" / "00_PROJECT" / "project_constraints.json"
+        )
+        migrated_constraints = (
+            load_json_object(constraint_path)
+            if constraint_path.is_file()
+            else default_project_constraints(project_id, constraint_template)
+        )
+        schema_targets = (
+            (
+                migrated_config,
+                ROOT / "STANDARD" / "schemas" / "production_config.schema.json",
+                str(config_path),
+            ),
+            (
+                migrated_constraints,
+                ROOT / "STANDARD" / "schemas" / "project_constraints.schema.json",
+                str(constraint_path),
+            ),
+            (
+                migrated_variations,
+                ROOT / "STANDARD" / "schemas" / "variation_candidates.schema.json",
+                str(variation_path),
+            ),
+        )
+        for document, schema_path, source in schema_targets:
+            raise_for_configuration_schema_errors(
+                collect_schema_errors(document, load_json_object(schema_path), source),
+                source,
+            )
+        project_files = {
+            str(path.relative_to(project_path))
+            for path in project_path.rglob("*")
+            if path.is_file()
+        }
+        review_reasons = migration_review_reasons(
+            project_files,
+            signature_reproduced,
+        )
+        review_status = migration_status(review_reasons)
+        protected_hashes = protected_story_script_hashes(project_path)
+        migrated_at = utc_now()
+        config_bytes = encoded_artifact(migrated_config, "application/json")
+        constraint_bytes = encoded_artifact(migrated_constraints, "application/json")
+        variation_bytes = encoded_artifact(migrated_variations, "application/json")
+        dependency_graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
+        state = normalized_legacy_state(
+            load_project_state(project_path),
+            dependency_graph,
+            project_id,
+            migrated_at,
+            {
+                "production_config": config_bytes,
+                "project_constraints": constraint_bytes,
+                "variation_candidates": variation_bytes,
+            },
+        )
+        log_path = project_path / "00_PROJECT" / "change_log.jsonl"
+        existing_log = log_path.read_bytes() if log_path.is_file() else b""
+        next_log = change_log_bytes(
+            existing_log,
+            "LEGACY_V1_1_MIGRATED",
+            {
+                "variation_engine_version": "1.0.0",
+                "variation_catalog_version": "1.0.0",
+                "signature_reproduced": signature_reproduced,
+                "review_status": review_status,
+                "review_reasons": review_reasons,
+                "protected_content_hashes": protected_hashes,
+                "process_revision": state["readiness"]["process_revision"],
+            },
+            migrated_at,
+        )
+        transaction_id = commit_gate_transaction(
+            project_path,
+            run_id,
+            "LEGACY_V1_1_MIGRATION",
+            project_path,
+            {},
+            dependency_graph,
+            state,
+            {
+                "00_PROJECT/production_config.json": config_bytes,
+                "00_PROJECT/project_constraints.json": constraint_bytes,
+                "00_PROJECT/variation_candidates.json": variation_bytes,
+                "00_PROJECT/change_log.jsonl": next_log,
+            },
+        )
+        if protected_story_script_hashes(project_path) != protected_hashes:
+            raise ConfigurationError(
+                "LEGACY_MIGRATION_CONTENT_CHANGED: Story 또는 Script Hash가 변경되었습니다."
+            )
+    finally:
+        release_project_lock(lock_path, run_id)
+    print(
+        json.dumps(
+            {
+                "project_id": project_id,
+                "transaction_id": transaction_id,
+                "variation_engine_version": "1.0.0",
+                "variation_catalog_version": "1.0.0",
+                "signature_reproduced": signature_reproduced,
+                "story_script_hashes_unchanged": True,
+                "review_status": review_status,
+                "review_reasons": review_reasons,
+            },
+            ensure_ascii=False,
+        )
+    )
+    return 0
+
+
 def run_variations(args: argparse.Namespace) -> int:
     """Variation 후보 생성 명령을 실행한다."""
     project_id = project_id_from_manifest(args.project_path)
     require_variation_prerequisites(args.project_path, project_id)
-    catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
     production_config = load_json_object(
         args.project_path / "00_PROJECT" / "production_config.json"
     )
@@ -1023,19 +1168,24 @@ def run_variations(args: argparse.Namespace) -> int:
         production_config,
         None,
     )
-    candidates = generate_variation_candidates_for_project(
+    truth_contract_path = args.project_path / "01_CASE" / "source_truth_contract.json"
+    truth_contract = (
+        load_json_object(truth_contract_path) if truth_contract_path.is_file() else None
+    )
+    candidates = generate_eligible_candidate_pool(
         project_id,
         args.seed,
         args.count,
-        catalog,
+        resolve_variation_runtime(ROOT, production_config),
         require_source_truth_classification(production_config),
         production_config,
         load_json_object(args.project_path / "00_PROJECT" / "project_constraints.json"),
         channel,
-    )
-    candidates = apply_user_case_constraints(
-        candidates,
-        production_config,
+        load_story_history(ROOT / "STORY_LIBRARY" / "novelty_index.json"),
+        load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
+        load_json_object(ROOT / "STANDARD" / "candidate_projection_contract.json"),
+        truth_contract,
+        64,
     )
     output_path = args.project_path / "00_PROJECT" / "variation_candidates.json"
     write_json_object(output_path, candidates)
@@ -1080,9 +1230,7 @@ def run_candidate_eligibility(args: argparse.Namespace) -> int:
         args.project_path / "00_PROJECT" / "project_constraints.json"
     )
     channel, _manifest, _path = resolve_project_channel(ROOT, config, None)
-    variations = load_json_object(
-        args.project_path / "00_PROJECT" / "variation_candidates.json"
-    )
+    variations = load_json_object(args.project_path / "00_PROJECT" / "variation_candidates.json")
     novelty = load_json_object(args.project_path / "08_QA" / "novelty_precheck.json")
     eligibility = build_candidate_eligibility(
         config, project_constraints, channel, variations, novelty
@@ -1180,9 +1328,7 @@ def run_approve(args: argparse.Namespace) -> int:
     approval_source_hashes = canonical_file_hashes(approval_source_paths)
     eligibility_schema_errors = collect_schema_errors(
         candidate_eligibility,
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "candidate_eligibility.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "candidate_eligibility.schema.json"),
         str(eligibility_path),
     )
     if eligibility_schema_errors:
@@ -1193,9 +1339,7 @@ def run_approve(args: argparse.Namespace) -> int:
         )
     novelty_schema_errors = collect_schema_errors(
         novelty_precheck,
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "novelty_precheck.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "novelty_precheck.schema.json"),
         str(novelty_path),
     )
     if novelty_schema_errors:
@@ -1316,9 +1460,7 @@ def run_approve(args: argparse.Namespace) -> int:
         args.candidate_id,
         recommended,
         args.actor if human_decision else "SYSTEM",
-        args.reason
-        if human_decision
-        else "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다.",
+        args.reason if human_decision else "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다.",
         changed_at,
         production_config,
         document,
@@ -1330,9 +1472,7 @@ def run_approve(args: argparse.Namespace) -> int:
     )
     approval_schema_errors = collect_schema_errors(
         approval,
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "candidate_approval.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "candidate_approval.schema.json"),
         "candidate_approval",
     )
     if approval_schema_errors:
@@ -1446,9 +1586,7 @@ def run_reference_profile(args: argparse.Namespace) -> int:
 
 def run_precheck(args: argparse.Namespace) -> int:
     """전체 Variation의 Story History Novelty Precheck를 실행한다."""
-    candidates = load_json_object(
-        args.project_path / "00_PROJECT" / "variation_candidates.json"
-    )
+    candidates = load_json_object(args.project_path / "00_PROJECT" / "variation_candidates.json")
     report = evaluate_variation_precheck(
         candidates,
         load_story_history(ROOT / "STORY_LIBRARY" / "novelty_index.json"),
@@ -1494,9 +1632,7 @@ def run_register(args: argparse.Namespace) -> int:
             {"audit": audit},
         )
     state = load_project_state(args.project_path)
-    fingerprint = load_json_object(
-        args.project_path / "00_PROJECT" / "story_fingerprint.json"
-    )
+    fingerprint = load_json_object(args.project_path / "00_PROJECT" / "story_fingerprint.json")
     library = load_json_object(args.library)
     next_library = register_story_fingerprint(library, fingerprint, state)
     registered_at = utc_now()
@@ -1666,8 +1802,7 @@ def run_rebuild_state(args: argparse.Namespace) -> int:
         {
             "result": report["result"],
             "current_gate": state["current_gate"],
-            "process_conformant": state["readiness"]["process_status"]
-            == "PROCESS_CONFORMANT",
+            "process_conformant": state["readiness"]["process_status"] == "PROCESS_CONFORMANT",
         },
         rebuilt_at,
     )
@@ -1690,9 +1825,7 @@ def run_editorial_approve(args: argparse.Namespace) -> int:
         state = load_project_state(args.project_path)
         review = load_json_object(args.project_path / "08_QA" / "editorial_review.json")
         dependency_graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
-        auditable_artifacts = set(
-            audit_artifact_names(ROOT, args.project_path, dependency_graph)
-        )
+        auditable_artifacts = set(audit_artifact_names(ROOT, args.project_path, dependency_graph))
         reviewed_artifacts = load_selected_project_artifacts(
             args.project_path,
             dependency_graph,
@@ -1741,10 +1874,7 @@ def run_production_finalize(args: argparse.Namespace) -> int:
             "GATE-13",
             state["readiness"]["process_revision"],
         )
-        if (
-            state["readiness"]["process_status"] != "PROCESS_CONFORMANT"
-            or not trace_conformant
-        ):
+        if state["readiness"]["process_status"] != "PROCESS_CONFORMANT" or not trace_conformant:
             raise GateTransactionError(
                 "PROCESS_TRACE_MISSING",
                 "Production Ready 전이에 필요한 Process Trace가 완전하지 않습니다.",
@@ -1763,9 +1893,7 @@ def run_production_finalize(args: argparse.Namespace) -> int:
             )
         finalized = finalize_production_ready(
             state,
-            load_json_object(
-                args.project_path / "08_QA" / "editorial_review.json"
-            ),
+            load_json_object(args.project_path / "08_QA" / "editorial_review.json"),
             finalized_at,
         )
         write_json_object(
@@ -1834,6 +1962,8 @@ def run_cli(argv: Sequence[str]) -> int:
             return run_production_finalize(args)
         if args.command == "migrate-channel-pin":
             return run_migrate_channel_pin(args)
+        if args.command == "migrate-legacy-v1-1":
+            return run_migrate_legacy_v1_1(args)
         raise ConfigurationError(f"알 수 없는 명령입니다: command={args.command}")
     except StarterKitError as error:
         print(f"ERROR: {error}", file=sys.stderr)

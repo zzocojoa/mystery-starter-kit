@@ -14,6 +14,7 @@
     "not_applicable_reason": {"type": "string", "minLength": 1},
     "threat_type": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
     "trusted_domain": {"type": "string", "minLength": 1},
+    "safe_domain_betrayal": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
     "safe_domain_expectation": {"type": "string", "minLength": 1},
     "psychological_pressure": {"type": "string", "minLength": 1},
     "early_warning_signals": {
@@ -35,8 +36,10 @@
     "harm_mechanism": {"type": "string", "minLength": 1},
     "harm_event": {"$ref": "#/$defs/harmEvent"},
     "responsible_agent": {"$ref": "#/$defs/characterId"},
+    "responsible_agent_structure": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
     "responsible_agent_payoff": {"type": "string", "minLength": 1},
     "victim_agency_outcome": {"$ref": "#/$defs/victimAgencyOutcome"},
+    "victim_agency_mode": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
     "risk_signal_payoff": {"type": "string", "minLength": 1},
     "episode_theme": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
   },
@@ -47,6 +50,7 @@
         "required": [
           "threat_type",
           "trusted_domain",
+          "safe_domain_betrayal",
           "safe_domain_expectation",
           "psychological_pressure",
           "early_warning_signals",
@@ -56,8 +60,10 @@
           "harm_mechanism",
           "harm_event",
           "responsible_agent",
+          "responsible_agent_structure",
           "responsible_agent_payoff",
           "victim_agency_outcome",
+          "victim_agency_mode",
           "risk_signal_payoff",
           "episode_theme"
         ],

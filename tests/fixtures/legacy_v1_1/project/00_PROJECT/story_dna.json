@@ -1,0 +1,20 @@
+{
+  "schema_family": "story-dna",
+  "schema_version": "1.3.0",
+  "project_id": "PRJ-990",
+  "story_source_mode": "ORIGINAL",
+  "story_dna": {
+    "mystery_type": "WHY",
+    "architecture": "ARCH-05_BELIEF_COLLAPSE",
+    "protagonist_role": "MANAGER",
+    "perspective": "SCREENLIFE",
+    "timeline_style": "FLASHBACK_DRIVEN",
+    "incident_type": "THEFT",
+    "setting": "HOSPITAL",
+    "culprit_structure": "VICTIM_SELF_ENGINEERED",
+    "primary_twist": "TW-03_FALSE_VICTIM",
+    "relationship_engine": {"primary": "PROTECTIVE_LIE"},
+    "pressure_engine": {"source": "SOCIAL_ISOLATION"},
+    "dramatic_engine": {"primary": "BELIEF_REVERSAL"}
+  }
+}

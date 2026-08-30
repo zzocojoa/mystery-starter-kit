@@ -1,0 +1,14 @@
+{
+  "schema_family": "variation-catalog-registry",
+  "schema_version": "1.0.0",
+  "catalogs": {
+    "1.0.0": {
+      "path": "STANDARD/variation_catalogs/1.0.0.json",
+      "catalog_sha256": "15bcea47a9b60ab00b1e43f68143a8da2d693ce1cbfdc59461a90cba787fba80"
+    },
+    "2.0.0": {
+      "path": "STANDARD/variation_catalog.json",
+      "catalog_sha256": "4eb259f3508d515fd73f97c85c8e9999e2a05387622316436be6374e420e2e89"
+    }
+  }
+}

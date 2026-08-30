@@ -60,12 +60,44 @@
     },
     "source": {
       "type": "object",
-      "additionalProperties": true,
-      "required": ["source_id", "url"],
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "url",
+        "retrieved_at",
+        "evidence_locator",
+        "verification_actor",
+        "verification_status"
+      ],
       "properties": {
         "source_id": {"$ref": "#/$defs/id"},
-        "url": {"type": "string", "minLength": 1}
-      }
+        "url": {"type": "string", "minLength": 1},
+        "title": {"type": "string"},
+        "publisher": {"type": "string"},
+        "published_at": {"type": "string"},
+        "source_type": {
+          "enum": ["PRIMARY", "SECONDARY", "COURT_RECORD", "OFFICIAL_RECORD", "NEWS", "EXPERT_PUBLICATION"]
+        },
+        "retrieved_at": {"type": "string", "format": "date-time"},
+        "evidence_locator": {"type": "string", "minLength": 1},
+        "source_snapshot_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "archive_locator": {"type": "string", "minLength": 1},
+        "verification_actor": {"type": "string", "minLength": 1},
+        "verification_status": {"enum": ["VERIFIED", "REJECTED", "PENDING"]}
+      },
+      "oneOf": [
+        {
+          "required": ["source_snapshot_sha256"],
+          "not": {"required": ["archive_locator"]}
+        },
+        {
+          "required": ["archive_locator"],
+          "not": {"required": ["source_snapshot_sha256"]}
+        }
+      ]
     },
     "claim": {
       "type": "object",

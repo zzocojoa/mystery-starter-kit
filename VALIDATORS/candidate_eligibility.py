@@ -246,6 +246,11 @@ def production_feasibility_passes(
         and isinstance(max_characters, int)
         and characters <= max_characters
         and enum_level_passes(
+            profile.get("production_complexity"),
+            limits.get("max_production_complexity"),
+            ("LOW", "MEDIUM", "HIGH", "EXTREME"),
+        )
+        and enum_level_passes(
             profile.get("special_effect_level"),
             limits.get("max_special_effect_level"),
             ("NONE", "LOW", "MEDIUM", "HIGH"),
@@ -270,7 +275,59 @@ def candidate_checks(
     """Candidate의 정책 Profile을 신뢰하지 않고 정책과 직접 비교한다."""
     selection = candidate.get("selection")
     profile = candidate.get("policy_profile")
-    if not isinstance(selection, Mapping) or not isinstance(profile, Mapping):
+    if not isinstance(selection, Mapping):
+        failed = {
+            name: "FAIL"
+            for name in (
+                "policy_profile",
+                "channel_genre",
+                "crime_threat",
+                "trusted_domain",
+                "safe_domain_betrayal",
+                "responsible_agent",
+                "structure_policy",
+                "technical_final_proof",
+                "required_theme",
+                "locked_constraints",
+                "project_constraints",
+                "source_truth",
+                "production_feasibility",
+                "novelty",
+            )
+        }
+        return failed, ["CANDIDATE_POLICY_PROFILE_INVALID"]
+
+    candidate_id = candidate.get("candidate_id")
+    if candidate.get("variation_engine_version") == "1.0.0":
+        legacy_checks_bool = {
+            "policy_profile": profile is None,
+            "channel_genre": isinstance(production_config.get("genre"), str),
+            "crime_threat": True,
+            "trusted_domain": True,
+            "safe_domain_betrayal": True,
+            "responsible_agent": True,
+            "structure_policy": True,
+            "technical_final_proof": True,
+            "required_theme": True,
+            "locked_constraints": locked_constraints_pass(production_config, selection),
+            "project_constraints": project_constraints_pass(project_constraints, selection),
+            "source_truth": isinstance(
+                require_source_truth_classification(production_config), str
+            ),
+            "production_feasibility": True,
+            "novelty": isinstance(candidate_id, str)
+            and novelty_results.get(candidate_id) == "PASS",
+        }
+        legacy_checks = {
+            name: "PASS" if passed else "FAIL"
+            for name, passed in legacy_checks_bool.items()
+        }
+        legacy_reasons = [
+            name.upper() for name, passed in legacy_checks_bool.items() if not passed
+        ]
+        return legacy_checks, legacy_reasons
+
+    if not isinstance(profile, Mapping):
         failed = {
             name: "FAIL"
             for name in (
@@ -344,7 +401,6 @@ def candidate_checks(
         profile.get("source_truth_classification")
         == require_source_truth_classification(production_config)
     )
-    candidate_id = candidate.get("candidate_id")
     v2_policy_applies = crime_v2_candidate_policy_applies(production_config, channel)
     checks_bool = {
         "policy_profile": profile_matches_selection(selection, profile),

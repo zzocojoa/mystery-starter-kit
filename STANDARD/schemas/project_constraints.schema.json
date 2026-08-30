@@ -14,10 +14,11 @@
     "production_limits": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["max_locations", "max_major_characters", "max_special_effect_level", "allow_child_actor", "allow_moving_vehicle", "max_graphic_violence"],
+      "required": ["max_locations", "max_major_characters", "max_production_complexity", "max_special_effect_level", "allow_child_actor", "allow_moving_vehicle", "max_graphic_violence"],
       "properties": {
         "max_locations": {"type": "integer", "minimum": 1},
         "max_major_characters": {"type": "integer", "minimum": 1},
+        "max_production_complexity": {"enum": ["LOW", "MEDIUM", "HIGH", "EXTREME"]},
         "max_special_effect_level": {"enum": ["NONE", "LOW", "MEDIUM", "HIGH"]},
         "allow_child_actor": {"type": "boolean"},
         "allow_moving_vehicle": {"type": "boolean"},

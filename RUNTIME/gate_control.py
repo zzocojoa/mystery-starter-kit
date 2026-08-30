@@ -5,6 +5,11 @@ from collections.abc import Mapping, Sequence
 from VALIDATORS.candidate_approval import validate_candidate_approval
 from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_projection import (
+    validate_approved_candidate_projection,
+    validate_final_story_constraints,
+    validate_projection_contract_coverage,
+)
 from VALIDATORS.causal_validation import validate_causal_graph
 from VALIDATORS.channel_policy_v2 import (
     build_channel_policy_inputs,
@@ -26,6 +31,7 @@ from VALIDATORS.pipeline import (
     artifact_text,
     nonempty_list_issues,
     nonempty_string_issues,
+    optional_artifact_document,
     optional_artifact_text,
     optional_schema_issues,
     production_text_issues,
@@ -46,14 +52,23 @@ from VALIDATORS.presentation_validation import (
     validate_production_presentation,
     validate_script_integrity_v2,
 )
+from VALIDATORS.project_constraints import project_constraint_compiler_issues
 from VALIDATORS.reference_validation import build_story_element_profile
 from VALIDATORS.source_truth import source_truth_requires_evidence
+from VALIDATORS.source_truth_contract import (
+    validate_source_subject_mapping,
+    validate_source_truth_contract_integrity,
+    validate_truth_characters,
+    validate_truth_dimensions,
+    validate_truth_events,
+)
 from VALIDATORS.state_machine import gate_index
 from VALIDATORS.story_validation import (
     validate_reference_profile_alignment,
     validate_story_dna_semantics,
     validate_user_case_constraints,
 )
+from VALIDATORS.variation_registry import variation_runtime_binding_issues
 
 
 def script_nonempty_issues(artifacts: Mapping[str, ArtifactContent]) -> list[ValidationIssue]:
@@ -105,6 +120,9 @@ def validate_gate(
     if gate_id == "GATE-00":
         manifest = artifact_document(artifacts, "project_manifest")
         compatibility = artifact_document(artifacts, "compatibility_report")
+        constraints = artifact_document(artifacts, "project_constraints")
+        projection_contract = presentation_schemas["candidate_projection_contract"]
+        variation_catalog = presentation_schemas["variation_catalog"]
         return [
             *validate_compatibility_gate(compatibility),
             *validate_compatibility_binding_current(
@@ -114,6 +132,15 @@ def validate_gate(
             ),
             *validate_project_ids(artifacts, project_id),
             *validate_project_setup(manifest, production_config, channel),
+            *validate_projection_contract_coverage(
+                variation_catalog,
+                projection_contract,
+            ),
+            *project_constraint_compiler_issues(
+                constraints,
+                variation_catalog,
+                projection_contract,
+            ),
         ]
     if gate_id == "GATE-01":
         project_constraints = artifact_document(artifacts, "project_constraints")
@@ -122,7 +149,7 @@ def validate_gate(
         candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
         approval = artifact_document(artifacts, "candidate_approval")
         precheck = artifact_document(artifacts, "novelty_precheck")
-        return [
+        issues = [
             *validate_variation_gate(variations, channel),
             *schema_issues(
                 eligibility,
@@ -167,7 +194,22 @@ def validate_gate(
                 approval,
             ),
             *validate_variation_precheck(variations, precheck),
+            *variation_runtime_binding_issues(
+                production_config,
+                variations,
+                presentation_schemas["variation_runtime"],
+            ),
         ]
+        if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+            issues.extend(
+                validate_source_truth_contract_integrity(
+                    artifact_document(artifacts, "source_truth_contract"),
+                    artifact_document(artifacts, "source_subjects"),
+                    artifact_document(artifacts, "verified_event_ledger"),
+                    artifact_document(artifacts, "claim_evidence"),
+                )
+            )
+        return issues
     if gate_id == "GATE-02":
         manifest = artifact_document(artifacts, "project_manifest")
         reference_profile = artifact_document(artifacts, "reference_profile")
@@ -180,6 +222,24 @@ def validate_gate(
             *validate_user_case_constraints(production_config, story),
             *validate_reference_profile_alignment(story, reference_profile),
             *validate_variation_alignment(variations, story),
+            *validate_approved_candidate_projection(
+                production_config,
+                variations,
+                presentation_schemas["candidate_projection_contract"],
+                {"story_dna": story},
+            ),
+            *(
+                validate_truth_dimensions(
+                    artifact_document(artifacts, "source_truth_contract"),
+                    story,
+                    None,
+                    None,
+                )
+                if source_truth_requires_evidence(
+                    production_config.get("source_truth_classification")
+                )
+                else []
+            ),
         ]
     story = artifact_document(artifacts, "story_dna")
     case_input = artifact_document(artifacts, "case_input")
@@ -226,12 +286,36 @@ def validate_gate(
                     artifact_document(artifacts, "verified_fact_ledger"),
                 )
             )
+            issues.extend(
+                validate_truth_dimensions(
+                    artifact_document(artifacts, "source_truth_contract"),
+                    story,
+                    case_input,
+                    optional_artifact_document(artifacts, "crime_psychology"),
+                )
+            )
+        issues.extend(
+            validate_approved_candidate_projection(
+                production_config,
+                artifact_document(artifacts, "variation_candidates"),
+                presentation_schemas["candidate_projection_contract"],
+                {
+                    "story_dna": story,
+                    "case_input": case_input,
+                    **(
+                        {"crime_psychology": artifacts["crime_psychology"]}
+                        if "crime_psychology" in artifacts
+                        else {}
+                    ),
+                },
+            )
+        )
         return issues
     characters = artifact_document(artifacts, "characters")
     relationships = artifact_document(artifacts, "relationships")
     knowledge = artifact_document(artifacts, "knowledge_matrix")
     if gate_id == "GATE-04":
-        return [
+        issues = [
             *nonempty_list_issues(characters, "characters", "02_CHARACTER/characters.json"),
             *nonempty_list_issues(
                 relationships, "relationships", "02_CHARACTER/relationships.json"
@@ -240,6 +324,24 @@ def validate_gate(
                 knowledge, "knowledge_events", "02_CHARACTER/knowledge_matrix.json"
             ),
         ]
+        if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+            source_subjects = artifact_document(artifacts, "source_subjects")
+            issues.extend(
+                validate_source_subject_mapping(
+                    source_subjects,
+                    characters,
+                    optional_artifact_document(artifacts, "clinical_labels"),
+                )
+            )
+            issues.extend(
+                validate_truth_characters(
+                    artifact_document(artifacts, "source_truth_contract"),
+                    source_subjects,
+                    characters,
+                    relationships,
+                )
+            )
+        return issues
     actual = artifact_document(artifacts, "actual_timeline")
     viewer = artifact_document(artifacts, "viewer_timeline")
     audience = artifact_document(artifacts, "audience_belief")
@@ -247,7 +349,7 @@ def validate_gate(
     hypotheses = artifact_document(artifacts, "hypothesis_ledger")
     causal = artifact_document(artifacts, "causal_graph")
     if gate_id == "GATE-05":
-        return [
+        issues = [
             *nonempty_list_issues(actual, "events", "03_TIMELINE/actual_timeline.json"),
             *nonempty_list_issues(viewer, "reveals", "03_TIMELINE/viewer_timeline.json"),
             *nonempty_list_issues(
@@ -258,7 +360,33 @@ def validate_gate(
             *nonempty_list_issues(causal, "nodes", "04_MYSTERY/causal_graph.json"),
             *nonempty_list_issues(causal, "edges", "04_MYSTERY/causal_graph.json"),
             *validate_causal_graph(causal),
+            *validate_approved_candidate_projection(
+                production_config,
+                artifact_document(artifacts, "variation_candidates"),
+                presentation_schemas["candidate_projection_contract"],
+                {
+                    "story_dna": story,
+                    "case_input": case_input,
+                    "clue_matrix": clues,
+                    **(
+                        {"crime_psychology": artifacts["crime_psychology"]}
+                        if "crime_psychology" in artifacts
+                        else {}
+                    ),
+                },
+            ),
         ]
+        if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+            issues.extend(
+                validate_truth_events(
+                    artifact_document(artifacts, "source_truth_contract"),
+                    artifact_document(artifacts, "verified_event_ledger"),
+                    characters,
+                    actual,
+                    causal,
+                )
+            )
+        return issues
     beats = artifact_document(artifacts, "beat_sheet")
     retention = artifact_document(artifacts, "retention_plan")
     if gate_id == "GATE-06":
@@ -413,6 +541,18 @@ def validate_gate(
             *validate_channel_policy_v2(
                 channel,
                 build_channel_policy_inputs(artifacts),
+            ),
+            *validate_approved_candidate_projection(
+                production_config,
+                artifact_document(artifacts, "variation_candidates"),
+                presentation_schemas["candidate_projection_contract"],
+                artifacts,
+            ),
+            *validate_final_story_constraints(
+                artifact_document(artifacts, "project_constraints"),
+                artifact_document(artifacts, "variation_candidates"),
+                presentation_schemas["candidate_projection_contract"],
+                artifacts,
             ),
         ]
     if gate_id == "GATE-13":
