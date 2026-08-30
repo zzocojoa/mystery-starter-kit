@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/crime-psychology-1.0.0.json",
+  "title": "Crime Psychology Trace",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "project_id", "applicable"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "crime-psychology"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"$ref": "#/$defs/projectId"},
+    "applicable": {"type": "boolean"},
+    "not_applicable_reason": {"type": "string", "minLength": 1},
+    "threat_type": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "trusted_domain": {"type": "string", "minLength": 1},
+    "safe_domain_betrayal": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "safe_domain_expectation": {"type": "string", "minLength": 1},
+    "psychological_pressure": {"type": "string", "minLength": 1},
+    "early_warning_signals": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/warningStep"}
+    },
+    "boundary_erosion_steps": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/boundaryStep"}
+    },
+    "control_tactics": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/controlStep"}
+    },
+    "victim_exit_barriers": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/exitBarrier"}
+    },
+    "harm_mechanism": {"type": "string", "minLength": 1},
+    "harm_event": {"$ref": "#/$defs/harmEvent"},
+    "responsible_agent": {"$ref": "#/$defs/characterId"},
+    "responsible_agent_structure": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "responsible_agent_payoff": {"type": "string", "minLength": 1},
+    "victim_agency_outcome": {"$ref": "#/$defs/victimAgencyOutcome"},
+    "victim_agency_mode": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "risk_signal_payoff": {"type": "string", "minLength": 1},
+    "episode_theme": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"applicable": {"const": true}}},
+      "then": {
+        "required": [
+          "threat_type",
+          "trusted_domain",
+          "safe_domain_betrayal",
+          "safe_domain_expectation",
+          "psychological_pressure",
+          "early_warning_signals",
+          "boundary_erosion_steps",
+          "control_tactics",
+          "victim_exit_barriers",
+          "harm_mechanism",
+          "harm_event",
+          "responsible_agent",
+          "responsible_agent_structure",
+          "responsible_agent_payoff",
+          "victim_agency_outcome",
+          "victim_agency_mode",
+          "risk_signal_payoff",
+          "episode_theme"
+        ],
+        "properties": {
+          "early_warning_signals": {"minItems": 1},
+          "boundary_erosion_steps": {"minItems": 1},
+          "control_tactics": {"minItems": 1},
+          "victim_exit_barriers": {"minItems": 1}
+        }
+      },
+      "else": {"required": ["not_applicable_reason"]}
+    }
+  ],
+  "$defs": {
+    "projectId": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "characterId": {"type": "string", "pattern": "^CHAR-[0-9]{2,}$"},
+    "sceneId": {"type": "string", "pattern": "^SCN-[0-9]{2,}$"},
+    "warningStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["warning_signal_id", "actor_id", "victim_id", "scene_id", "order", "description"],
+      "properties": {
+        "warning_signal_id": {"type": "string", "pattern": "^WARN-[0-9]{2,}$"},
+        "actor_id": {"$ref": "#/$defs/characterId"},
+        "victim_id": {"$ref": "#/$defs/characterId"},
+        "scene_id": {"$ref": "#/$defs/sceneId"},
+        "order": {"type": "integer", "minimum": 1},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "boundaryStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["boundary_step_id", "actor_id", "victim_id", "scene_id", "order", "description"],
+      "properties": {
+        "boundary_step_id": {"type": "string", "pattern": "^BOUND-[0-9]{2,}$"},
+        "actor_id": {"$ref": "#/$defs/characterId"},
+        "victim_id": {"$ref": "#/$defs/characterId"},
+        "scene_id": {"$ref": "#/$defs/sceneId"},
+        "order": {"type": "integer", "minimum": 1},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "controlStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["control_tactic_id", "actor_id", "victim_id", "scene_id", "order", "description"],
+      "properties": {
+        "control_tactic_id": {"type": "string", "pattern": "^CTRL-[0-9]{2,}$"},
+        "actor_id": {"$ref": "#/$defs/characterId"},
+        "victim_id": {"$ref": "#/$defs/characterId"},
+        "scene_id": {"$ref": "#/$defs/sceneId"},
+        "order": {"type": "integer", "minimum": 1},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "exitBarrier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exit_barrier_id", "actor_id", "victim_id", "scene_id", "order", "description"],
+      "properties": {
+        "exit_barrier_id": {"type": "string", "pattern": "^EXIT-[0-9]{2,}$"},
+        "actor_id": {"$ref": "#/$defs/characterId"},
+        "victim_id": {"$ref": "#/$defs/characterId"},
+        "scene_id": {"$ref": "#/$defs/sceneId"},
+        "order": {"type": "integer", "minimum": 1},
+        "description": {"type": "string", "minLength": 1}
+      }
+    },
+    "harmEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["harm_event_id", "actor_id", "victim_id", "scene_id", "order"],
+      "properties": {
+        "harm_event_id": {"type": "string", "pattern": "^HARM-[0-9]{2,}$"},
+        "actor_id": {"$ref": "#/$defs/characterId"},
+        "victim_id": {"$ref": "#/$defs/characterId"},
+        "scene_id": {"$ref": "#/$defs/sceneId"},
+        "order": {"type": "integer", "minimum": 1}
+      }
+    },
+    "victimAgencyOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["victim_id", "ending_scene_id", "outcome"],
+      "properties": {
+        "victim_id": {"$ref": "#/$defs/characterId"},
+        "ending_scene_id": {"$ref": "#/$defs/sceneId"},
+        "outcome": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

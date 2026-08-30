@@ -6,7 +6,11 @@ from pathlib import Path
 from RUNTIME.contracts import load_task_catalog
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.models import ExecutionPlan, PlannedTask, RuntimeTask
+from VALIDATORS.channel_registry import resolve_project_channel
+from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object
+from VALIDATORS.pipeline import load_existing_project_artifacts
+from VALIDATORS.requirements import requirement_matches
 from VALIDATORS.state_machine import gate_index
 
 
@@ -28,23 +32,21 @@ def next_gate_id(current_gate: str) -> str:
     return f"GATE-{index:02d}"
 
 
-def task_condition_matches(condition: str, source_mode: str) -> bool:
-    """Project Source Mode에 따라 조건부 Task 실행 여부를 판정한다."""
-    if condition == "ALWAYS":
-        return True
-    if condition == "REFERENCE_ONLY":
-        return source_mode == "REFERENCE_INSPIRED"
-    if condition == "TRUE_STORY_ONLY":
-        return source_mode in {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}
-    raise RuntimeExecutionError(
-        "RUNTIME_CONFIGURATION_ERROR",
-        False,
-        "RUN",
-        "알 수 없는 Runtime Task Condition입니다.",
-        None,
-        None,
-        {"condition": condition},
-    )
+def task_condition_matches(
+    condition: object,
+    production_config: Mapping[str, object],
+    channel: Mapping[str, object],
+    artifacts: Mapping[str, object],
+) -> bool:
+    """공통 Requirement Evaluator로 Task 실행 여부를 판정한다."""
+    try:
+        return requirement_matches(condition, production_config, channel, artifacts)
+    except ConfigurationError as error:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR", False, "RUN",
+            "Runtime Task Condition을 평가할 수 없습니다.", None, None,
+            {"condition": condition},
+        ) from error
 
 
 def tasks_in_gate_range(
@@ -107,11 +109,9 @@ def build_execution_plan(
     production_config = load_json_object(project_path / "00_PROJECT" / "production_config.json")
     project_id = state.get("project_id")
     current_gate = state.get("current_gate")
-    source_mode = production_config.get("story_source_mode")
     if (
         not isinstance(project_id, str)
         or not isinstance(current_gate, str)
-        or not isinstance(source_mode, str)
     ):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
@@ -148,6 +148,13 @@ def build_execution_plan(
             {"from_gate": from_gate, "to_gate": to_gate},
         )
     catalog = load_task_catalog(repository_root)
+    dependency_graph = load_json_object(repository_root / "STANDARD/dependency_graph.json")
+    channel, _manifest, _channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        None,
+    )
+    artifacts = load_existing_project_artifacts(project_path, dependency_graph)
     ranged = tasks_in_gate_range(catalog, from_gate, to_gate)
     ordered = topological_task_ids(ranged)
     planned = [
@@ -156,7 +163,12 @@ def build_execution_plan(
             target_gate=ranged[task_id]["target_gate"],
             executor=ranged[task_id]["executor"],
             status="PLANNED"
-            if task_condition_matches(ranged[task_id]["condition"], source_mode)
+            if task_condition_matches(
+                ranged[task_id]["condition"],
+                production_config,
+                channel,
+                artifacts,
+            )
             else "SKIPPED",
         )
         for task_id in ordered

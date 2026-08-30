@@ -5,10 +5,14 @@
 | Production Standard | 제작 단계, Gate, 실패 조건을 정의하는 범용 Engine | 드물게 변경 |
 | Compatibility Contract | Standard가 Channel에 요구하는 최소 Interface | 독립 Version |
 | Channel DNA | 장르, Tone, 표현, 관객 경험 정책 | Channel 단위 |
+| Channel Content Version Pin | Project가 생성 당시 Channel 정책 버전을 고정한 값 | Project 단위 |
+| Channel Manifest | 활성 버전과 사용 가능한 Content Version별 DNA 경로·SHA-256 Registry | Channel 단위 |
 | Story DNA | Episode의 구조, Source Mode, Engine을 정의하는 실행 인스턴스 | Project 단위 |
 | Story Source Mode | Original, User Case, Reference, True Story의 입력 경계 | Project 단위 |
 | User Case Constraint | 사용자 설정의 `LOCKED`, `FLEXIBLE`, `UNKNOWN` 변경 상태 | Project 단위 |
 | Variation Candidate | 대본 전 단계의 다축 구조 후보 | 승인 전 임시 |
+| Candidate Evaluation | 후보별 Hard Filter, 정책 점수, 결정과 근거 | GATE-01 |
+| Expert Analysis | 전문가 신원·자격·Claim-Evidence를 갖는 조건부 Presentation Segment | Channel v2 Project |
 | Relationship Engine | 주인공과 Counterpart 사이의 변화 동력 | Story 단위 |
 | Pressure Engine | 시간·사회·법·자원 압박의 상승 구조 | Story 단위 |
 | Dramatic Engine | 관객 감정과 선택 갈등을 움직이는 중심 동력 | Story 단위 |

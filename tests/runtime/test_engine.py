@@ -3,6 +3,7 @@
 import asyncio
 import json
 from collections.abc import Awaitable, Callable
+from copy import deepcopy
 from hashlib import sha256
 from pathlib import Path
 
@@ -12,9 +13,11 @@ from RUNTIME.approvals import approval_is_current
 from RUNTIME.cli import approval_document
 from RUNTIME.engine import execute_run, resume_run
 from RUNTIME.errors import RuntimeExecutionError
+from RUNTIME.human_inputs import current_evidence_input, submit_evidence_input
 from RUNTIME.models import LLMRequest, LLMResponse, ProviderDescriptor, TokenUsage
 from RUNTIME.providers.fake import agent_result_document
 from RUNTIME.providers.in_process import InProcessProviderAdapter
+from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object, write_json_object
 
 from .support import create_runtime_project, create_runtime_repository
@@ -67,6 +70,133 @@ def latest_run(project_path: Path) -> dict[str, object]:
     return load_json_object(run_paths[-1])
 
 
+def evidence_input_document(
+    project_id: str,
+    source_truth: str,
+    input_hashes: dict[str, str],
+) -> dict[str, object]:
+    """원문을 포함하지 않는 Test Human Evidence 입력을 만든다."""
+    return {
+        "schema_family": "evidence-input",
+        "schema_version": "1.0.0",
+        "project_id": project_id,
+        "task_id": "reference.intake_evidence",
+        "source_truth_classification": source_truth,
+        "sources": [
+            {
+                "source_id": "SRC-01",
+                "url": "https://example.com/case-940",
+                "title": "공식 사건 요약",
+                "publisher": "Example Court",
+                "published_at": "2026-08-20",
+                "source_type": "COURT_RECORD",
+                "retrieved_at": "2026-08-30T00:00:00Z",
+                "evidence_locator": "case-summary:paragraphs-1-2",
+                "source_snapshot_sha256": "a" * 64,
+                "verification_actor": "evidence-editor",
+                "verification_status": "VERIFIED",
+            }
+        ],
+        "claims": [
+            {
+                "fact_id": "FACT-01",
+                "claim": "기계 로그에는 7분 공백이 있었다.",
+                "classification": "FACT",
+                "evidence_source_ids": ["SRC-01"],
+                "basis_fact_ids": [],
+                "evidence_scope": "공식 요약의 사건 경과 부분",
+                "confidence": "HIGH",
+                "presented_as_fact": True,
+            },
+            {
+                "fact_id": "FACT-02",
+                "claim": "안전 센서는 점검 모드였다.",
+                "classification": "FACT",
+                "evidence_source_ids": ["SRC-01"],
+                "basis_fact_ids": [],
+                "evidence_scope": "공식 요약의 설비 상태 부분",
+                "confidence": "HIGH",
+                "presented_as_fact": True,
+            },
+        ],
+        "source_subjects": [
+            {
+                "source_subject_id": "SUBJECT-01",
+                "pseudonym": "지안",
+                "source_role": "SUSPECT",
+                "related_fact_ids": ["FACT-01"],
+                "identity_disclosure_level": "PSEUDONYMIZED",
+            },
+            {
+                "source_subject_id": "SUBJECT-02",
+                "pseudonym": "태호",
+                "source_role": "MISSING_COWORKER",
+                "related_fact_ids": ["FACT-02"],
+                "identity_disclosure_level": "PSEUDONYMIZED",
+            },
+        ],
+        "verified_events": [
+            {
+                "verified_event_id": "VEVT-01",
+                "statement": "기계 로그에는 7분 공백이 있었다.",
+                "sequence": 1,
+                "setting": "FACTORY",
+                "participant_source_subject_ids": ["SUBJECT-01"],
+                "source_claim_ids": ["FACT-01"],
+            },
+            {
+                "verified_event_id": "VEVT-02",
+                "statement": "안전 센서는 점검 모드였다.",
+                "sequence": 2,
+                "setting": "FACTORY",
+                "participant_source_subject_ids": ["SUBJECT-02"],
+                "source_claim_ids": ["FACT-02"],
+            },
+        ],
+        "source_truth_contract": {
+            "locked_dimensions": [
+                "incident_type",
+                "setting",
+                "subject_roles",
+                "relationships",
+                "events",
+            ],
+            "verified_relationships": [
+                {
+                    "from_source_subject_id": "SUBJECT-01",
+                    "to_source_subject_id": "SUBJECT-02",
+                    "relationship_type": "TRUST_TO_RESPONSIBILITY",
+                    "source_claim_ids": ["FACT-01"],
+                }
+            ],
+            "verified_incident_type": "FRAUD",
+            "verified_setting": "FACTORY",
+            "verified_responsible_agent_structure": None,
+            "verified_legal_outcome": None,
+            "flexible_dimensions": [],
+            "unknown_dimensions": ["responsible_agent_structure", "legal_outcome"],
+            "source_claim_ids": ["FACT-01", "FACT-02"],
+        },
+        "source_disclosure": {
+            "schema_family": "source-disclosure",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "internal_mode": source_truth,
+            "audience_label_text": "검증된 공개 자료를 바탕으로 재구성했습니다.",
+        },
+        "clinical_labels": {
+            "schema_family": "clinical-labels",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "labels": [],
+        },
+        "actor": "evidence-editor",
+        "reason": "출처와 Claim 범위를 검증함",
+        "submitted_at": "2026-08-30T00:00:00Z",
+        "bound_input_hashes": input_hashes,
+    }
+
+
 def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
     """외부 API 없이 새 Project가 전체 Gate와 감사 기록을 완성한다."""
     repository_root = create_runtime_repository(tmp_path)
@@ -86,9 +216,7 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
 
     state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
     report = load_json_object(project_path / "08_QA" / "validation_report.json")
-    novelty_index = load_json_object(
-        repository_root / "STORY_LIBRARY" / "novelty_index.json"
-    )
+    novelty_index = load_json_object(repository_root / "STORY_LIBRARY" / "novelty_index.json")
     gate_results = report.get("gate_results")
     assert isinstance(gate_results, dict)
     story_path = project_path / "00_PROJECT" / "story_dna.json"
@@ -122,9 +250,11 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
     assert any(event["event_type"] == "RUN_COMPLETED" for event in events)
     assert len(list((project_path / ".runtime" / "transactions").glob("*/transaction.json"))) == 14
     trace_lines = (
-        project_path / "00_PROJECT" / "process_trace.jsonl"
-    ).read_text(encoding="utf-8").splitlines()
-    assert len(trace_lines) == 22
+        (project_path / "00_PROJECT" / "process_trace.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    )
+    assert len(trace_lines) == 26
     novelty_entries = novelty_index["entries"]
     assert isinstance(novelty_entries, list)
     runtime_entry = next(
@@ -134,6 +264,332 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
     )
     assert runtime_entry["status"] == "EDITORIAL_PENDING"
     assert isinstance(runtime_entry["fingerprint"], dict)
+    for relative_path in (
+        "01_CASE/crime_psychology.json",
+        "01_CASE/source_disclosure.json",
+        "01_CASE/clinical_labels.json",
+        "06_SCENE/expert_segments.json",
+        "07_SCRIPT/expert_analysis_script.md",
+        "09_PRODUCTION/expert_analysis_script.md",
+    ):
+        assert not (project_path / relative_path).exists()
+
+
+def test_true_story_evidence_submission_resumes_same_run_through_gate_five(
+    tmp_path: Path,
+) -> None:
+    """사실 기반 Run은 Evidence 검증 후 같은 Run에서 GATE-05까지 Truth를 유지한다."""
+    repository_root = create_runtime_repository(tmp_path)
+    project_path = create_runtime_project(repository_root, "PRJ-938")
+    config_path = project_path / "00_PROJECT" / "production_config.json"
+    config = load_json_object(config_path)
+    config["story_source_mode"] = "TRUE_STORY"
+    config["source_truth_classification"] = "VERIFIED_TRUE_CASE"
+    write_json_object(config_path, config)
+    manifest_path = project_path / "00_PROJECT" / "project_manifest.json"
+    manifest = load_json_object(manifest_path)
+    manifest["story_source_mode"] = "TRUE_STORY"
+    write_json_object(manifest_path, manifest)
+
+    with pytest.raises(RuntimeExecutionError) as error_info:
+        asyncio.run(
+            execute_run(
+                repository_root,
+                project_path,
+                "GATE-00",
+                "GATE-05",
+                "default",
+                None,
+                None,
+            )
+        )
+
+    waiting = latest_run(project_path)
+    run_id = waiting["run_id"]
+    assert isinstance(run_id, str)
+    waiting_tasks = waiting["tasks"]
+    assert isinstance(waiting_tasks, dict)
+    task_state = waiting_tasks["reference.intake_evidence"]
+    assert isinstance(task_state, dict)
+    input_hashes = task_state["input_hashes"]
+    assert isinstance(input_hashes, dict)
+    assert error_info.value.code == "HUMAN_INPUT_REQUIRED", error_info.value.as_dict()
+    assert waiting["status"] == "WAITING_HUMAN"
+    assert waiting["current_task_id"] == "reference.intake_evidence"
+    assert waiting_tasks["variation.evaluate"]["attempt"] == 0
+    assert waiting_tasks["story.design_dna"]["attempt"] == 0
+    assert waiting_tasks["story.define_case"]["attempt"] == 0
+
+    wrong_truth = evidence_input_document(
+        "PRJ-938",
+        "INSPIRED_BY_TRUE_EVENTS",
+        input_hashes,
+    )
+    with pytest.raises(RuntimeExecutionError) as truth_error:
+        submit_evidence_input(project_path, run_id, wrong_truth)
+    assert truth_error.value.code == "HUMAN_INPUT_SOURCE_TRUTH_MISMATCH"
+
+    raw_document = evidence_input_document(
+        "PRJ-938",
+        "VERIFIED_TRUE_CASE",
+        input_hashes,
+    )
+    raw_sources = raw_document["sources"]
+    assert isinstance(raw_sources, list)
+    source = raw_sources[0]
+    assert isinstance(source, dict)
+    source["raw_text"] = "저장하면 안 되는 기사 전문"
+    with pytest.raises(RuntimeExecutionError) as raw_error:
+        submit_evidence_input(project_path, run_id, raw_document)
+    assert raw_error.value.code == "HUMAN_INPUT_INVALID"
+
+    pending_document = evidence_input_document(
+        "PRJ-938",
+        "VERIFIED_TRUE_CASE",
+        input_hashes,
+    )
+    pending_sources = pending_document["sources"]
+    assert isinstance(pending_sources, list)
+    pending_source = pending_sources[0]
+    assert isinstance(pending_source, dict)
+    pending_source["verification_status"] = "PENDING"
+    with pytest.raises(RuntimeExecutionError) as pending_error:
+        submit_evidence_input(project_path, run_id, pending_document)
+    assert pending_error.value.code == "HUMAN_INPUT_INVALID"
+
+    inferred_contract_document = evidence_input_document(
+        "PRJ-938",
+        "VERIFIED_TRUE_CASE",
+        input_hashes,
+    )
+    inferred_claims = inferred_contract_document["claims"]
+    assert isinstance(inferred_claims, list)
+    inferred_claim = inferred_claims[0]
+    assert isinstance(inferred_claim, dict)
+    inferred_claim["classification"] = "INFERENCE"
+    inferred_claim["evidence_source_ids"] = []
+    inferred_claim["basis_fact_ids"] = ["FACT-02"]
+    inferred_claim["presented_as_fact"] = False
+    with pytest.raises(RuntimeExecutionError) as inferred_contract_error:
+        submit_evidence_input(project_path, run_id, inferred_contract_document)
+    assert inferred_contract_error.value.code == "HUMAN_INPUT_INVALID"
+
+    document = evidence_input_document(
+        "PRJ-938",
+        "VERIFIED_TRUE_CASE",
+        input_hashes,
+    )
+    accepted = submit_evidence_input(project_path, run_id, document)
+    assert accepted["status"] == "ACCEPTED"
+    assert submit_evidence_input(project_path, run_id, document)["status"] == "NO_OP"
+    conflicting = deepcopy(document)
+    conflicting["actor"] = "different-reviewer"
+    with pytest.raises(RuntimeExecutionError) as conflict_error:
+        submit_evidence_input(project_path, run_id, conflicting)
+    assert conflict_error.value.code == "HUMAN_INPUT_CONFLICT"
+    assert (
+        current_evidence_input(
+            project_path,
+            run_id,
+            "PRJ-938",
+            "VERIFIED_TRUE_CASE",
+            {**input_hashes, "production_config": "0" * 64},
+        )
+        is None
+    )
+
+    completed = asyncio.run(resume_run(repository_root, run_id, None))
+
+    assert completed["status"] == "COMPLETED"
+    assert completed["run_id"] == run_id
+    state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
+    assert state["current_gate"] == "GATE-05"
+    for relative_path in (
+        "01_CASE/sources.json",
+        "01_CASE/source_subjects.json",
+        "01_CASE/claim_evidence.json",
+        "01_CASE/source_case_brief.json",
+        "01_CASE/verified_fact_ledger.json",
+        "01_CASE/verified_event_ledger.json",
+        "01_CASE/source_truth_contract.json",
+        "01_CASE/source_disclosure.json",
+        "01_CASE/clinical_labels.json",
+        "02_CHARACTER/characters.json",
+        "02_CHARACTER/relationships.json",
+        "03_TIMELINE/actual_timeline.json",
+        "04_MYSTERY/causal_graph.json",
+    ):
+        assert (project_path / relative_path).is_file()
+    transaction_paths = sorted(
+        (project_path / ".runtime" / "transactions").glob("*/transaction.json")
+    )
+    gate_one = next(
+        transaction
+        for path in transaction_paths
+        if (transaction := load_json_object(path)).get("gate_id") == "GATE-01"
+    )
+    targets = gate_one["targets"]
+    assert isinstance(targets, list)
+    target_names = {
+        Path(str(target["target_path"])).name for target in targets if isinstance(target, dict)
+    }
+    assert {
+        "sources.json",
+        "source_subjects.json",
+        "claim_evidence.json",
+        "source_case_brief.json",
+        "verified_fact_ledger.json",
+        "verified_event_ledger.json",
+        "source_truth_contract.json",
+        "source_disclosure.json",
+        "clinical_labels.json",
+        "project_state.json",
+        "change_log.jsonl",
+    } <= target_names
+    ledger = load_json_object(project_path / "01_CASE" / "verified_fact_ledger.json")
+    story_facts = load_json_object(project_path / "01_CASE" / "facts.json")
+    ledger_facts = ledger["facts"]
+    generated_facts = story_facts["facts"]
+    assert isinstance(ledger_facts, list)
+    assert isinstance(generated_facts, list)
+    assert ledger_facts
+    assert all(
+        isinstance(fact, dict) and fact.get("classification") == "FACT" for fact in ledger_facts
+    )
+    assert all(fact in generated_facts for fact in ledger_facts)
+
+
+def test_source_truth_bundle_tamper_fails_before_llm_context(tmp_path: Path) -> None:
+    """Evidence Bundle 변조는 Story LLM이 한 번도 호출되기 전에 차단된다."""
+    repository_root = create_runtime_repository(tmp_path)
+    project_path = create_runtime_project(repository_root, "PRJ-937")
+    config_path = project_path / "00_PROJECT" / "production_config.json"
+    config = load_json_object(config_path)
+    config["story_source_mode"] = "TRUE_STORY"
+    config["source_truth_classification"] = "VERIFIED_TRUE_CASE"
+    write_json_object(config_path, config)
+    manifest_path = project_path / "00_PROJECT" / "project_manifest.json"
+    manifest = load_json_object(manifest_path)
+    manifest["story_source_mode"] = "TRUE_STORY"
+    write_json_object(manifest_path, manifest)
+
+    with pytest.raises(RuntimeExecutionError) as waiting_error:
+        asyncio.run(
+            execute_run(
+                repository_root,
+                project_path,
+                "GATE-00",
+                "GATE-01",
+                "default",
+                None,
+                None,
+            )
+        )
+    assert waiting_error.value.code == "HUMAN_INPUT_REQUIRED"
+    waiting = latest_run(project_path)
+    run_id = waiting["run_id"]
+    tasks = waiting["tasks"]
+    assert isinstance(run_id, str)
+    assert isinstance(tasks, dict)
+    evidence_task = tasks["reference.intake_evidence"]
+    assert isinstance(evidence_task, dict)
+    input_hashes = evidence_task["input_hashes"]
+    assert isinstance(input_hashes, dict)
+    submit_evidence_input(
+        project_path,
+        run_id,
+        evidence_input_document(
+            "PRJ-937",
+            "VERIFIED_TRUE_CASE",
+            input_hashes,
+        ),
+    )
+    completed = asyncio.run(resume_run(repository_root, run_id, None))
+    assert completed["status"] == "COMPLETED"
+
+    claims_path = project_path / "01_CASE" / "claim_evidence.json"
+    claims = load_json_object(claims_path)
+    claim_records = claims["claims"]
+    assert isinstance(claim_records, list)
+    claim = claim_records[0]
+    assert isinstance(claim, dict)
+    claim["evidence_scope"] = "변조된 범위"
+    write_json_object(claims_path, claims)
+    state_path = project_path / "00_PROJECT" / "project_state.json"
+    state = load_json_object(state_path)
+    artifact_states = state["artifacts"]
+    assert isinstance(artifact_states, dict)
+    claim_state = artifact_states["claim_evidence"]
+    assert isinstance(claim_state, dict)
+    claim_state["content_hash"] = sha256(claims_path.read_bytes()).hexdigest()
+    write_json_object(state_path, state)
+
+    call_count = 0
+
+    async def counting_handler(request: LLMRequest) -> LLMResponse:
+        """Story LLM 호출 횟수를 기록한다."""
+        nonlocal call_count
+        call_count += 1
+        return response_with_result(request, agent_result_document(request))
+
+    with pytest.raises(RuntimeExecutionError) as bundle_error:
+        asyncio.run(
+            execute_run(
+                repository_root,
+                project_path,
+                "GATE-02",
+                "GATE-02",
+                "default",
+                None,
+                {"fake": fake_adapter(counting_handler)},
+            )
+        )
+    assert bundle_error.value.code == "SOURCE_TRUTH_BOUND_ARTIFACT_HASH_MISMATCH"
+    assert call_count == 0
+
+
+def test_channel_tamper_fails_before_any_llm_call(tmp_path: Path) -> None:
+    """GATE-00 뒤 Channel DNA 변조는 다음 실행의 첫 LLM 호출 전에 차단한다."""
+    repository_root = create_runtime_repository(tmp_path)
+    project_path = create_runtime_project(repository_root, "PRJ-939")
+    asyncio.run(
+        execute_run(
+            repository_root,
+            project_path,
+            "GATE-00",
+            "GATE-00",
+            "default",
+            None,
+            None,
+        )
+    )
+    channel_path = repository_root / "CHANNELS/mystery_main/versions/1.1.0/channel_dna.json"
+    channel = load_json_object(channel_path)
+    identity = channel["identity"]
+    assert isinstance(identity, dict)
+    identity["statement"] = "변조된 채널 정체성"
+    write_json_object(channel_path, channel)
+    call_count = 0
+
+    async def counting_handler(request: LLMRequest) -> LLMResponse:
+        """호출 여부만 세고 호출되면 명시적으로 실패한다."""
+        nonlocal call_count
+        call_count += 1
+        raise AssertionError(f"LLM 호출 금지: {request.metadata.get('task_id')}")
+
+    with pytest.raises(ConfigurationError, match="CHANNEL_DNA_HASH_MISMATCH"):
+        asyncio.run(
+            execute_run(
+                repository_root,
+                project_path,
+                "GATE-01",
+                "GATE-01",
+                "default",
+                None,
+                {"fake": fake_adapter(counting_handler)},
+            )
+        )
+    assert call_count == 0
 
 
 def test_unauthorized_provider_output_never_changes_canonical_artifact(tmp_path: Path) -> None:
@@ -232,8 +688,7 @@ def test_retry_exhaustion_marks_project_blocked_without_artifact_commit(tmp_path
 
     state = load_json_object(project_path / "00_PROJECT" / "project_state.json")
     run_documents = [
-        load_json_object(path)
-        for path in (project_path / ".runtime" / "runs").glob("*/run.json")
+        load_json_object(path) for path in (project_path / ".runtime" / "runs").glob("*/run.json")
     ]
     failed_runs = [document for document in run_documents if document["status"] == "FAILED"]
     assert len(failed_runs) == 1
@@ -410,31 +865,31 @@ def test_human_approval_is_hash_bound_and_run_resumes(tmp_path: Path) -> None:
     assert isinstance(run_id, str)
     task_state = waiting["tasks"]
     assert isinstance(task_state, dict)
-    variation_state = task_state["variation.generate"]
+    variation_state = task_state["variation.approve"]
     assert isinstance(variation_state, dict)
     input_hashes = variation_state["input_hashes"]
     assert isinstance(input_hashes, dict)
     assert error_info.value.code == "HUMAN_APPROVAL_REQUIRED"
     assert waiting["status"] == "WAITING_HUMAN"
 
-    approval_document(
+    runtime_approval = approval_document(
         repository_root,
         run_id,
-        "variation.generate",
+        "variation.approve",
         "runtime-reviewer",
         "후보 VAR-01의 구조적 차이를 검토함",
     )
     assert approval_is_current(
         project_path,
         run_id,
-        "variation.generate",
+        "variation.approve",
         input_hashes,
     )
     changed_hashes = {**input_hashes, "production_config": "changed"}
     assert not approval_is_current(
         project_path,
         run_id,
-        "variation.generate",
+        "variation.approve",
         changed_hashes,
     )
 
@@ -446,3 +901,14 @@ def test_human_approval_is_hash_bound_and_run_resumes(tmp_path: Path) -> None:
         load_json_object(project_path / "00_PROJECT" / "project_state.json")["current_gate"]
         == "GATE-01"
     )
+    candidate_approval = load_json_object(project_path / "00_PROJECT" / "candidate_approval.json")
+    assert candidate_approval["approval_type"] == "HUMAN_CONFIRMATION"
+    assert candidate_approval["approval_id"] == runtime_approval["approval_id"]
+    assert candidate_approval["actor"] == "runtime-reviewer"
+    assert candidate_approval["reason"] == "후보 VAR-01의 구조적 차이를 검토함"
+    assert candidate_approval["created_at"] == runtime_approval["created_at"]
+    assert candidate_approval["approved_at"] == runtime_approval["created_at"]
+    assert candidate_approval["bound_input_hashes"] == input_hashes
+    assert candidate_approval["run_id"] == run_id
+    assert candidate_approval["task_id"] == "variation.approve"
+    assert "1970-01-01T00:00:00Z" not in json.dumps(candidate_approval)

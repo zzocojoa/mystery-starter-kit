@@ -564,7 +564,7 @@ def evaluate_novelty(
 def variation_precheck_source_hash(
     candidates_document: Mapping[str, object],
 ) -> str:
-    """후보 선택과 승인 ID만 포함한 Novelty Precheck 입력 Hash를 계산한다."""
+    """승인 상태와 무관한 Candidate 구조 입력 Hash를 계산한다."""
     candidates = candidates_document.get("candidates")
     if not isinstance(candidates, list) or not all(
         isinstance(candidate, Mapping) for candidate in candidates
@@ -572,11 +572,11 @@ def variation_precheck_source_hash(
         raise ConfigurationError("variation_candidates.candidates 객체 배열이 필요합니다.")
     payload = {
         "project_id": candidates_document.get("project_id"),
-        "approved_candidate_id": candidates_document.get("approved_candidate_id"),
         "candidates": [
             {
                 "candidate_id": candidate.get("candidate_id"),
                 "selection": candidate.get("selection"),
+                "signature": candidate.get("signature"),
             }
             for candidate in candidates
         ]
@@ -590,15 +590,12 @@ def evaluate_variation_precheck(
     history: Sequence[Mapping[str, object]],
     thresholds: Mapping[str, object],
 ) -> dict[str, object]:
-    """승인 Variation을 Story History와 비교해 Story 설계 전 중복을 차단한다."""
+    """모든 Variation을 Story History와 비교해 평가 전 중복을 차단한다."""
     candidates = candidates_document.get("candidates")
-    approved_id = candidates_document.get("approved_candidate_id")
     if not isinstance(candidates, list) or not all(
         isinstance(candidate, Mapping) for candidate in candidates
     ):
         raise ConfigurationError("variation_candidates.candidates 객체 배열이 필요합니다.")
-    if not isinstance(approved_id, str):
-        raise ConfigurationError("Novelty Precheck 전에 Variation 승인이 필요합니다.")
 
     weights = require_mapping_value(thresholds, "weights", "novelty_thresholds")
     comparable_history = history_for_other_projects(
@@ -613,8 +610,22 @@ def evaluate_variation_precheck(
         selection = candidate.get("selection")
         if not isinstance(candidate_id, str) or not isinstance(selection, Mapping):
             raise ConfigurationError("Variation Candidate ID와 selection 객체가 필요합니다.")
+        candidate_story = dict(selection)
+        for field in LIST_STORY_FIELDS:
+            value = candidate_story.get(field)
+            if isinstance(value, str):
+                candidate_story[field] = [value]
         comparisons: list[dict[str, object]] = []
         for index, existing in enumerate(comparable_history):
+            normalized_existing = dict(existing)
+            existing_story = existing.get("story")
+            if isinstance(existing_story, Mapping):
+                normalized_story = dict(existing_story)
+                for field in LIST_STORY_FIELDS:
+                    value = normalized_story.get(field)
+                    if isinstance(value, str):
+                        normalized_story[field] = [value]
+                normalized_existing["story"] = normalized_story
             distance_from_latest = history_count - index
             threshold_key = (
                 "recent_5_max"
@@ -624,10 +635,14 @@ def evaluate_variation_precheck(
                 else "overall_max"
             )
             maximum = threshold_value(thresholds, threshold_key)
-            score = similarity_score({"story": dict(selection)}, existing, weights)
+            score = similarity_score(
+                {"story": candidate_story},
+                normalized_existing,
+                weights,
+            )
             components = similarity_components(
-                {"story": dict(selection)},
-                existing,
+                {"story": candidate_story},
+                normalized_existing,
                 weights,
             )
             comparisons.append(
@@ -655,35 +670,23 @@ def evaluate_variation_precheck(
                 "comparisons": comparisons,
             }
         )
-        if candidate_id == approved_id and collisions:
-            issues.append(
-                make_novelty_issue(
-                    "APPROVED_VARIATION_SIMILARITY_EXCEEDED",
-                    "승인 Variation이 Story 설계 전 유사도 기준을 넘었습니다.",
-                    {
-                        "candidate_id": candidate_id,
-                        "collision_count": len(collisions),
-                    },
-                )
-            )
-
-    approved_result = next(
-        (
-            result
-            for result in candidate_results
-            if result["candidate_id"] == approved_id
-        ),
-        None,
+    passed_count = sum(
+        1 for candidate_result in candidate_results if candidate_result["result"] == "PASS"
     )
-    if approved_result is None:
-        raise ConfigurationError(
-            f"승인 Variation이 후보 결과에 없습니다: candidate_id={approved_id}"
+    if passed_count == 0:
+        issues.append(
+            make_novelty_issue(
+                "ALL_VARIATION_CANDIDATES_NOVELTY_FAILED",
+                "모든 Variation 후보가 Story 설계 전 신규성 기준을 통과하지 못했습니다.",
+                {"candidate_count": len(candidate_results)},
+            )
         )
     return {
+        "schema_family": "novelty-precheck",
+        "schema_version": "1.1.0",
         "project_id": candidates_document.get("project_id", ""),
         "source_hash": variation_precheck_source_hash(candidates_document),
-        "approved_candidate_id": approved_id,
-        "result": approved_result["result"],
+        "result": "PASS" if passed_count > 0 else "FAIL",
         "candidate_results": candidate_results,
         "issues": issues,
     }

@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_approval.schema.json",
+  "schema_family": "candidate-approval",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-000",
+  "selected_candidate_id": null,
+  "recommended_candidate_id": null,
+  "approval_type": null,
+  "actor": null,
+  "reason": null,
+  "input_hashes": {},
+  "approved_at": null
+}

@@ -3,6 +3,7 @@
 import json
 from collections.abc import Mapping
 from copy import deepcopy
+from hashlib import sha256
 from typing import TypeAlias, cast
 
 from RUNTIME.errors import RuntimeExecutionError
@@ -12,12 +13,20 @@ from RUNTIME.models import (
     ProviderDescriptor,
     TokenUsage,
 )
+from VALIDATORS.candidate_evaluation import (
+    SCORE_FIELDS,
+    candidate_evaluation_input_hashes,
+)
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
     make_editorial_evidence,
     panel_spoken_metrics,
 )
 from VALIDATORS.presentation_validation import presentation_segments
+from VALIDATORS.production_footprint import (
+    production_footprint_enforced,
+    production_scene_marker,
+)
 
 PresentationDefinition: TypeAlias = tuple[
     str,
@@ -457,8 +466,7 @@ def fake_edit_script(project_id: str, total_seconds: int) -> str:
         start = round(float(start_sec))
         end = round(float(start_sec) + float(duration_sec))
         lines.append(
-            f"| {segment_id} | {start // 60:02d}:{start % 60:02d}-"
-            f"{end // 60:02d}:{end % 60:02d} |"
+            f"| {segment_id} | {start // 60:02d}:{start % 60:02d}-{end // 60:02d}:{end % 60:02d} |"
         )
     return "\n".join(lines)
 
@@ -580,9 +588,7 @@ def fake_editorial_review(
     """입력 Hash·근거·Runtime 추정을 포함한 Editorial Review Fixture를 만든다."""
     presentation_plan = artifacts.get("presentation_plan")
     panel_reaction_script = artifacts.get("panel_reaction_script")
-    if not isinstance(presentation_plan, Mapping) or not isinstance(
-        panel_reaction_script, str
-    ):
+    if not isinstance(presentation_plan, Mapping) or not isinstance(panel_reaction_script, str):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
             False,
@@ -746,8 +752,8 @@ def story_document(
             ),
             "primary_twist": selection["primary_twist"],
             "secondary_twists": ["TW-10_CAUSALITY"],
-            "information_mechanism": ["MACHINE_LOG", "CCTV"],
-            "clue_mechanism": ["TIMESTAMP", "TECHNICAL"],
+            "information_mechanism": [selection.get("information_mechanism", "MACHINE_LOG")],
+            "clue_mechanism": [selection.get("clue_mechanism", "TIMESTAMP")],
             "motive_class": "NO_INTENT",
             "emotional_engine": "GUILT",
             "relationship_engine": {
@@ -771,7 +777,7 @@ def story_document(
                 "midpoint_shift": "주인공의 기억과 기계 기록이 서로 충돌한다.",
                 "final_reframe": "범죄처럼 보인 사건은 연쇄적인 안전 실패의 결과였다.",
             },
-            "reveal_mode": "TIMELINE_RECONSTRUCTION",
+            "reveal_mode": selection.get("reveal_mode", "TIMELINE_RECONSTRUCTION"),
             "ending_type": "BITTERSWEET",
         },
     }
@@ -854,12 +860,380 @@ def context_artifact(request: LLMRequest, artifact_name: str) -> Mapping[str, ob
     return artifact
 
 
+def fake_production_footprint_enabled(request: LLMRequest) -> bool:
+    """Project Constraint가 활성화한 제작 메타데이터 Fixture 여부를 반환한다."""
+    project_constraints = context_artifact(request, "project_constraints")
+    return (
+        project_constraints is not None
+        and production_footprint_enforced(project_constraints)
+    )
+
+
+def fake_scene_production_metadata(request: LLMRequest) -> list[dict[str, object]]:
+    """현재 Character와 Timeline에서 두 Scene의 최소 제작 메타데이터를 만든다."""
+    characters = context_artifact(request, "characters")
+    actual_timeline = context_artifact(request, "actual_timeline")
+    raw_characters = characters.get("characters") if characters is not None else None
+    raw_events = actual_timeline.get("events") if actual_timeline is not None else None
+    character_records = raw_characters if isinstance(raw_characters, list) else []
+    event_records = raw_events if isinstance(raw_events, list) else []
+    character_ids = [
+        str(record["character_id"])
+        for record in character_records
+        if isinstance(record, Mapping) and isinstance(record.get("character_id"), str)
+    ]
+    location_ids = [
+        str(record["location_id"])
+        for record in event_records
+        if isinstance(record, Mapping) and isinstance(record.get("location_id"), str)
+    ]
+    if not character_ids or not location_ids:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Production Footprint Fixture에는 Character와 Timeline Location이 필요합니다.",
+            "scene.design",
+            "scene_cards",
+            {
+                "character_count": len(character_ids),
+                "location_count": len(location_ids),
+            },
+        )
+    scene_locations = [location_ids[0], location_ids[min(1, len(location_ids) - 1)]]
+    cast_ids = sorted(set(character_ids[:2]))
+    return [
+        {
+            "location_id": location_id,
+            "cast_ids": cast_ids,
+            "child_actor_use": "NONE",
+            "vehicle_scene": "NONE",
+            "special_effect_level": "NONE",
+            "graphic_violence": "NONE",
+            "production_complexity": "LOW",
+        }
+        for location_id in scene_locations
+    ]
+
+
+def fake_candidate_evaluation(
+    project_id: str,
+    variations: Mapping[str, object],
+    novelty_precheck: Mapping[str, object],
+    candidate_eligibility: Mapping[str, object],
+) -> dict[str, object]:
+    """Runtime 회귀용 Candidate 평가 근거를 결정론적으로 만든다."""
+    candidates = variations.get("candidates")
+    raw_eligible_ids = candidate_eligibility.get("eligible_candidate_ids")
+    if not isinstance(candidates, list) or not isinstance(raw_eligible_ids, list):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Candidate 평가용 Variation 또는 Novelty Precheck가 없습니다.",
+            "variation.evaluate",
+            "candidate_evaluation",
+            {},
+        )
+    eligible_ids = {value for value in raw_eligible_ids if isinstance(value, str)}
+    weights: dict[str, float] = {
+        "crime_threat_score": 15.0,
+        "psychological_immersion_score": 15.0,
+        "trust_betrayal_score": 15.0,
+        "victim_integrity_score": 15.0,
+        "character_score": 10.0,
+        "twist_score": 10.0,
+        "novelty_score": 10.0,
+        "production_score": 10.0,
+    }
+    evaluations: list[dict[str, object]] = []
+    for index, candidate in enumerate(candidates):
+        if not isinstance(candidate, Mapping):
+            continue
+        candidate_id = candidate.get("candidate_id")
+        if not isinstance(candidate_id, str):
+            continue
+        base_score = float(max(65, 92 - index * 3))
+        dimension_scores = {
+            field: (
+                95.0 if field == "novelty_score" and candidate_id in eligible_ids else base_score
+            )
+            for field in SCORE_FIELDS
+        }
+        if candidate_id not in eligible_ids:
+            dimension_scores["novelty_score"] = 0.0
+        total_score = round(
+            sum(dimension_scores[field] * weights[field] / 100.0 for field in SCORE_FIELDS),
+            2,
+        )
+        evaluations.append(
+            {
+                "candidate_id": candidate_id,
+                "dimension_evidence": {
+                    field: [f"{candidate_id}의 {field} 구조 선택을 검토했습니다."]
+                    for field in SCORE_FIELDS
+                },
+                **dimension_scores,
+                "total_score": total_score,
+                "decision": "REJECTED",
+                "decision_reason": "전체 적격 후보의 가중 점수를 비교합니다.",
+            }
+        )
+    eligible = [record for record in evaluations if record["candidate_id"] in eligible_ids]
+    if not eligible:
+        raise RuntimeExecutionError(
+            "GATE_REJECTED",
+            False,
+            "TASK",
+            "추천할 Novelty PASS Candidate가 없습니다.",
+            "variation.evaluate",
+            "novelty_precheck",
+            {"validation_code": "ALL_VARIATION_CANDIDATES_NOVELTY_FAILED"},
+        )
+    recommended = max(
+        eligible,
+        key=lambda record: float(cast(float, record["total_score"])),
+    )
+    recommended_id = cast(str, recommended["candidate_id"])
+    for record in evaluations:
+        if record["candidate_id"] == recommended_id:
+            record["decision"] = "RECOMMENDED"
+            record["decision_reason"] = "적격 후보 중 재계산 가중 점수가 가장 높습니다."
+        else:
+            record["decision_reason"] = "추천 후보보다 가중 점수가 낮거나 Novelty가 실패했습니다."
+    input_hashes = candidate_evaluation_input_hashes(
+        variations,
+        novelty_precheck,
+        candidate_eligibility,
+    )
+    return {
+        "schema_family": "candidate-evaluation",
+        "schema_version": "1.2.0",
+        "project_id": project_id,
+        "weights": weights,
+        "input_hashes": input_hashes,
+        "novelty_report_hash": input_hashes["novelty_precheck"],
+        "recommended_candidate_id": recommended_id,
+        "evaluations": evaluations,
+    }
+
+
+def true_story_case_dimensions(request: LLMRequest) -> dict[str, object]:
+    """Source Truth Contract에서 Case 구조의 검증값과 미상값을 읽는다."""
+    contract = context_artifact(request, "source_truth_contract")
+    if contract is None:
+        return {}
+    result: dict[str, object] = {}
+    field_mapping = {
+        "verified_incident_type": "incident_type",
+        "verified_setting": "setting",
+        "verified_responsible_agent_structure": "responsible_agent_structure",
+        "verified_legal_outcome": "legal_outcome",
+    }
+    for source_field, target_field in field_mapping.items():
+        value = contract.get(source_field)
+        if isinstance(value, str):
+            result[target_field] = value
+    return result
+
+
+def true_story_character_outputs(
+    request: LLMRequest,
+    project_id: str,
+) -> tuple[dict[str, object], dict[str, object], dict[str, object]]:
+    """Source Subject ID를 명시적으로 보존한 Character 묶음을 만든다."""
+    subject_document = context_artifact(request, "source_subjects")
+    truth_contract = context_artifact(request, "source_truth_contract")
+    raw_subjects = subject_document.get("subjects") if subject_document is not None else None
+    if not isinstance(raw_subjects, list) or not raw_subjects:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "사실 기반 Character 생성에는 Source Subject가 필요합니다.",
+            "character.design",
+            "source_subjects",
+            {},
+        )
+    characters: list[dict[str, object]] = []
+    subject_to_character: dict[str, str] = {}
+    knowledge_events: list[dict[str, object]] = []
+    for index, raw_subject in enumerate(raw_subjects, 1):
+        if not isinstance(raw_subject, Mapping):
+            continue
+        source_subject_id = raw_subject.get("source_subject_id")
+        pseudonym = raw_subject.get("pseudonym")
+        source_role = raw_subject.get("source_role")
+        if not all(isinstance(value, str) for value in (source_subject_id, pseudonym, source_role)):
+            continue
+        character_id = f"CHAR-{index:02d}"
+        source_subject_id_text = cast(str, source_subject_id)
+        subject_to_character[source_subject_id_text] = character_id
+        character: dict[str, object] = {
+            "character_id": character_id,
+            "name": cast(str, pseudonym),
+            "role": cast(str, source_role),
+            "source_subject_id": source_subject_id_text,
+        }
+        if fake_production_footprint_enabled(request):
+            character["production_role"] = "MAJOR"
+        characters.append(character)
+        related_fact_ids = raw_subject.get("related_fact_ids")
+        if isinstance(related_fact_ids, list):
+            for fact_order, fact_id in enumerate(related_fact_ids, 1):
+                if isinstance(fact_id, str):
+                    knowledge_events.append(
+                        {
+                            "character_id": character_id,
+                            "fact_id": fact_id,
+                            "learned_scene_order": min(fact_order, 2),
+                        }
+                    )
+    raw_relationships = (
+        truth_contract.get("verified_relationships") if truth_contract is not None else None
+    )
+    relationships: list[dict[str, object]] = []
+    if isinstance(raw_relationships, list):
+        for index, relationship in enumerate(raw_relationships, 1):
+            if not isinstance(relationship, Mapping):
+                continue
+            from_subject = relationship.get("from_source_subject_id")
+            to_subject = relationship.get("to_source_subject_id")
+            relationship_type = relationship.get("relationship_type")
+            if not all(
+                isinstance(value, str) for value in (from_subject, to_subject, relationship_type)
+            ):
+                continue
+            from_character = subject_to_character.get(cast(str, from_subject))
+            to_character = subject_to_character.get(cast(str, to_subject))
+            if from_character is None or to_character is None:
+                continue
+            relationships.append(
+                {
+                    "relationship_id": f"REL-{index:02d}",
+                    "from": from_character,
+                    "to": to_character,
+                    "engine": cast(str, relationship_type),
+                }
+            )
+    return (
+        {"project_id": project_id, "characters": characters},
+        {"project_id": project_id, "relationships": relationships},
+        {"project_id": project_id, "knowledge_events": knowledge_events},
+    )
+
+
+def true_story_timeline_and_causal_graph(
+    request: LLMRequest,
+    project_id: str,
+) -> tuple[dict[str, object], dict[str, object]]:
+    """Verified Event ID를 Timeline과 Causal Graph에 그대로 연결한다."""
+    event_document = context_artifact(request, "verified_event_ledger")
+    character_document = context_artifact(request, "characters")
+    raw_events = event_document.get("events") if event_document is not None else None
+    raw_characters = (
+        character_document.get("characters") if character_document is not None else None
+    )
+    if not isinstance(raw_events, list) or not raw_events:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "사실 기반 Mystery 생성에는 Verified Event가 필요합니다.",
+            "mystery.design",
+            "verified_event_ledger",
+            {},
+        )
+    character_records = raw_characters if isinstance(raw_characters, list) else []
+    subject_to_character = {
+        str(character["source_subject_id"]): str(character["character_id"])
+        for character in character_records
+        if isinstance(character, Mapping)
+        and isinstance(character.get("source_subject_id"), str)
+        and isinstance(character.get("character_id"), str)
+    }
+    sorted_events = sorted(
+        (event for event in raw_events if isinstance(event, Mapping)),
+        key=lambda event: int(event.get("sequence", 0)),
+    )
+    timeline_events: list[dict[str, object]] = []
+    causal_nodes: list[dict[str, object]] = []
+    for index, event in enumerate(sorted_events, 1):
+        verified_event_id = event.get("verified_event_id")
+        statement = event.get("statement")
+        setting = event.get("setting")
+        raw_participants = event.get("participant_source_subject_ids")
+        if not isinstance(verified_event_id, str) or not isinstance(statement, str):
+            continue
+        participant_ids = [
+            subject_to_character[source_subject_id]
+            for source_subject_id in raw_participants or []
+            if isinstance(source_subject_id, str) and source_subject_id in subject_to_character
+        ]
+        start_minute = (index - 1) * 7
+        timeline_events.append(
+            {
+                "event_id": f"EVT-{index:02d}",
+                "source_event_id": verified_event_id,
+                "start_minute": start_minute,
+                "end_minute": start_minute + 7,
+                "location_id": setting if isinstance(setting, str) else "UNKNOWN",
+                "participant_ids": participant_ids,
+                "description": statement,
+            }
+        )
+        causal_nodes.append(
+            {
+                "node_id": f"CAUSE-{index:02d}",
+                "source_event_id": verified_event_id,
+                "type": "ROOT_CAUSE" if index == 1 else "RESOLUTION",
+            }
+        )
+    if len(causal_nodes) < 2:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Causal Graph에는 순서가 검증된 Event가 둘 이상 필요합니다.",
+            "mystery.design",
+            "verified_event_ledger",
+            {},
+        )
+    edges = [
+        {"from": causal_nodes[index - 1]["node_id"], "to": causal_nodes[index]["node_id"]}
+        for index in range(1, len(causal_nodes))
+    ]
+    causal_graph: dict[str, object] = {
+        "project_id": project_id,
+        "nodes": causal_nodes,
+        "edges": edges,
+        "fingerprint": {
+            "root_cause": "VERIFIED_EVENT",
+            "mechanism": "VERIFIED_SEQUENCE",
+            "concealment": "SOURCE_LIMITATION",
+            "discovery_path": "CLAIM_EVIDENCE_REVIEW",
+            "resolution": "VERIFIED_OUTCOME",
+        },
+        "semantic_normalization": {
+            "normalized_roles": ["SOURCE_SUBJECT", "VERIFIED_EVENT"],
+            "character_function_chain": ["EVIDENCE_REVIEW", "TRUTH_BINDING"],
+            "audience_hypothesis_transitions": ["CLAIM", "VERIFICATION"],
+        },
+    }
+    return {"project_id": project_id, "events": timeline_events}, causal_graph
+
+
 def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, object]]:
     """Task ID를 검증 가능한 Agent Artifact Fixture에 대응한다."""
     metadata = request.metadata
     project_id = metadata.get("project_id")
     source_mode = metadata.get("story_source_mode")
-    if not isinstance(project_id, str) or not isinstance(source_mode, str):
+    source_truth = metadata.get("source_truth_classification")
+    if (
+        not isinstance(project_id, str)
+        or not isinstance(source_mode, str)
+        or not isinstance(source_truth, str)
+    ):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
             False,
@@ -869,6 +1243,32 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             None,
             {},
         )
+    if task_id == "variation.evaluate":
+        variations = context_artifact(request, "variation_candidates")
+        novelty_precheck = context_artifact(request, "novelty_precheck")
+        candidate_eligibility = context_artifact(request, "candidate_eligibility")
+        if variations is None or novelty_precheck is None or candidate_eligibility is None:
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Candidate 평가용 Variation 또는 Novelty Context가 없습니다.",
+                task_id,
+                "candidate_evaluation",
+                {},
+            )
+        return [
+            {
+                "artifact_name": "candidate_evaluation",
+                "media_type": "application/json",
+                "content": fake_candidate_evaluation(
+                    project_id,
+                    variations,
+                    novelty_precheck,
+                    candidate_eligibility,
+                ),
+            }
+        ]
     if task_id == "story.design_dna":
         return [
             {
@@ -883,6 +1283,42 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             }
         ]
     if task_id == "story.define_case":
+        selected = approved_selection(metadata)
+        verified_case_fields: dict[str, object] = {}
+        if source_truth in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}:
+            ledger = context_artifact(request, "verified_fact_ledger")
+            ledger_facts = ledger.get("facts") if isinstance(ledger, Mapping) else None
+            if not isinstance(ledger_facts, list) or not ledger_facts:
+                raise RuntimeExecutionError(
+                    "RUNTIME_CONFIGURATION_ERROR",
+                    False,
+                    "TASK",
+                    "사실 기반 Case 생성에는 검증된 Fact Ledger가 필요합니다.",
+                    task_id,
+                    "verified_fact_ledger",
+                    {},
+                )
+            facts = [dict(fact) for fact in ledger_facts if isinstance(fact, Mapping)]
+            verified_case_fields = true_story_case_dimensions(request)
+        else:
+            statements = (
+                "기계 로그에 7분 공백이 있다.",
+                "안전 센서는 점검 모드였다.",
+            )
+            facts = [
+                {
+                    "fact_id": f"FACT-{index:02d}",
+                    "statement": statement,
+                    "classification": "DRAMATIZATION",
+                    "normalized_statement_hash": sha256(
+                        " ".join(statement.split()).casefold().encode()
+                    ).hexdigest(),
+                    "source_ids": [],
+                    "basis_fact_ids": [],
+                    "presented_as_fact": False,
+                }
+                for index, statement in enumerate(statements, 1)
+            ]
         return [
             {
                 "artifact_name": "case_input",
@@ -890,10 +1326,25 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "content": {
                     "project_id": project_id,
                     "title_working": "교대 기록의 7분",
-                    "source_type": "FICTION",
+                    "source_type": (
+                        "TRUE_STORY"
+                        if source_truth == "VERIFIED_TRUE_CASE"
+                        else "INSPIRED_BY_TRUE_EVENTS"
+                        if source_truth == "INSPIRED_BY_TRUE_EVENTS"
+                        else "FICTION"
+                    ),
                     "central_mystery": "작업자는 언제 통제 구역을 벗어났는가?",
                     "final_truth": "작업자는 정지한 이송 설비의 점검 공간에 갇혔다.",
                     "causal_truth": "센서 차단과 교대 기록 오류가 구조 지연을 만들었다.",
+                    "incident_type": verified_case_fields.get(
+                        "incident_type", selected["incident_type"]
+                    ),
+                    "setting": verified_case_fields.get("setting", selected["setting"]),
+                    **{
+                        key: value
+                        for key, value in verified_case_fields.items()
+                        if key not in {"incident_type", "setting"}
+                    },
                     "culprit": None,
                     "culprit_motive": None,
                     "restrictions": [],
@@ -904,24 +1355,127 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "media_type": "application/json",
                 "content": {
                     "project_id": project_id,
-                    "facts": [
-                        {"fact_id": "FACT-01", "statement": "기계 로그에 7분 공백이 있다."},
-                        {"fact_id": "FACT-02", "statement": "안전 센서는 점검 모드였다."},
-                    ],
+                    "facts": facts,
                 },
             },
         ]
+    if task_id == "story.define_crime_psychology":
+        selected = approved_selection(metadata)
+        return [
+            {
+                "artifact_name": "crime_psychology",
+                "media_type": "application/json",
+                "content": {
+                    "schema_family": "crime-psychology",
+                    "schema_version": "1.0.0",
+                    "project_id": project_id,
+                    "applicable": True,
+                    "threat_type": selected["threat_type"],
+                    "trusted_domain": selected["trusted_domain"],
+                    "safe_domain_betrayal": selected["safe_domain_betrayal"],
+                    "safe_domain_expectation": "신뢰 관계에서는 안전과 정직을 기대한다.",
+                    "psychological_pressure": "관계 단절과 평판 손실에 대한 압박이 누적된다.",
+                    "early_warning_signals": [
+                        {
+                            "warning_signal_id": "WARN-01",
+                            "actor_id": "CHAR-01",
+                            "victim_id": "CHAR-02",
+                            "scene_id": "SCN-01",
+                            "order": 1,
+                            "description": "사소한 경계 침범이 반복된다.",
+                        }
+                    ],
+                    "boundary_erosion_steps": [
+                        {
+                            "boundary_step_id": "BOUND-01",
+                            "actor_id": "CHAR-01",
+                            "victim_id": "CHAR-02",
+                            "scene_id": "SCN-01",
+                            "order": 1,
+                            "description": "거절을 개인적 배신으로 바꿔 말한다.",
+                        }
+                    ],
+                    "control_tactics": [
+                        {
+                            "control_tactic_id": "CTRL-01",
+                            "actor_id": "CHAR-01",
+                            "victim_id": "CHAR-02",
+                            "scene_id": "SCN-02",
+                            "order": 1,
+                            "description": "정보 접근을 통제한다.",
+                        }
+                    ],
+                    "victim_exit_barriers": [
+                        {
+                            "exit_barrier_id": "EXIT-01",
+                            "actor_id": "CHAR-01",
+                            "victim_id": "CHAR-02",
+                            "scene_id": "SCN-02",
+                            "order": 1,
+                            "description": "평판 손실을 암시한다.",
+                        }
+                    ],
+                    "harm_mechanism": "신뢰를 이용해 판단과 행동 범위를 좁힌다.",
+                    "harm_event": {
+                        "harm_event_id": "HARM-01",
+                        "actor_id": "CHAR-01",
+                        "victim_id": "CHAR-02",
+                        "scene_id": "SCN-02",
+                        "order": 1,
+                    },
+                    "responsible_agent": "CHAR-01",
+                    "responsible_agent_structure": selected["responsible_agent_structure"],
+                    "responsible_agent_payoff": "행위 주체의 선택과 책임이 드러난다.",
+                    "victim_agency_outcome": {
+                        "victim_id": "CHAR-02",
+                        "ending_scene_id": "SCN-02",
+                        "outcome": "피해자가 증거를 보존하고 경계를 회복한다.",
+                    },
+                    "victim_agency_mode": selected["victim_agency_mode"],
+                    "risk_signal_payoff": "초기 경고 신호가 후반 행동의 의미로 재해석된다.",
+                    "episode_theme": selected["episode_theme"],
+                },
+            }
+        ]
     if task_id == "character.design":
+        if source_truth in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}:
+            characters, relationships, knowledge = true_story_character_outputs(
+                request,
+                project_id,
+            )
+            return [
+                {
+                    "artifact_name": "characters",
+                    "media_type": "application/json",
+                    "content": characters,
+                },
+                {
+                    "artifact_name": "relationships",
+                    "media_type": "application/json",
+                    "content": relationships,
+                },
+                {
+                    "artifact_name": "knowledge_matrix",
+                    "media_type": "application/json",
+                    "content": knowledge,
+                },
+            ]
+        default_characters: list[dict[str, object]] = [
+            {"character_id": "CHAR-01", "name": "지안", "role": "SUSPECT"},
+            {"character_id": "CHAR-02", "name": "태호", "role": "MISSING_COWORKER"},
+        ]
+        if fake_production_footprint_enabled(request):
+            default_characters = [
+                {**character, "production_role": "MAJOR"}
+                for character in default_characters
+            ]
         return [
             {
                 "artifact_name": "characters",
                 "media_type": "application/json",
                 "content": {
                     "project_id": project_id,
-                    "characters": [
-                        {"character_id": "CHAR-01", "name": "지안", "role": "SUSPECT"},
-                        {"character_id": "CHAR-02", "name": "태호", "role": "MISSING_COWORKER"},
-                    ],
+                    "characters": default_characters,
                 },
             },
             {
@@ -952,11 +1506,21 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             },
         ]
     if task_id == "mystery.design":
+        selected = approved_selection(metadata)
+        truth_timeline: dict[str, object] | None = None
+        truth_causal_graph: dict[str, object] | None = None
+        if source_truth in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}:
+            truth_timeline, truth_causal_graph = true_story_timeline_and_causal_graph(
+                request,
+                project_id,
+            )
         return [
             {
                 "artifact_name": "actual_timeline",
                 "media_type": "application/json",
-                "content": {
+                "content": truth_timeline
+                if truth_timeline is not None
+                else {
                     "project_id": project_id,
                     "events": [
                         {
@@ -1027,6 +1591,15 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "media_type": "application/json",
                 "content": {
                     "project_id": project_id,
+                    **(
+                        {
+                            "final_proof_mechanism": selected["final_proof_mechanism"],
+                            "technical_dependency_level": selected["technical_dependency_level"],
+                        }
+                        if "final_proof_mechanism" in selected
+                        and "technical_dependency_level" in selected
+                        else {}
+                    ),
                     "clues": [
                         {
                             "clue_id": "CLUE-01",
@@ -1058,7 +1631,9 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             {
                 "artifact_name": "causal_graph",
                 "media_type": "application/json",
-                "content": {
+                "content": truth_causal_graph
+                if truth_causal_graph is not None
+                else {
                     "project_id": project_id,
                     "nodes": [
                         {"node_id": "CAUSE-01", "type": "ROOT_CAUSE"},
@@ -1124,30 +1699,37 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
         ]
     if task_id == "scene.design":
         scene_seconds = target_runtime_seconds(metadata) // 2
+        scenes: list[dict[str, object]] = [
+            {
+                "scene_id": "SCN-01",
+                "order": 1,
+                "beat_id": "BEAT-01",
+                "estimated_seconds": scene_seconds,
+                "clue_ids": ["CLUE-01", "CLUE-02"],
+                "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-01"}],
+            },
+            {
+                "scene_id": "SCN-02",
+                "order": 2,
+                "beat_id": "BEAT-02",
+                "estimated_seconds": scene_seconds,
+                "clue_ids": ["CLUE-01", "CLUE-02"],
+                "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-02"}],
+            },
+        ]
+        if fake_production_footprint_enabled(request):
+            metadata_records = fake_scene_production_metadata(request)
+            scenes = [
+                {**scene, **metadata_record}
+                for scene, metadata_record in zip(scenes, metadata_records, strict=True)
+            ]
         return [
             {
                 "artifact_name": "scene_cards",
                 "media_type": "application/json",
                 "content": {
                     "project_id": project_id,
-                    "scenes": [
-                        {
-                            "scene_id": "SCN-01",
-                            "order": 1,
-                            "beat_id": "BEAT-01",
-                            "estimated_seconds": scene_seconds,
-                            "clue_ids": ["CLUE-01", "CLUE-02"],
-                            "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-01"}],
-                        },
-                        {
-                            "scene_id": "SCN-02",
-                            "order": 2,
-                            "beat_id": "BEAT-02",
-                            "estimated_seconds": scene_seconds,
-                            "clue_ids": ["CLUE-01", "CLUE-02"],
-                            "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-02"}],
-                        },
-                    ],
+                    "scenes": scenes,
                 },
             },
             {
@@ -1178,15 +1760,39 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "content": fake_presentation_plan(project_id, total_seconds),
             },
         ]
+    if task_id == "scene.design_experts":
+        return [
+            {
+                "artifact_name": "expert_segments",
+                "media_type": "application/json",
+                "content": {
+                    "schema_family": "expert-segments",
+                    "schema_version": "1.0.0",
+                    "project_id": project_id,
+                    "status": "NOT_APPLICABLE",
+                    "not_applicable_reason": "FakeProvider 정책 Fixture에는 적용하지 않습니다.",
+                    "segments": [],
+                },
+            }
+        ]
     if task_id == "script.write_layers":
         layer_scripts = fake_script_layers(target_runtime_seconds(metadata))
-        return [
+        layer_outputs: list[dict[str, object]] = [
             {
                 "artifact_name": artifact_name,
                 "media_type": "text/markdown",
                 "content": content,
             }
             for artifact_name, content in layer_scripts.items()
+        ]
+        return layer_outputs
+    if task_id == "script.write_expert":
+        return [
+            {
+                "artifact_name": "expert_analysis_script",
+                "media_type": "text/markdown",
+                "content": "# Expert Analysis\n\n검증된 Claim과 Evidence를 연결합니다.",
+            }
         ]
     if task_id == "script.integrate":
         broadcast_master = fake_broadcast_master(target_runtime_seconds(metadata))
@@ -1203,11 +1809,31 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             },
         ]
     if task_id == "production.package":
+        shooting_script = "SCN-01 통제실 와이드. SCN-02 이송 설비 클로즈업."
+        if fake_production_footprint_enabled(request):
+            scene_cards = context_artifact(request, "scene_cards")
+            raw_scenes = scene_cards.get("scenes") if scene_cards is not None else None
+            if not isinstance(raw_scenes, list) or not all(
+                isinstance(scene, Mapping) for scene in raw_scenes
+            ):
+                raise RuntimeExecutionError(
+                    "RUNTIME_CONFIGURATION_ERROR",
+                    False,
+                    "TASK",
+                    "Production Package Fixture에는 Scene Card가 필요합니다.",
+                    task_id,
+                    "shooting_script",
+                    {},
+                )
+            shooting_script = "\n".join(
+                f"{production_scene_marker(scene)}\n{scene['scene_id']} 촬영 Cue."
+                for scene in raw_scenes
+            )
         return [
             {
                 "artifact_name": "shooting_script",
                 "media_type": "text/markdown",
-                "content": "SCN-01 통제실 와이드. SCN-02 이송 설비 클로즈업.",
+                "content": shooting_script,
             },
             {
                 "artifact_name": "narration",
@@ -1233,6 +1859,14 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "media_type": "text/markdown",
                 "content": fake_edit_script(project_id, target_runtime_seconds(metadata)),
             },
+        ]
+    if task_id == "production.package_expert":
+        return [
+            {
+                "artifact_name": "production_expert_analysis_script",
+                "media_type": "text/markdown",
+                "content": "# Production Expert Analysis\n\n전문가 분석 촬영 Cue",
+            }
         ]
     if task_id == "editorial.review":
         return [

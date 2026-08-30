@@ -7,13 +7,15 @@
 ## 입력과 출력
 
 - 입력: Production Config, 선택된 Variation Candidate, Channel DNA, Viewer Timeline, Clue Matrix
-- 출력: Story DNA, Case Input, Facts, Beat Sheet, Retention Plan
+- 출력: Story DNA, Case Input, Facts, Crime Psychology Trace, Beat Sheet, Retention Plan
 
 ## Gate
 
 - GATE-02: Story DNA와 승인 Variation/Override가 일치한다.
 - GATE-03: Central Mystery, Final Truth, Causal Truth와 Facts가 완전하다.
 - GATE-06: Beat 구조가 선택 Architecture와 일치하고 각 Beat가 정보 또는 감정 상태를 바꾼다.
+
+Channel Content Version 2.0 이상에서는 신뢰 영역, 안전 기대, 경고 신호, 경계 침식, 통제 과정, 피해자 이탈 장벽, 책임 주체·피해자 행위 주체성·위험 신호 회수를 `crime_psychology.json`에 ID와 Scene 순서로 명시한다. 1.1.0 Project에서는 명시적 N/A Artifact를 유지한다.
 
 ## 금지
 

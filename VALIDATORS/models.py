@@ -1,6 +1,6 @@
 """호환성 판정 데이터 형식."""
 
-from typing import Literal, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 CompatibilityResult = Literal["PASS", "FAIL"]
 RequiredCapabilityStatus = Literal["SUPPORTED", "MISSING"]
@@ -52,6 +52,8 @@ class ChannelSummary(TypedDict):
     schema_family: str
     schema_version: str
     content_version: str
+    channel_dna_sha256: str
+    relative_path: NotRequired[str]
 
 
 class ResolvedCapability(TypedDict):

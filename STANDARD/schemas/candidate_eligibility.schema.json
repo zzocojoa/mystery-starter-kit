@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/candidate-eligibility-1.0.0.json",
+  "title": "Deterministic Candidate Eligibility",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "input_hashes",
+    "result",
+    "eligible_candidate_ids",
+    "candidate_results"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "candidate-eligibility"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "input_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "production_config",
+        "project_constraints",
+        "channel_dna",
+        "variation_candidates",
+        "novelty_precheck"
+      ],
+      "properties": {
+        "production_config": {"$ref": "#/$defs/hash"},
+        "project_constraints": {"$ref": "#/$defs/hash"},
+        "channel_dna": {"$ref": "#/$defs/hash"},
+        "variation_candidates": {"$ref": "#/$defs/hash"},
+        "novelty_precheck": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "result": {"enum": ["PASS", "FAIL"]},
+    "eligible_candidate_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/candidateId"}
+    },
+    "candidate_results": {
+      "type": "array",
+      "minItems": 3,
+      "items": {"$ref": "#/$defs/candidateResult"}
+    }
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "candidateId": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
+    "checkResult": {"enum": ["PASS", "FAIL"]},
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_profile",
+        "channel_genre",
+        "crime_threat",
+        "trusted_domain",
+        "safe_domain_betrayal",
+        "responsible_agent",
+        "structure_policy",
+        "technical_final_proof",
+        "required_theme",
+        "locked_constraints",
+        "project_constraints",
+        "source_truth",
+        "production_feasibility",
+        "novelty"
+      ],
+      "properties": {
+        "policy_profile": {"$ref": "#/$defs/checkResult"},
+        "channel_genre": {"$ref": "#/$defs/checkResult"},
+        "crime_threat": {"$ref": "#/$defs/checkResult"},
+        "trusted_domain": {"$ref": "#/$defs/checkResult"},
+        "safe_domain_betrayal": {"$ref": "#/$defs/checkResult"},
+        "responsible_agent": {"$ref": "#/$defs/checkResult"},
+        "structure_policy": {"$ref": "#/$defs/checkResult"},
+        "technical_final_proof": {"$ref": "#/$defs/checkResult"},
+        "required_theme": {"$ref": "#/$defs/checkResult"},
+        "locked_constraints": {"$ref": "#/$defs/checkResult"},
+        "project_constraints": {"$ref": "#/$defs/checkResult"},
+        "source_truth": {"$ref": "#/$defs/checkResult"},
+        "production_feasibility": {"$ref": "#/$defs/checkResult"},
+        "novelty": {"$ref": "#/$defs/checkResult"}
+      }
+    },
+    "candidateResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_id", "result", "checks", "reasons"],
+      "properties": {
+        "candidate_id": {"$ref": "#/$defs/candidateId"},
+        "result": {"$ref": "#/$defs/checkResult"},
+        "checks": {"$ref": "#/$defs/checks"},
+        "reasons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

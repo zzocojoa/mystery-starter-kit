@@ -7,14 +7,25 @@
   "required": [
     "project_id",
     "story_seed_hash",
+    "variation_engine_version",
+    "variation_catalog_version",
+    "catalog_sha256",
+    "algorithm_sha256",
+    "implementation_sha256",
     "candidate_count",
     "candidates",
+    "batch_trace",
     "approved_candidate_id",
     "override"
   ],
   "properties": {
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "story_seed_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "variation_engine_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "variation_catalog_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "catalog_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "algorithm_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "implementation_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "candidate_count": {"type": "integer", "minimum": 3},
     "candidates": {
       "type": "array",
@@ -22,16 +33,54 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["candidate_id", "selection", "signature", "selection_status"],
+        "required": [
+          "candidate_id",
+          "origin_batch_id",
+          "batch_candidate_id",
+          "variation_engine_version",
+          "variation_catalog_version",
+          "catalog_sha256",
+          "algorithm_sha256",
+          "implementation_sha256",
+          "selection",
+          "signature",
+          "selection_status"
+        ],
         "properties": {
           "candidate_id": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
+          "origin_batch_id": {"type": "string", "pattern": "^BATCH-[0-9]{2,}$"},
+          "batch_candidate_id": {"type": "string", "pattern": "^BVAR-[0-9]{2,}$"},
+          "variation_engine_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+          "variation_catalog_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+          "catalog_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "algorithm_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "implementation_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
           "selection": {
             "type": "object",
             "minProperties": 10,
             "additionalProperties": {"type": "string", "minLength": 1}
           },
+          "policy_profile": {"$ref": "#/$defs/policyProfile"},
           "signature": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
           "selection_status": {"enum": ["PENDING", "APPROVED", "REJECTED"]}
+        }
+      }
+    },
+    "batch_trace": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["batch_id", "batch_nonce", "generated_count", "novelty_pass_count", "eligible_count", "accepted_count", "rejections"],
+        "properties": {
+          "batch_id": {"type": "string", "pattern": "^BATCH-[0-9]{2,}$"},
+          "batch_nonce": {"type": "integer", "minimum": 0},
+          "generated_count": {"type": "integer", "minimum": 0},
+          "novelty_pass_count": {"type": "integer", "minimum": 0},
+          "eligible_count": {"type": "integer", "minimum": 0},
+          "accepted_count": {"type": "integer", "minimum": 0},
+          "rejections": {"type": "array", "items": {"type": "object"}}
         }
       }
     },
@@ -40,5 +89,79 @@
       "pattern": "^VAR-[0-9]{2,}$"
     },
     "override": {"type": ["object", "null"]}
+  },
+  "$defs": {
+    "enumName": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "enumId": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_-]*$"
+    },
+    "policyProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "genre",
+        "threat_type",
+        "trusted_domain",
+        "safe_domain_betrayal",
+        "responsible_agent_structure",
+        "information_mechanism",
+        "clue_mechanism",
+        "reveal_mode",
+        "final_proof_mechanism",
+        "victim_agency_mode",
+        "incident_type",
+        "culprit_structure",
+        "primary_twist",
+        "pressure_engine",
+        "technical_dependency_level",
+        "production_complexity",
+        "location_count",
+        "major_character_count",
+        "special_effect_level",
+        "child_actor_use",
+        "vehicle_scene",
+        "graphic_violence",
+        "source_truth_classification",
+        "episode_theme"
+      ],
+      "properties": {
+        "genre": {"$ref": "#/$defs/enumName"},
+        "threat_type": {"$ref": "#/$defs/enumName"},
+        "trusted_domain": {"$ref": "#/$defs/enumName"},
+        "safe_domain_betrayal": {"$ref": "#/$defs/enumName"},
+        "responsible_agent_structure": {"$ref": "#/$defs/enumName"},
+        "information_mechanism": {"$ref": "#/$defs/enumName"},
+        "clue_mechanism": {"$ref": "#/$defs/enumName"},
+        "reveal_mode": {"$ref": "#/$defs/enumName"},
+        "final_proof_mechanism": {"$ref": "#/$defs/enumName"},
+        "victim_agency_mode": {"$ref": "#/$defs/enumName"},
+        "incident_type": {"$ref": "#/$defs/enumName"},
+        "culprit_structure": {"$ref": "#/$defs/enumName"},
+        "primary_twist": {"$ref": "#/$defs/enumId"},
+        "pressure_engine": {"$ref": "#/$defs/enumName"},
+        "technical_dependency_level": {
+          "enum": ["LOW", "MEDIUM", "HIGH", "FINAL_PROOF"]
+        },
+        "production_complexity": {"enum": ["LOW", "MEDIUM", "HIGH", "EXTREME"]},
+        "location_count": {"$ref": "#/$defs/enumName"},
+        "major_character_count": {"$ref": "#/$defs/enumName"},
+        "special_effect_level": {"$ref": "#/$defs/enumName"},
+        "child_actor_use": {"$ref": "#/$defs/enumName"},
+        "vehicle_scene": {"$ref": "#/$defs/enumName"},
+        "graphic_violence": {"$ref": "#/$defs/enumName"},
+        "source_truth_classification": {
+          "enum": [
+            "ORIGINAL_FICTION",
+            "VERIFIED_TRUE_CASE",
+            "INSPIRED_BY_TRUE_EVENTS"
+          ]
+        },
+        "episode_theme": {"$ref": "#/$defs/enumName"}
+      }
+    }
   }
 }

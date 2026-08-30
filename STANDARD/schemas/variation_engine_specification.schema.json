@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/variation-engine-specification-1.0.0.json",
+  "type": "object",
+  "required": [
+    "schema_family",
+    "schema_version",
+    "variation_engine_version",
+    "algorithm_id",
+    "supported_channel_content_versions",
+    "supported_catalog_versions",
+    "required_capabilities",
+    "dimension_order",
+    "signature_payload",
+    "signature_digest"
+  ],
+  "properties": {
+    "schema_family": {"const": "variation-engine-specification"},
+    "schema_version": {"const": "1.0.0"},
+    "variation_engine_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "algorithm_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "supported_channel_content_versions": {"$ref": "#/$defs/versionRange"},
+    "supported_catalog_versions": {"$ref": "#/$defs/versionRange"},
+    "required_capabilities": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}},
+    "dimension_order": {"type": "string", "minLength": 1},
+    "seed_material": {"type": "string", "minLength": 1},
+    "seed_digest": {"type": "string", "minLength": 1},
+    "step_rule": {"type": "string", "minLength": 1},
+    "candidate_offset": {"type": "string", "minLength": 1},
+    "batch_pipeline": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "deduplication": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "canonical_id_assignment": {"type": "string", "minLength": 1},
+    "signature_payload": {"type": "string", "minLength": 1},
+    "signature_digest": {"const": "SHA-256"}
+  },
+  "$defs": {
+    "versionRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min_inclusive", "max_exclusive"],
+      "properties": {
+        "min_inclusive": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "max_exclusive": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"}
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -2,14 +2,32 @@
 
 from collections.abc import Mapping
 from pathlib import Path
+from typing import cast
 
-from RUNTIME.errors import RuntimeExecutionError
+from RUNTIME.errors import RuntimeErrorCode, RuntimeExecutionError
+from RUNTIME.event_store import load_run, utc_now
 from RUNTIME.gate_control import validation_report_through
+from RUNTIME.human_inputs import current_evidence_input, evidence_artifact_outputs
+from RUNTIME.models import RuntimeApproval
+from VALIDATORS.candidate_approval import build_candidate_approval
+from VALIDATORS.candidate_eligibility import build_candidate_eligibility
+from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.channel_policy_v2 import (
+    build_channel_policy_inputs,
+    validate_channel_policy_v2,
+)
+from VALIDATORS.channel_registry import (
+    registered_channel_relative_path,
+    resolve_project_channel,
+)
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.cli import evaluate_compatibility_documents
-from VALIDATORS.compatibility import make_project_compatibility_report
+from VALIDATORS.compatibility import (
+    evaluate_channel_binding,
+    make_project_compatibility_report,
+)
 from VALIDATORS.continuity import validate_continuity
-from VALIDATORS.exceptions import StoryLibraryError
+from VALIDATORS.exceptions import ConfigurationError, StoryLibraryError
 from VALIDATORS.io import load_json_object
 from VALIDATORS.library import novelty_history
 from VALIDATORS.novelty import (
@@ -18,16 +36,40 @@ from VALIDATORS.novelty import (
     evaluate_variation_precheck,
 )
 from VALIDATORS.pipeline import ArtifactContent, load_existing_project_artifacts
+from VALIDATORS.production_footprint import (
+    build_production_footprint,
+    production_manifest_from_scene_cards,
+)
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
     sanitize_reference_profile,
     validate_reference_collision,
 )
+from VALIDATORS.source_truth import require_source_truth_classification
 from VALIDATORS.variation import (
-    apply_user_case_constraints,
     approve_variation_candidate,
-    generate_variation_candidates,
+    generate_eligible_candidate_pool,
 )
+from VALIDATORS.variation_registry import resolve_variation_runtime
+
+
+def production_configuration_error(
+    error: ConfigurationError,
+    task_id: str,
+    artifact_name: str,
+) -> RuntimeExecutionError:
+    """Production Footprint 구성 오류를 Runtime 오류로 변환한다."""
+    message = str(error)
+    code = message.split(":", maxsplit=1)[0]
+    return RuntimeExecutionError(
+        cast(RuntimeErrorCode, code),
+        False,
+        "TASK",
+        message,
+        task_id,
+        artifact_name,
+        {},
+    )
 
 
 def combined_artifacts(
@@ -118,6 +160,15 @@ def runtime_validation_inputs(
     Mapping[str, object],
 ]:
     """Gate 검증에 필요한 Channel, Schema, Policy, Threshold를 반환한다."""
+    default_variation_runtime = resolve_variation_runtime(
+        repository_root,
+        {
+            "channel_id": "MYSTERY_MAIN",
+            "channel_content_version": "1.1.0",
+            "variation_engine_version": "1.0.0",
+            "variation_catalog_version": "1.0.0",
+        },
+    )
     return (
         load_json_object(repository_root / "CHANNELS" / "mystery_main" / "channel_dna.json"),
         load_json_object(repository_root / "STANDARD" / "schemas" / "story_dna.schema.json"),
@@ -125,24 +176,90 @@ def runtime_validation_inputs(
             repository_root / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
         ),
         {
+            "candidate_evaluation": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "candidate_evaluation.schema.json"
+            ),
+            "candidate_eligibility": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "candidate_eligibility.schema.json"
+            ),
+            "candidate_approval": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "candidate_approval.schema.json"
+            ),
+            "novelty_precheck": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "novelty_precheck.schema.json"
+            ),
+            "crime_psychology": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "crime_psychology.schema.json"
+            ),
+            "source_disclosure": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "source_disclosure.schema.json"
+            ),
+            "clinical_labels": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "clinical_labels.schema.json"
+            ),
+            "expert_segments": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "expert_segments.schema.json"
+            ),
             "panel_cast": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "panel_cast.schema.json"
             ),
             "reaction_segments": load_json_object(
-                repository_root
-                / "STANDARD"
-                / "schemas"
-                / "reaction_segments.schema.json"
+                repository_root / "STANDARD" / "schemas" / "reaction_segments.schema.json"
             ),
             "presentation_plan": load_json_object(
-                repository_root
-                / "STANDARD"
-                / "schemas"
-                / "presentation_plan.schema.json"
+                repository_root / "STANDARD" / "schemas" / "presentation_plan.schema.json"
             ),
+            "candidate_projection_contract": load_json_object(
+                repository_root / "STANDARD" / "candidate_projection_contract.json"
+            ),
+            "variation_catalog": default_variation_runtime["catalog"],
+            "variation_runtime": dict(default_variation_runtime),
         },
         load_json_object(repository_root / "STANDARD" / "reference_policy.json"),
         load_json_object(repository_root / "STANDARD" / "novelty_thresholds.json"),
+    )
+
+
+def runtime_validation_inputs_for_project(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    channel_override: Path | None,
+) -> tuple[
+    Mapping[str, object],
+    Mapping[str, object],
+    Mapping[str, object],
+    Mapping[str, Mapping[str, object]],
+    Mapping[str, object],
+    Mapping[str, object],
+]:
+    """Project 핀으로 Channel을 해석해 Gate 검증 입력을 반환한다."""
+    channel, _manifest, _channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        channel_override,
+    )
+    (
+        _active_channel,
+        story_schema,
+        fingerprint_schema,
+        presentation_schemas,
+        reference_policy,
+        novelty_thresholds,
+    ) = runtime_validation_inputs(repository_root)
+    selected_schemas = dict(presentation_schemas)
+    variation_runtime = resolve_variation_runtime(
+        repository_root,
+        production_config,
+    )
+    selected_schemas["variation_catalog"] = variation_runtime["catalog"]
+    selected_schemas["variation_runtime"] = dict(variation_runtime)
+    return (
+        channel,
+        story_schema,
+        fingerprint_schema,
+        selected_schemas,
+        reference_policy,
+        novelty_thresholds,
     )
 
 
@@ -163,13 +280,18 @@ def project_compatibility_output(
             "project_manifest",
             {},
         )
+    production_config = mapping_artifact(artifacts, "production_config")
     contract_path = repository_root / "STANDARD" / "compatibility_contract.json"
     defaults_path = repository_root / "STANDARD" / "standard_defaults.json"
-    channel_path = repository_root / "CHANNELS" / "mystery_main" / "channel_dna.json"
+    channel, channel_manifest, channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        None,
+    )
     report = evaluate_compatibility_documents(
         load_json_object(contract_path),
         load_json_object(defaults_path),
-        load_json_object(channel_path),
+        channel,
         load_json_object(
             repository_root / "STANDARD" / "schemas" / "compatibility_contract.schema.json"
         ),
@@ -181,7 +303,34 @@ def project_compatibility_output(
         str(defaults_path),
         str(channel_path),
     )
-    return dict(make_project_compatibility_report(project_id, report))
+    report = evaluate_channel_binding(
+        report,
+        production_config,
+        channel_manifest,
+        channel,
+    )
+    pinned_version = production_config.get("channel_content_version")
+    if not isinstance(pinned_version, str):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "production_config.channel_content_version 문자열이 필요합니다.",
+            "project.compatibility",
+            "production_config",
+            {},
+        )
+    relative_path = registered_channel_relative_path(
+        channel_manifest,
+        pinned_version,
+    )
+    return dict(
+        make_project_compatibility_report(
+            project_id,
+            report,
+            relative_path,
+        )
+    )
 
 
 def reference_profile_output(
@@ -230,48 +379,124 @@ def variation_output(
     project_id: str,
     repository_root: Path,
     production_config: Mapping[str, object],
-    human_approved: bool,
+    project_constraints: Mapping[str, object],
+    source_case_brief: Mapping[str, object] | None,
+    source_truth_contract: Mapping[str, object] | None,
 ) -> dict[str, object]:
-    """결정론적 후보 다섯 개를 생성하고 AUTO_CONTINUE에서 하나를 승인한다."""
-    candidates = generate_variation_candidates(
-        project_id,
-        f"{project_id}:runtime-v1",
-        5,
-        load_json_object(repository_root / "STANDARD" / "variation_catalog.json"),
+    """결정론적 후보 다섯 개를 승인하지 않은 상태로 생성한다."""
+    channel, _manifest, _channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        None,
     )
-    constrained = apply_user_case_constraints(candidates, production_config)
-    approval_policy = production_config.get("approval_policy")
-    if approval_policy == "HUMAN_REVIEW" and not human_approved:
+    brief = source_case_brief.get("brief") if source_case_brief is not None else None
+    seed = brief if isinstance(brief, str) else f"{project_id}:runtime-v1"
+    runtime = resolve_variation_runtime(repository_root, production_config)
+    return generate_eligible_candidate_pool(
+        project_id,
+        seed,
+        5,
+        runtime,
+        require_source_truth_classification(production_config),
+        production_config,
+        project_constraints,
+        channel,
+        story_history(repository_root),
+        load_json_object(repository_root / "STANDARD" / "novelty_thresholds.json"),
+        load_json_object(repository_root / "STANDARD" / "candidate_projection_contract.json"),
+        source_truth_contract,
+        64,
+    )
+
+
+def approved_variation_output(
+    variations: Mapping[str, object],
+    candidate_evaluation: Mapping[str, object],
+    novelty_precheck: Mapping[str, object],
+    candidate_eligibility: Mapping[str, object],
+) -> tuple[dict[str, object], str]:
+    """검증된 평가가 추천한 Candidate 하나를 승인한다."""
+    issues = validate_candidate_evaluation(
+        variations,
+        candidate_evaluation,
+        novelty_precheck,
+        candidate_eligibility,
+    )
+    if issues:
+        first_issue = issues[0]
         raise RuntimeExecutionError(
-            "HUMAN_APPROVAL_REQUIRED",
+            "GATE_REJECTED",
             False,
             "TASK",
-            "Variation 후보 선택에 Human Approval이 필요합니다.",
-            "variation.generate",
-            "variation_candidates",
-            {"candidate_count": constrained.get("candidate_count")},
+            first_issue["message"],
+            "variation.approve",
+            "candidate_evaluation",
+            {
+                "validation_code": first_issue["code"],
+                **first_issue["context"],
+            },
         )
-    return approve_variation_candidate(constrained, "VAR-01")
+    candidate_id = candidate_evaluation.get("recommended_candidate_id")
+    if not isinstance(candidate_id, str):
+        raise RuntimeExecutionError(
+            "GATE_REJECTED",
+            False,
+            "TASK",
+            "Candidate 평가 추천 ID가 없습니다.",
+            "variation.approve",
+            "candidate_evaluation",
+            {"validation_code": "CANDIDATE_EVALUATION_REQUIRED"},
+        )
+    approved = approve_variation_candidate(variations, candidate_id)
+    return approved, candidate_id
 
 
 def evidence_outputs(
     project_id: str,
-    source_mode: object,
+    source_truth: object,
+    project_path: Path,
+    run_id: str,
+    input_hashes: Mapping[str, str],
 ) -> dict[str, object]:
-    """Fiction은 빈 Evidence를 만들고 사실 기반 Mode는 명시적 Human 입력을 요구한다."""
-    if source_mode in {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}:
-        raise RuntimeExecutionError(
-            "HUMAN_APPROVAL_REQUIRED",
-            False,
-            "TASK",
-            "사실 기반 Project에는 검증된 Source와 Claim-Evidence 입력이 필요합니다.",
-            "reference.build_evidence",
-            None,
-            {"story_source_mode": source_mode},
+    """Fiction은 빈 Evidence를 만들고 사실 기반 분류는 검증된 Human 입력을 읽는다."""
+    if source_truth in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}:
+        human_input = current_evidence_input(
+            project_path,
+            run_id,
+            project_id,
+            str(source_truth),
+            input_hashes,
         )
+        if human_input is None:
+            raise RuntimeExecutionError(
+                "HUMAN_INPUT_REQUIRED",
+                False,
+                "TASK",
+                "사실 기반 Project에는 현재 Input Hash로 검증된 Evidence 입력이 필요합니다.",
+                "reference.intake_evidence",
+                None,
+                {
+                    "source_truth_classification": source_truth,
+                    "input_hashes": dict(input_hashes),
+                },
+            )
+        return evidence_artifact_outputs(project_id, human_input)
     return {
         "sources": {"project_id": project_id, "sources": []},
         "claim_evidence": {"project_id": project_id, "claims": []},
+        "source_disclosure": {
+            "schema_family": "source-disclosure",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "internal_mode": "ORIGINAL_FICTION",
+            "audience_label_text": "본 이야기는 창작입니다.",
+        },
+        "clinical_labels": {
+            "schema_family": "clinical-labels",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "labels": [],
+        },
     }
 
 
@@ -332,6 +557,76 @@ def reference_report_output(
     )
 
 
+def resolved_clinical_labels_output(
+    clinical_labels: Mapping[str, object],
+    characters: Mapping[str, object],
+) -> dict[str, object]:
+    """Evidence Subject ID를 생성된 Character ID에 결정론적으로 연결한다."""
+    raw_labels = clinical_labels.get("labels")
+    raw_characters = characters.get("characters")
+    if not isinstance(raw_labels, list) or not isinstance(raw_characters, list):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Clinical Label 또는 Character 배열이 없습니다.",
+            "reference.resolve_clinical_subjects",
+            "clinical_labels",
+            {},
+        )
+    subject_mapping: dict[str, str] = {}
+    duplicated_subjects: set[str] = set()
+    for character in raw_characters:
+        if not isinstance(character, Mapping):
+            continue
+        source_subject_id = character.get("source_subject_id")
+        character_id = character.get("character_id")
+        if not isinstance(source_subject_id, str) or not isinstance(character_id, str):
+            continue
+        if source_subject_id in subject_mapping:
+            duplicated_subjects.add(source_subject_id)
+        subject_mapping[source_subject_id] = character_id
+    labels: list[dict[str, object]] = []
+    for raw_label in raw_labels:
+        if not isinstance(raw_label, Mapping):
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Clinical Label 객체가 손상되었습니다.",
+                "reference.resolve_clinical_subjects",
+                "clinical_labels",
+                {},
+            )
+        label = dict(raw_label)
+        source_subject = label.get("source_subject_id")
+        if source_subject is not None:
+            if source_subject in duplicated_subjects:
+                raise RuntimeExecutionError(
+                    "CLINICAL_SUBJECT_MAPPING_AMBIGUOUS",
+                    False,
+                    "TASK",
+                    "Evidence Subject가 여러 Character에 명시적으로 연결되었습니다.",
+                    "reference.resolve_clinical_subjects",
+                    "clinical_labels",
+                    {"source_subject_id": source_subject},
+                )
+            character_id = subject_mapping.get(str(source_subject))
+            if character_id is None:
+                raise RuntimeExecutionError(
+                    "CLINICAL_SUBJECT_MAPPING_MISSING",
+                    False,
+                    "TASK",
+                    "Evidence Subject에 명시적 Character Mapping이 없습니다.",
+                    "reference.resolve_clinical_subjects",
+                    "clinical_labels",
+                    {"source_subject_id": source_subject},
+                )
+            label["subject_id"] = character_id
+        labels.append(label)
+    return {**dict(clinical_labels), "labels": labels}
+
+
 def core_task_outputs(
     task_id: str,
     repository_root: Path,
@@ -339,7 +634,9 @@ def core_task_outputs(
     overlay: Mapping[str, object],
     dependency_graph: Mapping[str, object],
     reference_source: Path | None,
-    human_approved: bool,
+    runtime_approval: RuntimeApproval | None,
+    run_id: str,
+    input_hashes: Mapping[str, str],
 ) -> dict[str, object]:
     """Task ID에 대응하는 결정론적 Core 출력을 반환한다."""
     artifacts = combined_artifacts(project_path, dependency_graph, overlay)
@@ -367,12 +664,16 @@ def core_task_outputs(
             )
         }
     if task_id == "variation.generate":
+        source_case_brief = artifacts.get("source_case_brief")
+        source_truth_contract = artifacts.get("source_truth_contract")
         return {
             "variation_candidates": variation_output(
                 project_id,
                 repository_root,
                 production_config,
-                human_approved,
+                mapping_artifact(artifacts, "project_constraints"),
+                source_case_brief if isinstance(source_case_brief, Mapping) else None,
+                source_truth_contract if isinstance(source_truth_contract, Mapping) else None,
             )
         }
     if task_id == "novelty.variation_precheck":
@@ -383,8 +684,162 @@ def core_task_outputs(
                 load_json_object(repository_root / "STANDARD" / "novelty_thresholds.json"),
             )
         }
-    if task_id == "reference.build_evidence":
-        return evidence_outputs(project_id, production_config.get("story_source_mode"))
+    if task_id == "variation.eligibility":
+        channel, _manifest, _channel_path = resolve_project_channel(
+            repository_root,
+            production_config,
+            None,
+        )
+        return {
+            "candidate_eligibility": build_candidate_eligibility(
+                production_config,
+                mapping_artifact(artifacts, "project_constraints"),
+                channel,
+                mapping_artifact(artifacts, "variation_candidates"),
+                mapping_artifact(artifacts, "novelty_precheck"),
+            )
+        }
+    if task_id == "variation.approve":
+        variations = mapping_artifact(artifacts, "variation_candidates")
+        evaluation = mapping_artifact(artifacts, "candidate_evaluation")
+        novelty = mapping_artifact(artifacts, "novelty_precheck")
+        eligibility = mapping_artifact(artifacts, "candidate_eligibility")
+        approved, _candidate_id = approved_variation_output(
+            variations,
+            evaluation,
+            novelty,
+            eligibility,
+        )
+        return {
+            "variation_candidates": approved,
+        }
+    if task_id == "variation.record_approval":
+        variations = mapping_artifact(artifacts, "variation_candidates")
+        evaluation = mapping_artifact(artifacts, "candidate_evaluation")
+        novelty = mapping_artifact(artifacts, "novelty_precheck")
+        selected_candidate_id = variations.get("approved_candidate_id")
+        recommended = evaluation.get("recommended_candidate_id")
+        if not isinstance(selected_candidate_id, str) or not isinstance(recommended, str):
+            raise RuntimeExecutionError(
+                "GATE_REJECTED",
+                False,
+                "TASK",
+                "승인 또는 추천 Candidate ID가 없습니다.",
+                task_id,
+                "candidate_approval",
+                {},
+            )
+        approval_policy = production_config.get("approval_policy")
+        if not isinstance(approval_policy, str):
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Candidate Approval Policy가 없습니다.",
+                task_id,
+                "production_config",
+                {},
+            )
+        actor = "SYSTEM"
+        reason = "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다."
+        approved_at = utc_now()
+        if runtime_approval is not None:
+            actor = runtime_approval["actor"]
+            reason = runtime_approval["reason"]
+            approved_at = runtime_approval["created_at"]
+        return {
+            "candidate_approval": build_candidate_approval(
+                project_id,
+                selected_candidate_id,
+                recommended,
+                actor,
+                reason,
+                approved_at,
+                production_config,
+                variations,
+                novelty,
+                mapping_artifact(artifacts, "candidate_eligibility"),
+                evaluation,
+                approval_policy,
+                runtime_approval,
+            ),
+        }
+    if task_id in {
+        "reference.intake_evidence",
+        "reference.initialize_fiction_evidence",
+        "reference.build_source_disclosure",
+        "reference.build_clinical_labels",
+    }:
+        run = load_run(project_path, run_id)
+        evidence_state = run["tasks"].get("reference.intake_evidence")
+        evidence_hashes = (
+            evidence_state["input_hashes"]
+            if evidence_state is not None and evidence_state["input_hashes"]
+            else input_hashes
+        )
+        bundle = evidence_outputs(
+            project_id,
+            production_config.get("source_truth_classification"),
+            project_path,
+            run_id,
+            evidence_hashes,
+        )
+        selected_outputs = {
+            "reference.intake_evidence": (
+                "sources",
+                "claim_evidence",
+                "source_case_brief",
+                "verified_fact_ledger",
+                "source_subjects",
+                "verified_event_ledger",
+                "source_truth_contract",
+                "source_disclosure",
+                "clinical_labels",
+            ),
+            "reference.initialize_fiction_evidence": ("sources", "claim_evidence"),
+            "reference.build_source_disclosure": ("source_disclosure",),
+            "reference.build_clinical_labels": ("clinical_labels",),
+        }
+        return {name: bundle[name] for name in selected_outputs[task_id]}
+    if task_id == "reference.resolve_clinical_subjects":
+        return {
+            "clinical_labels": resolved_clinical_labels_output(
+                mapping_artifact(artifacts, "clinical_labels"),
+                mapping_artifact(artifacts, "characters"),
+            )
+        }
+    if task_id == "scene.compute_production_footprint":
+        try:
+            footprint = build_production_footprint(
+                project_id,
+                mapping_artifact(artifacts, "scene_cards"),
+                mapping_artifact(artifacts, "characters"),
+                mapping_artifact(artifacts, "actual_timeline"),
+            )
+        except ConfigurationError as error:
+            raise production_configuration_error(
+                error,
+                task_id,
+                "production_footprint",
+            ) from error
+        return {"production_footprint": footprint}
+    if task_id == "production.build_manifest":
+        text_artifact(artifacts, "shooting_script")
+        try:
+            manifest = production_manifest_from_scene_cards(
+                project_id,
+                mapping_artifact(artifacts, "production_footprint"),
+                mapping_artifact(artifacts, "scene_cards"),
+                mapping_artifact(artifacts, "characters"),
+                mapping_artifact(artifacts, "actual_timeline"),
+            )
+        except ConfigurationError as error:
+            raise production_configuration_error(
+                error,
+                task_id,
+                "production_manifest",
+            ) from error
+        return {"production_manifest": manifest}
     if task_id == "continuity.deterministic":
         report = validate_continuity(
             production_config,
@@ -419,11 +874,22 @@ def core_task_outputs(
             )
         }
     if task_id == "channel.consistency":
+        channel, _manifest, _channel_path = resolve_project_channel(
+            repository_root,
+            production_config,
+            None,
+        )
         issues = validate_channel_consistency(
-            load_json_object(repository_root / "CHANNELS" / "mystery_main" / "channel_dna.json"),
+            channel,
             mapping_artifact(artifacts, "story_dna"),
             production_config,
             mapping_artifact(artifacts, "presentation_plan"),
+        )
+        issues.extend(
+            validate_channel_policy_v2(
+                channel,
+                build_channel_policy_inputs(artifacts),
+            )
         )
         return {
             "channel_consistency_report": {
@@ -434,18 +900,22 @@ def core_task_outputs(
         }
     if task_id in {"orchestrator.validation", "production.finalize"}:
         (
-            channel,
+            validation_channel,
             story_schema,
             fingerprint_schema,
             presentation_schemas,
             policy,
             thresholds,
-        ) = runtime_validation_inputs(repository_root)
+        ) = runtime_validation_inputs_for_project(
+            repository_root,
+            production_config,
+            None,
+        )
         target_gate = "GATE-12" if task_id == "orchestrator.validation" else "GATE-13"
         validation_report = validation_report_through(
             target_gate,
             artifacts,
-            channel,
+            validation_channel,
             story_schema,
             fingerprint_schema,
             presentation_schemas,

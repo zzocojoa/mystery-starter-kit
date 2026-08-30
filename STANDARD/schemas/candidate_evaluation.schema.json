@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/candidate-evaluation-1.2.0.json",
+  "title": "Variation Candidate Soft Evaluation v1.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "weights",
+    "input_hashes",
+    "novelty_report_hash",
+    "recommended_candidate_id",
+    "evaluations"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "candidate-evaluation"},
+    "schema_version": {"const": "1.2.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "weights": {"$ref": "#/$defs/dimensions"},
+    "input_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variation_candidates",
+        "novelty_precheck",
+        "candidate_eligibility"
+      ],
+      "properties": {
+        "variation_candidates": {"$ref": "#/$defs/hash"},
+        "novelty_precheck": {"$ref": "#/$defs/hash"},
+        "candidate_eligibility": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "novelty_report_hash": {"$ref": "#/$defs/hash"},
+    "recommended_candidate_id": {
+      "type": "string",
+      "pattern": "^VAR-[0-9]{2,}$"
+    },
+    "evaluations": {
+      "type": "array",
+      "minItems": 3,
+      "items": {"$ref": "#/$defs/evaluation"}
+    }
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "score": {"type": "number", "minimum": 0, "maximum": 100},
+    "weight": {"type": "number", "minimum": 0, "maximum": 100},
+    "evidenceList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "crime_threat_score",
+        "psychological_immersion_score",
+        "trust_betrayal_score",
+        "victim_integrity_score",
+        "character_score",
+        "twist_score",
+        "novelty_score",
+        "production_score"
+      ],
+      "properties": {
+        "crime_threat_score": {"$ref": "#/$defs/weight"},
+        "psychological_immersion_score": {"$ref": "#/$defs/weight"},
+        "trust_betrayal_score": {"$ref": "#/$defs/weight"},
+        "victim_integrity_score": {"$ref": "#/$defs/weight"},
+        "character_score": {"$ref": "#/$defs/weight"},
+        "twist_score": {"$ref": "#/$defs/weight"},
+        "novelty_score": {"$ref": "#/$defs/weight"},
+        "production_score": {"$ref": "#/$defs/weight"}
+      }
+    },
+    "dimensionEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "crime_threat_score",
+        "psychological_immersion_score",
+        "trust_betrayal_score",
+        "victim_integrity_score",
+        "character_score",
+        "twist_score",
+        "novelty_score",
+        "production_score"
+      ],
+      "properties": {
+        "crime_threat_score": {"$ref": "#/$defs/evidenceList"},
+        "psychological_immersion_score": {"$ref": "#/$defs/evidenceList"},
+        "trust_betrayal_score": {"$ref": "#/$defs/evidenceList"},
+        "victim_integrity_score": {"$ref": "#/$defs/evidenceList"},
+        "character_score": {"$ref": "#/$defs/evidenceList"},
+        "twist_score": {"$ref": "#/$defs/evidenceList"},
+        "novelty_score": {"$ref": "#/$defs/evidenceList"},
+        "production_score": {"$ref": "#/$defs/evidenceList"}
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "dimension_evidence",
+        "crime_threat_score",
+        "psychological_immersion_score",
+        "trust_betrayal_score",
+        "victim_integrity_score",
+        "character_score",
+        "twist_score",
+        "novelty_score",
+        "production_score",
+        "total_score",
+        "decision",
+        "decision_reason"
+      ],
+      "properties": {
+        "candidate_id": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
+        "dimension_evidence": {"$ref": "#/$defs/dimensionEvidence"},
+        "crime_threat_score": {"$ref": "#/$defs/score"},
+        "psychological_immersion_score": {"$ref": "#/$defs/score"},
+        "trust_betrayal_score": {"$ref": "#/$defs/score"},
+        "victim_integrity_score": {"$ref": "#/$defs/score"},
+        "character_score": {"$ref": "#/$defs/score"},
+        "twist_score": {"$ref": "#/$defs/score"},
+        "novelty_score": {"$ref": "#/$defs/score"},
+        "production_score": {"$ref": "#/$defs/score"},
+        "total_score": {"$ref": "#/$defs/score"},
+        "decision": {"enum": ["RECOMMENDED", "REJECTED"]},
+        "decision_reason": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

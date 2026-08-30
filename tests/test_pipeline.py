@@ -1,5 +1,6 @@
 """Compatibility부터 Production Ready까지의 전체 E2E Gate 검증."""
 
+from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
 
@@ -7,36 +8,78 @@ from project_factory import make_complete_project_artifacts
 
 from VALIDATORS.io import load_json_object
 from VALIDATORS.models import ProductionValidationReport
-from VALIDATORS.pipeline import run_production_validation
+from VALIDATORS.pipeline import ArtifactContent, run_production_validation
 from VALIDATORS.schema_validation import collect_schema_errors
+from VALIDATORS.variation_registry import resolve_variation_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def presentation_schemas() -> dict[str, dict[str, object]]:
     """Presentation Contract v2 Schema 묶음을 읽는다."""
+    runtime = resolve_variation_runtime(
+        ROOT,
+        {
+            "channel_id": "MYSTERY_MAIN",
+            "channel_content_version": "1.1.0",
+            "variation_engine_version": "1.0.0",
+            "variation_catalog_version": "1.0.0",
+        },
+    )
     return {
-        "panel_cast": load_json_object(
-            ROOT / "STANDARD" / "schemas" / "panel_cast.schema.json"
+        "candidate_eligibility": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "candidate_eligibility.schema.json"
         ),
+        "candidate_approval": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "candidate_approval.schema.json"
+        ),
+        "candidate_evaluation": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "candidate_evaluation.schema.json"
+        ),
+        "novelty_precheck": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "novelty_precheck.schema.json"
+        ),
+        "crime_psychology": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "crime_psychology.schema.json"
+        ),
+        "source_disclosure": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "source_disclosure.schema.json"
+        ),
+        "clinical_labels": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "clinical_labels.schema.json"
+        ),
+        "expert_segments": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "expert_segments.schema.json"
+        ),
+        "panel_cast": load_json_object(ROOT / "STANDARD" / "schemas" / "panel_cast.schema.json"),
         "reaction_segments": load_json_object(
             ROOT / "STANDARD" / "schemas" / "reaction_segments.schema.json"
         ),
         "presentation_plan": load_json_object(
             ROOT / "STANDARD" / "schemas" / "presentation_plan.schema.json"
         ),
+        "candidate_projection_contract": load_json_object(
+            ROOT / "STANDARD" / "candidate_projection_contract.json"
+        ),
+        "variation_catalog": runtime["catalog"],
+        "variation_runtime": dict(runtime),
     }
 
 
 def run_complete_validation() -> ProductionValidationReport:
     """완전한 독립 Project를 기준 설정으로 검증한다."""
+    return run_artifact_validation(make_complete_project_artifacts())
+
+
+def run_artifact_validation(
+    artifacts: Mapping[str, ArtifactContent],
+) -> ProductionValidationReport:
+    """지정한 Project Artifact를 기준 설정으로 검증한다."""
     return run_production_validation(
-        make_complete_project_artifacts(),
+        artifacts,
         load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
@@ -60,6 +103,32 @@ def test_complete_project_passes_all_fourteen_gates() -> None:
     assert collect_schema_errors(report, report_schema, "generated_report") == []
 
 
+def test_legacy_v1_1_project_without_v2_artifacts_still_passes() -> None:
+    """v2 First-class Artifact가 없는 기존 1.1 Project는 소급 실패하지 않는다."""
+    artifacts = make_complete_project_artifacts()
+    v2_artifacts = (
+        "crime_psychology",
+        "source_disclosure",
+        "clinical_labels",
+        "expert_segments",
+        "expert_analysis_script",
+        "production_expert_analysis_script",
+    )
+    for artifact_name in v2_artifacts:
+        artifacts.pop(artifact_name)
+    editorial_review = artifacts["editorial_review"]
+    assert isinstance(editorial_review, dict)
+    hashes = editorial_review["artifact_hashes"]
+    assert isinstance(hashes, dict)
+    for artifact_name in v2_artifacts:
+        hashes.pop(artifact_name, None)
+
+    report = run_artifact_validation(artifacts)
+
+    assert report["result"] == "PASS"
+    assert set(report["gate_results"].values()) == {"PASS"}
+
+
 def test_causal_break_blocks_full_pipeline() -> None:
     """Causal Graph 경로가 끊기면 전체 Project는 Production Ready가 될 수 없다."""
     artifacts = deepcopy(make_complete_project_artifacts())
@@ -73,9 +142,7 @@ def test_causal_break_blocks_full_pipeline() -> None:
         artifacts,
         load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
@@ -101,9 +168,7 @@ def test_undeclared_variation_override_blocks_story_gate() -> None:
         artifacts,
         load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
@@ -127,9 +192,7 @@ def test_cross_project_artifact_is_rejected() -> None:
         artifacts,
         load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"),
         load_json_object(ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"),
-        load_json_object(
-            ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"
-        ),
+        load_json_object(ROOT / "STANDARD" / "schemas" / "story_fingerprint.schema.json"),
         presentation_schemas(),
         load_json_object(ROOT / "STANDARD" / "reference_policy.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),

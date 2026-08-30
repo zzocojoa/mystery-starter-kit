@@ -1,8 +1,10 @@
 """GATE-00부터 GATE-13까지의 Project 상태 전이."""
 
+from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from typing import TypedDict
 
+from VALIDATORS.dependency import artifact_required_for_project, dependency_artifacts
 from VALIDATORS.exceptions import StateTransitionError
 from VALIDATORS.models import ProjectState, ProjectStatus
 
@@ -22,12 +24,24 @@ GATES: tuple[GateDefinition, ...] = (
             "project_manifest",
             "compatibility_report",
             "production_config",
+            "project_constraints",
         ),
         "target_state": "COMPATIBILITY_VALIDATED",
     },
     {
         "gate_id": "GATE-01",
-        "required_artifacts": ("variation_candidates", "novelty_precheck"),
+        "required_artifacts": (
+            "variation_candidates",
+            "candidate_evaluation",
+            "novelty_precheck",
+            "candidate_eligibility",
+            "candidate_approval",
+            "source_case_brief",
+            "verified_fact_ledger",
+            "source_subjects",
+            "verified_event_ledger",
+            "source_truth_contract",
+        ),
         "target_state": "VARIATION_APPROVED",
     },
     {
@@ -37,7 +51,15 @@ GATES: tuple[GateDefinition, ...] = (
     },
     {
         "gate_id": "GATE-03",
-        "required_artifacts": ("case_input", "facts", "sources", "claim_evidence"),
+        "required_artifacts": (
+            "case_input",
+            "facts",
+            "crime_psychology",
+            "sources",
+            "claim_evidence",
+            "source_disclosure",
+            "clinical_labels",
+        ),
         "target_state": "CASE_DEFINED",
     },
     {
@@ -66,8 +88,10 @@ GATES: tuple[GateDefinition, ...] = (
         "gate_id": "GATE-07",
         "required_artifacts": (
             "scene_cards",
+            "production_footprint",
             "panel_cast",
             "reaction_segments",
+            "expert_segments",
             "presentation_plan",
         ),
         "target_state": "SCENES_DESIGNED",
@@ -78,6 +102,7 @@ GATES: tuple[GateDefinition, ...] = (
             "drama_script",
             "narration_script",
             "panel_reaction_script",
+            "expert_analysis_script",
             "draft_script",
             "final_script",
         ),
@@ -107,8 +132,10 @@ GATES: tuple[GateDefinition, ...] = (
         "gate_id": "GATE-13",
         "required_artifacts": (
             "shooting_script",
+            "production_manifest",
             "narration",
             "production_panel_reaction_script",
+            "production_expert_analysis_script",
             "subtitle_script",
             "edit_script",
             "editorial_review",
@@ -139,15 +166,37 @@ def expected_gate(state: ProjectState) -> GateDefinition:
 
 def missing_clean_artifacts(
     state: ProjectState,
-    gate: GateDefinition,
+    required_artifacts: Sequence[str],
 ) -> list[str]:
     """Gate에 필요하지만 CLEAN이 아닌 Artifact 이름을 반환한다."""
     missing: list[str] = []
-    for artifact_name in gate["required_artifacts"]:
+    for artifact_name in required_artifacts:
         artifact_state = state["artifacts"].get(artifact_name)
         if artifact_state is None or artifact_state["status"] != "CLEAN":
             missing.append(artifact_name)
     return missing
+
+
+def gate_required_artifacts_for_project(
+    gate_id: str,
+    dependency_graph: Mapping[str, object],
+    channel: Mapping[str, object],
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, object],
+) -> tuple[str, ...]:
+    """Gate 기본 목록에서 현재 Project에 실제로 필요한 Artifact만 반환한다."""
+    gate = GATES[gate_index(gate_id)]
+    definitions = dependency_artifacts(dependency_graph)
+    return tuple(
+        artifact_name
+        for artifact_name in gate["required_artifacts"]
+        if artifact_required_for_project(
+            definitions[artifact_name],
+            channel,
+            production_config,
+            artifacts,
+        )
+    )
 
 
 def advance_gate(
@@ -155,6 +204,7 @@ def advance_gate(
     gate_id: str,
     passed: bool,
     updated_at: str,
+    required_artifacts: Sequence[str],
 ) -> ProjectState:
     """정해진 순서와 CLEAN 조건을 만족할 때만 Project 상태를 전이한다."""
     gate = expected_gate(state)
@@ -168,7 +218,7 @@ def advance_gate(
         next_state["state"] = "BLOCKED"
         return next_state
 
-    missing = missing_clean_artifacts(state, gate)
+    missing = missing_clean_artifacts(state, required_artifacts)
     if missing:
         raise StateTransitionError(
             f"Gate 필수 Artifact가 CLEAN이 아닙니다: gate={gate_id}, artifacts={missing}"

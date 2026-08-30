@@ -2,6 +2,7 @@
 
 import ast
 import asyncio
+import json
 import os
 import subprocess
 import sys
@@ -26,6 +27,16 @@ from VALIDATORS.io import load_json_object
 from .support import ROOT, create_runtime_project, create_runtime_repository
 
 
+def reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    """Runtime 계약의 중복 JSON Key를 명시적으로 거부한다."""
+    document: dict[str, object] = {}
+    for key, value in pairs:
+        if key in document:
+            raise ValueError(f"중복 JSON Key: {key}")
+        document[key] = value
+    return document
+
+
 def run_import_probe(source: str) -> subprocess.CompletedProcess[str]:
     """새 Python Process에서 Import 순서 독립성을 검사한다."""
     environment: dict[str, str] = dict(os.environ)
@@ -43,8 +54,7 @@ def run_import_probe(source: str) -> subprocess.CompletedProcess[str]:
 def test_gate_transaction_import_does_not_require_engine_preload() -> None:
     """Gate Transaction은 Runtime Engine 선행 Import 없이 로드되어야 한다."""
     result = run_import_probe(
-        "from VALIDATORS.gate_transaction import audit_project; "
-        "print(audit_project.__name__)"
+        "from VALIDATORS.gate_transaction import audit_project; print(audit_project.__name__)"
     )
 
     assert result.returncode == 0, result.stderr
@@ -69,7 +79,17 @@ def test_runtime_contracts_cross_validate_all_authorities() -> None:
 
     assert result["result"] == "PASS"
     assert result["runtime_version"] == "1.0.0"
-    assert result["task_count"] == 22
+    assert result["task_count"] == 36
+
+
+def test_runtime_task_contract_has_no_duplicate_json_keys() -> None:
+    """중복 Key로 Task Read 권한이 파서에서 소실되지 않아야 한다."""
+    contract_path = ROOT / "RUNTIME" / "contracts" / "runtime_tasks.json"
+
+    json.loads(
+        contract_path.read_text(encoding="utf-8"),
+        object_pairs_hook=reject_duplicate_json_keys,
+    )
 
 
 def test_runtime_has_no_provider_sdk_imports() -> None:

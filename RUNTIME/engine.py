@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import cast
 from uuid import uuid4
 
-from RUNTIME.approvals import approval_is_current
+from RUNTIME.approvals import current_approval
 from RUNTIME.context import build_minimal_context, context_data_classes, context_input_hashes
 from RUNTIME.contracts import (
     load_artifact_contracts,
@@ -22,7 +22,7 @@ from RUNTIME.core_tasks import (
     combined_artifacts,
     core_task_outputs,
     mapping_artifact,
-    runtime_validation_inputs,
+    runtime_validation_inputs_for_project,
     story_history,
 )
 from RUNTIME.errors import RuntimeExecutionError
@@ -49,6 +49,7 @@ from RUNTIME.models import (
     OutputMode,
     PromptBundle,
     RunStatus,
+    RuntimeApproval,
     RuntimeRun,
     RuntimeTask,
     SelectedRoute,
@@ -81,7 +82,7 @@ from RUNTIME.transactions import (
     verify_artifact_hashes,
 )
 from VALIDATORS.agent_validation import manifest_agents
-from VALIDATORS.change_log import append_change_log
+from VALIDATORS.change_log import change_log_bytes
 from VALIDATORS.dependency import artifact_hash, dependency_artifacts
 from VALIDATORS.exceptions import StarterKitError
 from VALIDATORS.gate_transaction import (
@@ -97,9 +98,9 @@ from VALIDATORS.gate_transaction import (
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.library_store import sync_novelty_gate
 from VALIDATORS.models import ProjectState, ValidationIssue
-from VALIDATORS.pipeline import load_project_artifacts
+from VALIDATORS.pipeline import load_existing_project_artifacts
 from VALIDATORS.schema_validation import collect_schema_errors
-from VALIDATORS.state_machine import gate_index
+from VALIDATORS.state_machine import gate_index, gate_required_artifacts_for_project
 
 
 def project_state(project_path: Path) -> ProjectState:
@@ -148,12 +149,15 @@ def approved_selection_document(
     project_path: Path,
     dependency_graph: Mapping[str, object],
     overlay: Mapping[str, object],
+    allow_missing: bool,
 ) -> dict[str, str]:
     """승인 Variation Selection을 Provider Metadata용 문자열 사전으로 읽는다."""
     artifacts = combined_artifacts(project_path, dependency_graph, overlay)
     variations = mapping_artifact(artifacts, "variation_candidates")
     approved_id = variations.get("approved_candidate_id")
     candidates = variations.get("candidates")
+    if allow_missing and approved_id is None and isinstance(candidates, list):
+        return {}
     if not isinstance(approved_id, str) or not isinstance(candidates, list):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
@@ -221,6 +225,7 @@ def build_request(
     output_schema: dict[str, object],
     max_output_tokens: int,
     source_mode: str,
+    source_truth_classification: str,
     target_runtime_minutes: int,
     approved_selection: Mapping[str, str],
     revision_issues: Sequence[ValidationIssue],
@@ -257,6 +262,7 @@ def build_request(
             "attempt": str(attempt),
             "project_id": run["project_id"],
             "story_source_mode": source_mode,
+            "source_truth_classification": source_truth_classification,
             "target_runtime_minutes": str(target_runtime_minutes),
             "approved_selection": json.dumps(
                 dict(approved_selection),
@@ -329,6 +335,7 @@ async def generate_with_transport_retry(
     output_schema: dict[str, object],
     max_output_tokens: int,
     source_mode: str,
+    source_truth_classification: str,
     target_runtime_minutes: int,
     approved_selection: Mapping[str, str],
     revision_issues: Sequence[ValidationIssue],
@@ -355,6 +362,7 @@ async def generate_with_transport_retry(
                 output_schema,
                 max_output_tokens,
                 source_mode,
+                source_truth_classification,
                 target_runtime_minutes,
                 approved_selection,
                 revision_issues,
@@ -472,6 +480,7 @@ async def execute_llm_task(
     model_routes: Mapping[str, object],
     agent_manifest: Mapping[str, object],
     source_mode: str,
+    source_truth_classification: str,
     target_runtime_minutes: int,
     revision_issues: Sequence[ValidationIssue],
 ) -> tuple[dict[str, object], dict[str, object], RuntimeRun]:
@@ -556,8 +565,14 @@ async def execute_llm_task(
                 output_schema,
                 max_output_tokens,
                 source_mode,
+                source_truth_classification,
                 target_runtime_minutes,
-                approved_selection_document(project_path, dependency_graph, gate_outputs),
+                approved_selection_document(
+                    project_path,
+                    dependency_graph,
+                    gate_outputs,
+                    task_id == "variation.evaluate",
+                ),
                 revision_issues,
                 starting_attempt,
                 transport_attempts,
@@ -695,8 +710,14 @@ async def execute_existing_run(
     agent_manifest = load_json_object(repository_root / "AGENTS" / "manifest.json")
     dependency_graph = load_json_object(repository_root / "STANDARD" / "dependency_graph.json")
     production_config = load_json_object(project_path / "00_PROJECT" / "production_config.json")
+    runtime_validation_inputs_for_project(
+        repository_root,
+        production_config,
+        None,
+    )
     source_mode = production_config.get("story_source_mode")
-    if not isinstance(source_mode, str):
+    source_truth_classification = production_config.get("source_truth_classification")
+    if not isinstance(source_mode, str) or not isinstance(source_truth_classification, str):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
             False,
@@ -783,7 +804,11 @@ async def execute_existing_run(
             presentation_schemas,
             policy,
             thresholds,
-        ) = runtime_validation_inputs(repository_root)
+        ) = runtime_validation_inputs_for_project(
+            repository_root,
+            production_config,
+            None,
+        )
         for gate_id in gate_ids(from_gate, current_run["to_gate"]):
             gate_started_at = utc_now()
             latest_run = load_run(project_path, current_run["run_id"])
@@ -802,7 +827,25 @@ async def execute_existing_run(
                 for task_id in ordered_all
                 if ranged_tasks[task_id]["target_gate"] == gate_id
             ]
-            canonical_inputs = gate_canonical_inputs(gate_task_ids, ranged_tasks)
+            gate_condition_artifacts = combined_artifacts(
+                project_path,
+                dependency_graph,
+                {},
+            )
+            active_gate_task_ids = [
+                task_id
+                for task_id in gate_task_ids
+                if task_condition_matches(
+                    ranged_tasks[task_id]["condition"],
+                    production_config,
+                    channel,
+                    gate_condition_artifacts,
+                )
+            ]
+            canonical_inputs = gate_canonical_inputs(
+                active_gate_task_ids,
+                ranged_tasks,
+            )
             captured_hashes = capture_artifact_hashes(
                 project_path, canonical_inputs, dependency_graph
             )
@@ -814,7 +857,17 @@ async def execute_existing_run(
                 output_provenance: dict[str, dict[str, object]] = {}
                 for task_id in gate_task_ids:
                     task = ranged_tasks[task_id]
-                    if not task_condition_matches(task["condition"], source_mode):
+                    condition_artifacts = combined_artifacts(
+                        project_path,
+                        dependency_graph,
+                        gate_outputs,
+                    )
+                    if not task_condition_matches(
+                        task["condition"],
+                        production_config,
+                        channel,
+                        condition_artifacts,
+                    ):
                         current_run = update_task_state(
                             project_path,
                             current_run,
@@ -844,16 +897,16 @@ async def execute_existing_run(
                         else capture_artifact_hashes(project_path, task["reads"], dependency_graph)
                     )
                     human_approval_needed = task["approval_required"] or (
-                        task_id == "variation.generate"
+                        task_id == "variation.approve"
                         and production_config.get("approval_policy") == "HUMAN_REVIEW"
                     )
-                    approved = approval_is_current(
+                    runtime_approval = current_approval(
                         project_path,
                         current_run["run_id"],
                         task_id,
                         input_hashes,
                     )
-                    if human_approval_needed and not approved:
+                    if human_approval_needed and runtime_approval is None:
                         current_run = update_task_state(
                             project_path,
                             current_run,
@@ -882,16 +935,60 @@ async def execute_existing_run(
                         task_id,
                         {"semantic_attempt": semantic_attempt},
                     )
+                    current_run = update_task_state(
+                        project_path,
+                        current_run,
+                        task_id,
+                        "RUNNING",
+                        current_run["tasks"][task_id]["attempt"],
+                        None,
+                        None,
+                        input_hashes,
+                        None,
+                        None,
+                    )
                     if task["executor"] == "CORE":
-                        outputs = core_task_outputs(
-                            task_id,
-                            repository_root,
-                            project_path,
-                            gate_outputs,
-                            dependency_graph,
-                            reference_source,
-                            approved,
-                        )
+                        core_approval: RuntimeApproval | None = runtime_approval
+                        if task_id == "variation.record_approval":
+                            approval_state = current_run["tasks"].get("variation.approve")
+                            core_approval = (
+                                current_approval(
+                                    project_path,
+                                    current_run["run_id"],
+                                    "variation.approve",
+                                    approval_state["input_hashes"],
+                                )
+                                if approval_state is not None
+                                and approval_state["input_hashes"]
+                                else None
+                            )
+                        try:
+                            outputs = core_task_outputs(
+                                task_id,
+                                repository_root,
+                                project_path,
+                                gate_outputs,
+                                dependency_graph,
+                                reference_source,
+                                core_approval,
+                                current_run["run_id"],
+                                input_hashes,
+                            )
+                        except RuntimeExecutionError as error:
+                            if error.code == "HUMAN_INPUT_REQUIRED":
+                                current_run = update_task_state(
+                                    project_path,
+                                    current_run,
+                                    task_id,
+                                    "BLOCKED",
+                                    current_run["tasks"][task_id]["attempt"],
+                                    None,
+                                    None,
+                                    input_hashes,
+                                    None,
+                                    error.as_dict(),
+                                )
+                            raise
                         validate_core_outputs(
                             repository_root,
                             task_id,
@@ -933,6 +1030,7 @@ async def execute_existing_run(
                             model_routes,
                             agent_manifest,
                             source_mode,
+                            source_truth_classification,
                             target_runtime_minutes,
                             revision_issues,
                         )
@@ -964,7 +1062,10 @@ async def execute_existing_run(
                     gate_outputs,
                     dependency_graph,
                 )
-                staged_artifacts = load_project_artifacts(staging_path, dependency_graph)
+                staged_artifacts = load_existing_project_artifacts(
+                    staging_path,
+                    dependency_graph,
+                )
                 current_run = update_run_status(
                     project_path,
                     current_run,
@@ -1028,6 +1129,13 @@ async def execute_existing_run(
                     gate_outputs,
                     dependency_graph,
                     utc_now(),
+                    gate_required_artifacts_for_project(
+                        gate_id,
+                        dependency_graph,
+                        channel,
+                        production_config,
+                        staged_artifacts,
+                    ),
                 )
                 artifact_definitions = dependency_artifacts(dependency_graph)
                 changed_artifacts = {
@@ -1048,7 +1156,13 @@ async def execute_existing_run(
                     for task_id in gate_task_ids
                     if task_condition_matches(
                         ranged_tasks[task_id]["condition"],
-                        source_mode,
+                        production_config,
+                        channel,
+                        combined_artifacts(
+                            project_path,
+                            dependency_graph,
+                            gate_outputs,
+                        ),
                     )
                 }
                 traces = build_gate_traces(
@@ -1086,6 +1200,20 @@ async def execute_existing_run(
                     if conformant and gate_id == "GATE-13"
                     else "NONCONFORMANT"
                 )
+                change_log_path = project_path / "00_PROJECT" / "change_log.jsonl"
+                existing_change_log = (
+                    change_log_path.read_bytes() if change_log_path.is_file() else b""
+                )
+                committed_at = utc_now()
+                next_change_log = change_log_bytes(
+                    existing_change_log,
+                    "RUNTIME_GATE_COMMITTED",
+                    {
+                        "run_id": current_run["run_id"],
+                        "gate_id": gate_id,
+                    },
+                    committed_at,
+                )
                 transaction_id = commit_gate_transaction(
                     project_path,
                     current_run["run_id"],
@@ -1094,7 +1222,10 @@ async def execute_existing_run(
                     gate_outputs,
                     dependency_graph,
                     next_state,
-                    {PROCESS_TRACE_PATH: process_trace_bytes(project_path, traces)},
+                    {
+                        PROCESS_TRACE_PATH: process_trace_bytes(project_path, traces),
+                        "00_PROJECT/change_log.jsonl": next_change_log,
+                    },
                 )
                 sync_novelty_gate(
                     repository_root,
@@ -1122,19 +1253,9 @@ async def execute_existing_run(
                             **provenance,
                             "schema_hash": schema_hash,
                             "transaction_id": transaction_id,
-                            "committed_at": utc_now(),
+                            "committed_at": committed_at,
                         },
                     )
-                append_change_log(
-                    project_path,
-                    "RUNTIME_GATE_COMMITTED",
-                    {
-                        "run_id": current_run["run_id"],
-                        "gate_id": gate_id,
-                        "transaction_id": transaction_id,
-                    },
-                    utc_now(),
-                )
                 append_event(
                     project_path,
                     current_run["run_id"],
@@ -1187,7 +1308,7 @@ async def execute_existing_run(
             mark_project_blocked(project_path)
         status: RunStatus = (
             "WAITING_HUMAN"
-            if error.code == "HUMAN_APPROVAL_REQUIRED"
+            if error.code in {"HUMAN_APPROVAL_REQUIRED", "HUMAN_INPUT_REQUIRED"}
             else "CANCELLED"
             if error.code == "RUN_CANCELLED"
             else "FAILED"
@@ -1200,7 +1321,9 @@ async def execute_existing_run(
             error.as_dict(),
         )
         event_type = (
-            "HUMAN_REVIEW_REQUIRED"
+            "HUMAN_INPUT_REQUIRED"
+            if error.code == "HUMAN_INPUT_REQUIRED"
+            else "HUMAN_REVIEW_REQUIRED"
             if status == "WAITING_HUMAN"
             else "RUN_CANCELLED"
             if status == "CANCELLED"

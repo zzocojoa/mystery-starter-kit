@@ -7,7 +7,7 @@ Production Standard, Compatibility Contract, Channel DNA, Project State를 결�
 ## 입력과 출력
 
 - 입력: Compatibility Report, Dependency Graph, Agent Manifest, 각 QA Report
-- 출력: Production Config, Project State, 통합 Validation Report, Drama/Narration/Panel Reaction Production Package
+- 출력: Production Config, CORE Candidate Eligibility, Runtime-owned Candidate Approval, Project State, 통합 Validation Report, Production Manifest, Drama/Narration/Panel Reaction/조건부 Expert Production Package
 
 ## 실행 규칙
 
@@ -18,6 +18,14 @@ Production Standard, Compatibility Contract, Channel DNA, Project State를 결�
 5. `task-open → Workspace 작성 → task-submit`을 Gate마다 반복하고 Process Trace가 생성됐는지 확인한다.
 6. 일반 프로젝트는 `AUTO_CONTINUE`로 다음 Gate Task를 열고 Human Override가 필요한 예외만 정지한다.
 7. GATE-13 뒤에는 Editorial Review와 Human Approval을 분리하고 네 준비 조건을 모두 충족한 뒤에만 Production Ready를 확정한다.
+8. Candidate Hard Filter와 Approval은 LLM 출력에서 읽지 않고 CORE 계산과 Runtime 승인 기록으로만 확정한다.
+9. 최종 Footprint 검증이 활성화되면 Shooting Script의 모든 Scene을 정규 Production Scene Marker로 선언하고 CORE가 Scene Card 기반 Manifest와 대조하게 한다.
+
+정규 Marker는 Scene Card 순서대로 정확히 한 번씩 다음 형식을 사용한다. `LOCATION`은 UTF-8 percent-encoding을 적용하고 `CAST`는 Character ID를 오름차순 쉼표 목록으로 기록하며 빈 Cast는 `NONE`으로 쓴다.
+
+```text
+<!-- PRODUCTION_SCENE:SCN-01 LOCATION:%EB%8F%99%EB%84%A4%20%EC%83%81%EB%8B%B4%EC%8B%A4 CAST:CHAR-01,CHAR-02 CHILD:NONE VEHICLE:NONE SFX:LOW VIOLENCE:IMPLIED COMPLEXITY:MEDIUM -->
+```
 
 ## 금지
 

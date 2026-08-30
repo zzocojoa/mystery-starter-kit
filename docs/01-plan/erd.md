@@ -5,10 +5,13 @@ flowchart TD
     S[Production Standard] --> C[Compatibility Contract]
     C --> R[Compatibility Report]
     D[Standard Defaults] --> R
-    CD[Channel DNA] --> R
+    PC[Production Config Channel Pin] --> CM[Channel Manifest]
+    CM --> CD[Pinned Channel DNA]
+    CD --> R
     R -->|PASS| V[Variation Candidates]
     L[Story Library] --> V
-    V -->|Approve| T[Story DNA]
+    V --> CE[Candidate Evaluation]
+    CE -->|Approve| T[Story DNA]
     T --> F[Story Fingerprint]
     T --> K[Case / Character / Knowledge]
     K --> M[Actual / Viewer / Belief Timeline]
@@ -37,7 +40,7 @@ flowchart LR
     C --> G[Resume next Gate]
 ```
 
-Compatibility Contract는 Required Capability 이름을 소유하고 Channel Schema는 그 내부 형상을 소유한다. Dependency Graph는 Artifact 경로와 Owner Agent를 연결하며 Project State는 현재 Hash와 Gate를 기록한다.
+Compatibility Contract는 Required Capability 이름을 소유하고 Channel Schema는 그 내부 형상을 소유한다. Channel Manifest는 Content Version별 DNA 경로와 SHA-256을 연결한다. Dependency Graph는 Artifact 경로와 Owner Agent를 연결하며 Project State는 현재 Hash와 Gate를 기록한다.
 
 ```mermaid
 flowchart LR

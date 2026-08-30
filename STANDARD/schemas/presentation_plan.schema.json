@@ -34,7 +34,8 @@
           "DRAMA",
           "NARRATION",
           "PANEL_REACTION",
-          "AUDIENCE_PROMPT"
+          "AUDIENCE_PROMPT",
+          "EXPERT_ANALYSIS"
         ]
       },
       "allOf": [
@@ -83,7 +84,8 @@
             "DRAMA",
             "NARRATION",
             "PANEL_REACTION",
-            "AUDIENCE_PROMPT"
+            "AUDIENCE_PROMPT",
+            "EXPERT_ANALYSIS"
           ]
         },
         "scene_id": {
@@ -106,7 +108,8 @@
           "enum": [
             "drama_script",
             "narration_script",
-            "panel_reaction_script"
+            "panel_reaction_script",
+            "expert_analysis_script"
           ]
         },
         "revealed_fact_ids": {
@@ -140,6 +143,14 @@
           "then": {
             "required": ["reaction_segment_id"],
             "properties": {"source_artifact": {"const": "panel_reaction_script"}}
+          }
+        },
+        {
+          "if": {
+            "properties": {"segment_type": {"const": "EXPERT_ANALYSIS"}}
+          },
+          "then": {
+            "properties": {"source_artifact": {"const": "expert_analysis_script"}}
           }
         }
       ]

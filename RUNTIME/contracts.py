@@ -238,7 +238,8 @@ def validate_task_subset_contracts(
             )
         agent_reads = set(string_list(agent, "reads", agent_id))
         agent_writes = set(string_list(agent, "writes", agent_id))
-        widened_reads = sorted(set(task["reads"]) - agent_reads)
+        all_reads = {*task["reads"], *task.get("optional_reads", [])}
+        widened_reads = sorted(all_reads - agent_reads)
         widened_writes = sorted(set(task["writes"]) - agent_writes)
         if widened_reads or widened_writes:
             raise configuration_error(

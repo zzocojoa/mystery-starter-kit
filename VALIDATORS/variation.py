@@ -1,72 +1,135 @@
-"""재현 가능한 다축 Story Variation 후보 생성."""
+"""Versioned Variation Engine Dispatcher와 안정적인 Public API."""
 
-import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from copy import deepcopy
-from hashlib import sha256
-from math import gcd
+from importlib import import_module
+from pathlib import Path
 
+from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.exceptions import ConfigurationError
+from VALIDATORS.variation_engines.common import (
+    apply_compiled_required_values,
+    apply_runtime_metadata,
+    apply_user_case_constraints,
+    candidate_policy_profile,
+    candidate_signature,
+    choose_dimension_value,
+    legacy_candidate_signature,
+    require_dimensions,
+    require_user_case_constraints,
+    runtime_candidate_metadata,
+    selection_similarity,
+    validate_generator_inputs,
+    variation_document_metadata,
+)
+from VALIDATORS.variation_registry import (
+    VariationRuntime,
+    resolve_variation_runtime_for_channel,
+)
 
-PROJECT_ID_PATTERN = re.compile(r"^PRJ-[0-9]{3,}$")
-USER_CASE_STATUSES = {"LOCKED", "FLEXIBLE", "UNKNOWN"}
-
-
-def require_dimensions(catalog: Mapping[str, object]) -> dict[str, list[str]]:
-    """Variation Catalog의 문자열 선택지 사전을 엄격하게 읽는다."""
-    value = catalog.get("dimensions")
-    if not isinstance(value, Mapping):
-        raise ConfigurationError("variation_catalog.dimensions 객체가 필요합니다.")
-    dimensions: dict[str, list[str]] = {}
-    for name, choices in value.items():
-        if (
-            not isinstance(name, str)
-            or not isinstance(choices, list)
-            or not choices
-            or not all(isinstance(choice, str) for choice in choices)
-        ):
-            raise ConfigurationError(
-                f"Variation Dimension 형식이 올바르지 않습니다: dimension={name!r}"
-            )
-        dimensions[name] = list(choices)
-    if not dimensions:
-        raise ConfigurationError("Variation Dimension이 하나 이상 필요합니다.")
-    return dimensions
-
-
-def seed_offset(seed: str, dimension: str, size: int) -> int:
-    """Seed와 Dimension 이름으로 안정적인 선택 시작점을 계산한다."""
-    digest = sha256(f"{seed}:{dimension}".encode()).hexdigest()
-    return int(digest[:16], 16) % size
-
-
-def coprime_step(preferred_step: int, size: int) -> int:
-    """선택지 전체를 순회할 수 있는 가장 가까운 보폭을 반환한다."""
-    if size < 1:
-        raise ConfigurationError(f"Variation 선택지 개수가 올바르지 않습니다: size={size}")
-    step = preferred_step
-    while gcd(step, size) != 1:
-        step += 1
-    return step
-
-
-def choose_dimension_value(
-    choices: list[str],
-    seed: str,
-    dimension: str,
-    candidate_index: int,
-    dimension_index: int,
-) -> str:
-    """후보와 차원마다 다른 보폭으로 선택지를 결정한다."""
-    offset = seed_offset(seed, dimension, len(choices))
-    step = coprime_step(dimension_index * 2 + 1, len(choices))
-    return choices[(offset + candidate_index * step) % len(choices)]
+__all__ = [
+    "apply_compiled_required_values",
+    "apply_runtime_metadata",
+    "apply_user_case_constraints",
+    "approve_variation_candidate",
+    "candidate_policy_profile",
+    "candidate_signature",
+    "choose_dimension_value",
+    "generate_eligible_candidate_pool",
+    "generate_legacy_variation_batch",
+    "generate_variation_candidates",
+    "generate_variation_candidates_with_policy",
+    "legacy_candidate_signature",
+    "require_dimensions",
+    "require_user_case_constraints",
+    "runtime_candidate_metadata",
+    "selection_similarity",
+    "validate_generator_inputs",
+    "variation_document_metadata",
+]
 
 
-def candidate_signature(selection: Mapping[str, str]) -> str:
-    """후보의 모든 Dimension 값을 결합한 구조 서명을 만든다."""
-    payload = "|".join(f"{key}={selection[key]}" for key in sorted(selection))
-    return sha256(payload.encode()).hexdigest()
+def generate_eligible_candidate_pool(
+    project_id: str,
+    story_seed: str,
+    eligible_candidate_count: int,
+    runtime: VariationRuntime,
+    source_truth_classification: str,
+    production_config: Mapping[str, object],
+    project_constraints: Mapping[str, object],
+    channel: Mapping[str, object],
+    story_history: Sequence[Mapping[str, object]],
+    novelty_thresholds: Mapping[str, object],
+    projection_contract: Mapping[str, object],
+    source_truth_contract: Mapping[str, object] | None,
+    max_batches: int,
+) -> dict[str, object]:
+    """Hash 검증 뒤 로드된 Version Entrypoint로 Candidate Pool 생성을 위임한다."""
+    return runtime["entrypoint"](
+        project_id,
+        story_seed,
+        eligible_candidate_count,
+        runtime,
+        source_truth_classification,
+        production_config,
+        project_constraints,
+        channel,
+        story_history,
+        novelty_thresholds,
+        projection_contract,
+        source_truth_contract,
+        max_batches,
+    )
+
+
+def generate_legacy_variation_batch(
+    project_id: str,
+    story_seed: str,
+    candidate_count: int,
+    runtime: VariationRuntime,
+    batch_nonce: int,
+) -> dict[str, object]:
+    """검증된 v1 Entrypoint Module의 Legacy Batch API를 호출한다."""
+    if runtime["engine_version"] != "1.0.0":
+        raise ConfigurationError(
+            "VARIATION_ENTRYPOINT_INVALID: Legacy Batch에는 Engine 1.0.0이 필요합니다."
+        )
+    module_name = runtime["entrypoint_name"].partition(":")[0]
+    module = import_module(module_name)
+    generator = getattr(module, "generate_legacy_variation_batch", None)
+    if not callable(generator):
+        raise ConfigurationError(
+            "VARIATION_ENTRYPOINT_INVALID: "
+            f"module={module_name}, function=generate_legacy_variation_batch"
+        )
+    result = generator(project_id, story_seed, candidate_count, runtime, batch_nonce)
+    if not isinstance(result, dict):
+        raise ConfigurationError("VARIATION_ENTRYPOINT_INVALID: Legacy 결과가 객체가 아닙니다.")
+    return result
+
+
+def verified_v2_runtime(catalog: Mapping[str, object]) -> VariationRuntime:
+    """직접 Public API도 Registry Hash를 통과한 v2 Runtime만 사용한다."""
+    repository_root = Path(__file__).resolve().parents[1]
+    production_config = {
+        "channel_content_version": "2.0.0",
+        "variation_engine_version": "2.0.0",
+        "variation_catalog_version": "2.0.0",
+    }
+    channel = {
+        "content_version": "2.0.0",
+        "capabilities": {"CRIME_PSYCHOLOGY_POLICY": {"enabled": True}},
+    }
+    runtime = resolve_variation_runtime_for_channel(
+        repository_root,
+        production_config,
+        channel,
+    )
+    if document_sha256(catalog) != document_sha256(runtime["catalog"]):
+        raise ConfigurationError(
+            "CATALOG_SNAPSHOT_HASH_MISMATCH: Public API Catalog가 등록 Snapshot과 다릅니다."
+        )
+    return runtime
 
 
 def generate_variation_candidates(
@@ -74,155 +137,48 @@ def generate_variation_candidates(
     story_seed: str,
     candidate_count: int,
     catalog: Mapping[str, object],
+    source_truth_classification: str,
 ) -> dict[str, object]:
-    """Story 문장을 쓰지 않고 구조적으로 구분되는 후보군을 생성한다."""
-    if PROJECT_ID_PATTERN.fullmatch(project_id) is None:
-        raise ConfigurationError(f"Project ID 형식이 올바르지 않습니다: {project_id!r}")
-    if not story_seed.strip():
-        raise ConfigurationError("Story Variation Seed는 비어 있을 수 없습니다.")
-    if candidate_count < 3:
-        raise ConfigurationError(
-            f"비교 가능한 Variation 후보는 3개 이상이어야 합니다: count={candidate_count}"
-        )
-
-    dimensions = require_dimensions(catalog)
-    dimension_items = sorted(dimensions.items())
-    candidates: list[dict[str, object]] = []
-    signatures: set[str] = set()
-    for candidate_index in range(candidate_count):
-        selection = {
-            name: choose_dimension_value(
-                choices,
-                story_seed,
-                name,
-                candidate_index,
-                dimension_index,
-            )
-            for dimension_index, (name, choices) in enumerate(dimension_items)
-        }
-        signature = candidate_signature(selection)
-        if signature in signatures:
-            raise ConfigurationError(
-                "Variation Catalog의 조합 수가 부족해 후보가 충돌했습니다: "
-                f"candidate_index={candidate_index}"
-            )
-        signatures.add(signature)
-        candidates.append(
-            {
-                "candidate_id": f"VAR-{candidate_index + 1:02d}",
-                "selection": selection,
-                "signature": signature,
-                "selection_status": "PENDING",
-            }
-        )
-
-    return {
-        "project_id": project_id,
-        "story_seed_hash": sha256(story_seed.encode()).hexdigest(),
-        "candidate_count": candidate_count,
-        "candidates": candidates,
-        "approved_candidate_id": None,
-        "override": None,
-    }
+    """Channel Context가 없는 호출에서는 v2 정책 필터 없이 후보군을 생성한다."""
+    return generate_variation_candidates_with_policy(
+        project_id,
+        story_seed,
+        candidate_count,
+        catalog,
+        source_truth_classification,
+        False,
+    )
 
 
-def require_user_case_constraints(
-    production_config: Mapping[str, object],
-) -> list[Mapping[str, object]]:
-    """USER_CASE의 Field, Value, Status 계약을 엄격하게 읽는다."""
-    source_mode = production_config.get("story_source_mode")
-    constraints = production_config.get("user_case_constraints")
-    if source_mode != "USER_CASE":
-        if constraints is not None:
-            raise ConfigurationError(
-                "USER_CASE가 아닌 Production Config에는 user_case_constraints를 둘 수 없습니다."
-            )
-        return []
-    if not isinstance(constraints, list) or not constraints or not all(
-        isinstance(constraint, Mapping) for constraint in constraints
-    ):
-        raise ConfigurationError(
-            "USER_CASE에는 하나 이상의 user_case_constraints 객체가 필요합니다."
-        )
-
-    fields: list[str] = []
-    for constraint in constraints:
-        field = constraint.get("field")
-        status = constraint.get("status")
-        value = constraint.get("value")
-        if not isinstance(field, str) or not field:
-            raise ConfigurationError("USER_CASE Constraint field 문자열이 필요합니다.")
-        if status not in USER_CASE_STATUSES:
-            raise ConfigurationError(
-                f"USER_CASE Constraint status가 올바르지 않습니다: field={field}, status={status!r}"
-            )
-        if status == "UNKNOWN" and value is not None:
-            raise ConfigurationError(
-                f"UNKNOWN Constraint value는 null이어야 합니다: field={field}"
-            )
-        if status != "UNKNOWN" and (not isinstance(value, str) or not value):
-            raise ConfigurationError(
-                f"LOCKED/FLEXIBLE Constraint value 문자열이 필요합니다: field={field}"
-            )
-        fields.append(field)
-    duplicate_fields = sorted({field for field in fields if fields.count(field) > 1})
-    if duplicate_fields:
-        raise ConfigurationError(
-            f"USER_CASE Constraint field가 중복됩니다: fields={duplicate_fields}"
-        )
-    return list(constraints)
-
-
-def apply_user_case_constraints(
-    candidates_document: Mapping[str, object],
-    production_config: Mapping[str, object],
+def generate_variation_candidates_with_policy(
+    project_id: str,
+    story_seed: str,
+    candidate_count: int,
+    catalog: Mapping[str, object],
+    source_truth_classification: str,
+    apply_v2_policy: bool,
 ) -> dict[str, object]:
-    """USER_CASE의 LOCKED 값을 모든 후보에 적용하고 Signature를 다시 계산한다."""
-    constraints = require_user_case_constraints(production_config)
-    if not constraints:
-        return deepcopy(dict(candidates_document))
-    next_document = deepcopy(dict(candidates_document))
-    candidates = next_document.get("candidates")
-    if not isinstance(candidates, list) or not all(
-        isinstance(candidate, dict) for candidate in candidates
-    ):
-        raise ConfigurationError("Variation Candidate 객체 배열이 필요합니다.")
-
-    signatures: set[str] = set()
-    for candidate in candidates:
-        selection = candidate.get("selection")
-        if not isinstance(selection, dict) or not all(
-            isinstance(field, str) and isinstance(value, str)
-            for field, value in selection.items()
-        ):
-            raise ConfigurationError("Variation Candidate selection 문자열 객체가 필요합니다.")
-        missing_fields = sorted(
-            field
-            for constraint in constraints
-            if isinstance((field := constraint.get("field")), str)
-            and field not in selection
+    """검증된 v2 Module의 직접 Candidate API를 호출한다."""
+    runtime = verified_v2_runtime(catalog)
+    module_name = runtime["entrypoint_name"].partition(":")[0]
+    module = import_module(module_name)
+    generator = getattr(module, "generate_candidates_with_policy", None)
+    if not callable(generator):
+        raise ConfigurationError(
+            "VARIATION_ENTRYPOINT_INVALID: "
+            f"module={module_name}, function=generate_candidates_with_policy"
         )
-        if missing_fields:
-            raise ConfigurationError(
-                "USER_CASE Constraint가 Variation Catalog Dimension에 없습니다: "
-                f"fields={missing_fields}"
-            )
-        for constraint in constraints:
-            field = constraint.get("field")
-            value = constraint.get("value")
-            if constraint.get("status") == "LOCKED":
-                if not isinstance(field, str) or not isinstance(value, str):
-                    raise ConfigurationError("검증된 LOCKED Constraint 형식이 손상됐습니다.")
-                selection[field] = value
-        signature = candidate_signature(selection)
-        if signature in signatures:
-            raise ConfigurationError(
-                "USER_CASE LOCKED 값 적용 후 Variation 후보가 충돌했습니다: "
-                f"candidate_id={candidate.get('candidate_id')!r}"
-            )
-        signatures.add(signature)
-        candidate["signature"] = signature
-    return next_document
+    result = generator(
+        project_id,
+        story_seed,
+        candidate_count,
+        runtime,
+        source_truth_classification,
+        apply_v2_policy,
+    )
+    if not isinstance(result, dict):
+        raise ConfigurationError("VARIATION_ENTRYPOINT_INVALID: v2 결과가 객체가 아닙니다.")
+    return result
 
 
 def approve_variation_candidate(
@@ -237,10 +193,7 @@ def approve_variation_candidate(
         raise ConfigurationError("variation_candidates.candidates 객체 배열이 필요합니다.")
     candidate_ids = {candidate.get("candidate_id") for candidate in candidates}
     if candidate_id not in candidate_ids:
-        raise ConfigurationError(
-            f"승인할 Variation 후보가 없습니다: candidate_id={candidate_id}"
-        )
-
+        raise ConfigurationError(f"승인할 Variation 후보가 없습니다: candidate_id={candidate_id}")
     next_document = deepcopy(dict(candidates_document))
     next_candidates = next_document.get("candidates")
     if not isinstance(next_candidates, list):

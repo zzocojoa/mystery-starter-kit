@@ -6,11 +6,17 @@ from hashlib import sha256
 from pathlib import Path
 from typing import cast
 
-from RUNTIME.errors import RuntimeExecutionError
+from RUNTIME.errors import RuntimeErrorCode, RuntimeExecutionError
 from RUNTIME.models import ContextItem, DataClass, RuntimeTask
+from VALIDATORS.channel_registry import resolve_project_channel
 from VALIDATORS.dependency import dependency_artifacts
 from VALIDATORS.io import load_json_object
 from VALIDATORS.models import ProjectState
+from VALIDATORS.source_truth import source_truth_requires_evidence
+from VALIDATORS.source_truth_contract import (
+    SOURCE_TRUTH_BOUND_ARTIFACTS,
+    validate_source_truth_contract_integrity,
+)
 
 ArtifactContent = Mapping[str, object] | str
 
@@ -31,7 +37,16 @@ def artifact_data_class(artifact_name: str) -> DataClass:
     """Artifact 이름에 따라 Provider Egress 분류를 반환한다."""
     if artifact_name == "reference_profile":
         return "REFERENCE_SANITIZED"
-    if artifact_name in {"sources", "claim_evidence"}:
+    if artifact_name in {
+        "sources",
+        "claim_evidence",
+        "source_case_brief",
+        "verified_fact_ledger",
+        "source_subjects",
+        "verified_event_ledger",
+        "source_truth_contract",
+        "clinical_labels",
+    }:
         return "SENSITIVE"
     return "INTERNAL"
 
@@ -60,6 +75,76 @@ def load_project_state(project_path: Path) -> ProjectState:
     return cast(ProjectState, document)
 
 
+def context_json_artifact(
+    project_path: Path,
+    definitions: Mapping[str, Mapping[str, object]],
+    overlay: Mapping[str, ArtifactContent],
+    artifact_name: str,
+) -> Mapping[str, object] | None:
+    """Context 검증에 필요한 JSON Artifact를 Overlay 우선으로 읽는다."""
+    staged = overlay.get(artifact_name)
+    if isinstance(staged, Mapping):
+        return staged
+    definition = definitions.get(artifact_name)
+    relative_path = definition.get("path") if isinstance(definition, Mapping) else None
+    if not isinstance(relative_path, str):
+        return None
+    path = project_path / relative_path
+    return load_json_object(path) if path.is_file() else None
+
+
+def validate_source_truth_before_llm_context(
+    project_path: Path,
+    task_id: str,
+    task: RuntimeTask,
+    definitions: Mapping[str, Mapping[str, object]],
+    overlay: Mapping[str, ArtifactContent],
+) -> None:
+    """사실 기반 Evidence Bundle을 LLM Context 구성 전에 검증한다."""
+    if task["executor"] != "LLM":
+        return
+    production_config = context_json_artifact(
+        project_path,
+        definitions,
+        overlay,
+        "production_config",
+    )
+    if production_config is None or not source_truth_requires_evidence(
+        production_config.get("source_truth_classification")
+    ):
+        return
+    bundle_names = (*SOURCE_TRUTH_BOUND_ARTIFACTS, "source_truth_contract")
+    documents = {
+        artifact_name: context_json_artifact(
+            project_path,
+            definitions,
+            overlay,
+            artifact_name,
+        )
+        for artifact_name in bundle_names
+    }
+    issues = validate_source_truth_contract_integrity(
+        documents["source_truth_contract"],
+        documents["sources"],
+        documents["claim_evidence"],
+        documents["verified_fact_ledger"],
+        documents["source_subjects"],
+        documents["verified_event_ledger"],
+    )
+    if not issues:
+        return
+    first_issue = issues[0]
+    raise RuntimeExecutionError(
+        cast(RuntimeErrorCode, first_issue["code"]),
+        False,
+        "TASK",
+        "Source Truth Evidence Bundle이 LLM Context 생성 전에 검증되지 않았습니다.",
+        task_id,
+        "source_truth_contract",
+        {"issues": issues},
+    )
+
+
 def build_minimal_context(
     repository_root: Path,
     project_path: Path,
@@ -71,8 +156,30 @@ def build_minimal_context(
     """Task Reads와 명시 Resource만 포함한 비명령성 Context를 만든다."""
     state = load_project_state(project_path)
     definitions = dependency_artifacts(dependency_graph)
+    validate_source_truth_before_llm_context(
+        project_path,
+        task_id,
+        task,
+        definitions,
+        overlay,
+    )
     items: list[ContextItem] = []
-    for index, artifact_name in enumerate(task["reads"], start=1):
+    required_reads = task["reads"]
+    optional_reads = task.get("optional_reads", [])
+    selected_optional_reads = [
+        artifact_name
+        for artifact_name in optional_reads
+        if artifact_name in overlay
+        or (
+            artifact_name in definitions
+            and isinstance(definitions[artifact_name].get("path"), str)
+            and (project_path / cast(str, definitions[artifact_name]["path"])).is_file()
+        )
+    ]
+    for index, artifact_name in enumerate(
+        [*required_reads, *selected_optional_reads],
+        start=1,
+    ):
         definition = definitions.get(artifact_name)
         if definition is None or not isinstance(definition.get("path"), str):
             raise RuntimeExecutionError(
@@ -149,6 +256,45 @@ def build_minimal_context(
                 trust_level="PUBLIC",
                 instructional=False,
                 content=dict(content) if isinstance(content, Mapping) else content,
+            )
+        )
+    if any(
+        Path(resource).name == "channel_manifest.json"
+        for resource in task["standard_resources"]
+    ):
+        production_content = overlay.get("production_config")
+        if production_content is None:
+            production_content = read_artifact_content(
+                project_path / "00_PROJECT" / "production_config.json"
+            )
+        if not isinstance(production_content, Mapping):
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Pinned Channel Context에는 Production Config 객체가 필요합니다.",
+                task_id,
+                "production_config",
+                {},
+            )
+        channel, _manifest, channel_path = resolve_project_channel(
+            repository_root,
+            production_content,
+            None,
+        )
+        items.append(
+            ContextItem(
+                context_id=f"CTX-{len(items) + 1:03d}",
+                artifact_name=(
+                    "resource:pinned_channel_dna:"
+                    f"{production_content.get('channel_content_version')}"
+                ),
+                media_type="application/json",
+                sha256=content_hash(channel),
+                status=f"CONTRACT:{channel_path.relative_to(repository_root)}",
+                trust_level="PUBLIC",
+                instructional=False,
+                content=channel,
             )
         )
     leaked = [item["artifact_name"] for item in items if "EXAMPLES" in item["artifact_name"]]

@@ -9,6 +9,7 @@
     "contract_version",
     "channel_dna_interface",
     "compatibility_policy",
+    "project_binding_policy",
     "fallback_policy",
     "immutability_policy",
     "validation"
@@ -103,6 +104,26 @@
         }
       }
     },
+    "project_binding_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_version_not_found",
+        "content_version_mismatch",
+        "channel_dna_hash_mismatch"
+      ],
+      "properties": {
+        "content_version_not_found": {
+          "const": "FAIL"
+        },
+        "content_version_mismatch": {
+          "const": "FAIL"
+        },
+        "channel_dna_hash_mismatch": {
+          "const": "FAIL"
+        }
+      }
+    },
     "fallback_policy": {
       "type": "object",
       "additionalProperties": false,
@@ -168,7 +189,7 @@
   "$defs": {
     "semanticVersion": {
       "type": "string",
-      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
     },
     "capabilityName": {
       "type": "string",

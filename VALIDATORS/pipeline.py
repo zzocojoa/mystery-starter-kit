@@ -5,16 +5,36 @@ from copy import deepcopy
 from pathlib import Path
 from typing import cast
 
+from VALIDATORS.candidate_approval import validate_candidate_approval
+from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
+from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_projection import (
+    validate_approved_candidate_projection,
+    validate_final_story_constraints,
+    validate_projection_contract_coverage,
+)
 from VALIDATORS.causal_validation import validate_causal_graph
+from VALIDATORS.channel_policy_v2 import (
+    build_channel_policy_inputs,
+    validate_channel_policy_v2,
+)
 from VALIDATORS.channel_validation import validate_channel_consistency
+from VALIDATORS.compatibility import channel_dna_sha256, parse_semantic_version
 from VALIDATORS.continuity import validate_continuity
-from VALIDATORS.dependency import dependency_artifacts
+from VALIDATORS.dependency import (
+    artifact_required_for_project,
+    dependency_artifacts,
+)
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
     runtime_evidence_issues,
     validate_editorial_review,
 )
-from VALIDATORS.exceptions import ConfigurationError, InputFileReadError
+from VALIDATORS.exceptions import (
+    ConfigurationError,
+    InputFileReadError,
+    InvalidSemanticVersionError,
+)
 from VALIDATORS.fact_validation import validate_fact_integrity
 from VALIDATORS.io import load_json_object
 from VALIDATORS.models import GateStatus, ProductionValidationReport, ValidationIssue
@@ -28,16 +48,33 @@ from VALIDATORS.presentation_validation import (
     validate_production_presentation,
     validate_script_integrity_v2,
 )
+from VALIDATORS.production_footprint import (
+    validate_final_production_footprint,
+    validate_production_footprint,
+)
+from VALIDATORS.project_constraints import project_constraint_compiler_issues
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
     validate_reference_collision,
 )
 from VALIDATORS.schema_validation import collect_schema_errors
+from VALIDATORS.source_truth import (
+    source_truth_configuration_issues,
+    source_truth_requires_evidence,
+)
+from VALIDATORS.source_truth_contract import (
+    validate_source_subject_mapping,
+    validate_source_truth_contract_integrity,
+    validate_truth_characters,
+    validate_truth_dimensions,
+    validate_truth_events,
+)
 from VALIDATORS.story_validation import (
     validate_reference_profile_alignment,
     validate_story_dna_semantics,
     validate_user_case_constraints,
 )
+from VALIDATORS.variation_registry import variation_runtime_binding_issues
 
 ArtifactContent = Mapping[str, object] | str
 
@@ -71,12 +108,30 @@ def read_text(path: Path) -> str:
 def load_project_artifacts(
     project_path: Path,
     dependency_graph: Mapping[str, object],
+    channel: Mapping[str, object],
 ) -> dict[str, ArtifactContent]:
-    """Dependency Graph에 선언된 모든 Project Artifact를 디스크에서 읽는다."""
+    """Project Pin에서 필수인 모든 Artifact와 기존 선택 Artifact를 읽는다."""
+    production_config = load_json_object(project_path / "00_PROJECT" / "production_config.json")
+    definitions = dependency_artifacts(dependency_graph)
+    existing_artifacts = load_existing_project_artifacts(project_path, dependency_graph)
+    artifact_names = [
+        artifact_name
+        for artifact_name, definition in definitions.items()
+        if artifact_required_for_project(
+            definition,
+            channel,
+            production_config,
+            existing_artifacts,
+        )
+        or (
+            isinstance(definition.get("path"), str)
+            and (project_path / cast(str, definition["path"])).is_file()
+        )
+    ]
     return load_selected_project_artifacts(
         project_path,
         dependency_graph,
-        list(dependency_artifacts(dependency_graph)),
+        artifact_names,
     )
 
 
@@ -96,9 +151,7 @@ def load_selected_project_artifacts(
             )
         relative_path = definition.get("path")
         if not isinstance(relative_path, str):
-            raise ConfigurationError(
-                f"Artifact path 문자열이 필요합니다: artifact={artifact_name}"
-            )
+            raise ConfigurationError(f"Artifact path 문자열이 필요합니다: artifact={artifact_name}")
         artifact_path = project_path / relative_path
         if artifact_path.suffix == ".json":
             artifacts[artifact_name] = load_json_object(artifact_path)
@@ -148,6 +201,32 @@ def artifact_text(
     return value
 
 
+def optional_artifact_text(
+    artifacts: Mapping[str, ArtifactContent],
+    artifact_name: str,
+) -> str:
+    """이전 1.1 Project에서 없을 수 있는 v2 Text Artifact를 읽는다."""
+    value = artifacts.get(artifact_name)
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        raise ConfigurationError(f"Text Artifact가 필요합니다: artifact={artifact_name}")
+    return value
+
+
+def optional_artifact_document(
+    artifacts: Mapping[str, ArtifactContent],
+    artifact_name: str,
+) -> Mapping[str, object]:
+    """현재 Project에서 선택 JSON Artifact가 없으면 빈 객체를 반환한다."""
+    value = artifacts.get(artifact_name)
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        raise ConfigurationError(f"JSON Artifact 객체가 필요합니다: artifact={artifact_name}")
+    return value
+
+
 def schema_issues(
     document: Mapping[str, object],
     schema: Mapping[str, object],
@@ -162,6 +241,48 @@ def schema_issues(
             error["context"],
         )
         for error in collect_schema_errors(document, schema, artifact)
+    ]
+
+
+def optional_schema_issues(
+    artifacts: Mapping[str, ArtifactContent],
+    artifact_name: str,
+    schema: Mapping[str, object],
+    artifact_path: str,
+) -> list[ValidationIssue]:
+    """선택 v2 Artifact가 존재할 때만 Schema를 검증한다."""
+    if artifact_name not in artifacts:
+        return []
+    return schema_issues(
+        artifact_document(artifacts, artifact_name),
+        schema,
+        artifact_path,
+    )
+
+
+def required_channel_artifact_issues(
+    artifacts: Mapping[str, ArtifactContent],
+    production_config: Mapping[str, object],
+    channel: Mapping[str, object],
+    artifact_names: Sequence[str],
+) -> list[ValidationIssue]:
+    """공통 Artifact Requirement Predicate로 누락을 보고한다."""
+    graph = load_json_object(
+        Path(__file__).resolve().parents[1] / "STANDARD" / "dependency_graph.json"
+    )
+    definitions = dependency_artifacts(graph)
+    return [
+        make_pipeline_issue(
+            "REQUIRED_CHANNEL_ARTIFACT_MISSING",
+            "Channel Content Version이 요구하는 First-class Artifact가 없습니다.",
+            artifact_name,
+            {"artifact_name": artifact_name},
+        )
+        for artifact_name in artifact_names
+        if artifact_name not in artifacts
+        and artifact_required_for_project(
+            definitions[artifact_name], channel, production_config, artifacts
+        )
     ]
 
 
@@ -223,6 +344,55 @@ def validate_compatibility_gate(
     ]
 
 
+def validate_compatibility_binding_current(
+    compatibility_report: Mapping[str, object],
+    production_config: Mapping[str, object],
+    channel: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """저장된 Compatibility Report가 현재 Project 핀과 DNA를 가리키는지 검사한다."""
+    summary = compatibility_report.get("channel")
+    summary_mapping = summary if isinstance(summary, Mapping) else {}
+    expected_version = production_config.get("channel_content_version")
+    report_version = summary_mapping.get("content_version")
+    actual_version = channel.get("content_version")
+    versions_match = False
+    if all(isinstance(value, str) for value in (expected_version, report_version, actual_version)):
+        try:
+            versions_match = (
+                parse_semantic_version(str(expected_version))
+                == parse_semantic_version(str(report_version))
+                == parse_semantic_version(str(actual_version))
+            )
+        except InvalidSemanticVersionError:
+            versions_match = False
+    issues: list[ValidationIssue] = []
+    if not versions_match:
+        issues.append(
+            make_pipeline_issue(
+                "CHANNEL_CONTENT_VERSION_MISMATCH",
+                "Compatibility Report, Project 핀, 실제 Channel DNA 버전이 다릅니다.",
+                "00_PROJECT/compatibility_report.json",
+                {
+                    "project": expected_version,
+                    "report": report_version,
+                    "channel": actual_version,
+                },
+            )
+        )
+    expected_hash = summary_mapping.get("channel_dna_sha256")
+    actual_hash = channel_dna_sha256(channel)
+    if expected_hash != actual_hash:
+        issues.append(
+            make_pipeline_issue(
+                "CHANNEL_DNA_HASH_MISMATCH",
+                "Compatibility Report의 SHA-256과 현재 Channel DNA가 다릅니다.",
+                "00_PROJECT/compatibility_report.json",
+                {"expected": expected_hash, "actual": actual_hash},
+            )
+        )
+    return issues
+
+
 def validate_project_ids(
     artifacts: Mapping[str, ArtifactContent],
     project_id: str,
@@ -261,6 +431,10 @@ def validate_project_configuration(
             manifest.get("channel_id"),
             production_config.get("channel_id"),
             channel.get("channel_id"),
+        ),
+        "channel_content_version": (
+            production_config.get("channel_content_version"),
+            channel.get("content_version"),
         ),
         "story_source_mode": (
             manifest.get("story_source_mode"),
@@ -301,6 +475,10 @@ def validate_project_setup(
             manifest.get("channel_id"),
             production_config.get("channel_id"),
             channel.get("channel_id"),
+        ),
+        "channel_content_version": (
+            production_config.get("channel_content_version"),
+            channel.get("content_version"),
         ),
         "story_source_mode": (
             manifest.get("story_source_mode"),
@@ -358,9 +536,7 @@ def validate_variation_gate(
         return issues
 
     candidate_ids = {
-        candidate.get("candidate_id")
-        for candidate in candidates
-        if isinstance(candidate, Mapping)
+        candidate.get("candidate_id") for candidate in candidates if isinstance(candidate, Mapping)
     }
     if not isinstance(approved_id, str) or approved_id not in candidate_ids:
         issues.append(
@@ -378,7 +554,7 @@ def validate_variation_precheck(
     candidates_document: Mapping[str, object],
     precheck_document: Mapping[str, object],
 ) -> list[ValidationIssue]:
-    """Novelty Precheck가 현재 승인 후보를 PASS했는지 검사한다."""
+    """Novelty Precheck가 전체 후보와 현재 승인 후보를 PASS했는지 검사한다."""
     expected_hash = variation_precheck_source_hash(candidates_document)
     issues_value = precheck_document.get("issues")
     if not isinstance(issues_value, list):
@@ -393,20 +569,27 @@ def validate_variation_precheck(
                 {},
             )
         )
-    if (
-        precheck_document.get("approved_candidate_id")
-        != candidates_document.get("approved_candidate_id")
-        or precheck_document.get("result") != "PASS"
-    ):
+    approved_id = candidates_document.get("approved_candidate_id")
+    raw_results = precheck_document.get("candidate_results")
+    approved_result = None
+    if isinstance(raw_results, list):
+        approved_result = next(
+            (
+                result.get("result")
+                for result in raw_results
+                if isinstance(result, Mapping) and result.get("candidate_id") == approved_id
+            ),
+            None,
+        )
+    if precheck_document.get("result") != "PASS" or approved_result != "PASS":
         issues.append(
             make_pipeline_issue(
                 "VARIATION_NOVELTY_PRECHECK_NOT_PASSED",
                 "현재 승인 Variation이 Novelty Precheck를 통과하지 못했습니다.",
                 "08_QA/novelty_precheck.json",
                 {
-                    "approved_candidate_id": candidates_document.get(
-                        "approved_candidate_id"
-                    )
+                    "approved_candidate_id": approved_id,
+                    "approved_candidate_result": approved_result,
                 },
             )
         )
@@ -439,8 +622,7 @@ def validate_variation_alignment(
         (
             candidate
             for candidate in candidates
-            if isinstance(candidate, Mapping)
-            and candidate.get("candidate_id") == approved_id
+            if isinstance(candidate, Mapping) and candidate.get("candidate_id") == approved_id
         ),
         None,
     )
@@ -452,10 +634,25 @@ def validate_variation_alignment(
     overrides = story_document.get("variation_overrides")
     override_dimensions = set(overrides) if isinstance(overrides, Mapping) else set()
     override_reason = story_document.get("override_reason")
+    story_dimensions = {
+        "mystery_type",
+        "architecture",
+        "protagonist_role",
+        "perspective",
+        "timeline_style",
+        "incident_type",
+        "setting",
+        "culprit_structure",
+        "primary_twist",
+        "relationship_engine",
+        "pressure_engine",
+        "dramatic_engine",
+    }
     mismatches = sorted(
         dimension
         for dimension, selected_value in selection.items()
         if isinstance(dimension, str)
+        and dimension in story_dimensions
         and story_dimension_value(story_dna, dimension) != selected_value
         and dimension not in override_dimensions
     )
@@ -532,16 +729,28 @@ def validate_reference_gate(
 
 def production_text_issues(
     artifacts: Mapping[str, ArtifactContent],
+    production_config: Mapping[str, object],
+    channel: Mapping[str, object],
 ) -> list[ValidationIssue]:
-    """다섯 가지 Production 인계 문서가 실제 내용을 갖는지 검사한다."""
-    issues: list[ValidationIssue] = []
-    for artifact_name in (
+    """Project Version에서 필수인 Production 인계 문서 내용을 검사한다."""
+    artifact_names = [
         "shooting_script",
         "narration",
         "production_panel_reaction_script",
         "subtitle_script",
         "edit_script",
+    ]
+    graph = load_json_object(
+        Path(__file__).resolve().parents[1] / "STANDARD" / "dependency_graph.json"
+    )
+    definition = dependency_artifacts(graph)["production_expert_analysis_script"]
+    if (
+        artifact_required_for_project(definition, channel, production_config, artifacts)
+        or "production_expert_analysis_script" in artifacts
     ):
+        artifact_names.append("production_expert_analysis_script")
+    issues: list[ValidationIssue] = []
+    for artifact_name in artifact_names:
         content = artifact_text(artifacts, artifact_name)
         if not content.strip():
             issues.append(
@@ -575,8 +784,12 @@ def run_production_validation(
     project_manifest = artifact_document(artifacts, "project_manifest")
     compatibility = artifact_document(artifacts, "compatibility_report")
     production_config = artifact_document(artifacts, "production_config")
+    project_constraints = artifact_document(artifacts, "project_constraints")
     reference_profile = artifact_document(artifacts, "reference_profile")
     variation_candidates = artifact_document(artifacts, "variation_candidates")
+    candidate_eligibility = artifact_document(artifacts, "candidate_eligibility")
+    candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
+    candidate_approval = artifact_document(artifacts, "candidate_approval")
     novelty_precheck = artifact_document(artifacts, "novelty_precheck")
     story_document = artifact_document(artifacts, "story_dna")
     fingerprint = artifact_document(artifacts, "story_fingerprint")
@@ -584,6 +797,10 @@ def run_production_validation(
     facts = artifact_document(artifacts, "facts")
     sources = artifact_document(artifacts, "sources")
     claim_evidence = artifact_document(artifacts, "claim_evidence")
+    verified_fact_ledger = optional_artifact_document(artifacts, "verified_fact_ledger")
+    source_subjects = optional_artifact_document(artifacts, "source_subjects")
+    verified_event_ledger = optional_artifact_document(artifacts, "verified_event_ledger")
+    source_truth_contract = optional_artifact_document(artifacts, "source_truth_contract")
     characters = artifact_document(artifacts, "characters")
     relationships = artifact_document(artifacts, "relationships")
     knowledge_matrix = artifact_document(artifacts, "knowledge_matrix")
@@ -596,21 +813,45 @@ def run_production_validation(
     beat_sheet = artifact_document(artifacts, "beat_sheet")
     retention_plan = artifact_document(artifacts, "retention_plan")
     scene_cards = artifact_document(artifacts, "scene_cards")
+    production_footprint = optional_artifact_document(artifacts, "production_footprint")
     panel_cast = artifact_document(artifacts, "panel_cast")
     reaction_segments = artifact_document(artifacts, "reaction_segments")
     presentation_plan = artifact_document(artifacts, "presentation_plan")
     drama_script = artifact_text(artifacts, "drama_script")
     narration_script = artifact_text(artifacts, "narration_script")
     panel_reaction_script = artifact_text(artifacts, "panel_reaction_script")
+    expert_analysis_script = optional_artifact_text(
+        artifacts,
+        "expert_analysis_script",
+    )
     draft_script = artifact_text(artifacts, "draft_script")
     final_script = artifact_text(artifacts, "final_script")
     editorial_review = artifact_document(artifacts, "editorial_review")
+    production_manifest = optional_artifact_document(artifacts, "production_manifest")
     project_id = production_config.get("project_id")
     if not isinstance(project_id, str):
         raise ConfigurationError("production_config.project_id 문자열이 필요합니다.")
-
+    source_truth_bundle_issues = (
+        validate_source_truth_contract_integrity(
+            source_truth_contract,
+            sources,
+            claim_evidence,
+            verified_fact_ledger,
+            source_subjects,
+            verified_event_ledger,
+        )
+        if source_truth_requires_evidence(
+            production_config.get("source_truth_classification")
+        )
+        else []
+    )
     gate_00 = [
         *validate_compatibility_gate(compatibility),
+        *validate_compatibility_binding_current(
+            compatibility,
+            production_config,
+            channel,
+        ),
         *validate_project_ids(artifacts, project_id),
         *validate_project_configuration(
             project_manifest,
@@ -618,18 +859,92 @@ def run_production_validation(
             story_document,
             channel,
         ),
+        *source_truth_configuration_issues(production_config),
+        *validate_projection_contract_coverage(
+            presentation_schemas["variation_catalog"],
+            presentation_schemas["candidate_projection_contract"],
+        ),
+        *project_constraint_compiler_issues(
+            project_constraints,
+            presentation_schemas["variation_catalog"],
+            presentation_schemas["candidate_projection_contract"],
+        ),
     ]
     gate_01 = [
         *validate_variation_gate(variation_candidates, channel),
+        *schema_issues(
+            candidate_eligibility,
+            presentation_schemas["candidate_eligibility"],
+            "08_QA/candidate_eligibility.json",
+        ),
+        *schema_issues(
+            candidate_evaluation,
+            presentation_schemas["candidate_evaluation"],
+            "00_PROJECT/candidate_evaluation.json",
+        ),
+        *schema_issues(
+            candidate_approval,
+            presentation_schemas["candidate_approval"],
+            "00_PROJECT/candidate_approval.json",
+        ),
+        *schema_issues(
+            novelty_precheck,
+            presentation_schemas["novelty_precheck"],
+            "08_QA/novelty_precheck.json",
+        ),
+        *validate_candidate_evaluation(
+            variation_candidates,
+            candidate_evaluation,
+            novelty_precheck,
+            candidate_eligibility,
+        ),
+        *validate_candidate_eligibility(
+            production_config,
+            project_constraints,
+            channel,
+            variation_candidates,
+            novelty_precheck,
+            candidate_eligibility,
+        ),
+        *validate_candidate_approval(
+            production_config,
+            variation_candidates,
+            novelty_precheck,
+            candidate_eligibility,
+            candidate_evaluation,
+            candidate_approval,
+        ),
         *validate_variation_precheck(variation_candidates, novelty_precheck),
+        *variation_runtime_binding_issues(
+            production_config,
+            variation_candidates,
+            presentation_schemas["variation_runtime"],
+        ),
     ]
+    if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+        gate_01.extend(source_truth_bundle_issues)
     gate_02 = [
         *schema_issues(story_document, story_schema, "00_PROJECT/story_dna.json"),
         *validate_story_dna_semantics(story_document, reference_policy),
         *validate_user_case_constraints(production_config, story_document),
         *validate_reference_profile_alignment(story_document, reference_profile),
         *validate_variation_alignment(variation_candidates, story_document),
+        *validate_approved_candidate_projection(
+            production_config,
+            variation_candidates,
+            presentation_schemas["candidate_projection_contract"],
+            {"story_dna": story_document},
+        ),
     ]
+    if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+        gate_02.extend(
+            validate_truth_dimensions(
+                source_truth_contract,
+                story_document,
+                None,
+                None,
+            )
+        )
     gate_03 = [
         *nonempty_string_issues(
             case_input,
@@ -637,11 +952,33 @@ def run_production_validation(
             "01_CASE/case_input.json",
         ),
         *nonempty_list_issues(facts, "facts", "01_CASE/facts.json"),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("crime_psychology", "source_disclosure", "clinical_labels"),
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "crime_psychology",
+            presentation_schemas["crime_psychology"],
+            "01_CASE/crime_psychology.json",
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "source_disclosure",
+            presentation_schemas["source_disclosure"],
+            "01_CASE/source_disclosure.json",
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "clinical_labels",
+            presentation_schemas["clinical_labels"],
+            "01_CASE/clinical_labels.json",
+        ),
     ]
-    if story_document.get("story_source_mode") in {
-        "TRUE_STORY",
-        "INSPIRED_BY_TRUE_EVENTS",
-    }:
+    if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+        gate_03.extend(source_truth_bundle_issues)
         gate_03.extend(nonempty_list_issues(sources, "sources", "01_CASE/sources.json"))
         gate_03.extend(
             nonempty_list_issues(
@@ -652,12 +989,37 @@ def run_production_validation(
         )
         gate_03.extend(
             validate_fact_integrity(
-                story_document.get("story_source_mode"),
+                production_config.get("source_truth_classification"),
                 facts,
                 sources,
                 claim_evidence,
+                verified_fact_ledger,
             )
         )
+        gate_03.extend(
+            validate_truth_dimensions(
+                source_truth_contract,
+                story_document,
+                case_input,
+                optional_artifact_document(artifacts, "crime_psychology"),
+            )
+        )
+    gate_03.extend(
+        validate_approved_candidate_projection(
+            production_config,
+            variation_candidates,
+            presentation_schemas["candidate_projection_contract"],
+            {
+                "story_dna": story_document,
+                "case_input": case_input,
+                **(
+                    {"crime_psychology": artifacts["crime_psychology"]}
+                    if "crime_psychology" in artifacts
+                    else {}
+                ),
+            },
+        )
+    )
     gate_04 = [
         *nonempty_list_issues(characters, "characters", "02_CHARACTER/characters.json"),
         *nonempty_list_issues(
@@ -671,6 +1033,23 @@ def run_production_validation(
             "02_CHARACTER/knowledge_matrix.json",
         ),
     ]
+    if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+        gate_04.extend(source_truth_bundle_issues)
+        gate_04.extend(
+            validate_source_subject_mapping(
+                source_subjects,
+                characters,
+                optional_artifact_document(artifacts, "clinical_labels"),
+            )
+        )
+        gate_04.extend(
+            validate_truth_characters(
+                source_truth_contract,
+                source_subjects,
+                characters,
+                relationships,
+            )
+        )
     gate_05 = [
         *nonempty_list_issues(
             actual_timeline,
@@ -696,7 +1075,33 @@ def run_production_validation(
         *nonempty_list_issues(causal_graph, "nodes", "04_MYSTERY/causal_graph.json"),
         *nonempty_list_issues(causal_graph, "edges", "04_MYSTERY/causal_graph.json"),
         *validate_causal_graph(causal_graph),
+        *validate_approved_candidate_projection(
+            production_config,
+            variation_candidates,
+            presentation_schemas["candidate_projection_contract"],
+            {
+                "story_dna": story_document,
+                "case_input": case_input,
+                "clue_matrix": clue_matrix,
+                **(
+                    {"crime_psychology": artifacts["crime_psychology"]}
+                    if "crime_psychology" in artifacts
+                    else {}
+                ),
+            },
+        ),
     ]
+    if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+        gate_05.extend(source_truth_bundle_issues)
+        gate_05.extend(
+            validate_truth_events(
+                source_truth_contract,
+                verified_event_ledger,
+                characters,
+                actual_timeline,
+                causal_graph,
+            )
+        )
     gate_06 = [
         *nonempty_list_issues(beat_sheet, "beats", "05_STORY/beat_sheet.json"),
         *nonempty_list_issues(
@@ -722,6 +1127,18 @@ def run_production_validation(
             presentation_schemas["presentation_plan"],
             "06_SCENE/presentation_plan.json",
         ),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("expert_segments",),
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "expert_segments",
+            presentation_schemas["expert_segments"],
+            "06_SCENE/expert_segments.json",
+        ),
         *validate_presentation_design(
             panel_cast,
             reaction_segments,
@@ -733,20 +1150,37 @@ def run_production_validation(
             channel,
             production_config,
         ),
+        *validate_production_footprint(
+            project_constraints,
+            production_footprint,
+            scene_cards,
+            characters,
+            actual_timeline,
+            variation_candidates,
+        ),
     ]
-    gate_08 = validate_script_integrity_v2(
-        presentation_plan,
-        reaction_segments,
-        scene_cards,
-        viewer_timeline,
-        audience_belief,
-        actual_timeline,
-        drama_script,
-        narration_script,
-        panel_reaction_script,
-        draft_script,
-        final_script,
-    )
+    gate_08 = [
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("expert_analysis_script",),
+        ),
+        *validate_script_integrity_v2(
+            presentation_plan,
+            reaction_segments,
+            scene_cards,
+            viewer_timeline,
+            audience_belief,
+            actual_timeline,
+            drama_script,
+            narration_script,
+            panel_reaction_script,
+            expert_analysis_script,
+            draft_script,
+            final_script,
+        ),
+    ]
     continuity_report = validate_continuity(
         production_config,
         characters,
@@ -804,8 +1238,36 @@ def run_production_validation(
         production_config,
         presentation_plan,
     )
+    gate_12.extend(
+        validate_channel_policy_v2(
+            channel,
+            build_channel_policy_inputs(artifacts),
+        )
+    )
+    gate_12.extend(
+        validate_approved_candidate_projection(
+            production_config,
+            variation_candidates,
+            presentation_schemas["candidate_projection_contract"],
+            artifacts,
+        )
+    )
+    gate_12.extend(
+        validate_final_story_constraints(
+            project_constraints,
+            variation_candidates,
+            presentation_schemas["candidate_projection_contract"],
+            artifacts,
+        )
+    )
     gate_13 = [
-        *production_text_issues(artifacts),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("production_expert_analysis_script",),
+        ),
+        *production_text_issues(artifacts, production_config, channel),
         *validate_production_presentation(
             presentation_plan,
             reaction_segments,
@@ -822,6 +1284,16 @@ def run_production_validation(
             editorial_review,
             presentation_plan,
             panel_reaction_script,
+        ),
+        *validate_final_production_footprint(
+            project_constraints,
+            production_footprint,
+            production_manifest,
+            scene_cards,
+            characters,
+            actual_timeline,
+            variation_candidates,
+            artifact_text(artifacts, "shooting_script"),
         ),
     ]
     gate_groups = (

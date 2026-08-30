@@ -5,7 +5,8 @@
 | 계층 | 식별자 | 구조 Version | 책임 |
 |---|---|---|---|
 | Compatibility Contract | `contract_family` | `contract_version` | Required/Optional Capability 이름과 호환 범위 |
-| Channel DNA | `channel_id` | `schema_version` | Capability별 정책 값과 내부 구조 |
+| Channel Manifest | `channel_id` | `schema_version` | 활성 Content Version과 버전별 DNA 경로·SHA-256 |
+| Channel DNA | `channel_id` | `schema_version` | 독립 `content_version`별 Capability 정책 값과 내부 구조 |
 | Story DNA | `project_id` | `schema_version` | Episode 구조와 Source Mode |
 | Agent Manifest | Agent 이름 | `schema_version` | 읽기·쓰기·선행 Agent·Gate |
 | Dependency Graph | Artifact 이름 | `schema_version` | 경로·의존성·Owner |
@@ -27,6 +28,7 @@ Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json
 | `compatibility_contract.schema.json` | Channel 요구 Interface |
 | `project_manifest.schema.json` | Project 식별, Standard, Channel, Source Mode |
 | `production_config.schema.json` | 승인 정책, Genre/Tone, Runtime, USER_CASE 입력 상태 |
+| `channel_manifest.schema.json` | 활성/사용 가능 Channel Content Version과 DNA Hash Registry |
 | `channel_dna.schema.json` | Channel Identity와 Capability 구조 |
 | `story_dna.schema.json` | Source Mode와 Full Story DNA v1.3 |
 | `panel_cast.schema.json` | 외부 Panelist Persona, 허용 기능과 공개 정보 경계 |
@@ -37,6 +39,7 @@ Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json
 | `fact_evidence.schema.json` | Fact/Inference/Dramatization과 Source/Claim 계약 |
 | `variation_catalog.schema.json` | 다축 후보 선택 Catalog |
 | `variation_candidates.schema.json` | 생성·승인 후보 출력 |
+| `candidate_evaluation.schema.json` | 후보별 Hard Filter, 다축 점수, 결정과 근거 |
 | `story_fingerprint.schema.json` | Story/Beat/Causal 및 의미 정규화 Fingerprint |
 | `causal_graph.schema.json` | Mystery 인과 Node/Edge, 의미 역할과 Character·Audience 전이 |
 | `novelty_thresholds.schema.json` | 최근/전체 유사도와 Weight |
@@ -74,11 +77,14 @@ JSON Schema가 구조를 검증하고 Validator가 다음 교차 규칙을 검�
 - Source Mode와 Reference Profile 일치
 - USER_CASE의 LOCKED/FLEXIBLE/UNKNOWN 상태와 Story DNA 일치
 - 승인 Variation과 Story DNA Override 일치
+- Project Channel Content Version 핀, Manifest 등록, Compatibility Report와 DNA SHA-256 일치
+- 모든 Variation Candidate의 평가 완전성, Hard Filter와 최고점 승인 정합성
 - Story Fingerprint의 현재성과 의미 정규화된 Causal Role·Edge·Character·Audience 전이 충돌
 - Causal Graph DAG와 Root-to-Resolution 경로
 - Timeline, Knowledge, Clue, Runtime, ID 참조
 - Reference Lexical/14개 Story Element Category Collision
 - Channel Genre/Tone/Presentation/Reaction 일치
+- Content Version 2.0 이상에서 범죄 심리, 신뢰 배신, 통제 과정, 피해자 중심, 위험 신호, Source Label, Expert Claim-Evidence와 임상 용어 정책
 - GATE-02·10·13과 Revision에서 Novelty Index Lifecycle을 동기화하고, Production Ready에서만 Published Library 등록
 - Runtime Task 권한은 Agent Manifest보다 넓을 수 없음
 - Provider 출력 Identity와 Task writes가 정확히 일치해야 함

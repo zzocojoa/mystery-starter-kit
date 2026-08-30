@@ -19,6 +19,11 @@ def create_runtime_repository(tmp_path: Path) -> Path:
             repository_root / directory_name,
             ignore=shutil.ignore_patterns("__pycache__"),
         )
+    shutil.copytree(
+        ROOT / "VALIDATORS" / "variation_engines",
+        repository_root / "VALIDATORS" / "variation_engines",
+        ignore=shutil.ignore_patterns("__pycache__"),
+    )
     (repository_root / "PROJECTS").mkdir()
     return repository_root
 

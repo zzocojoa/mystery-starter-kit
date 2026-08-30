@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/candidate-approval-1.0.0.json",
+  "title": "Runtime-owned Candidate Approval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "selected_candidate_id",
+    "recommended_candidate_id",
+    "approval_type",
+    "actor",
+    "reason",
+    "input_hashes",
+    "approved_at"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "candidate-approval"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "selected_candidate_id": {"$ref": "#/$defs/candidateId"},
+    "recommended_candidate_id": {"$ref": "#/$defs/candidateId"},
+    "approval_type": {"enum": ["AUTO_POLICY", "HUMAN_CONFIRMATION", "HUMAN_OVERRIDE"]},
+    "actor": {"type": "string", "minLength": 1},
+    "reason": {"type": "string", "minLength": 1},
+    "input_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variation_candidates",
+        "novelty_precheck",
+        "production_config",
+        "candidate_eligibility",
+        "candidate_evaluation"
+      ],
+      "properties": {
+        "variation_candidates": {"$ref": "#/$defs/hash"},
+        "production_config": {"$ref": "#/$defs/hash"},
+        "novelty_precheck": {"$ref": "#/$defs/hash"},
+        "candidate_eligibility": {"$ref": "#/$defs/hash"},
+        "candidate_evaluation": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "approved_at": {"type": "string", "format": "date-time"},
+    "approval_id": {"type": "string", "pattern": "^APR-[A-F0-9]{12}$"},
+    "run_id": {"type": "string", "minLength": 1},
+    "task_id": {"const": "variation.approve"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "bound_input_hashes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/hash"}
+    },
+    "approval_decision": {"const": "APPROVED"},
+    "human_approval_record_hash": {"$ref": "#/$defs/hash"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "approval_type": {"enum": ["HUMAN_CONFIRMATION", "HUMAN_OVERRIDE"]}
+        },
+        "required": ["approval_type"]
+      },
+      "then": {
+        "required": [
+          "approval_id",
+          "run_id",
+          "task_id",
+          "created_at",
+          "bound_input_hashes"
+          ,"approval_decision"
+          ,"human_approval_record_hash"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "candidateId": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"}
+  }
+}

@@ -1,10 +1,12 @@
 """Production Pipeline 테스트용 완전한 Project Artifact Factory."""
 
 from copy import deepcopy
+from hashlib import sha256
 from pathlib import Path
 
 from RUNTIME.providers.fake import (
     fake_broadcast_master,
+    fake_candidate_evaluation,
     fake_edit_script,
     fake_editorial_review,
     fake_panel_cast,
@@ -12,13 +14,17 @@ from RUNTIME.providers.fake import (
     fake_reaction_segments,
     fake_script_layers,
 )
+from VALIDATORS.candidate_approval import build_candidate_approval
+from VALIDATORS.candidate_eligibility import build_candidate_eligibility
+from VALIDATORS.compatibility import channel_dna_sha256
 from VALIDATORS.io import load_json_object
 from VALIDATORS.novelty import build_story_fingerprint, evaluate_variation_precheck
 from VALIDATORS.pipeline import ArtifactContent
 from VALIDATORS.variation import (
     approve_variation_candidate,
-    generate_variation_candidates,
+    generate_eligible_candidate_pool,
 )
+from VALIDATORS.variation_registry import resolve_variation_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -26,12 +32,42 @@ ROOT = Path(__file__).resolve().parents[1]
 def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     """GATE-00부터 GATE-13까지 통과하는 독립 Project를 만든다."""
     project_id = "PRJ-002"
-    story_document = deepcopy(
-        load_json_object(ROOT / "EXAMPLES" / "story_dna.example.json")
+    channel = load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json")
+    production_config: dict[str, object] = {
+        "project_id": project_id,
+        "standard_version": "1.3.3",
+        "channel_id": "MYSTERY_MAIN",
+        "channel_content_version": "1.1.0",
+        "variation_engine_version": "1.0.0",
+        "variation_catalog_version": "1.0.0",
+        "approval_policy": "AUTO_CONTINUE",
+        "story_source_mode": "ORIGINAL",
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "genre": "MYSTERY",
+        "tones": ["GROUNDED", "SUSPENSEFUL"],
+        "target_runtime_minutes": 2,
+        "runtime_tolerance_ratio": 0.1,
+    }
+    story_document = deepcopy(load_json_object(ROOT / "EXAMPLES" / "story_dna.example.json"))
+    project_constraints = load_json_object(
+        ROOT / "TEMPLATES/PROJECT/00_PROJECT/project_constraints.json"
     )
-    catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
-    variations = generate_variation_candidates(project_id, "공장 교대 중 사라진 작업자", 5, catalog)
-    variations = approve_variation_candidate(variations, "VAR-01")
+    project_constraints["project_id"] = project_id
+    variations = generate_eligible_candidate_pool(
+        project_id,
+        "공장 교대 중 사라진 작업자",
+        5,
+        resolve_variation_runtime(ROOT, production_config),
+        "ORIGINAL_FICTION",
+        production_config,
+        project_constraints,
+        channel,
+        [],
+        load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
+        load_json_object(ROOT / "STANDARD" / "candidate_projection_contract.json"),
+        None,
+        64,
+    )
     candidates = variations["candidates"]
     story_dna = story_document["story_dna"]
     assert isinstance(candidates, list)
@@ -64,18 +100,41 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     dramatic_engine["primary"] = selection["dramatic_engine"]
     thresholds = load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json")
     novelty_precheck = evaluate_variation_precheck(variations, [], thresholds)
+    candidate_eligibility = build_candidate_eligibility(
+        production_config,
+        project_constraints,
+        channel,
+        variations,
+        novelty_precheck,
+    )
+    candidate_evaluation = fake_candidate_evaluation(
+        project_id,
+        variations,
+        novelty_precheck,
+        candidate_eligibility,
+    )
+    recommended_candidate_id = candidate_evaluation["recommended_candidate_id"]
+    assert isinstance(recommended_candidate_id, str)
+    variations = approve_variation_candidate(
+        variations,
+        recommended_candidate_id,
+    )
 
-    production_config: dict[str, object] = {
-        "project_id": project_id,
-        "standard_version": "1.3.3",
-        "channel_id": "MYSTERY_MAIN",
-        "approval_policy": "AUTO_CONTINUE",
-        "story_source_mode": "ORIGINAL",
-        "genre": "MYSTERY",
-        "tones": ["GROUNDED", "SUSPENSEFUL"],
-        "target_runtime_minutes": 2,
-        "runtime_tolerance_ratio": 0.1,
-    }
+    candidate_approval = build_candidate_approval(
+        project_id,
+        recommended_candidate_id,
+        recommended_candidate_id,
+        "SYSTEM",
+        "테스트 자동 승인",
+        "2025-01-01T00:00:00Z",
+        production_config,
+        variations,
+        novelty_precheck,
+        candidate_eligibility,
+        candidate_evaluation,
+        "AUTO_CONTINUE",
+        None,
+    )
     case_input: dict[str, object] = {
         "project_id": project_id,
         "title_working": "교대 기록의 7분",
@@ -83,6 +142,8 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "central_mystery": "작업자는 언제 통제 구역을 벗어났는가?",
         "final_truth": "작업자는 정지한 이송 설비의 점검 공간에 갇혔다.",
         "causal_truth": "센서 차단과 교대 기록 오류가 구조 지연을 만들었다.",
+        "incident_type": selection["incident_type"],
+        "setting": selection["setting"],
         "culprit": None,
         "culprit_motive": None,
         "restrictions": [],
@@ -90,8 +151,20 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     facts: dict[str, object] = {
         "project_id": project_id,
         "facts": [
-            {"fact_id": "FACT-01", "statement": "기계 로그에 7분 공백이 있다."},
-            {"fact_id": "FACT-02", "statement": "안전 센서는 점검 모드였다."},
+            {
+                "fact_id": f"FACT-{index:02d}",
+                "statement": statement,
+                "classification": "DRAMATIZATION",
+                "normalized_statement_hash": sha256(
+                    " ".join(statement.split()).casefold().encode()
+                ).hexdigest(),
+                "source_ids": [],
+                "basis_fact_ids": [],
+                "presented_as_fact": False,
+            }
+            for index, statement in enumerate(
+                ("기계 로그에 7분 공백이 있다.", "안전 센서는 점검 모드였다."), 1
+            )
         ],
     }
     characters: dict[str, object] = {
@@ -222,9 +295,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
                 "beat_id": "BEAT-01",
                 "estimated_seconds": 60,
                 "clue_ids": ["CLUE-01", "CLUE-02"],
-                "knowledge_claims": [
-                    {"character_id": "CHAR-01", "fact_id": "FACT-01"}
-                ],
+                "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-01"}],
             },
             {
                 "scene_id": "SCN-02",
@@ -232,9 +303,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
                 "beat_id": "BEAT-02",
                 "estimated_seconds": 60,
                 "clue_ids": ["CLUE-01", "CLUE-02"],
-                "knowledge_claims": [
-                    {"character_id": "CHAR-01", "fact_id": "FACT-02"}
-                ],
+                "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-02"}],
             },
         ],
     }
@@ -249,8 +318,21 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "channel_id": "MYSTERY_MAIN",
             "story_source_mode": "ORIGINAL",
         },
-        "compatibility_report": {"project_id": project_id, "compatibility": "PASS"},
+        "compatibility_report": {
+            "project_id": project_id,
+            "channel": {
+                "channel_id": "MYSTERY_MAIN",
+                "schema_family": "channel-dna",
+                "schema_version": "1.0.0",
+                "content_version": "1.1.0",
+                "channel_dna_sha256": channel_dna_sha256(channel),
+                "relative_path": "versions/1.1.0/channel_dna.json",
+            },
+            "compatibility": "PASS",
+            "errors": [],
+        },
         "production_config": production_config,
+        "project_constraints": project_constraints,
         "reference_profile": {
             "project_id": project_id,
             "mode": "NONE",
@@ -259,13 +341,36 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "prohibited_story_content": [],
         },
         "variation_candidates": variations,
+        "candidate_eligibility": candidate_eligibility,
+        "candidate_evaluation": candidate_evaluation,
+        "candidate_approval": candidate_approval,
         "novelty_precheck": novelty_precheck,
         "story_dna": story_document,
         "story_fingerprint": fingerprint,
         "case_input": case_input,
         "facts": facts,
+        "crime_psychology": {
+            "schema_family": "crime-psychology",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "applicable": False,
+            "not_applicable_reason": ("Channel Content Version 1.1.0에서는 필수 정책이 아닙니다."),
+        },
         "sources": {"project_id": project_id, "sources": []},
         "claim_evidence": {"project_id": project_id, "claims": []},
+        "source_disclosure": {
+            "schema_family": "source-disclosure",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "internal_mode": "ORIGINAL_FICTION",
+            "audience_label_text": "본 이야기는 창작입니다.",
+        },
+        "clinical_labels": {
+            "schema_family": "clinical-labels",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "labels": [],
+        },
         "characters": characters,
         "relationships": relationships,
         "knowledge_matrix": knowledge_matrix,
@@ -318,16 +423,31 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "scene_cards": scene_cards,
         "panel_cast": fake_panel_cast(project_id),
         "reaction_segments": fake_reaction_segments(project_id, total_seconds),
+        "expert_segments": {
+            "schema_family": "expert-segments",
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "status": "NOT_APPLICABLE",
+            "not_applicable_reason": (
+                "Channel Content Version 1.1.0에서는 전문가 분석이 선택 사항입니다."
+            ),
+            "segments": [],
+        },
         "presentation_plan": fake_presentation_plan(project_id, total_seconds),
         **layer_scripts,
+        "expert_analysis_script": (
+            "# Expert Analysis\n\nChannel Content Version 1.1.0에서는 적용 대상이 아닙니다."
+        ),
         "draft_script": broadcast_master,
         "final_script": broadcast_master,
         "shooting_script": "SCN-01 통제실 와이드. SCN-02 이송 설비 클로즈업.",
         "narration": "실종은 연쇄된 안전 실패였다.",
         "production_panel_reaction_script": (
-            "RSEG-001 논리 패널 Cue\n"
-            "RSEG-002 반론 패널 Cue\n"
-            "RSEG-003 논리 패널 Cue"
+            "RSEG-001 논리 패널 Cue\nRSEG-002 반론 패널 Cue\nRSEG-003 논리 패널 Cue"
+        ),
+        "production_expert_analysis_script": (
+            "# Production Expert Analysis\n\n"
+            "Channel Content Version 1.1.0에서는 적용 대상이 아닙니다."
         ),
         "subtitle_script": "00:00 지안은 7분의 공백을 발견한다.",
         "edit_script": fake_edit_script(project_id, total_seconds),

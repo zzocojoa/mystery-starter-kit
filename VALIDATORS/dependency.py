@@ -7,6 +7,7 @@ from typing import cast
 
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.models import ArtifactState, ProjectState
+from VALIDATORS.requirements import requirement_matches
 
 
 def dependency_artifacts(graph: Mapping[str, object]) -> dict[str, dict[str, object]]:
@@ -32,6 +33,17 @@ def dependency_names(definition: Mapping[str, object], artifact_name: str) -> li
             f"depends_on은 문자열 배열이어야 합니다: artifact={artifact_name}"
         )
     return cast(list[str], depends_on.copy())
+
+
+def artifact_required_for_project(
+    definition: Mapping[str, object],
+    channel: Mapping[str, object],
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, object],
+) -> bool:
+    """Channel Capability, Source Truth와 Plan 상태로 Artifact 필수성을 판정한다."""
+    predicate = definition.get("required_when", {"always": True})
+    return requirement_matches(predicate, production_config, channel, artifacts)
 
 
 def validate_dependency_graph(graph: Mapping[str, object]) -> None:

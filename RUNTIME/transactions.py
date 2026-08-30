@@ -387,6 +387,7 @@ def next_project_state(
     outputs: Mapping[str, object],
     dependency_graph: Mapping[str, object],
     updated_at: str,
+    required_artifacts: Sequence[str],
 ) -> ProjectState:
     """검증된 입력·출력 Hash와 Gate PASS를 반영한 새 Project State를 계산한다."""
     next_state = deepcopy(current_state)
@@ -427,7 +428,13 @@ def next_project_state(
             output_hash,
             updated_at,
         )
-    return advance_gate(next_state, gate_id, True, updated_at)
+    return advance_gate(
+        next_state,
+        gate_id,
+        True,
+        updated_at,
+        required_artifacts,
+    )
 
 
 def transaction_root(project_path: Path, transaction_id: str) -> Path:

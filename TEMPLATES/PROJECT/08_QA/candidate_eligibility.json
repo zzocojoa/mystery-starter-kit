@@ -1,0 +1,10 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_eligibility.schema.json",
+  "schema_family": "candidate-eligibility",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-000",
+  "input_hashes": {},
+  "result": "FAIL",
+  "eligible_candidate_ids": [],
+  "candidate_results": []
+}

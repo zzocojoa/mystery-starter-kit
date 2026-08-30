@@ -1,5 +1,7 @@
 """Production Standard와 Channel DNA의 Capability Negotiation."""
 
+import hashlib
+import json
 import re
 from collections.abc import Mapping
 from copy import deepcopy
@@ -91,6 +93,17 @@ def parse_semantic_version(value: str) -> tuple[int, int, int]:
         )
     major, minor, patch = match.groups()
     return int(major), int(minor), int(patch)
+
+
+def channel_dna_sha256(channel: Mapping[str, object]) -> str:
+    """Channel DNA의 정규 JSON 표현에 대한 SHA-256을 계산한다."""
+    encoded = json.dumps(
+        dict(channel),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def make_error(code: str, message: str, context: dict[str, object]) -> CompatibilityError:
@@ -285,6 +298,7 @@ def evaluate_compatibility(
         schema_family=actual_schema_family,
         schema_version=optional_string(channel, "schema_version"),
         content_version=optional_string(channel, "content_version"),
+        channel_dna_sha256=channel_dna_sha256(channel),
     )
     return CompatibilityReport(
         contract_family=require_string(contract, "contract_family", "compatibility_contract"),
@@ -321,16 +335,107 @@ def append_errors(
     )
 
 
+def manifest_version_entry(
+    manifest: Mapping[str, object],
+    content_version: str,
+) -> Mapping[str, object] | None:
+    """Manifest에서 Semantic Version이 같은 Channel 항목을 찾는다."""
+    try:
+        requested = parse_semantic_version(content_version)
+    except InvalidSemanticVersionError:
+        return None
+    entries = manifest.get("available_versions")
+    if not isinstance(entries, list):
+        return None
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            continue
+        candidate = entry.get("content_version")
+        if not isinstance(candidate, str):
+            continue
+        try:
+            if parse_semantic_version(candidate) == requested:
+                return entry
+        except InvalidSemanticVersionError:
+            continue
+    return None
+
+
+def evaluate_channel_binding(
+    report: CompatibilityReport,
+    production_config: Mapping[str, object],
+    channel_manifest: Mapping[str, object],
+    channel: Mapping[str, object],
+) -> CompatibilityReport:
+    """Project 핀, Manifest 등록 정보, 실제 DNA의 동일성을 판정한다."""
+    pinned_version = optional_string(production_config, "channel_content_version")
+    actual_version = optional_string(channel, "content_version")
+    entry = manifest_version_entry(channel_manifest, pinned_version)
+    errors: list[CompatibilityError] = []
+
+    if entry is None:
+        errors.append(
+            make_error(
+                "CHANNEL_CONTENT_VERSION_NOT_FOUND",
+                "Project가 고정한 Channel Content Version이 Manifest에 없습니다.",
+                {
+                    "channel_id": production_config.get("channel_id"),
+                    "channel_content_version": pinned_version,
+                },
+            )
+        )
+
+    versions_match = False
+    try:
+        versions_match = parse_semantic_version(pinned_version) == parse_semantic_version(
+            actual_version
+        )
+    except InvalidSemanticVersionError:
+        versions_match = False
+    if not versions_match:
+        errors.append(
+            make_error(
+                "CHANNEL_CONTENT_VERSION_MISMATCH",
+                "Project가 고정한 Content Version과 실제 Channel DNA가 다릅니다.",
+                {
+                    "expected": pinned_version,
+                    "actual": actual_version,
+                },
+            )
+        )
+
+    if entry is not None:
+        expected_hash = entry.get("channel_dna_sha256")
+        actual_hash = channel_dna_sha256(channel)
+        if not isinstance(expected_hash, str) or expected_hash != actual_hash:
+            errors.append(
+                make_error(
+                    "CHANNEL_DNA_HASH_MISMATCH",
+                    "Manifest에 고정된 SHA-256과 실제 Channel DNA가 다릅니다.",
+                    {
+                        "content_version": pinned_version,
+                        "expected": expected_hash,
+                        "actual": actual_hash,
+                    },
+                )
+            )
+
+    return append_errors(report, errors)
+
+
 def make_project_compatibility_report(
     project_id: str,
     report: CompatibilityReport,
+    relative_path: str,
 ) -> ProjectCompatibilityReport:
     """Project ID와 호환성 판정 결과를 새 Project Report로 결합한다."""
+    channel = deepcopy(report["channel"])
+    channel["relative_path"] = relative_path
     return ProjectCompatibilityReport(
         project_id=project_id,
         contract_family=report["contract_family"],
         contract_version=report["contract_version"],
-        channel=deepcopy(report["channel"]),
+        channel=channel,
         compatibility=report["compatibility"],
         required_capabilities=deepcopy(report["required_capabilities"]),
         optional_capabilities=deepcopy(report["optional_capabilities"]),

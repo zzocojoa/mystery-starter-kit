@@ -58,8 +58,12 @@ def test_generator_returns_reproducible_distinct_candidates() -> None:
     """같은 Seed는 동일하고 후보끼리는 다른 다축 조합을 생성해야 한다."""
     catalog = load_json_object(CATALOG_PATH)
 
-    first = generate_variation_candidates("PRJ-001", "폐쇄된 관제실", 5, catalog)
-    second = generate_variation_candidates("PRJ-001", "폐쇄된 관제실", 5, catalog)
+    first = generate_variation_candidates(
+        "PRJ-001", "폐쇄된 관제실", 5, catalog, "ORIGINAL_FICTION"
+    )
+    second = generate_variation_candidates(
+        "PRJ-001", "폐쇄된 관제실", 5, catalog, "ORIGINAL_FICTION"
+    )
 
     assert first == second
     candidates = first["candidates"]
@@ -70,10 +74,28 @@ def test_generator_returns_reproducible_distinct_candidates() -> None:
     assert collect_schema_errors(first, schema, "variation_candidates") == []
 
 
-def test_generator_avoids_dimension_repetition_until_choices_are_exhausted() -> None:
-    """선택지가 충분한 Dimension은 후보 수만큼 서로 다른 값을 사용해야 한다."""
+def test_first_candidate_signature_changes_with_seed() -> None:
+    """VAR-01도 고정 특례 없이 Seed 변화에 반응해야 한다."""
     catalog = load_json_object(CATALOG_PATH)
-    generated = generate_variation_candidates("PRJ-004", "open-city-seed", 5, catalog)
+    first = generate_variation_candidates(
+        "PRJ-001", "첫 번째 구조 Seed", 5, catalog, "ORIGINAL_FICTION"
+    )
+    second = generate_variation_candidates(
+        "PRJ-001", "완전히 다른 구조 Seed", 5, catalog, "ORIGINAL_FICTION"
+    )
+    first_candidates = first["candidates"]
+    second_candidates = second["candidates"]
+    assert isinstance(first_candidates, list)
+    assert isinstance(second_candidates, list)
+    assert first_candidates[0]["signature"] != second_candidates[0]["signature"]
+
+
+def test_generator_without_channel_context_does_not_apply_v2_safe_values() -> None:
+    """Channel Context가 없는 Generator에는 v2 안전 목록을 전역 적용하지 않는다."""
+    catalog = load_json_object(CATALOG_PATH)
+    generated = generate_variation_candidates(
+        "PRJ-004", "open-city-seed", 5, catalog, "ORIGINAL_FICTION"
+    )
     dimensions = catalog.get("dimensions")
     candidates = generated.get("candidates")
     assert isinstance(dimensions, dict)
@@ -82,13 +104,15 @@ def test_generator_avoids_dimension_repetition_until_choices_are_exhausted() -> 
     for dimension, choices in dimensions.items():
         assert isinstance(dimension, str)
         assert isinstance(choices, list)
-        if len(choices) < len(candidates):
-            continue
         selected = {
             candidate["selection"][dimension]
             for candidate in candidates
         }
-        assert len(selected) == len(candidates), dimension
+        assert selected <= set(choices), dimension
+    threat_values = {
+        candidate["selection"]["threat_type"] for candidate in candidates
+    }
+    assert "NO_CRIME" in threat_values
 
 
 def test_generator_rejects_too_few_candidates() -> None:
@@ -96,13 +120,17 @@ def test_generator_rejects_too_few_candidates() -> None:
     catalog = load_json_object(CATALOG_PATH)
 
     with pytest.raises(ConfigurationError, match="3개 이상"):
-        generate_variation_candidates("PRJ-001", "seed", 2, catalog)
+        generate_variation_candidates(
+            "PRJ-001", "seed", 2, catalog, "ORIGINAL_FICTION"
+        )
 
 
 def test_approval_marks_exactly_one_candidate_without_mutating_input() -> None:
     """후보 승인은 입력을 바꾸지 않고 정확히 하나만 APPROVED로 표시해야 한다."""
     catalog = load_json_object(CATALOG_PATH)
-    candidates = generate_variation_candidates("PRJ-001", "seed", 5, catalog)
+    candidates = generate_variation_candidates(
+        "PRJ-001", "seed", 5, catalog, "ORIGINAL_FICTION"
+    )
 
     approved = approve_variation_candidate(candidates, "VAR-03")
 
@@ -120,7 +148,9 @@ def test_approval_marks_exactly_one_candidate_without_mutating_input() -> None:
 def test_user_case_locked_dimensions_are_applied_without_mutating_candidates() -> None:
     """LOCKED 사용자 입력은 모든 후보에 적용하고 원본 후보는 변경하지 않아야 한다."""
     catalog = load_json_object(CATALOG_PATH)
-    candidates = generate_variation_candidates("PRJ-001", "seed", 5, catalog)
+    candidates = generate_variation_candidates(
+        "PRJ-001", "seed", 5, catalog, "ORIGINAL_FICTION"
+    )
     production_config = {
         "story_source_mode": "USER_CASE",
         "user_case_constraints": [
