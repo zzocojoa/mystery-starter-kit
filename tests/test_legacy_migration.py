@@ -32,6 +32,7 @@ def test_legacy_seed_reproduces_base_candidate_signatures() -> None:
     golden = load_json_object(FIXTURE_ROOT / "golden.json")
     legacy = load_json_object(FIXTURE_ROOT / "project" / "00_PROJECT" / "variation_candidates.json")
     config = {
+        "channel_id": "MYSTERY_MAIN",
         "channel_content_version": "1.1.0",
         "variation_engine_version": "1.0.0",
         "variation_catalog_version": "1.0.0",

@@ -41,6 +41,12 @@ jobs:
           python -m pip install 'pip>=26.2' 'setuptools>=83'
           python -m pip install '.[dev]'
 
+      - name: 등록 Version 불변성 검사
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          python -m VALIDATORS.version_immutability --base-ref "origin/${{ github.base_ref }}"
+
       - name: 린트
         run: python -m ruff check .
 

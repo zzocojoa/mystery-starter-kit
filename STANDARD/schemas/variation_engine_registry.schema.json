@@ -14,11 +14,26 @@
         "^[0-9]+\\.[0-9]+\\.[0-9]+$": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["algorithm_id", "path", "algorithm_sha256"],
+          "required": ["algorithm_id", "path", "algorithm_sha256", "implementation"],
           "properties": {
             "algorithm_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
             "path": {"type": "string", "pattern": "^STANDARD/variation_engines/[0-9]+\\.[0-9]+\\.[0-9]+\\.json$"},
-            "algorithm_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+            "algorithm_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "implementation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["entrypoint", "files", "implementation_sha256"],
+              "properties": {
+                "entrypoint": {"type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_.]*:[A-Za-z_][A-Za-z0-9_]*$"},
+                "files": {
+                  "type": "array",
+                  "minItems": 2,
+                  "uniqueItems": true,
+                  "items": {"type": "string", "pattern": "^VALIDATORS/variation_engines/(common|v[0-9]+_[0-9]+_[0-9]+)\\.py$"}
+                },
+                "implementation_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+              }
+            }
           }
         }
       },

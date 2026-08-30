@@ -22,7 +22,8 @@
         "max_special_effect_level": {"enum": ["NONE", "LOW", "MEDIUM", "HIGH"]},
         "allow_child_actor": {"type": "boolean"},
         "allow_moving_vehicle": {"type": "boolean"},
-        "max_graphic_violence": {"enum": ["NONE", "IMPLIED", "NON_GRAPHIC", "GRAPHIC"]}
+        "max_graphic_violence": {"enum": ["NONE", "IMPLIED", "NON_GRAPHIC", "GRAPHIC"]},
+        "enforce_final_footprint": {"type": "boolean"}
       }
     }
   },

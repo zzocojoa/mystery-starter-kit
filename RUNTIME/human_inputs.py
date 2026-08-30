@@ -13,7 +13,7 @@ from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.source_truth_contract import (
-    source_truth_contract_sha256,
+    bind_source_truth_contract,
     validate_source_truth_contract_integrity,
 )
 
@@ -371,18 +371,44 @@ def evidence_artifact_outputs(
         for event in verified_events
         if isinstance(event, Mapping) and isinstance(event.get("verified_event_id"), str)
     ]
-    truth_contract: dict[str, object] = {
+    truth_contract_base: dict[str, object] = {
         "project_id": project_id,
         "source_truth_classification": document["source_truth_classification"],
         **dict(truth_contract_input),
         "verified_subject_ids": subject_ids,
         "verified_event_ids": event_ids,
     }
-    truth_contract["contract_sha256"] = source_truth_contract_sha256(truth_contract)
     brief = " / ".join(str(fact["statement"]) for fact in verified_facts)
+    sources_document: dict[str, object] = {"project_id": project_id, "sources": sources}
+    claims_document: dict[str, object] = {
+        "project_id": project_id,
+        "claims": normalized_claims,
+    }
+    verified_facts_document: dict[str, object] = {
+        "project_id": project_id,
+        "facts": verified_facts,
+    }
+    source_subjects_document: dict[str, object] = {
+        "project_id": project_id,
+        "subjects": source_subjects,
+    }
+    verified_events_document: dict[str, object] = {
+        "project_id": project_id,
+        "events": verified_events,
+    }
+    truth_contract = bind_source_truth_contract(
+        truth_contract_base,
+        {
+            "sources": sources_document,
+            "claim_evidence": claims_document,
+            "verified_fact_ledger": verified_facts_document,
+            "source_subjects": source_subjects_document,
+            "verified_event_ledger": verified_events_document,
+        },
+    )
     outputs: dict[str, object] = {
-        "sources": {"project_id": project_id, "sources": sources},
-        "claim_evidence": {"project_id": project_id, "claims": normalized_claims},
+        "sources": sources_document,
+        "claim_evidence": claims_document,
         "source_case_brief": {
             "project_id": project_id,
             "source_truth_classification": document["source_truth_classification"],
@@ -390,18 +416,20 @@ def evidence_artifact_outputs(
             "verified_fact_ids": fact_ids,
             "brief": brief,
         },
-        "verified_fact_ledger": {"project_id": project_id, "facts": verified_facts},
-        "source_subjects": {"project_id": project_id, "subjects": source_subjects},
-        "verified_event_ledger": {"project_id": project_id, "events": verified_events},
+        "verified_fact_ledger": verified_facts_document,
+        "source_subjects": source_subjects_document,
+        "verified_event_ledger": verified_events_document,
         "source_truth_contract": truth_contract,
         "source_disclosure": dict(disclosure),
         "clinical_labels": dict(clinical),
     }
     integrity_issues = validate_source_truth_contract_integrity(
         truth_contract,
+        cast(Mapping[str, object], outputs["sources"]),
+        cast(Mapping[str, object], outputs["claim_evidence"]),
+        cast(Mapping[str, object], outputs["verified_fact_ledger"]),
         cast(Mapping[str, object], outputs["source_subjects"]),
         cast(Mapping[str, object], outputs["verified_event_ledger"]),
-        cast(Mapping[str, object], outputs["claim_evidence"]),
     )
     if integrity_issues:
         raise RuntimeExecutionError(

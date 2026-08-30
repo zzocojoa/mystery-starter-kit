@@ -23,6 +23,10 @@ from VALIDATORS.editorial import (
     panel_spoken_metrics,
 )
 from VALIDATORS.presentation_validation import presentation_segments
+from VALIDATORS.production_footprint import (
+    production_footprint_enforced,
+    production_scene_marker,
+)
 
 PresentationDefinition: TypeAlias = tuple[
     str,
@@ -856,6 +860,62 @@ def context_artifact(request: LLMRequest, artifact_name: str) -> Mapping[str, ob
     return artifact
 
 
+def fake_production_footprint_enabled(request: LLMRequest) -> bool:
+    """Project Constraint가 활성화한 제작 메타데이터 Fixture 여부를 반환한다."""
+    project_constraints = context_artifact(request, "project_constraints")
+    return (
+        project_constraints is not None
+        and production_footprint_enforced(project_constraints)
+    )
+
+
+def fake_scene_production_metadata(request: LLMRequest) -> list[dict[str, object]]:
+    """현재 Character와 Timeline에서 두 Scene의 최소 제작 메타데이터를 만든다."""
+    characters = context_artifact(request, "characters")
+    actual_timeline = context_artifact(request, "actual_timeline")
+    raw_characters = characters.get("characters") if characters is not None else None
+    raw_events = actual_timeline.get("events") if actual_timeline is not None else None
+    character_records = raw_characters if isinstance(raw_characters, list) else []
+    event_records = raw_events if isinstance(raw_events, list) else []
+    character_ids = [
+        str(record["character_id"])
+        for record in character_records
+        if isinstance(record, Mapping) and isinstance(record.get("character_id"), str)
+    ]
+    location_ids = [
+        str(record["location_id"])
+        for record in event_records
+        if isinstance(record, Mapping) and isinstance(record.get("location_id"), str)
+    ]
+    if not character_ids or not location_ids:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Production Footprint Fixture에는 Character와 Timeline Location이 필요합니다.",
+            "scene.design",
+            "scene_cards",
+            {
+                "character_count": len(character_ids),
+                "location_count": len(location_ids),
+            },
+        )
+    scene_locations = [location_ids[0], location_ids[min(1, len(location_ids) - 1)]]
+    cast_ids = sorted(set(character_ids[:2]))
+    return [
+        {
+            "location_id": location_id,
+            "cast_ids": cast_ids,
+            "child_actor_use": "NONE",
+            "vehicle_scene": "NONE",
+            "special_effect_level": "NONE",
+            "graphic_violence": "NONE",
+            "production_complexity": "LOW",
+        }
+        for location_id in scene_locations
+    ]
+
+
 def fake_candidate_evaluation(
     project_id: str,
     variations: Mapping[str, object],
@@ -1009,14 +1069,15 @@ def true_story_character_outputs(
         character_id = f"CHAR-{index:02d}"
         source_subject_id_text = cast(str, source_subject_id)
         subject_to_character[source_subject_id_text] = character_id
-        characters.append(
-            {
-                "character_id": character_id,
-                "name": cast(str, pseudonym),
-                "role": cast(str, source_role),
-                "source_subject_id": source_subject_id_text,
-            }
-        )
+        character: dict[str, object] = {
+            "character_id": character_id,
+            "name": cast(str, pseudonym),
+            "role": cast(str, source_role),
+            "source_subject_id": source_subject_id_text,
+        }
+        if fake_production_footprint_enabled(request):
+            character["production_role"] = "MAJOR"
+        characters.append(character)
         related_fact_ids = raw_subject.get("related_fact_ids")
         if isinstance(related_fact_ids, list):
             for fact_order, fact_id in enumerate(related_fact_ids, 1):
@@ -1399,16 +1460,22 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     "content": knowledge,
                 },
             ]
+        default_characters: list[dict[str, object]] = [
+            {"character_id": "CHAR-01", "name": "지안", "role": "SUSPECT"},
+            {"character_id": "CHAR-02", "name": "태호", "role": "MISSING_COWORKER"},
+        ]
+        if fake_production_footprint_enabled(request):
+            default_characters = [
+                {**character, "production_role": "MAJOR"}
+                for character in default_characters
+            ]
         return [
             {
                 "artifact_name": "characters",
                 "media_type": "application/json",
                 "content": {
                     "project_id": project_id,
-                    "characters": [
-                        {"character_id": "CHAR-01", "name": "지안", "role": "SUSPECT"},
-                        {"character_id": "CHAR-02", "name": "태호", "role": "MISSING_COWORKER"},
-                    ],
+                    "characters": default_characters,
                 },
             },
             {
@@ -1632,30 +1699,37 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
         ]
     if task_id == "scene.design":
         scene_seconds = target_runtime_seconds(metadata) // 2
+        scenes: list[dict[str, object]] = [
+            {
+                "scene_id": "SCN-01",
+                "order": 1,
+                "beat_id": "BEAT-01",
+                "estimated_seconds": scene_seconds,
+                "clue_ids": ["CLUE-01", "CLUE-02"],
+                "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-01"}],
+            },
+            {
+                "scene_id": "SCN-02",
+                "order": 2,
+                "beat_id": "BEAT-02",
+                "estimated_seconds": scene_seconds,
+                "clue_ids": ["CLUE-01", "CLUE-02"],
+                "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-02"}],
+            },
+        ]
+        if fake_production_footprint_enabled(request):
+            metadata_records = fake_scene_production_metadata(request)
+            scenes = [
+                {**scene, **metadata_record}
+                for scene, metadata_record in zip(scenes, metadata_records, strict=True)
+            ]
         return [
             {
                 "artifact_name": "scene_cards",
                 "media_type": "application/json",
                 "content": {
                     "project_id": project_id,
-                    "scenes": [
-                        {
-                            "scene_id": "SCN-01",
-                            "order": 1,
-                            "beat_id": "BEAT-01",
-                            "estimated_seconds": scene_seconds,
-                            "clue_ids": ["CLUE-01", "CLUE-02"],
-                            "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-01"}],
-                        },
-                        {
-                            "scene_id": "SCN-02",
-                            "order": 2,
-                            "beat_id": "BEAT-02",
-                            "estimated_seconds": scene_seconds,
-                            "clue_ids": ["CLUE-01", "CLUE-02"],
-                            "knowledge_claims": [{"character_id": "CHAR-01", "fact_id": "FACT-02"}],
-                        },
-                    ],
+                    "scenes": scenes,
                 },
             },
             {
@@ -1735,11 +1809,31 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             },
         ]
     if task_id == "production.package":
+        shooting_script = "SCN-01 통제실 와이드. SCN-02 이송 설비 클로즈업."
+        if fake_production_footprint_enabled(request):
+            scene_cards = context_artifact(request, "scene_cards")
+            raw_scenes = scene_cards.get("scenes") if scene_cards is not None else None
+            if not isinstance(raw_scenes, list) or not all(
+                isinstance(scene, Mapping) for scene in raw_scenes
+            ):
+                raise RuntimeExecutionError(
+                    "RUNTIME_CONFIGURATION_ERROR",
+                    False,
+                    "TASK",
+                    "Production Package Fixture에는 Scene Card가 필요합니다.",
+                    task_id,
+                    "shooting_script",
+                    {},
+                )
+            shooting_script = "\n".join(
+                f"{production_scene_marker(scene)}\n{scene['scene_id']} 촬영 Cue."
+                for scene in raw_scenes
+            )
         return [
             {
                 "artifact_name": "shooting_script",
                 "media_type": "text/markdown",
-                "content": "SCN-01 통제실 와이드. SCN-02 이송 설비 클로즈업.",
+                "content": shooting_script,
             },
             {
                 "artifact_name": "narration",

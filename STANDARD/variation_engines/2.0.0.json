@@ -3,6 +3,9 @@
   "schema_version": "1.0.0",
   "variation_engine_version": "2.0.0",
   "algorithm_id": "VERSIONED_ELIGIBLE_POOL_V2",
+  "supported_channel_content_versions": {"min_inclusive": "2.0.0", "max_exclusive": "3.0.0"},
+  "supported_catalog_versions": {"min_inclusive": "2.0.0", "max_exclusive": "3.0.0"},
+  "required_capabilities": ["CRIME_PSYCHOLOGY_POLICY"],
   "dimension_order": "LEXICOGRAPHIC",
   "seed_material": "{story_seed}:batch:{batch_nonce}",
   "batch_pipeline": [

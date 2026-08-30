@@ -459,6 +459,95 @@ def test_true_story_evidence_submission_resumes_same_run_through_gate_five(
     assert all(fact in generated_facts for fact in ledger_facts)
 
 
+def test_source_truth_bundle_tamper_fails_before_llm_context(tmp_path: Path) -> None:
+    """Evidence Bundle 변조는 Story LLM이 한 번도 호출되기 전에 차단된다."""
+    repository_root = create_runtime_repository(tmp_path)
+    project_path = create_runtime_project(repository_root, "PRJ-937")
+    config_path = project_path / "00_PROJECT" / "production_config.json"
+    config = load_json_object(config_path)
+    config["story_source_mode"] = "TRUE_STORY"
+    config["source_truth_classification"] = "VERIFIED_TRUE_CASE"
+    write_json_object(config_path, config)
+    manifest_path = project_path / "00_PROJECT" / "project_manifest.json"
+    manifest = load_json_object(manifest_path)
+    manifest["story_source_mode"] = "TRUE_STORY"
+    write_json_object(manifest_path, manifest)
+
+    with pytest.raises(RuntimeExecutionError) as waiting_error:
+        asyncio.run(
+            execute_run(
+                repository_root,
+                project_path,
+                "GATE-00",
+                "GATE-01",
+                "default",
+                None,
+                None,
+            )
+        )
+    assert waiting_error.value.code == "HUMAN_INPUT_REQUIRED"
+    waiting = latest_run(project_path)
+    run_id = waiting["run_id"]
+    tasks = waiting["tasks"]
+    assert isinstance(run_id, str)
+    assert isinstance(tasks, dict)
+    evidence_task = tasks["reference.intake_evidence"]
+    assert isinstance(evidence_task, dict)
+    input_hashes = evidence_task["input_hashes"]
+    assert isinstance(input_hashes, dict)
+    submit_evidence_input(
+        project_path,
+        run_id,
+        evidence_input_document(
+            "PRJ-937",
+            "VERIFIED_TRUE_CASE",
+            input_hashes,
+        ),
+    )
+    completed = asyncio.run(resume_run(repository_root, run_id, None))
+    assert completed["status"] == "COMPLETED"
+
+    claims_path = project_path / "01_CASE" / "claim_evidence.json"
+    claims = load_json_object(claims_path)
+    claim_records = claims["claims"]
+    assert isinstance(claim_records, list)
+    claim = claim_records[0]
+    assert isinstance(claim, dict)
+    claim["evidence_scope"] = "변조된 범위"
+    write_json_object(claims_path, claims)
+    state_path = project_path / "00_PROJECT" / "project_state.json"
+    state = load_json_object(state_path)
+    artifact_states = state["artifacts"]
+    assert isinstance(artifact_states, dict)
+    claim_state = artifact_states["claim_evidence"]
+    assert isinstance(claim_state, dict)
+    claim_state["content_hash"] = sha256(claims_path.read_bytes()).hexdigest()
+    write_json_object(state_path, state)
+
+    call_count = 0
+
+    async def counting_handler(request: LLMRequest) -> LLMResponse:
+        """Story LLM 호출 횟수를 기록한다."""
+        nonlocal call_count
+        call_count += 1
+        return response_with_result(request, agent_result_document(request))
+
+    with pytest.raises(RuntimeExecutionError) as bundle_error:
+        asyncio.run(
+            execute_run(
+                repository_root,
+                project_path,
+                "GATE-02",
+                "GATE-02",
+                "default",
+                None,
+                {"fake": fake_adapter(counting_handler)},
+            )
+        )
+    assert bundle_error.value.code == "SOURCE_TRUTH_BOUND_ARTIFACT_HASH_MISMATCH"
+    assert call_count == 0
+
+
 def test_channel_tamper_fails_before_any_llm_call(tmp_path: Path) -> None:
     """GATE-00 뒤 Channel DNA 변조는 다음 실행의 첫 LLM 호출 전에 차단한다."""
     repository_root = create_runtime_repository(tmp_path)

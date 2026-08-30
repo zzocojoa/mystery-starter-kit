@@ -38,6 +38,7 @@ def legacy_pool_inputs() -> tuple[
     """v1.1 Pool 생성에 필요한 고정 입력을 반환한다."""
     config: dict[str, object] = {
         "project_id": "PRJ-991",
+        "channel_id": "MYSTERY_MAIN",
         "channel_content_version": "1.1.0",
         "variation_engine_version": "1.0.0",
         "variation_catalog_version": "1.0.0",
@@ -86,8 +87,14 @@ def test_novelty_failed_first_batch_retries_until_pool_is_eligible(
         del production_config, project_constraints, channel_document, novelty
         return candidate_results(candidates, "PASS")
 
-    monkeypatch.setattr("VALIDATORS.variation.evaluate_variation_precheck", novelty_report)
-    monkeypatch.setattr("VALIDATORS.variation.build_candidate_eligibility", eligibility_report)
+    monkeypatch.setattr(
+        "VALIDATORS.variation_engines.common.evaluate_variation_precheck",
+        novelty_report,
+    )
+    monkeypatch.setattr(
+        "VALIDATORS.variation_engines.common.build_candidate_eligibility",
+        eligibility_report,
+    )
 
     result = generate_eligible_candidate_pool(
         "PRJ-991",
@@ -144,7 +151,10 @@ def test_eligible_pool_exhaustion_fails_explicitly(
         del history, thresholds
         return candidate_results(candidates, "FAIL")
 
-    monkeypatch.setattr("VALIDATORS.variation.evaluate_variation_precheck", failed_report)
+    monkeypatch.setattr(
+        "VALIDATORS.variation_engines.common.evaluate_variation_precheck",
+        failed_report,
+    )
 
     with pytest.raises(ConfigurationError, match="ELIGIBLE_CANDIDATE_POOL_EXHAUSTED"):
         generate_eligible_candidate_pool(
@@ -207,9 +217,18 @@ def test_partial_pool_retry_preserves_a_complete_batch_trace(
         del production_config, project_constraints, channel_document, novelty
         return candidate_results(candidates, "PASS")
 
-    monkeypatch.setattr("VALIDATORS.variation.evaluate_variation_precheck", novelty_report)
-    monkeypatch.setattr("VALIDATORS.variation.build_candidate_eligibility", eligibility_report)
-    monkeypatch.setattr("VALIDATORS.variation.selection_similarity", lambda left, right: 0.0)
+    monkeypatch.setattr(
+        "VALIDATORS.variation_engines.common.evaluate_variation_precheck",
+        novelty_report,
+    )
+    monkeypatch.setattr(
+        "VALIDATORS.variation_engines.common.build_candidate_eligibility",
+        eligibility_report,
+    )
+    monkeypatch.setattr(
+        "VALIDATORS.variation_engines.common.selection_similarity",
+        lambda left, right: 0.0,
+    )
 
     result = generate_eligible_candidate_pool(
         "PRJ-991",

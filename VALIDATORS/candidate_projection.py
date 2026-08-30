@@ -2,6 +2,7 @@
 
 from collections.abc import Mapping
 
+from VALIDATORS.compatibility import parse_semantic_version
 from VALIDATORS.models import ValidationIssue
 
 
@@ -173,7 +174,12 @@ def validate_approved_candidate_projection(
             )
             continue
         classification = definition.get("classification")
-        if field == "genre" and production_config.get("variation_engine_version") == "2.0.0":
+        engine_version = production_config.get("variation_engine_version")
+        if (
+            field == "genre"
+            and isinstance(engine_version, str)
+            and parse_semantic_version(engine_version) >= (2, 0, 0)
+        ):
             if expected != production_config.get("genre"):
                 issues.append(
                     projection_issue(

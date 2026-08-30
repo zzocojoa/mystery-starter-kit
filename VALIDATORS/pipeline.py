@@ -48,6 +48,10 @@ from VALIDATORS.presentation_validation import (
     validate_production_presentation,
     validate_script_integrity_v2,
 )
+from VALIDATORS.production_footprint import (
+    validate_final_production_footprint,
+    validate_production_footprint,
+)
 from VALIDATORS.project_constraints import project_constraint_compiler_issues
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
@@ -809,6 +813,7 @@ def run_production_validation(
     beat_sheet = artifact_document(artifacts, "beat_sheet")
     retention_plan = artifact_document(artifacts, "retention_plan")
     scene_cards = artifact_document(artifacts, "scene_cards")
+    production_footprint = optional_artifact_document(artifacts, "production_footprint")
     panel_cast = artifact_document(artifacts, "panel_cast")
     reaction_segments = artifact_document(artifacts, "reaction_segments")
     presentation_plan = artifact_document(artifacts, "presentation_plan")
@@ -822,9 +827,24 @@ def run_production_validation(
     draft_script = artifact_text(artifacts, "draft_script")
     final_script = artifact_text(artifacts, "final_script")
     editorial_review = artifact_document(artifacts, "editorial_review")
+    production_manifest = optional_artifact_document(artifacts, "production_manifest")
     project_id = production_config.get("project_id")
     if not isinstance(project_id, str):
         raise ConfigurationError("production_config.project_id 문자열이 필요합니다.")
+    source_truth_bundle_issues = (
+        validate_source_truth_contract_integrity(
+            source_truth_contract,
+            sources,
+            claim_evidence,
+            verified_fact_ledger,
+            source_subjects,
+            verified_event_ledger,
+        )
+        if source_truth_requires_evidence(
+            production_config.get("source_truth_classification")
+        )
+        else []
+    )
     gate_00 = [
         *validate_compatibility_gate(compatibility),
         *validate_compatibility_binding_current(
@@ -902,14 +922,7 @@ def run_production_validation(
         ),
     ]
     if source_truth_requires_evidence(production_config.get("source_truth_classification")):
-        gate_01.extend(
-            validate_source_truth_contract_integrity(
-                source_truth_contract,
-                source_subjects,
-                verified_event_ledger,
-                claim_evidence,
-            )
-        )
+        gate_01.extend(source_truth_bundle_issues)
     gate_02 = [
         *schema_issues(story_document, story_schema, "00_PROJECT/story_dna.json"),
         *validate_story_dna_semantics(story_document, reference_policy),
@@ -965,6 +978,7 @@ def run_production_validation(
         ),
     ]
     if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+        gate_03.extend(source_truth_bundle_issues)
         gate_03.extend(nonempty_list_issues(sources, "sources", "01_CASE/sources.json"))
         gate_03.extend(
             nonempty_list_issues(
@@ -1020,6 +1034,7 @@ def run_production_validation(
         ),
     ]
     if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+        gate_04.extend(source_truth_bundle_issues)
         gate_04.extend(
             validate_source_subject_mapping(
                 source_subjects,
@@ -1077,6 +1092,7 @@ def run_production_validation(
         ),
     ]
     if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+        gate_05.extend(source_truth_bundle_issues)
         gate_05.extend(
             validate_truth_events(
                 source_truth_contract,
@@ -1133,6 +1149,14 @@ def run_production_validation(
             clue_matrix,
             channel,
             production_config,
+        ),
+        *validate_production_footprint(
+            project_constraints,
+            production_footprint,
+            scene_cards,
+            characters,
+            actual_timeline,
+            variation_candidates,
         ),
     ]
     gate_08 = [
@@ -1260,6 +1284,16 @@ def run_production_validation(
             editorial_review,
             presentation_plan,
             panel_reaction_script,
+        ),
+        *validate_final_production_footprint(
+            project_constraints,
+            production_footprint,
+            production_manifest,
+            scene_cards,
+            characters,
+            actual_timeline,
+            variation_candidates,
+            artifact_text(artifacts, "shooting_script"),
         ),
     ]
     gate_groups = (

@@ -20,6 +20,7 @@ def presentation_schemas() -> dict[str, dict[str, object]]:
     runtime = resolve_variation_runtime(
         ROOT,
         {
+            "channel_id": "MYSTERY_MAIN",
             "channel_content_version": "1.1.0",
             "variation_engine_version": "1.0.0",
             "variation_catalog_version": "1.0.0",

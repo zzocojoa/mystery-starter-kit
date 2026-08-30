@@ -48,6 +48,40 @@ def test_story_dna_change_invalidates_all_downstream_artifacts() -> None:
     assert state["artifacts"]["story_dna"]["status"] == "MISSING"
 
 
+def test_scene_change_invalidates_footprint_and_production_manifest() -> None:
+    """Scene Card 변경은 CORE Footprint와 최종 Manifest를 모두 무효화한다."""
+    graph = load_json_object(GRAPH_PATH)
+    state = build_initial_project_state(graph, "PRJ-001", "2026-08-25T00:00:00Z")
+
+    changed = invalidate_artifact_dependents(
+        graph,
+        state,
+        "scene_cards",
+        artifact_hash(b"changed-scenes"),
+        "2026-08-25T00:01:00Z",
+    )
+
+    assert changed["artifacts"]["production_footprint"]["status"] == "DIRTY"
+    assert changed["artifacts"]["production_manifest"]["status"] == "DIRTY"
+
+
+def test_evidence_change_invalidates_truth_contract_and_candidate_approval() -> None:
+    """Evidence 변경은 Truth Contract와 그 이후 Human Candidate 승인을 무효화한다."""
+    graph = load_json_object(GRAPH_PATH)
+    state = build_initial_project_state(graph, "PRJ-001", "2026-08-25T00:00:00Z")
+
+    changed = invalidate_artifact_dependents(
+        graph,
+        state,
+        "claim_evidence",
+        artifact_hash(b"changed-claims"),
+        "2026-08-25T00:01:00Z",
+    )
+
+    assert changed["artifacts"]["source_truth_contract"]["status"] == "DIRTY"
+    assert changed["artifacts"]["candidate_approval"]["status"] == "DIRTY"
+
+
 def test_v2_disabled_optional_capability_does_not_require_artifact() -> None:
     """v2 버전만으로 비활성 Optional Capability Artifact를 강제하지 않는다."""
     definition = {
@@ -108,3 +142,23 @@ def test_fact_based_condition_uses_truth_classification_not_source_mode() -> Non
             "source_truth_classification": source_truth,
         }
         assert requirement_matches(predicate, config, channel, {})
+
+
+def test_production_footprint_requirement_is_explicitly_opt_in() -> None:
+    """Production Footprint는 Project Constraint가 true일 때만 필수다."""
+    predicate = {"production_footprint_enforced": True}
+    channel: dict[str, object] = {"capabilities": {}}
+    config: dict[str, object] = {}
+    disabled = {
+        "project_constraints": {
+            "production_limits": {"enforce_final_footprint": False}
+        }
+    }
+    enabled = {
+        "project_constraints": {
+            "production_limits": {"enforce_final_footprint": True}
+        }
+    }
+
+    assert not requirement_matches(predicate, config, channel, disabled)
+    assert requirement_matches(predicate, config, channel, enabled)

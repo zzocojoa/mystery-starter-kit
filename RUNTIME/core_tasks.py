@@ -2,8 +2,9 @@
 
 from collections.abc import Mapping
 from pathlib import Path
+from typing import cast
 
-from RUNTIME.errors import RuntimeExecutionError
+from RUNTIME.errors import RuntimeErrorCode, RuntimeExecutionError
 from RUNTIME.event_store import load_run, utc_now
 from RUNTIME.gate_control import validation_report_through
 from RUNTIME.human_inputs import current_evidence_input, evidence_artifact_outputs
@@ -26,7 +27,7 @@ from VALIDATORS.compatibility import (
     make_project_compatibility_report,
 )
 from VALIDATORS.continuity import validate_continuity
-from VALIDATORS.exceptions import StoryLibraryError
+from VALIDATORS.exceptions import ConfigurationError, StoryLibraryError
 from VALIDATORS.io import load_json_object
 from VALIDATORS.library import novelty_history
 from VALIDATORS.novelty import (
@@ -35,6 +36,10 @@ from VALIDATORS.novelty import (
     evaluate_variation_precheck,
 )
 from VALIDATORS.pipeline import ArtifactContent, load_existing_project_artifacts
+from VALIDATORS.production_footprint import (
+    build_production_footprint,
+    production_manifest_from_scene_cards,
+)
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
     sanitize_reference_profile,
@@ -46,6 +51,25 @@ from VALIDATORS.variation import (
     generate_eligible_candidate_pool,
 )
 from VALIDATORS.variation_registry import resolve_variation_runtime
+
+
+def production_configuration_error(
+    error: ConfigurationError,
+    task_id: str,
+    artifact_name: str,
+) -> RuntimeExecutionError:
+    """Production Footprint 구성 오류를 Runtime 오류로 변환한다."""
+    message = str(error)
+    code = message.split(":", maxsplit=1)[0]
+    return RuntimeExecutionError(
+        cast(RuntimeErrorCode, code),
+        False,
+        "TASK",
+        message,
+        task_id,
+        artifact_name,
+        {},
+    )
 
 
 def combined_artifacts(
@@ -139,6 +163,7 @@ def runtime_validation_inputs(
     default_variation_runtime = resolve_variation_runtime(
         repository_root,
         {
+            "channel_id": "MYSTERY_MAIN",
             "channel_content_version": "1.1.0",
             "variation_engine_version": "1.0.0",
             "variation_catalog_version": "1.0.0",
@@ -783,6 +808,38 @@ def core_task_outputs(
                 mapping_artifact(artifacts, "characters"),
             )
         }
+    if task_id == "scene.compute_production_footprint":
+        try:
+            footprint = build_production_footprint(
+                project_id,
+                mapping_artifact(artifacts, "scene_cards"),
+                mapping_artifact(artifacts, "characters"),
+                mapping_artifact(artifacts, "actual_timeline"),
+            )
+        except ConfigurationError as error:
+            raise production_configuration_error(
+                error,
+                task_id,
+                "production_footprint",
+            ) from error
+        return {"production_footprint": footprint}
+    if task_id == "production.build_manifest":
+        text_artifact(artifacts, "shooting_script")
+        try:
+            manifest = production_manifest_from_scene_cards(
+                project_id,
+                mapping_artifact(artifacts, "production_footprint"),
+                mapping_artifact(artifacts, "scene_cards"),
+                mapping_artifact(artifacts, "characters"),
+                mapping_artifact(artifacts, "actual_timeline"),
+            )
+        except ConfigurationError as error:
+            raise production_configuration_error(
+                error,
+                task_id,
+                "production_manifest",
+            ) from error
+        return {"production_manifest": manifest}
     if task_id == "continuity.deterministic":
         report = validate_continuity(
             production_config,

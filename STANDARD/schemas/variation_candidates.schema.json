@@ -11,6 +11,7 @@
     "variation_catalog_version",
     "catalog_sha256",
     "algorithm_sha256",
+    "implementation_sha256",
     "candidate_count",
     "candidates",
     "batch_trace",
@@ -24,6 +25,7 @@
     "variation_catalog_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
     "catalog_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "algorithm_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "implementation_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "candidate_count": {"type": "integer", "minimum": 3},
     "candidates": {
       "type": "array",
@@ -39,6 +41,7 @@
           "variation_catalog_version",
           "catalog_sha256",
           "algorithm_sha256",
+          "implementation_sha256",
           "selection",
           "signature",
           "selection_status"
@@ -51,6 +54,7 @@
           "variation_catalog_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
           "catalog_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
           "algorithm_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "implementation_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
           "selection": {
             "type": "object",
             "minProperties": 10,

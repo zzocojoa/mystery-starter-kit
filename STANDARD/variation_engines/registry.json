@@ -5,12 +5,28 @@
     "1.0.0": {
       "algorithm_id": "LEGACY_MULTI_AXIS_V1",
       "path": "STANDARD/variation_engines/1.0.0.json",
-      "algorithm_sha256": "0b95228bbb7570b55889c4a8d5c67c537cb8ef564da81a8de3ca57a551fb9989"
+      "algorithm_sha256": "6b00bbc34600ec42f96db1e633386c14277dde3ac78313a5e340ee5e874907b7",
+      "implementation": {
+        "entrypoint": "VALIDATORS.variation_engines.v1_0_0:generate_eligible_candidate_pool",
+        "files": [
+          "VALIDATORS/variation_engines/v1_0_0.py",
+          "VALIDATORS/variation_engines/common.py"
+        ],
+        "implementation_sha256": "26d874db717c5ed1b05ae8e4054f694d89e57b106a34194d2d628453a0c0870d"
+      }
     },
     "2.0.0": {
       "algorithm_id": "VERSIONED_ELIGIBLE_POOL_V2",
       "path": "STANDARD/variation_engines/2.0.0.json",
-      "algorithm_sha256": "36c8769c525fd4ad549627f500520167f717c2837444efcf95380ebad9c78db7"
+      "algorithm_sha256": "b2a7c311525313c8f1505167c5db75a8f00451f9db45c37b9caae34c4b81b270",
+      "implementation": {
+        "entrypoint": "VALIDATORS.variation_engines.v2_0_0:generate_eligible_candidate_pool",
+        "files": [
+          "VALIDATORS/variation_engines/v2_0_0.py",
+          "VALIDATORS/variation_engines/common.py"
+        ],
+        "implementation_sha256": "effc56c6063bdf5ca7a4a91d08ee9de41101a9dc7f3303168a73ef72f0aeeed9"
+      }
     }
   }
 }

@@ -92,4 +92,13 @@ def requirement_matches(
         if not isinstance(value, str):
             raise ConfigurationError("artifact_exists는 문자열이어야 합니다.")
         return value in artifacts
+    if operator == "production_footprint_enforced":
+        if value is not True:
+            raise ConfigurationError("production_footprint_enforced는 true여야 합니다.")
+        constraints = artifacts.get("project_constraints")
+        limits = constraints.get("production_limits") if isinstance(constraints, Mapping) else None
+        return (
+            isinstance(limits, Mapping)
+            and limits.get("enforce_final_footprint") is True
+        )
     raise ConfigurationError(f"알 수 없는 Requirement Operator입니다: operator={operator!r}")

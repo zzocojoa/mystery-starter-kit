@@ -1,6 +1,6 @@
 # Mystery Starter Kit
 
-- Package: `1.4.0`
+- Package: `1.5.0`
 - Production Standard: `1.3.3`
 - Active Channel Content: `1.1.0`
 
@@ -69,6 +69,8 @@ Continuity Critic의 `editorial_review.json`이 PASS여도 이는 기술적 Edit
 
 Presentation Contract v2.1은 `panel_cast.json`, `reaction_segments.json`, Drama/Narration/Panel Reaction Layer Script를 별도 Artifact로 유지한다. Reaction Segment의 `turns[]`는 각 패널 발화별 화자·기능·Clue·Fact·Tone을 보존하며 Validator는 모든 Turn을 대본 순서와 대조한다. `draft_v01.md`와 `final_script.md`는 모든 Segment를 방송 순서대로 한 번씩 포함하고, Edit Script는 계획된 절대 Timecode를 보존한다. Panel Reaction 비율은 Segment `duration_sec` 합으로 계산한다.
 
+`project_constraints.production_limits.enforce_final_footprint`가 켜진 Project에서는 Scene Card가 장소·배우·아역·차량·특수효과·폭력·제작 복잡도를 선언한다. `scene.compute_production_footprint` CORE Task가 GATE-07에서 Character와 Actual Timeline을 대조해 합계를 계산하며, GATE-13은 CORE Production Manifest와 Shooting Script의 정규 Scene Marker를 대조한다. 기존 v1.1 Project의 기본값은 `false`다.
+
 ## Runtime Core Flow
 
 Built-in `fake` Adapter는 외부 서비스를 호출하지 않는 결정론적 Test Double이다. `mystery-runtime`의 14개 Gate, Staging, Schema 검증, 원자 Commit, Provenance를 로컬과 CI에서 재현하지만 실제 Story·Character·Script를 제작하는 용도가 아니다.
@@ -101,7 +103,7 @@ Built-in `fake` Adapter는 외부 서비스를 호출하지 않는 결정론적 
 .venv/bin/mystery-runtime resume RUN-...
 ```
 
-제출 시 Evidence 문서의 `bound_input_hashes`를 대기 중 Task의 현재 입력 Hash와 대조한다. 일치한 입력만 같은 Run에서 재개되며, 입력 Artifact가 바뀌면 기존 Human Input은 무효다. GATE-03의 `sources.json`, `claim_evidence.json`, 조건부 `source_disclosure.json`·`clinical_labels.json`, Project State와 Change Log는 하나의 Write-ahead Transaction으로 Commit한다.
+제출 시 Evidence 문서의 `bound_input_hashes`를 대기 중 Task의 현재 입력 Hash와 대조한다. 일치한 입력만 같은 Run에서 재개되며, 입력 Artifact가 바뀌면 기존 Human Input은 무효다. GATE-01의 Evidence Artifact 묶음과 Source Truth Contract는 하나의 Write-ahead Transaction으로 Commit한다. Contract는 Sources, Claim Evidence, Verified Fact Ledger, Source Subjects, Verified Event Ledger의 Canonical SHA-256과 전체 Bundle Hash를 보존하며 GATE-01·03·04·05, Audit, 모든 LLM Context 구성 직전에 다시 검증된다.
 
 Runtime 종료 코드는 성공 `0`, Runtime·입력·구성 오류 `2`다. Gate 또는 Provider 실패는 구조화 오류로 `run.json`과 `events.jsonl`에 남고 Canonical Artifact는 마지막 통과 Gate 상태를 유지한다.
 
@@ -128,7 +130,7 @@ Reference 기반 Project는 후보 생성 전에 원문 JSON을 Project 밖에 �
 .venv/bin/mystery-kit reference-profile PROJECTS/PRJ-002 /secure/reference-source.json
 ```
 
-`compat`는 `production_config.channel_content_version`을 `channel_manifest.json`에서 해석하고 Channel ID, Schema/Content Version, DNA SHA-256이 포함된 Compatibility Report를 만든 뒤 `GATE-00`을 통과시킨다. 활성 Channel이 바뀌어도 기존 Project는 생성 당시 버전을 유지한다. Compatibility와 `GATE-00`이 모두 PASS가 아니면 `variations`는 실행되지 않는다.
+`compat`는 `production_config.channel_content_version`을 `channel_manifest.json`에서 해석하고 Channel ID, Schema/Content Version, DNA SHA-256이 포함된 Compatibility Report를 만든 뒤 `GATE-00`을 통과시킨다. 활성 Channel이 바뀌어도 기존 Project는 생성 당시 버전을 유지한다. Variation Runtime은 Project가 Pin한 Engine·Catalog를 SemVer 호환 범위와 Capability로 해석한 뒤 Versioned Catalog Snapshot과 실제 Python 구현 Aggregate Hash를 검증하고 Entrypoint를 로드한다. 루트 Catalog는 Authoring Source일 뿐 Runtime 대상이 아니다. Compatibility와 `GATE-00`이 모두 PASS가 아니면 `variations`는 실행되지 않는다.
 
 사용자가 주인공·사건 같은 일부 설정을 제공하는 경우 `production_config.json`의 `story_source_mode`를 `USER_CASE`로 설정하고 각 `user_case_constraints`를 `LOCKED`, `FLEXIBLE`, `UNKNOWN`으로 선언한다. `LOCKED` 값은 Variation과 Story DNA에서 변경할 수 없다.
 
@@ -155,6 +157,7 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 - `CHANNELS/`: 활성/사용 가능 Content Version Registry와 독립 Version Channel DNA
 - `AGENTS/`: 10개 Agent Prompt와 계약 Manifest
 - `TEMPLATES/PROJECT/`: `00_PROJECT`~`09_PRODUCTION` Scaffold
+- `TEMPLATES/PROJECT_V2/`: 아직 활성화하지 않은 v2 Scaffold Override, 최종 Footprint 기본값 `true`
 - `VALIDATORS/`: CLI, 상태 머신, Pipeline과 QA Engine
 - `RUNTIME/`: Provider 독립 실행 엔진, 계약, Schema, Adapter, 보안 경계
 - `RUNTIME_ADAPTERS/`: [선택적 In-process·Sidecar Provider 확장 Interface 가이드](RUNTIME_ADAPTERS/README.md)

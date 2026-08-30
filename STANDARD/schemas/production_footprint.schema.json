@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/production-footprint-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "status",
+    "actual_location_count",
+    "actual_major_character_count",
+    "actual_child_actor_use",
+    "actual_vehicle_scene",
+    "actual_special_effect_level",
+    "actual_graphic_violence",
+    "actual_production_complexity",
+    "source_scene_ids",
+    "source_artifact_hashes"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "production-footprint"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "status": {"const": "PLANNED"},
+    "actual_location_count": {"type": "integer", "minimum": 1},
+    "actual_major_character_count": {"type": "integer", "minimum": 1},
+    "actual_child_actor_use": {"enum": ["NONE", "SUPPORTING", "PRIMARY"]},
+    "actual_vehicle_scene": {"enum": ["NONE", "STATIC", "MOVING"]},
+    "actual_special_effect_level": {"enum": ["NONE", "LOW", "MEDIUM", "HIGH"]},
+    "actual_graphic_violence": {"enum": ["NONE", "IMPLIED", "NON_GRAPHIC", "GRAPHIC"]},
+    "actual_production_complexity": {"enum": ["LOW", "MEDIUM", "HIGH", "EXTREME"]},
+    "source_scene_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^SCN-[0-9]{2,}$"}
+    },
+    "source_artifact_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scene_cards", "characters", "actual_timeline"],
+      "properties": {
+        "scene_cards": {"$ref": "#/$defs/hash"},
+        "characters": {"$ref": "#/$defs/hash"},
+        "actual_timeline": {"$ref": "#/$defs/hash"}
+      }
+    }
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

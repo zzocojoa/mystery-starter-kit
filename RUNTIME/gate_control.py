@@ -52,6 +52,10 @@ from VALIDATORS.presentation_validation import (
     validate_production_presentation,
     validate_script_integrity_v2,
 )
+from VALIDATORS.production_footprint import (
+    validate_final_production_footprint,
+    validate_production_footprint,
+)
 from VALIDATORS.project_constraints import project_constraint_compiler_issues
 from VALIDATORS.reference_validation import build_story_element_profile
 from VALIDATORS.source_truth import source_truth_requires_evidence
@@ -69,6 +73,20 @@ from VALIDATORS.story_validation import (
     validate_user_case_constraints,
 )
 from VALIDATORS.variation_registry import variation_runtime_binding_issues
+
+
+def source_truth_bundle_issues(
+    artifacts: Mapping[str, ArtifactContent],
+) -> list[ValidationIssue]:
+    """현재 Artifact 집합의 Source Truth Bundle 결속을 검증한다."""
+    return validate_source_truth_contract_integrity(
+        optional_artifact_document(artifacts, "source_truth_contract"),
+        optional_artifact_document(artifacts, "sources"),
+        optional_artifact_document(artifacts, "claim_evidence"),
+        optional_artifact_document(artifacts, "verified_fact_ledger"),
+        optional_artifact_document(artifacts, "source_subjects"),
+        optional_artifact_document(artifacts, "verified_event_ledger"),
+    )
 
 
 def script_nonempty_issues(artifacts: Mapping[str, ArtifactContent]) -> list[ValidationIssue]:
@@ -201,14 +219,7 @@ def validate_gate(
             ),
         ]
         if source_truth_requires_evidence(production_config.get("source_truth_classification")):
-            issues.extend(
-                validate_source_truth_contract_integrity(
-                    artifact_document(artifacts, "source_truth_contract"),
-                    artifact_document(artifacts, "source_subjects"),
-                    artifact_document(artifacts, "verified_event_ledger"),
-                    artifact_document(artifacts, "claim_evidence"),
-                )
-            )
+            issues.extend(source_truth_bundle_issues(artifacts))
         return issues
     if gate_id == "GATE-02":
         manifest = artifact_document(artifacts, "project_manifest")
@@ -275,6 +286,7 @@ def validate_gate(
         ]
         source_truth = production_config.get("source_truth_classification")
         if source_truth_requires_evidence(source_truth):
+            issues.extend(source_truth_bundle_issues(artifacts))
             issues.extend(nonempty_list_issues(sources, "sources", "01_CASE/sources.json"))
             issues.extend(nonempty_list_issues(claims, "claims", "01_CASE/claim_evidence.json"))
             issues.extend(
@@ -325,6 +337,7 @@ def validate_gate(
             ),
         ]
         if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+            issues.extend(source_truth_bundle_issues(artifacts))
             source_subjects = artifact_document(artifacts, "source_subjects")
             issues.extend(
                 validate_source_subject_mapping(
@@ -377,6 +390,7 @@ def validate_gate(
             ),
         ]
         if source_truth_requires_evidence(production_config.get("source_truth_classification")):
+            issues.extend(source_truth_bundle_issues(artifacts))
             issues.extend(
                 validate_truth_events(
                     artifact_document(artifacts, "source_truth_contract"),
@@ -432,6 +446,14 @@ def validate_gate(
                 clues,
                 channel,
                 production_config,
+            ),
+            *validate_production_footprint(
+                artifact_document(artifacts, "project_constraints"),
+                optional_artifact_document(artifacts, "production_footprint"),
+                scenes,
+                characters,
+                actual,
+                artifact_document(artifacts, "variation_candidates"),
             ),
         ]
     if gate_id == "GATE-08":
@@ -613,6 +635,16 @@ def validate_gate(
                 artifact_document(artifacts, "editorial_review"),
                 presentation,
                 artifact_text(artifacts, "panel_reaction_script"),
+            ),
+            *validate_final_production_footprint(
+                artifact_document(artifacts, "project_constraints"),
+                optional_artifact_document(artifacts, "production_footprint"),
+                optional_artifact_document(artifacts, "production_manifest"),
+                scenes,
+                characters,
+                actual,
+                artifact_document(artifacts, "variation_candidates"),
+                artifact_text(artifacts, "shooting_script"),
             ),
         ]
     raise ValueError(f"알 수 없는 Gate입니다: {gate_id}")

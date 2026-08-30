@@ -156,7 +156,7 @@
     "sourceTruthContract": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["project_id", "source_truth_classification", "locked_dimensions", "verified_subject_ids", "verified_event_ids", "verified_relationships", "verified_incident_type", "verified_setting", "verified_responsible_agent_structure", "verified_legal_outcome", "flexible_dimensions", "unknown_dimensions", "source_claim_ids", "contract_sha256"],
+      "required": ["project_id", "source_truth_classification", "locked_dimensions", "verified_subject_ids", "verified_event_ids", "verified_relationships", "verified_incident_type", "verified_setting", "verified_responsible_agent_structure", "verified_legal_outcome", "flexible_dimensions", "unknown_dimensions", "source_claim_ids", "bound_artifact_hashes", "evidence_bundle_sha256", "contract_sha256"],
       "properties": {
         "project_id": {"$ref": "#/$defs/projectId"},
         "source_truth_classification": {"enum": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]},
@@ -184,6 +184,19 @@
         "flexible_dimensions": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/nonEmptyString"}},
         "unknown_dimensions": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/nonEmptyString"}},
         "source_claim_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/canonicalId"}},
+        "bound_artifact_hashes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sources", "claim_evidence", "verified_fact_ledger", "source_subjects", "verified_event_ledger"],
+          "properties": {
+            "sources": {"$ref": "#/$defs/hash"},
+            "claim_evidence": {"$ref": "#/$defs/hash"},
+            "verified_fact_ledger": {"$ref": "#/$defs/hash"},
+            "source_subjects": {"$ref": "#/$defs/hash"},
+            "verified_event_ledger": {"$ref": "#/$defs/hash"}
+          }
+        },
+        "evidence_bundle_sha256": {"$ref": "#/$defs/hash"},
         "contract_sha256": {"$ref": "#/$defs/hash"}
       }
     },
@@ -224,7 +237,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "characters"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "characters": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["character_id", "name", "role"], "properties": {"character_id": {"$ref": "#/$defs/canonicalId"}, "name": {"$ref": "#/$defs/nonEmptyString"}, "role": {"$ref": "#/$defs/nonEmptyString"}, "source_subject_id": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"}, "goal": {"type": "string"}, "secret": {"type": "string"}}}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "characters": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["character_id", "name", "role"], "properties": {"character_id": {"$ref": "#/$defs/canonicalId"}, "name": {"$ref": "#/$defs/nonEmptyString"}, "role": {"$ref": "#/$defs/nonEmptyString"}, "production_role": {"enum": ["MAJOR", "SUPPORTING", "BACKGROUND"]}, "source_subject_id": {"type": "string", "pattern": "^SUBJECT-[0-9]{2,}$"}, "goal": {"type": "string"}, "secret": {"type": "string"}}}}}
     },
     "relationships": {
       "type": "object",
@@ -284,7 +297,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "scenes"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "scenes": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["scene_id", "order", "beat_id", "estimated_seconds", "clue_ids", "knowledge_claims"], "properties": {"scene_id": {"$ref": "#/$defs/canonicalId"}, "order": {"type": "integer", "minimum": 1}, "beat_id": {"$ref": "#/$defs/canonicalId"}, "estimated_seconds": {"type": "number", "exclusiveMinimum": 0}, "clue_ids": {"$ref": "#/$defs/stringList"}, "knowledge_claims": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["character_id", "fact_id"], "properties": {"character_id": {"$ref": "#/$defs/canonicalId"}, "fact_id": {"$ref": "#/$defs/canonicalId"}}}}, "summary": {"type": "string"}}}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "scenes": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["scene_id", "order", "beat_id", "estimated_seconds", "clue_ids", "knowledge_claims"], "properties": {"scene_id": {"$ref": "#/$defs/canonicalId"}, "order": {"type": "integer", "minimum": 1}, "beat_id": {"$ref": "#/$defs/canonicalId"}, "estimated_seconds": {"type": "number", "exclusiveMinimum": 0}, "clue_ids": {"$ref": "#/$defs/stringList"}, "knowledge_claims": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["character_id", "fact_id"], "properties": {"character_id": {"$ref": "#/$defs/canonicalId"}, "fact_id": {"$ref": "#/$defs/canonicalId"}}}}, "location_id": {"type": "string", "minLength": 1}, "cast_ids": {"$ref": "#/$defs/stringList"}, "child_actor_use": {"enum": ["NONE", "SUPPORTING", "PRIMARY"]}, "vehicle_scene": {"enum": ["NONE", "STATIC", "MOVING"]}, "special_effect_level": {"enum": ["NONE", "LOW", "MEDIUM", "HIGH"]}, "graphic_violence": {"enum": ["NONE", "IMPLIED", "NON_GRAPHIC", "GRAPHIC"]}, "production_complexity": {"enum": ["LOW", "MEDIUM", "HIGH", "EXTREME"]}, "summary": {"type": "string"}}}}}
     },
     "presentationPlan": {
       "type": "object",

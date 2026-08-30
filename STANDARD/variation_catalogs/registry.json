@@ -1,14 +1,24 @@
 {
   "schema_family": "variation-catalog-registry",
   "schema_version": "1.0.0",
+  "root_catalog": {
+    "path": "STANDARD/variation_catalog.json",
+    "role": "AUTHORING_SOURCE"
+  },
   "catalogs": {
     "1.0.0": {
       "path": "STANDARD/variation_catalogs/1.0.0.json",
-      "catalog_sha256": "15bcea47a9b60ab00b1e43f68143a8da2d693ce1cbfdc59461a90cba787fba80"
+      "catalog_sha256": "15bcea47a9b60ab00b1e43f68143a8da2d693ce1cbfdc59461a90cba787fba80",
+      "supported_channel_content_versions": {"min_inclusive": "1.0.0", "max_exclusive": "2.0.0"},
+      "supported_engine_versions": {"min_inclusive": "1.0.0", "max_exclusive": "2.0.0"},
+      "required_capabilities": []
     },
     "2.0.0": {
-      "path": "STANDARD/variation_catalog.json",
-      "catalog_sha256": "4eb259f3508d515fd73f97c85c8e9999e2a05387622316436be6374e420e2e89"
+      "path": "STANDARD/variation_catalogs/2.0.0.json",
+      "catalog_sha256": "4eb259f3508d515fd73f97c85c8e9999e2a05387622316436be6374e420e2e89",
+      "supported_channel_content_versions": {"min_inclusive": "2.0.0", "max_exclusive": "3.0.0"},
+      "supported_engine_versions": {"min_inclusive": "2.0.0", "max_exclusive": "3.0.0"},
+      "required_capabilities": ["CRIME_PSYCHOLOGY_POLICY"]
     }
   }
 }

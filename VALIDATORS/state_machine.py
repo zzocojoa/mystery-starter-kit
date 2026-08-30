@@ -88,6 +88,7 @@ GATES: tuple[GateDefinition, ...] = (
         "gate_id": "GATE-07",
         "required_artifacts": (
             "scene_cards",
+            "production_footprint",
             "panel_cast",
             "reaction_segments",
             "expert_segments",
@@ -131,6 +132,7 @@ GATES: tuple[GateDefinition, ...] = (
         "gate_id": "GATE-13",
         "required_artifacts": (
             "shooting_script",
+            "production_manifest",
             "narration",
             "production_panel_reaction_script",
             "production_expert_analysis_script",

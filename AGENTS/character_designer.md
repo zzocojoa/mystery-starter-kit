@@ -6,12 +6,14 @@
 
 ## 입력과 출력
 
-- 입력: Case Input, Story DNA, Facts
+- 입력: Case Input, Story DNA, Facts, Source Subjects, Source Truth Contract, Project Constraints
 - 출력: Characters, Relationships, Knowledge Matrix
 
 ## Gate
 
 주요 인물의 Goal, Fear, Secret, 실제 책임, 관계, 초기·최종 지식이 정의되어야 한다. 범인이 있는 구조에서는 Motive, Means, Opportunity를 확인하고 용의자는 합리적인 의심 근거와 거짓말 이유를 가져야 한다.
+
+최종 제작 Footprint 검증이 활성화된 Project에서는 각 인물의 `production_role`을 명시한다. 실존 대상은 배열 순서가 아니라 `source_subject_id`로만 연결한다.
 
 ## 금지
 

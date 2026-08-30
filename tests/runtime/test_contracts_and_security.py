@@ -79,7 +79,7 @@ def test_runtime_contracts_cross_validate_all_authorities() -> None:
 
     assert result["result"] == "PASS"
     assert result["runtime_version"] == "1.0.0"
-    assert result["task_count"] == 34
+    assert result["task_count"] == 36
 
 
 def test_runtime_task_contract_has_no_duplicate_json_keys() -> None:

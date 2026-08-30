@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mystery-starter-kit"
-version = "1.4.0"
+version = "1.5.0"
 description = "14개 Gate와 신규성·연속성 QA를 갖춘 미스터리 제작 Starter Kit"
 requires-python = ">=3.11"
 dependencies = [
@@ -29,6 +29,7 @@ mystery-runtime = "RUNTIME.cli:main"
 [tool.setuptools]
 packages = [
   "VALIDATORS",
+  "VALIDATORS.variation_engines",
   "RUNTIME",
   "RUNTIME.providers",
   "RUNTIME.tools",

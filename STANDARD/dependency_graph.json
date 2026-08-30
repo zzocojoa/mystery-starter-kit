@@ -54,7 +54,7 @@
     },
     "source_truth_contract": {
       "path": "01_CASE/source_truth_contract.json",
-      "depends_on": ["source_subjects", "verified_event_ledger", "verified_fact_ledger"],
+      "depends_on": ["sources", "claim_evidence", "verified_fact_ledger", "source_subjects", "verified_event_ledger"],
       "owner_agent": "reference_auditor",
       "required_when": {"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}
     },
@@ -191,6 +191,12 @@
       "depends_on": ["beat_sheet", "retention_plan", "clue_matrix"],
       "owner_agent": "scene_designer"
     },
+    "production_footprint": {
+      "path": "06_SCENE/production_footprint.json",
+      "depends_on": ["project_constraints", "variation_candidates", "characters", "actual_timeline", "scene_cards"],
+      "owner_agent": "scene_designer",
+      "required_when": {"production_footprint_enforced": true}
+    },
     "panel_cast": {
       "path": "06_SCENE/panel_cast.json",
       "depends_on": ["production_config"],
@@ -273,6 +279,12 @@
       "depends_on": ["validation_report", "final_script"],
       "owner_agent": "orchestrator"
     },
+    "production_manifest": {
+      "path": "09_PRODUCTION/production_manifest.json",
+      "depends_on": ["production_footprint", "scene_cards", "shooting_script"],
+      "owner_agent": "orchestrator",
+      "required_when": {"production_footprint_enforced": true}
+    },
     "narration": {
       "path": "09_PRODUCTION/narration.md",
       "depends_on": ["shooting_script", "presentation_plan"],
@@ -301,7 +313,7 @@
     },
     "editorial_review": {
       "path": "08_QA/editorial_review.json",
-      "depends_on": ["final_script", "viewer_timeline", "audience_belief", "reaction_segments", "expert_segments", "presentation_plan", "panel_reaction_script", "expert_analysis_script", "shooting_script", "narration", "production_panel_reaction_script", "production_expert_analysis_script", "subtitle_script", "edit_script"],
+      "depends_on": ["final_script", "viewer_timeline", "audience_belief", "reaction_segments", "expert_segments", "presentation_plan", "panel_reaction_script", "expert_analysis_script", "shooting_script", "production_manifest", "narration", "production_panel_reaction_script", "production_expert_analysis_script", "subtitle_script", "edit_script"],
       "owner_agent": "continuity_critic"
     }
   }

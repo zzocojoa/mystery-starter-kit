@@ -2,6 +2,7 @@
 
 from collections.abc import Mapping
 from copy import deepcopy
+from hashlib import sha256
 
 from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.models import ValidationIssue
@@ -12,6 +13,14 @@ TRUTH_DIMENSION_FIELDS: dict[str, str] = {
     "responsible_agent_structure": "verified_responsible_agent_structure",
     "legal_outcome": "verified_legal_outcome",
 }
+
+SOURCE_TRUTH_BOUND_ARTIFACTS: tuple[str, ...] = (
+    "claim_evidence",
+    "source_subjects",
+    "sources",
+    "verified_event_ledger",
+    "verified_fact_ledger",
+)
 
 
 def truth_issue(
@@ -38,6 +47,56 @@ def contract_payload(document: Mapping[str, object]) -> dict[str, object]:
 def source_truth_contract_sha256(document: Mapping[str, object]) -> str:
     """Source Truth Contract의 정규 SHA-256을 반환한다."""
     return document_sha256(contract_payload(document))
+
+
+def source_truth_bound_artifact_hashes(
+    artifacts: Mapping[str, Mapping[str, object]],
+) -> dict[str, str]:
+    """Source Truth에 결속되는 Artifact의 Canonical JSON Hash를 반환한다."""
+    missing = sorted(set(SOURCE_TRUTH_BOUND_ARTIFACTS) - set(artifacts))
+    if missing:
+        raise ValueError(f"Source Truth 결속 Artifact가 없습니다: artifacts={missing}")
+    return {
+        artifact_name: document_sha256(artifacts[artifact_name])
+        for artifact_name in SOURCE_TRUTH_BOUND_ARTIFACTS
+    }
+
+
+def source_truth_evidence_bundle_sha256(
+    artifact_hashes: Mapping[str, str],
+) -> str:
+    """정렬된 name=hash 목록으로 Evidence Bundle Hash를 계산한다."""
+    missing = sorted(set(SOURCE_TRUTH_BOUND_ARTIFACTS) - set(artifact_hashes))
+    invalid = sorted(
+        artifact_name
+        for artifact_name in SOURCE_TRUTH_BOUND_ARTIFACTS
+        if not isinstance(artifact_hashes.get(artifact_name), str)
+    )
+    if missing or invalid:
+        raise ValueError(
+            "Source Truth Artifact Hash가 완전하지 않습니다: "
+            f"missing={missing}, invalid={invalid}"
+        )
+    payload = "\n".join(
+        f"{artifact_name}={artifact_hashes[artifact_name]}"
+        for artifact_name in sorted(SOURCE_TRUTH_BOUND_ARTIFACTS)
+    )
+    return sha256(payload.encode("utf-8")).hexdigest()
+
+
+def bind_source_truth_contract(
+    contract: Mapping[str, object],
+    artifacts: Mapping[str, Mapping[str, object]],
+) -> dict[str, object]:
+    """Evidence Artifact Hash와 Bundle Hash를 Source Truth Contract에 결속한다."""
+    bound_hashes = source_truth_bound_artifact_hashes(artifacts)
+    bound_contract = deepcopy(dict(contract))
+    bound_contract["bound_artifact_hashes"] = bound_hashes
+    bound_contract["evidence_bundle_sha256"] = source_truth_evidence_bundle_sha256(
+        bound_hashes
+    )
+    bound_contract["contract_sha256"] = source_truth_contract_sha256(bound_contract)
+    return bound_contract
 
 
 def truth_dimension_is_locked(
@@ -123,13 +182,110 @@ def duplicate_record_ids(
 
 
 def validate_source_truth_contract_integrity(
-    contract: Mapping[str, object],
-    source_subjects: Mapping[str, object],
-    verified_events: Mapping[str, object],
-    claims: Mapping[str, object],
+    contract: Mapping[str, object] | None,
+    sources: Mapping[str, object] | None,
+    claims: Mapping[str, object] | None,
+    verified_fact_ledger: Mapping[str, object] | None,
+    source_subjects: Mapping[str, object] | None,
+    verified_events: Mapping[str, object] | None,
 ) -> list[ValidationIssue]:
-    """Source Truth Contract의 Hash와 참조 무결성을 검증한다."""
+    """Source Truth Contract의 Bundle Hash와 참조 무결성을 검증한다."""
     issues: list[ValidationIssue] = []
+    artifact_documents: dict[str, Mapping[str, object] | None] = {
+        "claim_evidence": claims,
+        "source_subjects": source_subjects,
+        "sources": sources,
+        "verified_event_ledger": verified_events,
+        "verified_fact_ledger": verified_fact_ledger,
+    }
+    missing_artifacts = sorted(
+        artifact_name
+        for artifact_name, document in artifact_documents.items()
+        if document is None
+    )
+    if contract is None:
+        missing_artifacts.append("source_truth_contract")
+    if missing_artifacts:
+        return [
+            truth_issue(
+                "SOURCE_TRUTH_BUNDLE_INCOMPLETE",
+                "Source Truth Evidence Bundle에 필요한 Artifact가 없습니다.",
+                "01_CASE/source_truth_contract.json",
+                {"missing_artifacts": sorted(missing_artifacts)},
+            )
+        ]
+    assert contract is not None
+    assert sources is not None
+    assert claims is not None
+    assert verified_fact_ledger is not None
+    assert source_subjects is not None
+    assert verified_events is not None
+
+    bound_hashes = contract.get("bound_artifact_hashes")
+    if not isinstance(bound_hashes, Mapping):
+        issues.append(
+            truth_issue(
+                "SOURCE_TRUTH_BUNDLE_INCOMPLETE",
+                "Source Truth Contract에 결속 Artifact Hash가 없습니다.",
+                "01_CASE/source_truth_contract.json",
+                {"missing_artifacts": list(SOURCE_TRUTH_BOUND_ARTIFACTS)},
+            )
+        )
+    else:
+        missing_hashes = sorted(
+            artifact_name
+            for artifact_name in SOURCE_TRUTH_BOUND_ARTIFACTS
+            if not isinstance(bound_hashes.get(artifact_name), str)
+        )
+        if missing_hashes:
+            issues.append(
+                truth_issue(
+                    "SOURCE_TRUTH_BUNDLE_INCOMPLETE",
+                    "Source Truth Contract의 결속 Artifact Hash가 완전하지 않습니다.",
+                    "01_CASE/source_truth_contract.json",
+                    {"missing_artifacts": missing_hashes},
+                )
+            )
+        else:
+            actual_documents: dict[str, Mapping[str, object]] = {
+                "claim_evidence": claims,
+                "source_subjects": source_subjects,
+                "sources": sources,
+                "verified_event_ledger": verified_events,
+                "verified_fact_ledger": verified_fact_ledger,
+            }
+            actual_hashes = source_truth_bound_artifact_hashes(actual_documents)
+            mismatches = {
+                artifact_name: {
+                    "expected": bound_hashes.get(artifact_name),
+                    "actual": actual_hashes[artifact_name],
+                }
+                for artifact_name in SOURCE_TRUTH_BOUND_ARTIFACTS
+                if bound_hashes.get(artifact_name) != actual_hashes[artifact_name]
+            }
+            if mismatches:
+                issues.append(
+                    truth_issue(
+                        "SOURCE_TRUTH_BOUND_ARTIFACT_HASH_MISMATCH",
+                        "Source Truth Contract에 결속된 Artifact Hash가 현재 내용과 다릅니다.",
+                        "01_CASE/source_truth_contract.json",
+                        {"mismatches": mismatches},
+                    )
+                )
+            expected_bundle_hash = source_truth_evidence_bundle_sha256(actual_hashes)
+            if contract.get("evidence_bundle_sha256") != expected_bundle_hash:
+                issues.append(
+                    truth_issue(
+                        "SOURCE_TRUTH_BUNDLE_HASH_MISMATCH",
+                        "Source Truth Evidence Bundle Hash가 현재 Artifact와 다릅니다.",
+                        "01_CASE/source_truth_contract.json",
+                        {
+                            "expected": expected_bundle_hash,
+                            "actual": contract.get("evidence_bundle_sha256"),
+                        },
+                    )
+                )
+
     expected_hash = source_truth_contract_sha256(contract)
     if contract.get("contract_sha256") != expected_hash:
         issues.append(
