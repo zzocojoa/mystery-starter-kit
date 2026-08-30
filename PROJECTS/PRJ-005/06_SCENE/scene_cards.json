@@ -1,0 +1,290 @@
+{
+  "project_id": "PRJ-005",
+  "scenes": [
+    {
+      "scene_id": "SCN-01",
+      "order": 1,
+      "beat_id": "BEAT-01",
+      "estimated_seconds": 200,
+      "clue_ids": [
+        "CLUE-06"
+      ],
+      "knowledge_claims": [],
+      "location_id": "LOC-ROOM-03",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "현재 시점. 잠긴 3호실에서 봉투가 사라지고 재호는 마지막 취급자 해인의 직원 열쇠를 지목한다."
+    },
+    {
+      "scene_id": "SCN-02",
+      "order": 2,
+      "beat_id": "BEAT-02",
+      "estimated_seconds": 200,
+      "clue_ids": [
+        "CLUE-01",
+        "CLUE-07"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-02"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-01"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-02"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-08"
+        }
+      ],
+      "location_id": "LOC-OFFICE",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "과거로 돌아가 영수증 없는 보증금, 공동 보관, 수진의 별도 기록과 순간적인 금액 말실수를 함께 보여 준다."
+    },
+    {
+      "scene_id": "SCN-03",
+      "order": 3,
+      "beat_id": "BEAT-03",
+      "estimated_seconds": 150,
+      "clue_ids": [
+        "CLUE-02",
+        "CLUE-05"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-03"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-04"
+        }
+      ],
+      "location_id": "LOC-ROOM-03",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "재호의 누수 지시를 믿은 해인이 봉투를 3호실 린넨함에 옮기고 문을 잠근다."
+    },
+    {
+      "scene_id": "SCN-04",
+      "order": 4,
+      "beat_id": "BEAT-04",
+      "estimated_seconds": 200,
+      "clue_ids": [
+        "CLUE-03",
+        "CLUE-06"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-01"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-08"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-03"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-04"
+        }
+      ],
+      "location_id": "LOC-OFFICE",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "재호가 신고와 해고를 거론하며 해인을 몰아붙이는 동안, 화면은 누수 업체 일정에 방문 기록이 없음을 공개한다."
+    },
+    {
+      "scene_id": "SCN-05",
+      "order": 5,
+      "beat_id": "BEAT-05",
+      "estimated_seconds": 200,
+      "clue_ids": [
+        "CLUE-02",
+        "CLUE-04",
+        "CLUE-07"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-09"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-10"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-09"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-10"
+        }
+      ],
+      "location_id": "LOC-ENTRY-STORAGE",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-04"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "수진과 해인이 수기 일정표를 확인하고, 공동 기부 가방에서 미라 특유의 베이지색 이중 매듭을 발견한다."
+    },
+    {
+      "scene_id": "SCN-06",
+      "order": 6,
+      "beat_id": "BEAT-06",
+      "estimated_seconds": 200,
+      "clue_ids": [
+        "CLUE-03",
+        "CLUE-06"
+      ],
+      "knowledge_claims": [],
+      "location_id": "LOC-ROOM-03",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-04"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "두 번째 열쇠의 마모가 미라 열쇠고리와 맞아 미라 단독범처럼 보이지만, 누가 봉투 이동을 지시했는지는 남는다."
+    },
+    {
+      "scene_id": "SCN-07",
+      "order": 7,
+      "beat_id": "BEAT-07",
+      "estimated_seconds": 200,
+      "clue_ids": [
+        "CLUE-01",
+        "CLUE-02",
+        "CLUE-03",
+        "CLUE-04",
+        "CLUE-05"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-05"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-06"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-07"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-11"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-05"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-06"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-07"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-11"
+        }
+      ],
+      "location_id": "LOC-OFFICE",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "수기 일정표, 두 번째 열쇠, 이중 매듭, 상충하는 증언이 결합돼 재호의 설계와 미라의 실행이 드러난다."
+    },
+    {
+      "scene_id": "SCN-08",
+      "order": 8,
+      "beat_id": "BEAT-08",
+      "estimated_seconds": 150,
+      "clue_ids": [],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-12"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-12"
+        }
+      ],
+      "location_id": "LOC-OFFICE",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "수진과 해인은 봉투와 기록을 보존해 공동 신고하고, 서로의 연락처를 남긴 채 게스트하우스를 떠난다."
+    }
+  ]
+}

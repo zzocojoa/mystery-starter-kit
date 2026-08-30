@@ -1,0 +1,25 @@
+{
+  "project_id": "PRJ-005",
+  "hypotheses": [
+    {
+      "hypothesis_id": "HYP-01",
+      "status": "REJECTED",
+      "claim": "마지막으로 봉투를 만진 해인이 직원 열쇠로 다시 들어가 훔쳤다."
+    },
+    {
+      "hypothesis_id": "HYP-02",
+      "status": "REJECTED",
+      "claim": "수진이 보증금 반환을 노리고 봉투 분실을 꾸몄다."
+    },
+    {
+      "hypothesis_id": "HYP-03",
+      "status": "REJECTED",
+      "claim": "미라가 우연히 얻은 두 번째 열쇠로 혼자 절도했다."
+    },
+    {
+      "hypothesis_id": "HYP-04",
+      "status": "CONFIRMED",
+      "claim": "재호가 거짓 누수 지시로 봉투를 옮기게 하고 미라가 복제 열쇠로 실행한 뒤 해인에게 책임을 돌리려 했다."
+    }
+  ]
+}

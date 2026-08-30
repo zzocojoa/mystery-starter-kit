@@ -1,0 +1,152 @@
+{
+  "project_id": "PRJ-005",
+  "belief_states": [
+    {
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "belief": "마지막 취급자인 해인이 봉투를 가져갔을 가능성이 가장 높다.",
+      "confidence": 0.68,
+      "known_fact_ids": [
+        "FACT-04"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01"
+      ]
+    },
+    {
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "belief": "해인의 의심은 남지만 수진의 기록 때문에 단순 자작극 가능성도 열린다.",
+      "confidence": 0.55,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-04",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-03",
+      "scene_order": 3,
+      "belief": "해인이 봉투를 옮긴 것은 사실이나 재호의 지시가 범행 기회를 만들었다.",
+      "confidence": 0.52,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-04",
+      "scene_order": 4,
+      "belief": "누수 일정이 거짓이므로 재호가 사건을 설계했을 가능성이 커진다.",
+      "confidence": 0.66,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-08",
+        "FACT-10"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03",
+        "HYP-04"
+      ]
+    },
+    {
+      "scene_id": "SCN-05",
+      "scene_order": 5,
+      "belief": "미라와 가방의 관계가 확인되며 미라 단독 절도설이 앞선다.",
+      "confidence": 0.72,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03",
+        "HYP-04"
+      ]
+    },
+    {
+      "scene_id": "SCN-06",
+      "scene_order": 6,
+      "belief": "두 번째 열쇠는 미라의 실행을 확정하지만 거짓 지시의 주체는 설명하지 못한다.",
+      "confidence": 0.78,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03",
+        "HYP-04"
+      ]
+    },
+    {
+      "scene_id": "SCN-07",
+      "scene_order": 7,
+      "belief": "재호가 함정을 설계하고 미라가 실행한 공모가 독립 단서로 확인된다.",
+      "confidence": 0.96,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-04"
+      ]
+    },
+    {
+      "scene_id": "SCN-08",
+      "scene_order": 8,
+      "belief": "해인과 수진은 책임을 분리하고 증거를 보존해 가해 구조에서 벗어난다.",
+      "confidence": 1.0,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-04"
+      ]
+    }
+  ]
+}

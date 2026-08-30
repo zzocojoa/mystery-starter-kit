@@ -1,0 +1,114 @@
+{
+  "$schema": "../../../STANDARD/schemas/story_dna.schema.json",
+  "schema_family": "story-dna",
+  "schema_version": "1.3.0",
+  "project_id": "PRJ-005",
+  "story_source_mode": "ORIGINAL",
+  "story_dna": {
+    "working_title": "빈방의 두 번째 열쇠",
+    "logline": "여성 구직자 공동체가 운영하는 게스트하우스에서 보증금 봉투가 사라지자 야간 직원은 자신이 옮긴 봉투의 행방을 추적하며 안전망을 가장한 착취 구조를 드러낸다.",
+    "mystery_type": "WHERE",
+    "architecture": "ARCH-05_BELIEF_COLLAPSE",
+    "protagonist_role": "EMPLOYEE",
+    "perspective": "DOCUMENTARY",
+    "narrator_reliability": "RELIABLE",
+    "timeline_style": "LOOP",
+    "incident_type": "THEFT",
+    "setting": "GUESTHOUSE",
+    "setting_logic": [
+      "SHARED_SAFE_DEPENDENCY",
+      "LIMITED_NIGHT_ACCESS",
+      "ONLINE_TRUST_NETWORK"
+    ],
+    "culprit_structure": "DUAL",
+    "motive_class": "EXPLOITATIVE_PROFIT",
+    "primary_twist": "TW-14_WITNESS_CAUSED_EVENT",
+    "secondary_twists": [
+      "TW-15_PROTECTIVE_MOVE_CREATED_ACCESS",
+      "TW-16_HELPER_WAS_ACCOMPLICE"
+    ],
+    "information_mechanism": [
+      "TESTIMONIAL_CONTRADICTION"
+    ],
+    "clue_mechanism": [
+      "RELATIONAL"
+    ],
+    "emotional_engine": "SELF_DOUBT_TO_SOLIDARITY",
+    "relationship_engine": {
+      "primary": "DEPENDENCY",
+      "secondary": [
+        "MANUFACTURED_DEBT",
+        "CONDITIONAL_CARE"
+      ],
+      "protagonist_counterpart_role": "SURVIVOR"
+    },
+    "pressure_engine": {
+      "source": "LEGAL_THREAT",
+      "escalation": "SQUEEZE",
+      "stakes": [
+        "FALSE_THEFT_CHARGE",
+        "HOUSING_LOSS",
+        "COMMUNITY_EXCLUSION"
+      ]
+    },
+    "dramatic_engine": {
+      "primary": "INEVITABLE_DISCOVERY",
+      "secondary": [
+        "BELIEF_REVERSAL",
+        "COLLECTIVE_TESTIMONY"
+      ],
+      "audience_emotion_curve": [
+        "UNEASE",
+        "SUSPICION",
+        "SELF_DOUBT",
+        "ANGER",
+        "RELIEF_WITH_COST"
+      ]
+    },
+    "thematic_question": "도움을 받는 사람이 안전 규칙에 의문을 제기할 권리까지 빚진 것으로 취급될 수 있는가?",
+    "audience_experience": {
+      "initial_belief": "야간 직원이 봉투를 옮긴 뒤 훔쳤거나 실수로 잃어버렸다.",
+      "midpoint_shift": "장기 투숙객이 중복 열쇠로 봉투를 가져갔지만 단독 범행처럼 보인다.",
+      "final_reframe": "운영자가 보호 지시를 위조해 직원의 선의를 이용했고 장기 투숙객과 함께 절도를 설계했다."
+    },
+    "reveal_mode": "TESTIMONIAL_COLLAPSE",
+    "ending_type": "BITTERSWEET",
+    "threat_type": "PREDATORY",
+    "trusted_domain": "ONLINE_COMMUNITY",
+    "safe_domain_expectation": "타지의 구직 여성에게 임시 주거와 보증금 공동 보관을 제공하는 상호부조 공간이라는 믿음",
+    "early_warning_signals": [
+      "PRIVATE_RULE_CHANGES",
+      "UNRECEIPTED_DEPOSITS",
+      "ISOLATED_COMPLAINT_HANDLING"
+    ],
+    "boundary_erosion_steps": [
+      "PERSONAL_ERRANDS_AS_DUTY",
+      "MASTER_KEY_ACCESS_NORMALIZED",
+      "PRIVATE_FUNDS_MOVED_WITHOUT_WITNESS"
+    ],
+    "control_tactics": [
+      "HOUSING_DEPENDENCY",
+      "COMMUNITY_REPUTATION_THREAT",
+      "FALSE_LEGAL_NOTICE"
+    ],
+    "victim_exit_barriers": [
+      "DEPOSIT_WITHHELD",
+      "NO_LOCAL_SUPPORT",
+      "EMPLOYMENT_REFERENCE_CONTROL"
+    ],
+    "harm_mechanism": "운영자가 주거와 구직 추천 권한을 묶어 투숙객의 현금을 영수증 없이 보관하고, 문제를 제기하면 퇴실과 고소를 위협해 착취를 지속한다.",
+    "responsible_agent": "게스트하우스 운영자가 공모자를 지휘해 절도와 누명을 설계한 주된 책임자다.",
+    "responsible_agent_payoff": "피해자들의 독립 진술과 종이 인수 기록이 운영자의 지시를 반박하고 공모 사실을 드러낸다.",
+    "victim_agency_outcome": "피해자 수진은 보관해 둔 수기 영수증과 음성 메모를 자발적으로 공유하고 다른 투숙객들과 공동 신고를 선택한다.",
+    "psychological_pressure": "해인은 자신이 봉투를 옮긴 행동 때문에 수진에게 피해가 생겼다는 죄책감과 절도 피의자가 될 수 있다는 공포 사이에서 판단력을 흔들린다.",
+    "risk_signal_payoff": "비공개 규칙 변경, 영수증 없는 보관, 고립된 면담이 모두 우발적 불친절이 아니라 통제와 착취를 위한 반복 신호였음이 회수된다.",
+    "source_disclosure_mode": "ORIGINAL_FICTION",
+    "clinical_label_classification": [],
+    "expert_debrief_plan": {
+      "status": "NOT_APPLICABLE",
+      "claim_ids": [],
+      "na_reason": "독립 창작이며 임상 진단이나 사실 기반 전문가 Claim을 사용하지 않는다."
+    },
+    "episode_theme": "ACCOUNTABILITY"
+  }
+}

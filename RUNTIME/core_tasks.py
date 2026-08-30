@@ -770,16 +770,16 @@ def core_task_outputs(
         "reference.build_source_disclosure",
         "reference.build_clinical_labels",
     }:
-        run = load_run(project_path, run_id)
-        evidence_state = run["tasks"].get("reference.intake_evidence")
-        evidence_hashes = (
-            evidence_state["input_hashes"]
-            if evidence_state is not None and evidence_state["input_hashes"]
-            else input_hashes
-        )
+        source_truth = production_config.get("source_truth_classification")
+        evidence_hashes = input_hashes
+        if source_truth in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}:
+            run = load_run(project_path, run_id)
+            evidence_state = run["tasks"].get("reference.intake_evidence")
+            if evidence_state is not None and evidence_state["input_hashes"]:
+                evidence_hashes = evidence_state["input_hashes"]
         bundle = evidence_outputs(
             project_id,
-            production_config.get("source_truth_classification"),
+            source_truth,
             project_path,
             run_id,
             evidence_hashes,

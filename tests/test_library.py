@@ -61,9 +61,12 @@ def test_novelty_index_passes_schema_without_project_records() -> None:
     schema = load_json_object(
         ROOT / "STANDARD" / "schemas" / "novelty_index.schema.json"
     )
+    empty_index = deepcopy(index)
+    empty_index["entries"] = []
 
     assert collect_schema_errors(index, schema, "novelty_index") == []
-    assert novelty_history(index) == []
+    assert collect_schema_errors(empty_index, schema, "empty_novelty_index") == []
+    assert novelty_history(empty_index) == []
 
 
 def test_production_ready_fingerprint_can_be_registered() -> None:

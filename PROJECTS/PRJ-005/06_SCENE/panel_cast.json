@@ -1,0 +1,47 @@
+{
+  "$schema": "../../../STANDARD/schemas/panel_cast.schema.json",
+  "schema_family": "panel-cast",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-005",
+  "panelists": [
+    {
+      "panelist_id": "PANEL-01",
+      "display_name": "윤서",
+      "persona": "LOGIC_ANALYST",
+      "voice_style": "공개된 사실을 짧게 대조하고 질문으로 다음 검증을 연다.",
+      "allowed_functions": [
+        "ANOMALY_DETECTION",
+        "HYPOTHESIS_GENERATION",
+        "HYPOTHESIS_REVISION",
+        "CONTRADICTION_DETECTION"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    },
+    {
+      "panelist_id": "PANEL-02",
+      "display_name": "다온",
+      "persona": "EMOTIONAL_PROXY",
+      "voice_style": "피해자와 피고용인의 감정을 대신 말하되 단정하지 않는다.",
+      "allowed_functions": [
+        "EMOTIONAL_REACTION",
+        "MORAL_REACTION",
+        "TENSION_RELEASE",
+        "EXPECTATION_BUILDING"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    },
+    {
+      "panelist_id": "PANEL-03",
+      "display_name": "민재",
+      "persona": "SKEPTIC",
+      "voice_style": "가장 그럴듯한 설명의 빈틈을 한 문장씩 검증한다.",
+      "allowed_functions": [
+        "SUSPECT_DISCUSSION",
+        "HYPOTHESIS_GENERATION",
+        "HYPOTHESIS_REVISION",
+        "CONTRADICTION_DETECTION"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    }
+  ]
+}

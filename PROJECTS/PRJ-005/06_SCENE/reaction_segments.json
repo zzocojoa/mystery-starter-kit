@@ -1,0 +1,259 @@
+{
+  "$schema": "../../../STANDARD/schemas/reaction_segments.schema.json",
+  "schema_family": "reaction-segments",
+  "schema_version": "2.1.0",
+  "project_id": "PRJ-005",
+  "reaction_segments": [
+    {
+      "reaction_segment_id": "RSEG-001",
+      "after_scene_id": "SCN-01",
+      "order": 1,
+      "start_sec": 150,
+      "duration_sec": 50,
+      "segment_function": "HYPOTHESIS_GENERATION",
+      "hypothesis_before": "봉투가 사라진 방식은 아직 설명되지 않는다.",
+      "hypothesis_after": "직원 열쇠를 가진 해인이 가장 먼저 의심된다.",
+      "tone": "TENSE",
+      "turns": [
+        {
+          "turn_id": "TURN-001-01",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "잠긴 방이고 해인이 마지막 취급자라면, 우선 직원 열쇠의 동선을 확인해야 해요.",
+          "evidence_ids": [
+            "CLUE-06"
+          ],
+          "known_fact_ids": [
+            "FACT-04"
+          ],
+          "tone": "ANALYTICAL"
+        },
+        {
+          "turn_id": "TURN-001-02",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "마지막으로 만졌다는 사실 하나가 곧 훔쳤다는 뜻은 아니잖아요.",
+          "evidence_ids": [],
+          "known_fact_ids": [
+            "FACT-04"
+          ],
+          "tone": "CONCERNED"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-002",
+      "after_scene_id": "SCN-02",
+      "order": 2,
+      "start_sec": 350,
+      "duration_sec": 50,
+      "segment_function": "HYPOTHESIS_GENERATION",
+      "hypothesis_before": "해인의 접근권한이 가장 강한 의심이다.",
+      "hypothesis_after": "해인 절도설과 수진 자작극설을 수진의 사전 기록으로 비교해야 한다.",
+      "tone": "INQUISITIVE",
+      "turns": [
+        {
+          "turn_id": "TURN-002-01",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "금액 말실수만 보면 자작극도 떠오르지만, 사건 전 수첩 기록은 그 가설을 약하게 만듭니다.",
+          "evidence_ids": [
+            "CLUE-07"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-08"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-002-02",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "영수증을 계속 미룬 사람이 누구인지가 아직 설명되지 않았어요.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-02"
+          ],
+          "tone": "ANALYTICAL"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-003",
+      "after_scene_id": "SCN-04",
+      "order": 3,
+      "start_sec": 700,
+      "duration_sec": 50,
+      "segment_function": "HYPOTHESIS_REVISION",
+      "hypothesis_before": "해인이 봉투 이동과 분실을 모두 주도했을 수 있다.",
+      "hypothesis_after": "거짓 누수 지시를 만든 재호가 해인의 행동을 이용했을 수 있다.",
+      "tone": "ALERT",
+      "turns": [
+        {
+          "turn_id": "TURN-003-01",
+          "panelist_id": "PANEL-01",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "방문 일정이 없는데 누수 지시가 먼저 나왔습니다. 이동 자체가 누군가의 설계였을 수 있어요.",
+          "evidence_ids": [
+            "CLUE-02"
+          ],
+          "known_fact_ids": [
+            "FACT-03",
+            "FACT-10"
+          ],
+          "tone": "ANALYTICAL"
+        },
+        {
+          "turn_id": "TURN-003-02",
+          "panelist_id": "PANEL-02",
+          "function": "MORAL_REACTION",
+          "spoken_line": "해고와 신고를 먼저 꺼낸 압박이 사실 확인보다 앞섰다는 점도 불편합니다.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-04",
+            "FACT-10"
+          ],
+          "tone": "FIRM"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-004",
+      "after_scene_id": "SCN-05",
+      "order": 4,
+      "start_sec": 900,
+      "duration_sec": 50,
+      "segment_function": "ANOMALY_DETECTION",
+      "hypothesis_before": "재호가 거짓 지시를 했지만 실행자는 알 수 없다.",
+      "hypothesis_after": "미라와 가방의 관계 흔적이 실행자 후보를 좁힌다.",
+      "tone": "FOCUSED",
+      "turns": [
+        {
+          "turn_id": "TURN-004-01",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "일정표는 재호의 거짓말을, 매듭은 가방을 다룬 사람을 가리킵니다. 서로 다른 근거예요.",
+          "evidence_ids": [
+            "CLUE-02",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-09",
+            "FACT-10"
+          ],
+          "tone": "ANALYTICAL"
+        },
+        {
+          "turn_id": "TURN-004-02",
+          "panelist_id": "PANEL-03",
+          "function": "SUSPECT_DISCUSSION",
+          "spoken_line": "미라가 수선했다는 기억만으로 절도를 확정할 수는 없지만, 이제 확인할 물건은 분명해졌습니다.",
+          "evidence_ids": [
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-09"
+          ],
+          "tone": "SKEPTICAL"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-005",
+      "after_scene_id": "SCN-06",
+      "order": 5,
+      "start_sec": 1100,
+      "duration_sec": 50,
+      "segment_function": "HYPOTHESIS_REVISION",
+      "hypothesis_before": "미라가 혼자 두 번째 열쇠로 봉투를 훔쳤다.",
+      "hypothesis_after": "미라는 실행자지만 거짓 이동 지시를 만든 공모자가 따로 있다.",
+      "tone": "SUSPICIOUS",
+      "turns": [
+        {
+          "turn_id": "TURN-005-01",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "두 번째 열쇠는 미라의 실행을 설명하지만 봉투가 왜 그 방에 있었는지는 설명하지 못합니다.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-03",
+            "FACT-05"
+          ],
+          "tone": "SKEPTICAL"
+        },
+        {
+          "turn_id": "TURN-005-02",
+          "panelist_id": "PANEL-02",
+          "function": "EXPECTATION_BUILDING",
+          "spoken_line": "이제 열쇠를 준 사람과 이동을 지시한 사람이 같은 편이었는지 봐야겠어요.",
+          "evidence_ids": [
+            "CLUE-02",
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-03",
+            "FACT-05",
+            "FACT-10"
+          ],
+          "tone": "TENSE"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-006",
+      "after_scene_id": "SCN-07",
+      "order": 6,
+      "start_sec": 1300,
+      "duration_sec": 50,
+      "segment_function": "CONTRADICTION_DETECTION",
+      "hypothesis_before": "미라의 실행과 재호의 거짓말은 별개일 수 있다.",
+      "hypothesis_after": "재호의 설계와 미라의 실행이 하나의 공모로 확정된다.",
+      "tone": "RESOLVED",
+      "turns": [
+        {
+          "turn_id": "TURN-006-01",
+          "panelist_id": "PANEL-01",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "거짓 일정, 복제 열쇠, 이중 매듭이 각자 다른 지점에서 같은 공모를 지지합니다.",
+          "evidence_ids": [
+            "CLUE-02",
+            "CLUE-03",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-05",
+            "FACT-06",
+            "FACT-07",
+            "FACT-10",
+            "FACT-11"
+          ],
+          "tone": "CERTAIN"
+        },
+        {
+          "turn_id": "TURN-006-02",
+          "panelist_id": "PANEL-02",
+          "function": "MORAL_REACTION",
+          "spoken_line": "해인의 선의를 죄처럼 만들려던 계획이었고, 수진의 기록이 그 책임을 제자리로 돌렸네요.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-07",
+            "FACT-08",
+            "FACT-11"
+          ],
+          "tone": "FIRM"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_approval.schema.json",
+  "schema_family": "candidate-approval",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-005",
+  "selected_candidate_id": "VAR-05",
+  "recommended_candidate_id": "VAR-05",
+  "approval_type": "AUTO_POLICY",
+  "actor": "SYSTEM",
+  "reason": "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다.",
+  "input_hashes": {
+    "production_config": "7a7a3b4b468373d75a08757b59dfe5a5c163bba15cef83f08b930d6bfa3674c9",
+    "variation_candidates": "fb311c29773ff33f21baf07fc5e51ed9fb6cf7aec3bda5b57355969d183152f5",
+    "novelty_precheck": "018e4bae209e4c4dc9aa1f7022b55b0aa7dbfa5f10be04423820d2cf4fd35117",
+    "candidate_eligibility": "84ce1383ef6cb818ae2c2a2f0f84545004af83708f20eb856904349f14a4018c",
+    "candidate_evaluation": "761fd8fb8421eeca42ab93a0b65752338e8b7169ed15969e86dae4b7dcb06d9c"
+  },
+  "approved_at": "2026-08-30T13:49:44.634671Z"
+}

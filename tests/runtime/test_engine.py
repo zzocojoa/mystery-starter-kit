@@ -11,6 +11,7 @@ import pytest
 
 from RUNTIME.approvals import approval_is_current
 from RUNTIME.cli import approval_document
+from RUNTIME.core_tasks import core_task_outputs
 from RUNTIME.engine import execute_run, resume_run
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.human_inputs import current_evidence_input, submit_evidence_input
@@ -68,6 +69,32 @@ def latest_run(project_path: Path) -> dict[str, object]:
     run_paths = sorted((project_path / ".runtime" / "runs").glob("*/run.json"))
     assert run_paths
     return load_json_object(run_paths[-1])
+
+
+def test_manual_fiction_evidence_does_not_require_runtime_run(tmp_path: Path) -> None:
+    """Codex 수동 Gate의 창작 Evidence 초기화는 Runtime Run 없이 동작한다."""
+    repository_root = create_runtime_repository(tmp_path)
+    project_path = create_runtime_project(repository_root, "PRJ-939")
+    dependency_graph = load_json_object(
+        repository_root / "STANDARD" / "dependency_graph.json"
+    )
+
+    outputs = core_task_outputs(
+        "reference.initialize_fiction_evidence",
+        repository_root,
+        project_path,
+        {},
+        dependency_graph,
+        None,
+        None,
+        "CODEX-MANUAL",
+        {"manual_context": "hash"},
+    )
+
+    assert outputs == {
+        "sources": {"project_id": "PRJ-939", "sources": []},
+        "claim_evidence": {"project_id": "PRJ-939", "claims": []},
+    }
 
 
 def evidence_input_document(

@@ -1,0 +1,128 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_eligibility.schema.json",
+  "schema_family": "candidate-eligibility",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-005",
+  "input_hashes": {
+    "production_config": "7a7a3b4b468373d75a08757b59dfe5a5c163bba15cef83f08b930d6bfa3674c9",
+    "project_constraints": "fd5d9465af3db1df307d4708784325f3d1fbad517a26985254e761dc2560c919",
+    "channel_dna": "d839c56f2c0daf5db6fb74e753287e0dc93659f2587ba9c6c8d4afd9b7a995e7",
+    "variation_candidates": "86628b719d20bebb2b68480d20190cbd2ee39b0755f413f3e52b3b1f2a27612a",
+    "novelty_precheck": "018e4bae209e4c4dc9aa1f7022b55b0aa7dbfa5f10be04423820d2cf4fd35117"
+  },
+  "result": "PASS",
+  "eligible_candidate_ids": [
+    "VAR-01",
+    "VAR-02",
+    "VAR-03",
+    "VAR-04",
+    "VAR-05"
+  ],
+  "candidate_results": [
+    {
+      "candidate_id": "VAR-01",
+      "result": "PASS",
+      "checks": {
+        "policy_profile": "PASS",
+        "channel_genre": "PASS",
+        "crime_threat": "PASS",
+        "trusted_domain": "PASS",
+        "safe_domain_betrayal": "PASS",
+        "responsible_agent": "PASS",
+        "structure_policy": "PASS",
+        "technical_final_proof": "PASS",
+        "required_theme": "PASS",
+        "locked_constraints": "PASS",
+        "project_constraints": "PASS",
+        "source_truth": "PASS",
+        "production_feasibility": "PASS",
+        "novelty": "PASS"
+      },
+      "reasons": []
+    },
+    {
+      "candidate_id": "VAR-02",
+      "result": "PASS",
+      "checks": {
+        "policy_profile": "PASS",
+        "channel_genre": "PASS",
+        "crime_threat": "PASS",
+        "trusted_domain": "PASS",
+        "safe_domain_betrayal": "PASS",
+        "responsible_agent": "PASS",
+        "structure_policy": "PASS",
+        "technical_final_proof": "PASS",
+        "required_theme": "PASS",
+        "locked_constraints": "PASS",
+        "project_constraints": "PASS",
+        "source_truth": "PASS",
+        "production_feasibility": "PASS",
+        "novelty": "PASS"
+      },
+      "reasons": []
+    },
+    {
+      "candidate_id": "VAR-03",
+      "result": "PASS",
+      "checks": {
+        "policy_profile": "PASS",
+        "channel_genre": "PASS",
+        "crime_threat": "PASS",
+        "trusted_domain": "PASS",
+        "safe_domain_betrayal": "PASS",
+        "responsible_agent": "PASS",
+        "structure_policy": "PASS",
+        "technical_final_proof": "PASS",
+        "required_theme": "PASS",
+        "locked_constraints": "PASS",
+        "project_constraints": "PASS",
+        "source_truth": "PASS",
+        "production_feasibility": "PASS",
+        "novelty": "PASS"
+      },
+      "reasons": []
+    },
+    {
+      "candidate_id": "VAR-04",
+      "result": "PASS",
+      "checks": {
+        "policy_profile": "PASS",
+        "channel_genre": "PASS",
+        "crime_threat": "PASS",
+        "trusted_domain": "PASS",
+        "safe_domain_betrayal": "PASS",
+        "responsible_agent": "PASS",
+        "structure_policy": "PASS",
+        "technical_final_proof": "PASS",
+        "required_theme": "PASS",
+        "locked_constraints": "PASS",
+        "project_constraints": "PASS",
+        "source_truth": "PASS",
+        "production_feasibility": "PASS",
+        "novelty": "PASS"
+      },
+      "reasons": []
+    },
+    {
+      "candidate_id": "VAR-05",
+      "result": "PASS",
+      "checks": {
+        "policy_profile": "PASS",
+        "channel_genre": "PASS",
+        "crime_threat": "PASS",
+        "trusted_domain": "PASS",
+        "safe_domain_betrayal": "PASS",
+        "responsible_agent": "PASS",
+        "structure_policy": "PASS",
+        "technical_final_proof": "PASS",
+        "required_theme": "PASS",
+        "locked_constraints": "PASS",
+        "project_constraints": "PASS",
+        "source_truth": "PASS",
+        "production_feasibility": "PASS",
+        "novelty": "PASS"
+      },
+      "reasons": []
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "project_id": "PRJ-005",
+  "facts": [
+    {
+      "fact_id": "FACT-01",
+      "statement": "수진은 입실 당일 현금 보증금 봉투를 재호에게 맡겼지만 정식 영수증을 받지 못했다.",
+      "normalized_statement_hash": "bb49410b68b7841eb433f899cc0704ce3f9e5c74f531e557761a81ed67f2419c",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-02",
+      "statement": "해인은 저녁 교대 때 봉투가 사무실 공동 금고에 있는 것을 수진과 함께 확인했다.",
+      "normalized_statement_hash": "6f25de1afcf059ff81bfe51d1c4ebe62cb5bc543c7e730ab290e4ddadb7b48a4",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-03",
+      "statement": "재호는 누수 점검을 핑계로 해인에게 봉투를 비어 있는 3호실 린넨함으로 옮기라고 지시했다.",
+      "normalized_statement_hash": "3512863da618ca128e0a9fe4dca08323eaed7c6d72629dfd7523d60228515d55",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-04",
+      "statement": "해인은 밤 9시 10분 봉투를 3호실에 옮기고 직원용 열쇠로 문을 잠갔다.",
+      "normalized_statement_hash": "2c96ac9bd3d069da293d5c87f30c16ebf62e5ade179eba77d0677c2d1b5bf001",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [
+        "FACT-02",
+        "FACT-03"
+      ],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-05",
+      "statement": "미라는 재호가 미리 복제해 준 두 번째 열쇠로 밤 9시 25분 3호실에 들어갔다.",
+      "normalized_statement_hash": "d297507171a04c881ac61d266c1cb1dece9e1bead57f046cbe25ca920032fdd5",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-06",
+      "statement": "미라는 봉투를 3호실에서 꺼내 현관 보관실의 공동 기부 여행가방 안감 속에 숨겼다.",
+      "normalized_statement_hash": "035251c1f7513e0af74f9a8d7fa8b78e09631d23c0a259b1181ce0202eaacd4d",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [
+        "FACT-05"
+      ],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-07",
+      "statement": "재호는 해인이 봉투를 옮긴 사실을 이용해 절도 누명을 씌우고 미라와 돈을 나누려 했다.",
+      "normalized_statement_hash": "d9f99d5950f5e5e6a2c1bab38f58072fb045cf9739fc68001dd808453e591b53",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [
+        "FACT-03",
+        "FACT-04",
+        "FACT-06"
+      ],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-08",
+      "statement": "수진은 봉투를 맡기기 전 지폐 묶음의 액수와 고무줄 색을 수첩에 적고 자신의 목소리 메모에 남겼다.",
+      "normalized_statement_hash": "23954f908aaee81555b99c7918710d04f81ad76340dde94a411f64ea292b48f7",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-09",
+      "statement": "미라가 수선한 기부 여행가방의 안감에는 평소 쓰는 베이지색 이중매듭이 남아 있었다.",
+      "normalized_statement_hash": "8fdbf6ae2ba44601b5cfc3ef92f4781d69988c1a2cdcfd85917cc0e9e6ca1df5",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [
+        "FACT-06"
+      ],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-10",
+      "statement": "재호는 그날 누수 점검 업체가 오지 않았다는 사실을 알고도 점검 지시를 사실처럼 말했다.",
+      "normalized_statement_hash": "821c1b502fe1031d902b0f2df90aba9fcf66457bf6f8c004ef2c3bb447c3fb35",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [
+        "FACT-03"
+      ],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-11",
+      "statement": "해인의 봉투 이동은 절도를 의도한 행동이 아니었지만 3호실 접근 기회를 만들어 사건을 촉발했다.",
+      "normalized_statement_hash": "9a2f2280e41380a12c90f019e2d940b8386ffe12f1c60adbb1a2dcfde48379f7",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [
+        "FACT-03",
+        "FACT-04",
+        "FACT-05"
+      ],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-12",
+      "statement": "수진과 해인은 봉투를 회수한 뒤 다른 투숙객들의 독립 진술을 모아 공동 신고를 선택했다.",
+      "normalized_statement_hash": "f78a13e90c628c45eab340868cd9c7adc7e327548ec32385bbbd63c21d0ec68a",
+      "classification": "DRAMATIZATION",
+      "source_ids": [],
+      "basis_fact_ids": [
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10"
+      ],
+      "presented_as_fact": false
+    }
+  ]
+}

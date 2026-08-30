@@ -1,0 +1,29 @@
+{
+  "$schema": "../../STANDARD/schemas/production_footprint.schema.json",
+  "schema_family": "production-footprint",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-005",
+  "status": "PLANNED",
+  "actual_location_count": 3,
+  "actual_major_character_count": 4,
+  "actual_child_actor_use": "NONE",
+  "actual_vehicle_scene": "NONE",
+  "actual_special_effect_level": "NONE",
+  "actual_graphic_violence": "NONE",
+  "actual_production_complexity": "LOW",
+  "source_scene_ids": [
+    "SCN-01",
+    "SCN-02",
+    "SCN-03",
+    "SCN-04",
+    "SCN-05",
+    "SCN-06",
+    "SCN-07",
+    "SCN-08"
+  ],
+  "source_artifact_hashes": {
+    "scene_cards": "06b8c76e294baaf022cf75ec9f5e018fb9cca806ef841642d34cbd63d90e9728",
+    "characters": "e09a34c6bd8e686d17364f48eb7c6a3c93b0340f23b8cbef89a706ad4153c90b",
+    "actual_timeline": "137670be59249272d7f34bfe1c347c8d4f3fa6b836ffbf2b213c2fb0dce80048"
+  }
+}

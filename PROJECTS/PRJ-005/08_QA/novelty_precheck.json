@@ -1,0 +1,35 @@
+{
+  "schema_family": "novelty-precheck",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-005",
+  "source_hash": "86628b719d20bebb2b68480d20190cbd2ee39b0755f413f3e52b3b1f2a27612a",
+  "result": "PASS",
+  "candidate_results": [
+    {
+      "candidate_id": "VAR-01",
+      "result": "PASS",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-02",
+      "result": "PASS",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-03",
+      "result": "PASS",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-04",
+      "result": "PASS",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-05",
+      "result": "PASS",
+      "comparisons": []
+    }
+  ],
+  "issues": []
+}

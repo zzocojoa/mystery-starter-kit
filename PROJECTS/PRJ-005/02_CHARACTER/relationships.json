@@ -1,0 +1,41 @@
+{
+  "project_id": "PRJ-005",
+  "relationships": [
+    {
+      "relationship_id": "REL-01",
+      "from": "CHAR-01",
+      "to": "CHAR-02",
+      "engine": "DEPENDENCY_TO_SOLIDARITY"
+    },
+    {
+      "relationship_id": "REL-02",
+      "from": "CHAR-02",
+      "to": "CHAR-03",
+      "engine": "HOUSING_AND_JOB_DEPENDENCY"
+    },
+    {
+      "relationship_id": "REL-03",
+      "from": "CHAR-01",
+      "to": "CHAR-03",
+      "engine": "EMPLOYMENT_DEPENDENCY_TO_RESISTANCE"
+    },
+    {
+      "relationship_id": "REL-04",
+      "from": "CHAR-03",
+      "to": "CHAR-04",
+      "engine": "DEBT_LEVERAGED_COMPLICITY"
+    },
+    {
+      "relationship_id": "REL-05",
+      "from": "CHAR-04",
+      "to": "CHAR-02",
+      "engine": "CONDITIONAL_CARE_BETRAYAL"
+    },
+    {
+      "relationship_id": "REL-06",
+      "from": "CHAR-01",
+      "to": "CHAR-04",
+      "engine": "TRUST_TO_SUSPICION"
+    }
+  ]
+}

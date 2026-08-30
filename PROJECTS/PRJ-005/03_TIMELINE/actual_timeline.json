@@ -1,0 +1,128 @@
+{
+  "project_id": "PRJ-005",
+  "events": [
+    {
+      "event_id": "EVT-01",
+      "start_minute": 0,
+      "end_minute": 10,
+      "location_id": "LOC-OFFICE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "20:30, 수진이 현금 보증금 봉투를 해인에게 맡기고 두 사람은 사무실 금고에 넣는다."
+    },
+    {
+      "event_id": "EVT-02",
+      "start_minute": 20,
+      "end_minute": 25,
+      "location_id": "LOC-OFFICE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "description": "20:50, 재호가 누수 점검을 핑계로 봉투를 빈 3호실 린넨함에 옮기라고 지시한다."
+    },
+    {
+      "event_id": "EVT-03",
+      "start_minute": 30,
+      "end_minute": 35,
+      "location_id": "LOC-ROOM-03",
+      "participant_ids": [
+        "CHAR-01"
+      ],
+      "description": "21:00, 해인이 지시대로 봉투를 린넨함에 넣고 3호실 문을 잠근다."
+    },
+    {
+      "event_id": "EVT-04",
+      "start_minute": 40,
+      "end_minute": 45,
+      "location_id": "LOC-ROOM-03",
+      "participant_ids": [
+        "CHAR-04"
+      ],
+      "description": "21:10, 미라가 복제된 두 번째 열쇠로 3호실에 들어가 봉투를 꺼낸다."
+    },
+    {
+      "event_id": "EVT-05",
+      "start_minute": 50,
+      "end_minute": 55,
+      "location_id": "LOC-ENTRY-STORAGE",
+      "participant_ids": [
+        "CHAR-04"
+      ],
+      "description": "21:20, 미라가 공동 기부 여행가방의 안감 틈에 봉투를 숨긴다."
+    },
+    {
+      "event_id": "EVT-06",
+      "start_minute": 60,
+      "end_minute": 68,
+      "location_id": "LOC-OFFICE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "description": "21:30, 봉투가 사라진 사실이 드러나자 재호는 마지막으로 봉투를 만진 해인에게 책임을 묻는다."
+    },
+    {
+      "event_id": "EVT-07",
+      "start_minute": 75,
+      "end_minute": 88,
+      "location_id": "LOC-OFFICE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "21:45, 수진의 수첩과 음성 메모로 봉투 내용과 재호가 영수증을 피한 정황을 확인한다."
+    },
+    {
+      "event_id": "EVT-08",
+      "start_minute": 95,
+      "end_minute": 108,
+      "location_id": "LOC-ROOM-03",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-04"
+      ],
+      "description": "22:05, 두 사람은 두 번째 열쇠의 마모 흔적을 확인하고 미라의 단독 범행 가능성을 검토한다."
+    },
+    {
+      "event_id": "EVT-09",
+      "start_minute": 115,
+      "end_minute": 130,
+      "location_id": "LOC-ENTRY-STORAGE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-04"
+      ],
+      "description": "22:25, 수진이 여행가방 안감의 베이지색 이중 매듭을 알아보고 봉투를 회수한다."
+    },
+    {
+      "event_id": "EVT-10",
+      "start_minute": 140,
+      "end_minute": 155,
+      "location_id": "LOC-OFFICE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "22:50, 누수 업체 일정표와 독립 단서들이 재호의 거짓 지시와 미라의 공모를 함께 입증한다."
+    },
+    {
+      "event_id": "EVT-11",
+      "start_minute": 160,
+      "end_minute": 170,
+      "location_id": "LOC-OFFICE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "23:10, 수진과 해인이 증거를 보존해 공동 신고하고 게스트하우스를 떠난다."
+    }
+  ]
+}

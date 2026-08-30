@@ -1,0 +1,278 @@
+{
+  "project_id": "PRJ-005",
+  "contract_family": "mystery-production-channel-dna",
+  "contract_version": "1.1.0",
+  "channel": {
+    "channel_id": "MYSTERY_MAIN",
+    "schema_family": "channel-dna",
+    "schema_version": "1.0.0",
+    "content_version": "2.0.0",
+    "channel_dna_sha256": "d839c56f2c0daf5db6fb74e753287e0dc93659f2587ba9c6c8d4afd9b7a995e7",
+    "relative_path": "versions/2.0.0/channel_dna.json"
+  },
+  "compatibility": "PASS",
+  "required_capabilities": {
+    "GENRE_POLICY": "SUPPORTED",
+    "TONE_POLICY": "SUPPORTED",
+    "PRESENTATION_POLICY": "SUPPORTED",
+    "AUDIENCE_CONTRACT": "SUPPORTED",
+    "STORY_VARIATION_POLICY": "SUPPORTED"
+  },
+  "optional_capabilities": {
+    "NARRATION_POLICY": "SUPPORTED",
+    "REACTION_POLICY": "SUPPORTED",
+    "HUMOR_POLICY": "SUPPORTED",
+    "VISUAL_POLICY": "SUPPORTED",
+    "PACING_POLICY": "SUPPORTED",
+    "RETENTION_POLICY": "SUPPORTED",
+    "HOST_POLICY": "MISSING_USE_DEFAULT",
+    "MUSIC_POLICY": "MISSING_USE_DEFAULT",
+    "THUMBNAIL_POLICY": "MISSING_USE_DEFAULT",
+    "CRIME_PSYCHOLOGY_POLICY": "SUPPORTED",
+    "TRUST_AND_SAFETY_BETRAYAL_POLICY": "SUPPORTED",
+    "COERCIVE_CONTROL_POLICY": "SUPPORTED",
+    "VICTIM_CENTERED_POLICY": "SUPPORTED",
+    "EXPERT_ANALYSIS_POLICY": "SUPPORTED",
+    "RISK_SIGNAL_AND_PUBLIC_VALUE_POLICY": "SUPPORTED",
+    "SOURCE_DISCLOSURE_POLICY": "SUPPORTED",
+    "CLINICAL_LABEL_POLICY": "SUPPORTED",
+    "EPISODE_THEME_POLICY": "SUPPORTED"
+  },
+  "resolved_optional_capabilities": {
+    "NARRATION_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "purposes": [
+          "PERSPECTIVE",
+          "EMOTION",
+          "MEMORY",
+          "INTERPRETATION",
+          "TIME_COMPRESSION",
+          "REVEAL_REINFORCEMENT"
+        ],
+        "repeat_visible_information": false
+      }
+    },
+    "REACTION_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "target_ratio": {
+          "min": 0.15,
+          "max": 0.3
+        },
+        "functions": [
+          "EMOTIONAL_REACTION",
+          "ANOMALY_DETECTION",
+          "HYPOTHESIS_GENERATION",
+          "HYPOTHESIS_REVISION",
+          "CONTRADICTION_DETECTION",
+          "TENSION_RELEASE",
+          "MORAL_REACTION",
+          "RISK_SIGNAL_RECOGNITION"
+        ],
+        "required_functions": [
+          "HYPOTHESIS_GENERATION",
+          "HYPOTHESIS_REVISION"
+        ],
+        "required_function_any_of": [
+          "ANOMALY_DETECTION",
+          "CONTRADICTION_DETECTION"
+        ]
+      }
+    },
+    "HUMOR_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "mode": "CONTROLLED_RELEASE",
+        "never_undermine": [
+          "VICTIM_HARM",
+          "CORE_REVEAL",
+          "EMOTIONAL_AFTERMATH",
+          "COERCIVE_CONTROL",
+          "CLINICAL_DISCUSSION"
+        ]
+      }
+    },
+    "VISUAL_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "mode": "REENACTMENT_FIRST",
+        "priorities": [
+          "SPATIAL_CLARITY",
+          "CLUE_VISIBILITY",
+          "REACTION_READABILITY",
+          "RISK_SIGNAL_VISIBILITY"
+        ]
+      }
+    },
+    "PACING_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "mode": "MEDIUM_FAST",
+        "slowdown_allowed_for": [
+          "EMOTIONAL_WEIGHT",
+          "CLUE_COMPREHENSION",
+          "REVEAL_RECONTEXTUALIZATION",
+          "VICTIM_AGENCY",
+          "EXPERT_CONTEXT"
+        ]
+      }
+    },
+    "RETENTION_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "mode": "HYPOTHESIS_DRIVEN",
+        "required_progression": [
+          "QUESTION",
+          "PARTIAL_ANSWER",
+          "CONTRADICTION",
+          "UPDATED_QUESTION"
+        ]
+      }
+    },
+    "HOST_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false
+      }
+    },
+    "MUSIC_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "mode": "UNSPECIFIED"
+      }
+    },
+    "THUMBNAIL_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "mode": "UNSPECIFIED"
+      }
+    },
+    "CRIME_PSYCHOLOGY_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "primary_genres": [
+          "CRIME_PSYCHOLOGICAL_THRILLER"
+        ],
+        "threat_types": [
+          "CRIME",
+          "PREDATORY"
+        ],
+        "require_psychological_pressure": true,
+        "technical_markers": [
+          "TECHNICAL",
+          "MACHINE_LOG",
+          "METADATA_ONLY",
+          "SENSOR_ONLY",
+          "CCTV_ONLY"
+        ],
+        "max_technical_clue_ratio": 0.2,
+        "procedural_markers": [
+          "POLICE_PROCEDURAL",
+          "COURTROOM_PROCEDURAL",
+          "FORENSIC_PROCEDURAL"
+        ]
+      }
+    },
+    "TRUST_AND_SAFETY_BETRAYAL_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "require_trusted_domain": true,
+        "require_safe_domain_expectation": true
+      }
+    },
+    "COERCIVE_CONTROL_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "require_warning_signals": true,
+        "require_boundary_erosion": true,
+        "require_control_tactics": true,
+        "require_exit_barriers": true
+      }
+    },
+    "VICTIM_CENTERED_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "require_agency_outcome": true,
+        "require_responsible_agent_payoff": true,
+        "prohibited_phrases": [
+          "피해자가 자초했다",
+          "피해자도 잘못했다",
+          "왜 떠나지 않았나"
+        ]
+      }
+    },
+    "EXPERT_ANALYSIS_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "true_story_requirement": "REQUIRED",
+        "inspired_requirement": "REQUIRED_OR_NA",
+        "original_requirement": "OPTIONAL",
+        "require_claim_evidence": true
+      }
+    },
+    "RISK_SIGNAL_AND_PUBLIC_VALUE_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "require_risk_signal_payoff": true
+      }
+    },
+    "SOURCE_DISCLOSURE_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "labels_by_source_truth": {
+          "ORIGINAL_FICTION": "ORIGINAL_FICTION",
+          "VERIFIED_TRUE_CASE": "VERIFIED_TRUE_CASE",
+          "INSPIRED_BY_TRUE_EVENTS": "INSPIRED_BY_TRUE_EVENTS"
+        }
+      }
+    },
+    "CLINICAL_LABEL_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "controlled_terms": [
+          "사이코패스",
+          "소시오패스",
+          "반사회성 인격장애",
+          "반사회성 성격장애"
+        ],
+        "allowed_classifications": [
+          "CONFIRMED_DIAGNOSIS",
+          "EXPERT_ASSESSMENT",
+          "MEDIA_DESCRIPTION",
+          "NARRATOR_OPINION",
+          "UNVERIFIED_LABEL"
+        ],
+        "diagnosis_requires_expert": true,
+        "diagnosis_requires_evidence": true
+      }
+    },
+    "EPISODE_THEME_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "allowed_themes": [
+          "TRUST_BETRAYAL",
+          "COERCIVE_CONTROL",
+          "FALSE_ACCUSATION",
+          "ACCOUNTABILITY"
+        ],
+        "require_episode_theme": true
+      }
+    }
+  },
+  "ignored_unknown_fields": [],
+  "ignored_unknown_capabilities": [],
+  "errors": []
+}

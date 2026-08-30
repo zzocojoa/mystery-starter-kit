@@ -1,0 +1,101 @@
+{
+  "project_id": "PRJ-005",
+  "reveals": [
+    {
+      "reveal_id": "REVEAL-01",
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "fact_id": "FACT-04",
+      "information": "봉투는 해인이 잠근 3호실에서 사라졌다.",
+      "effect": "해인을 즉시 의심하게 하는 현재 시점의 고리"
+    },
+    {
+      "reveal_id": "REVEAL-02",
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "fact_id": "FACT-01",
+      "information": "수진은 영수증 없이 현금 보증금을 맡겼다.",
+      "effect": "취약한 거래 구조를 제시"
+    },
+    {
+      "reveal_id": "REVEAL-03",
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "fact_id": "FACT-02",
+      "information": "해인과 수진이 함께 봉투를 금고에 넣었다.",
+      "effect": "두 사람의 공동 기억을 기준점으로 설정"
+    },
+    {
+      "reveal_id": "REVEAL-04",
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "fact_id": "FACT-08",
+      "information": "수진은 지폐 구성과 고무줄을 따로 기록했다.",
+      "effect": "피해자 기록이 후반의 독립 근거가 됨"
+    },
+    {
+      "reveal_id": "REVEAL-05",
+      "scene_id": "SCN-03",
+      "scene_order": 3,
+      "fact_id": "FACT-03",
+      "information": "재호가 누수 점검을 이유로 봉투 이동을 지시했다.",
+      "effect": "보호 행동이 함정이 되는 구조를 공개"
+    },
+    {
+      "reveal_id": "REVEAL-06",
+      "scene_id": "SCN-04",
+      "scene_order": 4,
+      "fact_id": "FACT-10",
+      "information": "그날 누수 업체 방문 일정은 없었다.",
+      "effect": "재호의 설명에 첫 균열을 만듦"
+    },
+    {
+      "reveal_id": "REVEAL-07",
+      "scene_id": "SCN-05",
+      "scene_order": 5,
+      "fact_id": "FACT-09",
+      "information": "가방 안감에는 미라만 쓰는 베이지색 이중 매듭이 있다.",
+      "effect": "물건과 관계 기억이 결합된 비기술 단서"
+    },
+    {
+      "reveal_id": "REVEAL-08",
+      "scene_id": "SCN-06",
+      "scene_order": 6,
+      "fact_id": "FACT-05",
+      "information": "미라가 두 번째 열쇠로 3호실에 들어갔다.",
+      "effect": "미라 단독범이라는 거짓 해결을 강화"
+    },
+    {
+      "reveal_id": "REVEAL-09",
+      "scene_id": "SCN-07",
+      "scene_order": 7,
+      "fact_id": "FACT-06",
+      "information": "미라는 봉투를 공동 기부 가방 안감에 숨겼다.",
+      "effect": "숨김 장소와 공모 동선을 확정"
+    },
+    {
+      "reveal_id": "REVEAL-10",
+      "scene_id": "SCN-07",
+      "scene_order": 7,
+      "fact_id": "FACT-07",
+      "information": "재호와 미라는 해인에게 책임을 돌리고 돈을 나누려 했다.",
+      "effect": "증언 붕괴를 통해 이중 가해 구조를 확정"
+    },
+    {
+      "reveal_id": "REVEAL-11",
+      "scene_id": "SCN-07",
+      "scene_order": 7,
+      "fact_id": "FACT-11",
+      "information": "해인의 이동은 절도 의도가 아니라 보호 지시를 따른 행동이었다.",
+      "effect": "원인 제공과 책임을 분리"
+    },
+    {
+      "reveal_id": "REVEAL-12",
+      "scene_id": "SCN-08",
+      "scene_order": 8,
+      "fact_id": "FACT-12",
+      "information": "수진과 해인은 증거를 보존해 공동 신고한다.",
+      "effect": "피해자의 선택과 연대로 결말을 닫음"
+    }
+  ]
+}

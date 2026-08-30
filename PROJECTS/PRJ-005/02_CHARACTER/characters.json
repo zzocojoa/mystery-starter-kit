@@ -1,0 +1,37 @@
+{
+  "project_id": "PRJ-005",
+  "characters": [
+    {
+      "character_id": "CHAR-01",
+      "name": "한해인",
+      "role": "NIGHT_EMPLOYEE_PROTAGONIST",
+      "production_role": "MAJOR",
+      "goal": "수진의 보증금 봉투를 찾아 자신의 보호 행동이 어떻게 범행에 이용됐는지 밝힌다. 누명과 주거 상실 때문에 진실을 말하지 못하게 될 것을 두려워한다.",
+      "secret": "재호의 지시를 동료 확인 없이 따르고 봉투를 3호실로 옮긴 실제 목격자이며, 범행 의도는 없지만 접근 기회를 만든 책임을 인정한다."
+    },
+    {
+      "character_id": "CHAR-02",
+      "name": "박수진",
+      "role": "SURVIVOR_VICTIM",
+      "production_role": "MAJOR",
+      "goal": "보증금을 회수하고 게스트하우스의 무영수증 예치 관행을 다른 투숙객들과 함께 중단시킨다. 문제 제기로 숙소와 일자리를 모두 잃을 것을 두려워한다.",
+      "secret": "입실 전부터 운영 방식을 불안하게 여겨 지폐 목록과 목소리 메모를 따로 보존했다."
+    },
+    {
+      "character_id": "CHAR-03",
+      "name": "윤재호",
+      "role": "GUESTHOUSE_OWNER_MASTERMIND",
+      "production_role": "MAJOR",
+      "goal": "보증금을 빼돌려 운영 적자를 감추고 공동체 운영자로서의 신뢰를 유지한다. 과거 예치금 누락까지 드러나는 것을 두려워한다.",
+      "secret": "가짜 누수 점검 지시와 복제 열쇠를 준비하고 미라에게 절도를 맡긴 주된 책임자다."
+    },
+    {
+      "character_id": "CHAR-04",
+      "name": "최미라",
+      "role": "LONG_TERM_GUEST_ACCOMPLICE",
+      "production_role": "MAJOR",
+      "goal": "밀린 숙박비를 탕감받고 계속 머물기 위해 재호와의 공모를 숨긴다. 숙소에서 쫓겨나 다시 거리로 돌아갈 것을 두려워한다.",
+      "secret": "복제 열쇠로 3호실에 들어가 봉투를 기부 여행가방 안감에 숨긴 실행자다."
+    }
+  ]
+}

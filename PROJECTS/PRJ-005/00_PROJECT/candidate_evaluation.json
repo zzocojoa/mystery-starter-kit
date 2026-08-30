@@ -1,0 +1,225 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_evaluation.schema.json",
+  "schema_family": "candidate-evaluation",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-005",
+  "weights": {
+    "crime_threat_score": 15,
+    "psychological_immersion_score": 15,
+    "trust_betrayal_score": 15,
+    "victim_integrity_score": 15,
+    "character_score": 10,
+    "twist_score": 10,
+    "novelty_score": 10,
+    "production_score": 10
+  },
+  "input_hashes": {
+    "variation_candidates": "86628b719d20bebb2b68480d20190cbd2ee39b0755f413f3e52b3b1f2a27612a",
+    "novelty_precheck": "018e4bae209e4c4dc9aa1f7022b55b0aa7dbfa5f10be04423820d2cf4fd35117",
+    "candidate_eligibility": "84ce1383ef6cb818ae2c2a2f0f84545004af83708f20eb856904349f14a4018c"
+  },
+  "novelty_report_hash": "018e4bae209e4c4dc9aa1f7022b55b0aa7dbfa5f10be04423820d2cf4fd35117",
+  "recommended_candidate_id": "VAR-05",
+  "evaluations": [
+    {
+      "candidate_id": "VAR-01",
+      "dimension_evidence": {
+        "crime_threat_score": [
+          "학교라는 보호 영역에서 조직적 사기가 작동해 현실 범죄 위협이 분명하다."
+        ],
+        "psychological_immersion_score": [
+          "실시간 카운트다운과 증언 충돌이 압박을 지속한다."
+        ],
+        "trust_betrayal_score": [
+          "배우자 신뢰와 권위 남용이 이중으로 배신된다."
+        ],
+        "victim_integrity_score": [
+          "피해 가족이 정보에 근거해 이탈하는 결과를 갖는다."
+        ],
+        "character_score": [
+          "경쟁 관계와 공모 집단이 명확하지만 감정 중심이 분산될 수 있다."
+        ],
+        "twist_score": [
+          "사건의 성격을 바꾸는 해결은 재해석 가능성이 충분하다."
+        ],
+        "novelty_score": [
+          "현재 Story History와 구조 충돌이 없다."
+        ],
+        "production_score": [
+          "두 장소 중심이지만 Found Footage와 중간 기술 의존도가 추가 제작 부담을 만든다."
+        ]
+      },
+      "crime_threat_score": 82,
+      "psychological_immersion_score": 86,
+      "trust_betrayal_score": 88,
+      "victim_integrity_score": 84,
+      "character_score": 80,
+      "twist_score": 83,
+      "novelty_score": 90,
+      "production_score": 78,
+      "total_score": 84.1,
+      "decision": "REJECTED",
+      "decision_reason": "적격 후보지만 제작 부담과 분산된 감정 중심 때문에 최고점 후보보다 낮다."
+    },
+    {
+      "candidate_id": "VAR-02",
+      "dimension_evidence": {
+        "crime_threat_score": [
+          "직장 내 살인과 강압 통제가 즉각적인 범죄 위협을 형성한다."
+        ],
+        "psychological_immersion_score": [
+          "자원 붕괴 압박과 상호 협박 관계가 고립감을 강화한다."
+        ],
+        "trust_betrayal_score": [
+          "온라인 공동체의 신뢰가 직장 소유권 조작으로 전환된다."
+        ],
+        "victim_integrity_score": [
+          "피해자가 남긴 증거가 책임 귀속의 핵심이 된다."
+        ],
+        "character_score": [
+          "직원 주인공과 이중 범인 구조는 풍부하지만 주요 인물 수가 많다."
+        ],
+        "twist_score": [
+          "잘못 알려진 소유자가 진범 구조를 재해석한다."
+        ],
+        "novelty_score": [
+          "현재 Story History와 구조 충돌이 없다."
+        ],
+        "production_score": [
+          "일곱 주요 인물과 살인 사건 재연이 제작 복잡도를 높인다."
+        ]
+      },
+      "crime_threat_score": 92,
+      "psychological_immersion_score": 90,
+      "trust_betrayal_score": 84,
+      "victim_integrity_score": 86,
+      "character_score": 88,
+      "twist_score": 86,
+      "novelty_score": 88,
+      "production_score": 68,
+      "total_score": 85.8,
+      "decision": "REJECTED",
+      "decision_reason": "강한 위협과 인물 구조를 갖췄지만 일곱 주요 인물의 제작 비용이 높다."
+    },
+    {
+      "candidate_id": "VAR-03",
+      "dimension_evidence": {
+        "crime_threat_score": [
+          "병원 내 실종과 법적 위협이 현실적인 범죄 긴장을 만든다."
+        ],
+        "psychological_immersion_score": [
+          "전 연인의 시점과 실시간 Screenlife가 관계 압박을 밀착 체험시킨다."
+        ],
+        "trust_betrayal_score": [
+          "돌봄 기대와 금융 신뢰가 동시에 훼손된다."
+        ],
+        "victim_integrity_score": [
+          "피해자가 보존한 증거가 수동적 구조를 피한다."
+        ],
+        "character_score": [
+          "전 연인과 돌봄 체계의 갈등이 감정적으로 선명하다."
+        ],
+        "twist_score": [
+          "소유권 재구성이 실종의 의미를 뒤집는다."
+        ],
+        "novelty_score": [
+          "현재 Story History와 구조 충돌이 없다."
+        ],
+        "production_score": [
+          "세 장소와 낮은 복잡도로 촬영 가능성이 높다."
+        ]
+      },
+      "crime_threat_score": 86,
+      "psychological_immersion_score": 92,
+      "trust_betrayal_score": 93,
+      "victim_integrity_score": 91,
+      "character_score": 89,
+      "twist_score": 87,
+      "novelty_score": 91,
+      "production_score": 88,
+      "total_score": 89.8,
+      "decision": "REJECTED",
+      "decision_reason": "완성도가 높지만 Screenlife 의존과 병원 촬영 제약이 최고점 후보보다 크다."
+    },
+    {
+      "candidate_id": "VAR-04",
+      "dimension_evidence": {
+        "crime_threat_score": [
+          "공장 은폐와 공모 집단이 제도적 범죄 압박을 만든다."
+        ],
+        "psychological_immersion_score": [
+          "가해자 시점의 신념 붕괴는 흥미롭지만 피해자 밀착도가 낮다."
+        ],
+        "trust_betrayal_score": [
+          "이웃 신뢰와 권위 남용이 결합된다."
+        ],
+        "victim_integrity_score": [
+          "피해자의 경계 회복이 있으나 가해자 관점이 중심을 흐릴 위험이 있다."
+        ],
+        "character_score": [
+          "보호적 거짓말과 공모 집단의 균열이 기능적으로 구분된다."
+        ],
+        "twist_score": [
+          "증언 붕괴가 은폐 사건의 실제 성격을 바꾼다."
+        ],
+        "novelty_score": [
+          "현재 Story History와 구조 충돌이 없다."
+        ],
+        "production_score": [
+          "다섯 장소와 공장 환경이 저복잡도 선언에 비해 준비 부담이 있다."
+        ]
+      },
+      "crime_threat_score": 88,
+      "psychological_immersion_score": 83,
+      "trust_betrayal_score": 86,
+      "victim_integrity_score": 82,
+      "character_score": 84,
+      "twist_score": 89,
+      "novelty_score": 92,
+      "production_score": 75,
+      "total_score": 84.85,
+      "decision": "REJECTED",
+      "decision_reason": "반전 잠재력은 높지만 피해자 중심성과 장소 효율이 상대적으로 약하다."
+    },
+    {
+      "candidate_id": "VAR-05",
+      "dimension_evidence": {
+        "crime_threat_score": [
+          "공동체 신뢰를 악용한 포식적 절도와 법적 위협이 현실적으로 결합된다."
+        ],
+        "psychological_immersion_score": [
+          "피해자의 반복되는 기억 검증과 의존 관계가 심리 압박을 밀도 있게 만든다."
+        ],
+        "trust_betrayal_score": [
+          "온라인 공동체의 안전 약속이 게스트하우스 내부 통제로 뒤집힌다."
+        ],
+        "victim_integrity_score": [
+          "피해자가 증거를 보존하고 최종 선택을 주도해 행위 주체성이 가장 강하다."
+        ],
+        "character_score": [
+          "직원 주인공, 피해자, 이중 범인의 기능과 의존 관계가 네 인물 안에서 선명하다."
+        ],
+        "twist_score": [
+          "목격자가 사건을 촉발했다는 반전이 앞선 관계 단서를 새 의미로 바꾼다."
+        ],
+        "novelty_score": [
+          "현재 Story History와 충돌이 없고 비기술적 독립 증명 구조가 차별화된다."
+        ],
+        "production_score": [
+          "세 장소, 네 주요 인물, 낮은 복잡도와 무특수효과로 제작 효율이 가장 높다."
+        ]
+      },
+      "crime_threat_score": 88,
+      "psychological_immersion_score": 94,
+      "trust_betrayal_score": 95,
+      "victim_integrity_score": 96,
+      "character_score": 91,
+      "twist_score": 94,
+      "novelty_score": 95,
+      "production_score": 92,
+      "total_score": 93.15,
+      "decision": "RECOMMENDED",
+      "decision_reason": "적격 후보 중 가중 점수가 가장 높고 Channel v2 피해자 중심성과 제작 효율을 동시에 만족한다."
+    }
+  ]
+}

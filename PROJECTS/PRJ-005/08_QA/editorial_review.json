@@ -1,0 +1,240 @@
+{
+  "$schema": "../../../STANDARD/schemas/editorial_review.schema.json",
+  "schema_family": "editorial-review",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-005",
+  "reviewer": {
+    "reviewer_id": "agent:continuity_critic",
+    "role": "CONTINUITY_CRITIC"
+  },
+  "reviewed_at": "2026-08-30T14:16:10Z",
+  "artifact_hashes": {
+    "final_script": "4dd47ae1b3a42e2f6cf51cb39e362e95d8075cd41deb23970d37f561481bd4b7",
+    "actual_timeline": "137670be59249272d7f34bfe1c347c8d4f3fa6b836ffbf2b213c2fb0dce80048",
+    "viewer_timeline": "aba987d9f233a075971c535f534ff9db954f5dec7cd038adf3b9dc08507cc67a",
+    "audience_belief": "9ae65e038c18aadabc2170e8d33702e7ea6b4f213f00bb184fa2d6b9736f1afb",
+    "panel_cast": "1568a985332e6b1daad2990709bc3b83582949b512969d9c709994ee9a293ebf",
+    "reaction_segments": "d005ea911b0b8f2bf68d9863cc74ae53931bc85a3c18f975bba14f1370a4de09",
+    "presentation_plan": "821961b2a72246e343e86a9fb8810f21c845c70105006be862bc201731d1caf4",
+    "panel_reaction_script": "99a56e6095fb5d6176a12061ea9591030f8d7fc08d7b7f539c00aeb8dcd2749e",
+    "production_footprint": "7ba5d323bb8f4288fcb7462087a62d03a356304256044700a826efa974f867e4",
+    "shooting_script": "3a73b3c7dfc81b778a8d25bd2c0942e328b806d491c49ea0d1eea7acc8d97e8c",
+    "production_manifest": "0480cda8b828a703ad8a049a98cf5dad2e073bb6bd32134f15756224e4e3dfde",
+    "narration": "cb8e3ebff34ec5c13de93c69ac3b057d2287ec771ecca16278db1e047917fc37",
+    "production_panel_reaction_script": "c7cff0b7e52bcea8c789d52f58580adfebe0b7cbdb25e78cc44a1d856e3c545e",
+    "subtitle_script": "0d8601d39d55710a6c77bcc39dd09c55bc48f1444ebf025300dc76cdae531989",
+    "edit_script": "7e96a5f57f75be489f81bb64f8746c68441f0e4e63d35111893a56725aa0bbe3"
+  },
+  "runtime_evidence": {
+    "method": "WORD_COUNT_ESTIMATE",
+    "reading_rate_wpm": 150.0,
+    "planned_runtime_sec": 1500.0,
+    "planned_panel_duration_sec": 300.0,
+    "estimated_panel_spoken_duration_sec": 52.4,
+    "measured_panel_duration_sec": null,
+    "panel_segments": [
+      {
+        "segment_id": "SEG-003",
+        "reaction_segment_id": "RSEG-001",
+        "planned_duration_sec": 50.0,
+        "spoken_word_count": 19,
+        "estimated_spoken_duration_sec": 7.6,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 42.4,
+            "notes": "증거 요약 그래픽과 반응 홀드"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-006",
+        "reaction_segment_id": "RSEG-002",
+        "planned_duration_sec": 50.0,
+        "spoken_word_count": 21,
+        "estimated_spoken_duration_sec": 8.4,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 41.6,
+            "notes": "증거 요약 그래픽과 반응 홀드"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-011",
+        "reaction_segment_id": "RSEG-003",
+        "planned_duration_sec": 50.0,
+        "spoken_word_count": 23,
+        "estimated_spoken_duration_sec": 9.2,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 40.8,
+            "notes": "증거 요약 그래픽과 반응 홀드"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-014",
+        "reaction_segment_id": "RSEG-004",
+        "planned_duration_sec": 50.0,
+        "spoken_word_count": 22,
+        "estimated_spoken_duration_sec": 8.8,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 41.2,
+            "notes": "증거 요약 그래픽과 반응 홀드"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-017",
+        "reaction_segment_id": "RSEG-005",
+        "planned_duration_sec": 50.0,
+        "spoken_word_count": 23,
+        "estimated_spoken_duration_sec": 9.2,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 40.8,
+            "notes": "증거 요약 그래픽과 반응 홀드"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-020",
+        "reaction_segment_id": "RSEG-006",
+        "planned_duration_sec": 50.0,
+        "spoken_word_count": 23,
+        "estimated_spoken_duration_sec": 9.2,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 40.8,
+            "notes": "증거 요약 그래픽과 반응 홀드"
+          }
+        ]
+      }
+    ]
+  },
+  "result": "PASS",
+  "checks": {
+    "broadcast_format": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-001",
+          "excerpt_hash": "cdc1ceec2cc5c8f8c08f7b043c126b36828d96db4d711f9ac7db6e5381a6398e"
+        }
+      ],
+      "notes": "22개 방송 Segment의 Marker, 순서, Layer 전환을 Presentation Plan과 대조함"
+    },
+    "absolute_time": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "actual_timeline",
+          "selector_type": "DOCUMENT",
+          "selector_id": "actual_timeline",
+          "excerpt_hash": "137670be59249272d7f34bfe1c347c8d4f3fa6b836ffbf2b213c2fb0dce80048"
+        }
+      ],
+      "notes": "대본의 절대 시간 언급과 실제 사건 순서가 충돌하지 않음을 확인함"
+    },
+    "dialogue_naturalness": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "panel_reaction_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-003",
+          "excerpt_hash": "a0f893ad3e94f098ae5279b602e71e963ba4fd4737350a8c40362d823c33ecbe"
+        }
+      ],
+      "notes": "화자별 역할과 감정 톤이 자연스럽고 발화가 정보 공개 시점을 앞서지 않음"
+    },
+    "panel_reaction_function": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "reaction_segments",
+          "selector_type": "REACTION_SEGMENT_ID",
+          "selector_id": "RSEG-001",
+          "excerpt_hash": "0ba3f3371d854576b21d0f956bfbf8831dd07496728504d962d85deba232ffcb"
+        }
+      ],
+      "notes": "가설 생성, 반론, 수정, 도덕적 정리의 기능이 각 Cue에 보존됨"
+    },
+    "audience_belief": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "audience_belief",
+          "selector_type": "DOCUMENT",
+          "selector_id": "audience_belief",
+          "excerpt_hash": "9ae65e038c18aadabc2170e8d33702e7ea6b4f213f00bb184fa2d6b9736f1afb"
+        }
+      ],
+      "notes": "각 장면의 단서 공개와 관객 가설 전이가 정답을 선행 공개하지 않음"
+    },
+    "shootability": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "shooting_script",
+          "selector_type": "DOCUMENT",
+          "selector_id": "shooting_script",
+          "excerpt_hash": "3a73b3c7dfc81b778a8d25bd2c0942e328b806d491c49ea0d1eea7acc8d97e8c"
+        }
+      ],
+      "notes": "3개 로케이션과 4명의 주요 배우 내에서 모든 장면이 저복잡도 촬영 단위로 정의됨"
+    },
+    "victim_dignity": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-021",
+          "excerpt_hash": "557cde43de886c0f834b50957a1ac9a584cb7d35c9d98b63d7e9e908b70f5a21"
+        }
+      ],
+      "notes": "수진과 해인이 증거 보존·공동 신고를 주도하며 비난이나 피해를 선정적으로 소비하지 않음"
+    }
+  },
+  "issues": []
+}

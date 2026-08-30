@@ -1,0 +1,87 @@
+{
+  "$schema": "../../../STANDARD/schemas/crime_psychology.schema.json",
+  "schema_family": "crime-psychology",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-005",
+  "applicable": true,
+  "threat_type": "PREDATORY",
+  "trusted_domain": "ONLINE_COMMUNITY",
+  "safe_domain_betrayal": "TRUST_ABUSED",
+  "safe_domain_expectation": "타지 구직 여성에게 검증된 임시 주거와 보증금 공동 보관을 제공한다는 상호부조 약속",
+  "psychological_pressure": "재호는 주거와 구직 추천을 동시에 통제하며 규칙에 이의를 제기하면 퇴실과 절도 고소가 뒤따를 것처럼 만들어 수진과 해인이 스스로의 판단을 의심하게 한다.",
+  "early_warning_signals": [
+    {
+      "warning_signal_id": "WARN-01",
+      "actor_id": "CHAR-03",
+      "victim_id": "CHAR-02",
+      "scene_id": "SCN-02",
+      "order": 1,
+      "description": "재호가 보증금을 받으면서 영수증은 공동체 신뢰를 해친다며 발급을 미룬다."
+    },
+    {
+      "warning_signal_id": "WARN-02",
+      "actor_id": "CHAR-03",
+      "victim_id": "CHAR-02",
+      "scene_id": "SCN-02",
+      "order": 2,
+      "description": "수진의 규칙 질문을 공개 채팅이 아닌 운영자와의 단독 면담으로 돌린다."
+    }
+  ],
+  "boundary_erosion_steps": [
+    {
+      "boundary_step_id": "BOUND-01",
+      "actor_id": "CHAR-03",
+      "victim_id": "CHAR-02",
+      "scene_id": "SCN-03",
+      "order": 3,
+      "description": "재호가 구직 추천을 명분으로 수진의 현금 사정과 퇴실 가능 날짜를 캐묻는다."
+    },
+    {
+      "boundary_step_id": "BOUND-02",
+      "actor_id": "CHAR-03",
+      "victim_id": "CHAR-02",
+      "scene_id": "SCN-03",
+      "order": 4,
+      "description": "운영자만 다루던 보증금 봉투를 야간 직원이 비공개 지시로 옮기게 한다."
+    }
+  ],
+  "control_tactics": [
+    {
+      "control_tactic_id": "CTRL-01",
+      "actor_id": "CHAR-03",
+      "victim_id": "CHAR-02",
+      "scene_id": "SCN-04",
+      "order": 5,
+      "description": "봉투가 사라지자 문제를 외부에 알리면 공동체 명예 훼손과 퇴실 책임을 묻겠다고 위협한다."
+    }
+  ],
+  "victim_exit_barriers": [
+    {
+      "exit_barrier_id": "EXIT-01",
+      "actor_id": "CHAR-03",
+      "victim_id": "CHAR-02",
+      "scene_id": "SCN-04",
+      "order": 6,
+      "description": "수진의 남은 현금과 구직 추천서가 운영자에게 묶여 있어 즉시 떠나거나 신고하기 어렵다."
+    }
+  ],
+  "harm_mechanism": "재호가 영수증 없는 현금 보관과 복제 열쇠를 결합하고, 주거 의존과 법적 위협으로 피해자의 문제 제기를 막아 보증금을 빼돌린다.",
+  "harm_event": {
+    "harm_event_id": "HARM-01",
+    "actor_id": "CHAR-03",
+    "victim_id": "CHAR-02",
+    "scene_id": "SCN-04",
+    "order": 7
+  },
+  "responsible_agent": "CHAR-03",
+  "responsible_agent_structure": "SINGLE_AGENT",
+  "responsible_agent_payoff": "재호가 만든 누수 지시와 미라의 독립 진술이 함께 무너지면서 지휘 책임과 반복 착취가 드러난다.",
+  "victim_agency_outcome": {
+    "victim_id": "CHAR-02",
+    "ending_scene_id": "SCN-08",
+    "outcome": "수진이 보관한 수기 기록을 공개하고 다른 투숙객들과 공동 신고를 선택해 봉투 회수 이후에도 착취 구조를 멈춘다."
+  },
+  "victim_agency_mode": "EVIDENCE_PRESERVED",
+  "risk_signal_payoff": "영수증 거부, 단독 면담, 임의 규칙 변경이 모두 절도와 침묵 강요를 준비한 반복 신호로 재해석된다.",
+  "episode_theme": "ACCOUNTABILITY"
+}

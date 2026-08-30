@@ -1,0 +1,120 @@
+{
+  "$schema": "../../STANDARD/schemas/production_manifest.schema.json",
+  "schema_family": "production-manifest",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-005",
+  "source_footprint_sha256": "7ba5d323bb8f4288fcb7462087a62d03a356304256044700a826efa974f867e4",
+  "scenes": [
+    {
+      "scene_id": "SCN-01",
+      "location_id": "LOC-ROOM-03",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-02",
+      "location_id": "LOC-OFFICE",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-03",
+      "location_id": "LOC-ROOM-03",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-04",
+      "location_id": "LOC-OFFICE",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-05",
+      "location_id": "LOC-ENTRY-STORAGE",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-04"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-06",
+      "location_id": "LOC-ROOM-03",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-04"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-07",
+      "location_id": "LOC-OFFICE",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-08",
+      "location_id": "LOC-OFFICE",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    }
+  ]
+}

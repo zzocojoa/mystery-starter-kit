@@ -1,0 +1,77 @@
+{
+  "schema_family": "story-fingerprint",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-005",
+  "story": {
+    "mystery_type": "WHERE",
+    "architecture": "ARCH-05_BELIEF_COLLAPSE",
+    "protagonist_role": "EMPLOYEE",
+    "primary_twist": "TW-14_WITNESS_CAUSED_EVENT",
+    "timeline_style": "LOOP",
+    "incident_type": "THEFT",
+    "setting": "GUESTHOUSE",
+    "culprit_structure": "DUAL",
+    "setting_logic": [
+      "SHARED_SAFE_DEPENDENCY",
+      "LIMITED_NIGHT_ACCESS",
+      "ONLINE_TRUST_NETWORK"
+    ],
+    "information_mechanism": [
+      "TESTIMONIAL_CONTRADICTION"
+    ],
+    "relationship_engine": "DEPENDENCY",
+    "pressure_engine": "LEGAL_THREAT",
+    "dramatic_engine": "INEVITABLE_DISCOVERY"
+  },
+  "beat_signature": [
+    "COLD_OPEN_LAST_TOUCH",
+    "TRUST_BASELINE",
+    "PROTECTIVE_MOVE",
+    "BLAME_SHIFT",
+    "RELATIONAL_TRACE",
+    "FALSE_RESOLUTION",
+    "BELIEF_COLLAPSE",
+    "ACCOUNTABILITY_EXIT"
+  ],
+  "causal": {
+    "root_cause": "TRUST_BASED_DEPOSIT_EXPLOITATION",
+    "mechanism": "WITNESS_MOVE_AND_DUPLICATE_KEY",
+    "concealment": "DONATION_SUITCASE_AND_FALSE_ACCUSATION",
+    "discovery_path": "INDEPENDENT_TESTIMONY_AND_HANDCRAFT_TRACE",
+    "resolution": "COLLECTIVE_RECOVERY_AND_REPORT"
+  },
+  "semantic_causal": {
+    "normalized_roles": [
+      "EMPLOYEE_WITNESS",
+      "SURVIVOR_RECORDER",
+      "CONTROLLING_PLANNER",
+      "DEPENDENT_EXECUTOR"
+    ],
+    "character_function_chain": [
+      "TRUST_ACCEPTED",
+      "PROTECTIVE_MOVE",
+      "ACCESS_EXPLOITED",
+      "BLAME_ASSIGNED",
+      "MEMORY_COMPARED",
+      "EVIDENCE_PRESERVED",
+      "ACCOUNTABILITY_CHOSEN"
+    ],
+    "audience_hypothesis_transitions": [
+      "EMPLOYEE_SUSPECTED",
+      "VICTIM_DOUBTED",
+      "EXECUTOR_ISOLATED",
+      "PLANNER_CONNECTED",
+      "JOINT_SCHEME_CONFIRMED"
+    ],
+    "edge_sequence": [
+      "ROOT_CAUSE>MECHANISM",
+      "MECHANISM>MECHANISM",
+      "MECHANISM>CONCEALMENT",
+      "CONCEALMENT>DISCOVERY",
+      "DISCOVERY>DISCOVERY",
+      "DISCOVERY>DISCOVERY",
+      "DISCOVERY>CONSEQUENCE",
+      "CONSEQUENCE>RESOLUTION"
+    ]
+  }
+}
