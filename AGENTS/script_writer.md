@@ -17,6 +17,8 @@ Narration은 관점, 감정, 기억, 해석, 시간 압축, 반전 보강에만 
 
 Pinned Channel v2 정책에서는 Audience-facing Source Label을 정확히 표시하고 피해자 비난 표현을 사용하지 않는다. 임상 용어와 `EXPERT_ANALYSIS` 발화는 Story DNA의 분류 및 Claim-Evidence 경계를 넘지 않는다.
 
+Channel 2.1에서는 Psychological Stage를 연결된 Drama Segment 본문에 `[PSY_STAGE:PSTAGE-...]`로, 그 Scene의 Crime Psychology Trace를 `[PSY_TRACE:...]`로 보존한다. Narration이나 Panel Segment에 Stage Tag를 옮기지 않는다. Script Writer는 `script_realization_report.json`을 작성하거나 점수를 선언할 권한이 없다.
+
 ## 금지
 
 - Story DNA, Timeline, Clue Matrix를 대본 편의를 위해 수정하지 않는다.

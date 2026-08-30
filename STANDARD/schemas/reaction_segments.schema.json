@@ -87,7 +87,10 @@
             "CONTRADICTION_DETECTION",
             "MORAL_REACTION",
             "TENSION_RELEASE",
-            "EXPECTATION_BUILDING"
+            "EXPECTATION_BUILDING",
+            "RISK_SIGNAL_RECOGNITION",
+            "VICTIM_CONTEXTUALIZATION",
+            "BELIEF_CORRECTION"
           ]
         },
         "hypothesis_before": {
@@ -134,13 +137,17 @@
             "CONTRADICTION_DETECTION",
             "MORAL_REACTION",
             "TENSION_RELEASE",
-            "EXPECTATION_BUILDING"
+            "EXPECTATION_BUILDING",
+            "RISK_SIGNAL_RECOGNITION",
+            "VICTIM_CONTEXTUALIZATION",
+            "BELIEF_CORRECTION"
           ]
         },
         "spoken_line": {"type": "string", "minLength": 1},
         "evidence_ids": {"$ref": "#/$defs/identifierList"},
         "known_fact_ids": {"$ref": "#/$defs/identifierList"},
-        "tone": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+        "tone": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "responds_to_turn_id": {"type": "string", "pattern": "^TURN-[0-9]{3,}-[0-9]{2,}$"}
       }
     }
   }

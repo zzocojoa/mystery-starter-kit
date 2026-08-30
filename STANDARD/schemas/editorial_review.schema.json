@@ -38,7 +38,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "psychological_arc": {"$ref": "#/$defs/sha256"},
         "final_script": {"$ref": "#/$defs/sha256"},
+        "script_realization_report": {"$ref": "#/$defs/sha256"},
         "actual_timeline": {"$ref": "#/$defs/sha256"},
         "viewer_timeline": {"$ref": "#/$defs/sha256"},
         "audience_belief": {"$ref": "#/$defs/sha256"},
@@ -122,7 +124,9 @@
       "properties": {
         "artifact": {
           "enum": [
+            "psychological_arc",
             "final_script",
+            "script_realization_report",
             "actual_timeline",
             "viewer_timeline",
             "audience_belief",
@@ -148,6 +152,7 @@
             "SEGMENT_ID",
             "REACTION_SEGMENT_ID",
             "SCENE_ID",
+            "PSYCHOLOGICAL_STAGE_ID",
             "EVENT_ID",
             "FACT_ID",
             "CLUE_ID"

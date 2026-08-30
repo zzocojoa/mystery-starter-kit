@@ -11,6 +11,7 @@ from typing import cast
 from VALIDATORS.exceptions import ConfigurationError, StateTransitionError
 from VALIDATORS.models import ProjectState, ValidationIssue
 from VALIDATORS.presentation_validation import parse_script_segments, presentation_segments
+from VALIDATORS.scene_realization import realization_policy
 
 EDITORIAL_CHECKS = (
     "broadcast_format",
@@ -22,7 +23,9 @@ EDITORIAL_CHECKS = (
     "victim_dignity",
 )
 EDITORIAL_REVIEWED_ARTIFACTS = (
+    "psychological_arc",
     "final_script",
+    "script_realization_report",
     "actual_timeline",
     "viewer_timeline",
     "audience_belief",
@@ -50,6 +53,7 @@ EVIDENCE_SELECTOR_FIELDS = {
     "SEGMENT_ID": "segment_id",
     "REACTION_SEGMENT_ID": "reaction_segment_id",
     "SCENE_ID": "scene_id",
+    "PSYCHOLOGICAL_STAGE_ID": "stage_id",
     "EVENT_ID": "event_id",
     "FACT_ID": "fact_id",
     "CLUE_ID": "clue_id",
@@ -612,6 +616,52 @@ def validate_editorial_review(
             )
         )
     return issues
+
+
+def validate_editorial_realization_evidence(
+    channel: Mapping[str, object],
+    review: Mapping[str, object],
+    psychological_arc: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """2.1 Editorial Review가 모든 심리 Stage의 독립 근거를 인용하는지 검사한다."""
+    if realization_policy(channel) is None:
+        return []
+    expected_stage_ids = {
+        cast(str, stage.get("stage_id"))
+        for stage in mapping_records(psychological_arc, "stages")
+        if isinstance(stage.get("stage_id"), str)
+    }
+    checks = review.get("checks")
+    observed_stage_ids: set[str] = set()
+    if isinstance(checks, Mapping):
+        for check in checks.values():
+            if not isinstance(check, Mapping):
+                continue
+            raw_evidence = check.get("evidence")
+            if not isinstance(raw_evidence, list):
+                continue
+            observed_stage_ids.update(
+                cast(str, reference.get("selector_id"))
+                for reference in raw_evidence
+                if isinstance(reference, Mapping)
+                and reference.get("artifact") == "script_realization_report"
+                and reference.get("selector_type") == "PSYCHOLOGICAL_STAGE_ID"
+                and isinstance(reference.get("selector_id"), str)
+            )
+    missing_stage_ids = sorted(expected_stage_ids - observed_stage_ids)
+    unexpected_stage_ids = sorted(observed_stage_ids - expected_stage_ids)
+    if expected_stage_ids and not missing_stage_ids and not unexpected_stage_ids:
+        return []
+    return [
+        make_editorial_issue(
+            "EDITORIAL_REALIZATION_EVIDENCE_MISSING",
+            "Editorial Review가 모든 심리 Stage의 Script 실현 근거를 인용해야 합니다.",
+            {
+                "missing_stage_ids": missing_stage_ids,
+                "unexpected_stage_ids": unexpected_stage_ids,
+            },
+        )
+    ]
 
 
 def approve_editorial_review(

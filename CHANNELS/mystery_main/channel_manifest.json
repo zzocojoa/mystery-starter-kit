@@ -15,6 +15,11 @@
       "content_version": "2.0.0",
       "channel_dna": "versions/2.0.0/channel_dna.json",
       "channel_dna_sha256": "d839c56f2c0daf5db6fb74e753287e0dc93659f2587ba9c6c8d4afd9b7a995e7"
+    },
+    {
+      "content_version": "2.1.0",
+      "channel_dna": "versions/2.1.0/channel_dna.json",
+      "channel_dna_sha256": "ca08b5b9639bee4d8cd87c4b8ca8c4c5e7a367c758a799b0f19ef38ed259ec65"
     }
   ],
   "status": "ACTIVE"

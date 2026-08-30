@@ -1,0 +1,272 @@
+{
+  "$schema": "../../STANDARD/schemas/channel_dna.schema.json",
+  "schema_family": "channel-dna",
+  "schema_version": "1.0.0",
+  "content_version": "2.1.0",
+  "channel_id": "MYSTERY_MAIN",
+  "identity": {
+    "statement": "범죄 심리의 신뢰 형성부터 주체성 회복까지를 피해자의 현장 체험으로 보여 주고 Mystery는 그 진행을 보조하는 재연 중심 범죄 스릴러 채널이다.",
+    "keywords": [
+      "GROUNDED",
+      "CRIME_THRILLER",
+      "PSYCHOLOGICAL_ESCALATION",
+      "VICTIM_CENTERED",
+      "WITNESS",
+      "SCENE_REALIZATION",
+      "TRUST_TO_AGENCY"
+    ]
+  },
+  "capabilities": {
+    "GENRE_POLICY": {
+      "allowed_genres": [
+        "CRIME_PSYCHOLOGICAL_THRILLER",
+        "CRIME",
+        "SOCIAL_THRILLER"
+      ],
+      "adjacent_genres": [
+        "THRILLER",
+        "SUSPENSE",
+        "DOMESTIC_MYSTERY"
+      ],
+      "realism": "GROUNDED",
+      "primary_story_engine": "CRIME_PSYCHOLOGICAL_ESCALATION",
+      "mystery_engine_priority": "SECONDARY",
+      "prohibited_resolutions": [
+        "UNEXPLAINED_SUPERNATURAL_FORCE",
+        "MAGIC_DEPENDENT_REVEAL",
+        "PSYCHIC_DEDUCTION"
+      ]
+    },
+    "TONE_POLICY": {
+      "primary_tones": [
+        "GROUNDED",
+        "IMMERSIVE",
+        "SUSPENSEFUL",
+        "VICTIM_CENTERED"
+      ],
+      "prohibited_tones": [
+        "DETACHED_LECTURE",
+        "VICTIM_BLAMING",
+        "ANALYSIS_DOMINANT"
+      ]
+    },
+    "PRESENTATION_POLICY": {
+      "modes": [
+        "DRAMA",
+        "NARRATION",
+        "PANEL_REACTION"
+      ],
+      "audience_position": "WITNESS",
+      "information_cycle": [
+        "DRAMA_EXPERIENCE",
+        "SUBJECTIVE_NARRATION",
+        "EMOTIONAL_REACTION",
+        "PSYCHOLOGICAL_ESCALATION"
+      ],
+      "mechanical_cycle_repetition": false
+    },
+    "AUDIENCE_CONTRACT": {
+      "fair_play": false,
+      "fair_play_priority": "SECONDARY",
+      "deductive_solvability_required": false,
+      "promises": [
+        "관객은 수사자가 아니라 인물의 신뢰, 경고, 통제와 회복을 목격한다.",
+        "핵심 심리 변화는 설명보다 Drama Scene에서 먼저 일어난다.",
+        "피해자의 선택을 비난하지 않고 가해 책임과 이탈 장벽을 보여 준다.",
+        "Mystery 정보는 범죄 심리 진행을 보조하며 단독 엔진이 되지 않는다."
+      ]
+    },
+    "STORY_VARIATION_POLICY": {
+      "fixed_dimensions": [
+        "CHANNEL_IDENTITY",
+        "CRIME_PSYCHOLOGICAL_ESCALATION",
+        "VICTIM_CENTERED_ACCOUNTABILITY",
+        "DRAMA_REALIZATION"
+      ],
+      "variable_dimensions": [
+        "PRIMARY_PSYCHOLOGICAL_ARCHITECTURE",
+        "OFFENDER_ACCESS_STRATEGY",
+        "TRUST_FORMATION_METHOD",
+        "CONTROL_ESCALATION_PATTERN",
+        "VICTIM_VULNERABILITY",
+        "VICTIM_DILEMMA",
+        "EXIT_BARRIER",
+        "PSYCHOLOGICAL_CONSEQUENCE",
+        "AGENCY_RECOVERY_MODE",
+        "SECONDARY_MYSTERY_ENGINE"
+      ],
+      "generation_order": [
+        "PRIMARY_PSYCHOLOGICAL_ARCHITECTURE",
+        "OFFENDER_ACCESS_STRATEGY",
+        "TRUST_FORMATION_METHOD",
+        "CONTROL_ESCALATION_PATTERN",
+        "VICTIM_VULNERABILITY",
+        "VICTIM_DILEMMA",
+        "EXIT_BARRIER",
+        "PSYCHOLOGICAL_CONSEQUENCE",
+        "AGENCY_RECOVERY_MODE",
+        "SECONDARY_MYSTERY_ENGINE"
+      ],
+      "minimum_candidates": 5,
+      "compare_recent_projects": [5, 10]
+    },
+    "NARRATION_POLICY": {
+      "enabled": true,
+      "purposes": [
+        "CHARACTER_ANCHOR",
+        "SUBJECTIVE_EXPERIENCE",
+        "EMOTIONAL_CONTINUITY",
+        "TIME_COMPRESSION"
+      ],
+      "repeat_visible_information": false,
+      "minimum_subjective_duration_ratio": 0.7,
+      "maximum_analysis_exposition_ratio": 0.15,
+      "maximum_adjacent_duplication_ratio": 0.2,
+      "premature_fact_or_clue_reference": false
+    },
+    "REACTION_POLICY": {
+      "enabled": true,
+      "target_ratio": {"min": 0.1, "max": 0.25},
+      "functions": [
+        "EMOTIONAL_REACTION",
+        "RISK_SIGNAL_RECOGNITION",
+        "VICTIM_CONTEXTUALIZATION",
+        "BELIEF_CORRECTION",
+        "HYPOTHESIS_REVISION",
+        "TENSION_RELEASE"
+      ],
+      "required_functions": [
+        "EMOTIONAL_REACTION",
+        "RISK_SIGNAL_RECOGNITION",
+        "VICTIM_CONTEXTUALIZATION",
+        "BELIEF_CORRECTION"
+      ],
+      "maximum_hypothesis_turn_ratio": 0.35,
+      "minimum_spoken_density": 0.4,
+      "maximum_non_speech_ratio": 0.6,
+      "minimum_exchange_segment_ratio": 0.5
+    },
+    "RETENTION_POLICY": {
+      "mode": "PSYCHOLOGICAL_ESCALATION",
+      "required_progression": [
+        "TRUST",
+        "WARNING",
+        "RATIONALIZATION",
+        "BOUNDARY",
+        "CONTROL",
+        "CONSEQUENCE",
+        "HARM",
+        "RESISTANCE",
+        "AGENCY"
+      ]
+    },
+    "CRIME_PSYCHOLOGY_POLICY": {
+      "enabled": true,
+      "primary_genres": ["CRIME_PSYCHOLOGICAL_THRILLER"],
+      "threat_types": ["CRIME", "PREDATORY"],
+      "require_psychological_pressure": true,
+      "technical_markers": [
+        "TECHNICAL",
+        "MACHINE_LOG",
+        "METADATA_ONLY",
+        "SENSOR_ONLY",
+        "CCTV_ONLY"
+      ],
+      "max_technical_clue_ratio": 0.2,
+      "procedural_markers": [
+        "POLICE_PROCEDURAL",
+        "COURTROOM_PROCEDURAL",
+        "FORENSIC_PROCEDURAL"
+      ]
+    },
+    "TRUST_AND_SAFETY_BETRAYAL_POLICY": {
+      "enabled": true,
+      "require_trusted_domain": true,
+      "require_safe_domain_expectation": true
+    },
+    "COERCIVE_CONTROL_POLICY": {
+      "enabled": true,
+      "require_warning_signals": true,
+      "require_boundary_erosion": true,
+      "require_control_tactics": true,
+      "require_exit_barriers": true
+    },
+    "VICTIM_CENTERED_POLICY": {
+      "enabled": true,
+      "require_agency_outcome": true,
+      "require_responsible_agent_payoff": true,
+      "prohibited_phrases": [
+        "피해자가 자초했다",
+        "피해자도 잘못했다",
+        "왜 떠나지 않았나"
+      ]
+    },
+    "RISK_SIGNAL_AND_PUBLIC_VALUE_POLICY": {
+      "enabled": true,
+      "require_risk_signal_payoff": true
+    },
+    "SOURCE_DISCLOSURE_POLICY": {
+      "enabled": true,
+      "labels_by_source_truth": {
+        "ORIGINAL_FICTION": "ORIGINAL_FICTION",
+        "VERIFIED_TRUE_CASE": "VERIFIED_TRUE_CASE",
+        "INSPIRED_BY_TRUE_EVENTS": "INSPIRED_BY_TRUE_EVENTS"
+      }
+    },
+    "CLINICAL_LABEL_POLICY": {
+      "enabled": true,
+      "controlled_terms": [
+        "사이코패스",
+        "소시오패스",
+        "반사회성 인격장애",
+        "반사회성 성격장애"
+      ],
+      "allowed_classifications": [
+        "CONFIRMED_DIAGNOSIS",
+        "EXPERT_ASSESSMENT",
+        "MEDIA_DESCRIPTION",
+        "NARRATOR_OPINION",
+        "UNVERIFIED_LABEL"
+      ],
+      "diagnosis_requires_expert": true,
+      "diagnosis_requires_evidence": true
+    },
+    "EPISODE_THEME_POLICY": {
+      "enabled": true,
+      "allowed_themes": [
+        "TRUST_BETRAYAL",
+        "COERCIVE_CONTROL",
+        "ACCOUNTABILITY"
+      ],
+      "require_episode_theme": true
+    },
+    "SCENE_REALIZATION_POLICY": {
+      "enabled": true,
+      "required_stages": [
+        "TRUST_FORMATION",
+        "EARLY_WARNING",
+        "RATIONALIZATION",
+        "BOUNDARY_EROSION",
+        "CONTROL_OR_DEPENDENCY",
+        "PSYCHOLOGICAL_CONSEQUENCE",
+        "HARM_OR_CRIME",
+        "RECOGNITION_AND_RESISTANCE",
+        "AGENCY_RECOVERY"
+      ],
+      "critical_stages": [
+        "BOUNDARY_EROSION",
+        "CONTROL_OR_DEPENDENCY",
+        "HARM_OR_CRIME",
+        "AGENCY_RECOVERY"
+      ],
+      "minimum_distinct_drama_scenes": 7,
+      "maximum_stages_per_scene": 2,
+      "minimum_psychology_drama_ratio": 0.6,
+      "minimum_pre_harm_drama_ratio": 0.7,
+      "drama_realization_required": true,
+      "narration_only_satisfaction": false,
+      "panel_only_satisfaction": false,
+      "minimum_realization_score": 85
+    }
+  }
+}

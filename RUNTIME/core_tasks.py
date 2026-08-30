@@ -45,6 +45,10 @@ from VALIDATORS.reference_validation import (
     sanitize_reference_profile,
     validate_reference_collision,
 )
+from VALIDATORS.scene_realization import (
+    build_script_realization_report,
+    channel_realization_evidence,
+)
 from VALIDATORS.source_truth import require_source_truth_classification
 from VALIDATORS.variation import (
     approve_variation_candidate,
@@ -190,6 +194,15 @@ def runtime_validation_inputs(
             ),
             "crime_psychology": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "crime_psychology.schema.json"
+            ),
+            "psychological_arc": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "psychological_arc.schema.json"
+            ),
+            "script_realization_report": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "script_realization_report.schema.json"
             ),
             "source_disclosure": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "source_disclosure.schema.json"
@@ -840,6 +853,21 @@ def core_task_outputs(
                 "production_manifest",
             ) from error
         return {"production_manifest": manifest}
+    if task_id == "continuity.realization":
+        channel, _manifest, _channel_path = resolve_project_channel(
+            repository_root,
+            production_config,
+            None,
+        )
+        report = build_script_realization_report(
+            project_id,
+            channel,
+            mapping_artifact(artifacts, "psychological_arc"),
+            mapping_artifact(artifacts, "scene_cards"),
+            mapping_artifact(artifacts, "presentation_plan"),
+            text_artifact(artifacts, "final_script"),
+        )
+        return {"script_realization_report": report}
     if task_id == "continuity.deterministic":
         report = validate_continuity(
             production_config,
@@ -891,13 +919,17 @@ def core_task_outputs(
                 build_channel_policy_inputs(artifacts),
             )
         )
-        return {
-            "channel_consistency_report": {
-                "project_id": project_id,
-                "result": "FAIL" if issues else "PASS",
-                "issues": issues,
-            }
+        channel_report: dict[str, object] = {
+            "project_id": project_id,
+            "result": "FAIL" if issues else "PASS",
+            "issues": issues,
         }
+        script_report = artifacts.get("script_realization_report")
+        if isinstance(script_report, Mapping):
+            channel_report["scene_realization_evidence"] = channel_realization_evidence(
+                script_report
+            )
+        return {"channel_consistency_report": channel_report}
     if task_id in {"orchestrator.validation", "production.finalize"}:
         (
             validation_channel,

@@ -136,7 +136,7 @@ def test_variation_registries_and_engine_specifications_pass_schema() -> None:
     engine_schema = load_json_object(
         ROOT / "STANDARD" / "schemas" / "variation_engine_specification.schema.json"
     )
-    for version in ("1.0.0", "2.0.0"):
+    for version in ("1.0.0", "2.0.0", "2.1.0"):
         path = ROOT / "STANDARD" / "variation_engines" / f"{version}.json"
         assert collect_schema_errors(load_json_object(path), engine_schema, str(path)) == []
 
@@ -327,11 +327,14 @@ def test_registered_version_immutability_rejects_mutation_and_allows_new_version
     base_paths = {
         "STANDARD/variation_engines/1.0.0.json",
         "STANDARD/variation_engines/2.0.0.json",
+        "STANDARD/variation_engines/2.1.0.json",
         "VALIDATORS/variation_engines/common.py",
         "VALIDATORS/variation_engines/v1_0_0.py",
         "VALIDATORS/variation_engines/v2_0_0.py",
+        "VALIDATORS/variation_engines/v2_1_0.py",
         "STANDARD/variation_catalogs/1.0.0.json",
         "STANDARD/variation_catalogs/2.0.0.json",
+        "STANDARD/variation_catalogs/2.1.0.json",
     }
     base_files = {
         relative_path: (repository_root / relative_path).read_bytes()
@@ -374,11 +377,14 @@ def test_registered_version_immutability_rejects_registry_entry_change(
         for relative_path in {
             "STANDARD/variation_engines/1.0.0.json",
             "STANDARD/variation_engines/2.0.0.json",
+            "STANDARD/variation_engines/2.1.0.json",
             "VALIDATORS/variation_engines/common.py",
             "VALIDATORS/variation_engines/v1_0_0.py",
             "VALIDATORS/variation_engines/v2_0_0.py",
+            "VALIDATORS/variation_engines/v2_1_0.py",
             "STANDARD/variation_catalogs/1.0.0.json",
             "STANDARD/variation_catalogs/2.0.0.json",
+            "STANDARD/variation_catalogs/2.1.0.json",
         }
     }
     current_engine_registry = deepcopy(base_engine_registry)

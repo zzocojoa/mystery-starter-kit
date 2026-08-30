@@ -87,6 +87,8 @@ Novelty Precheck는 승인 전에 모든 후보를 Story History의 최근 5개�
 
 `candidate_evaluation.json`은 Novelty Precheck 후 모든 후보의 Hard Filter, Crime Threat, Psychological Immersion, Trust Betrayal, Victim Integrity, Character, Twist, Novelty, Production 점수·근거·입력 Hash를 보존한다. Runtime의 `variation.evaluate` Task 또는 같은 계약을 수행하는 Codex Gate Task가 이 Artifact를 작성한 뒤에만 승인할 수 있다. Validator가 가중치 합계와 Weighted Total을 재계산한다. 승인 후보는 Hard Filter와 Novelty를 통과한 최고점 추천 후보여야 하며, 다른 적격 후보를 승인하려면 현재 평가에 결합된 Human Override Actor와 Reason이 필요하다. 평가 없이 `approve`를 호출하면 `CANDIDATE_EVALUATION_REQUIRED`로 실패한다.
 
+Channel Content 2.1의 Variation Engine과 Catalog는 `PRIMARY_PSYCHOLOGICAL_ARCHITECTURE`부터 `AGENCY_RECOVERY_MODE`까지 범죄 심리 구조를 먼저 생성하고 `SECONDARY_MYSTERY_ENGINE`을 마지막에 결합한다. Candidate Evaluation은 Psychological Arc Potential 20, Trust/Control Escalation 20, Victim Experience 15, Scene Realizability 15, Crime Threat 10, Character Conflict 10, Retrospective Reframe 5, Production 5의 잠재력만 평가한다. Novelty는 점수로 상쇄할 수 없는 Hard Constraint이며 Candidate Potential은 Final Script Realization 판정을 대신하지 않는다.
+
 ## 6. Agent Contract Pipeline
 
 | Agent | 핵심 책임 | 주요 출력 |
@@ -146,14 +148,14 @@ Compatibility → Variations → All-candidate Novelty Precheck → Evaluation �
 | `GATE-03` | Case, Facts, Source Mode별 Evidence와 v2 Crime/Source/Clinical Artifact | `CASE_DEFINED` |
 | `GATE-04` | Character, Relationship, Knowledge | `CHARACTERS_DESIGNED` |
 | `GATE-05` | 3개 Timeline, Clue, Hypothesis, Causal DAG | `MYSTERY_DESIGNED` |
-| `GATE-06` | Beat와 Retention | `STORY_STRUCTURED` |
-| `GATE-07` | Scene, Panel Cast, Reaction/Expert Segment와 Presentation v2 | `SCENES_DESIGNED` |
-| `GATE-08` | 기본 세 Layer, 조건부 Expert Layer, Draft와 Marker 기반 Broadcast Master | `SCRIPT_WRITTEN` |
-| `GATE-09` | Continuity QA | `SCRIPT_WRITTEN` |
+| `GATE-06` | Beat와 Retention, Channel 2.1의 순서화된 Psychological Arc | `STORY_STRUCTURED` |
+| `GATE-07` | Scene, 심리 Stage Drama Coverage, Panel Cast, Reaction/Expert Segment와 Presentation v2 | `SCENES_DESIGNED` |
+| `GATE-08` | 기본 세 Layer, 조건부 Expert Layer, Draft와 Marker 기반 Broadcast Master, Script Stage 실현 | `SCRIPT_WRITTEN` |
+| `GATE-09` | Continuity QA와 재계산 가능한 Script Realization Report | `SCRIPT_WRITTEN` |
 | `GATE-10` | 최종 Fingerprint 현재성과 Novelty QA | `SCRIPT_WRITTEN` |
 | `GATE-11` | Reference QA | `SCRIPT_WRITTEN` |
-| `GATE-12` | Channel QA와 통합 Validation | `QA_PASSED` |
-| `GATE-13` | Panel·Expert를 분리한 여섯 Production Artifact와 Editorial Review PASS | `EDITORIAL_REVIEW_REQUIRED` |
+| `GATE-12` | Channel QA, Scene Realization Evidence와 통합 Validation | `QA_PASSED` |
+| `GATE-13` | Production Artifact와 심리 Stage Evidence를 포함한 Editorial Review PASS | `EDITORIAL_REVIEW_REQUIRED` |
 
 Gate는 순서를 건너뛸 수 없다. 필수 Artifact는 모두 `CLEAN`이어야 하며 실패하면 마지막 통과 Gate를 유지한 채 `BLOCKED`가 된다.
 
@@ -209,6 +211,12 @@ Genre, 금지 Tone, 필수 Presentation Mode, Reaction Ratio를 Channel DNA와 �
 
 Channel Content Version 2.0 이상에서는 활성 Optional Capability에 따라 범죄·약탈적 위협, 안전하다고 믿은 영역의 배신, 경고 신호부터 경계 침식·통제·이탈 장벽까지의 과정, 피해자 행위 주체성, 가해 책임 귀속, 심리 압박과 위험 신호 회수를 검사한다. 기술 퍼즐 우세와 절차물 이탈, 피해자 비난 표현을 차단한다. Content Version 1.1.0 이하에는 이 규칙을 적용하지 않는다.
 
+Channel Content Version 2.1의 `SCENE_REALIZATION_POLICY`는 범죄 심리 진행을 Primary Story Engine으로 둔다. Audience는 `WITNESS`, Mystery와 Fair Play는 `SECONDARY`, Deductive Solvability는 선택 사항이다. Trust Formation → Early Warning → Rationalization → Boundary Erosion → Control or Dependency → Psychological Consequence → Harm or Crime → Recognition and Resistance → Agency Recovery를 순서대로 구성하며, 각 Stage는 actor, subject, 전후 상태, 체험 목표와 Drama 근거를 가진다. Object 또는 Location의 행방만을 Central Question으로 삼을 수 없다.
+
+`psychological_arc.json`의 Stage는 `scene_cards.json`의 `psychological_realization[]`과 Presentation의 Drama Segment에 결속된다. Critical Stage의 `satisfaction_mode`는 `DRAMA_REQUIRED`여야 하며 Narration 또는 Panel만으로 Stage를 충족할 수 없다. 최소 Drama Scene 수, Scene당 Stage 수, 전체 Psychological Drama 비율과 Harm 이전 비율을 Channel Policy로 검증한다.
+
+Continuity Critic 소유의 `script_realization_report.json`은 각 Stage가 실제 Final Script의 어느 Segment에 실현됐는지 Selector와 Excerpt Hash로 기록한다. CORE Validator는 Arc, Scene, Presentation, Final Script 입력 Hash와 Stage Excerpt Hash, 상태 변화, 실현 점수를 다시 계산한다. 점수 85 미만, JSON에만 있는 Stage, Narration/Panel 전용 Stage, 상태 변화 누락, Critical Stage 또는 Drama 비율 누락은 오류다. GATE-13 Editorial Review는 Report의 모든 Psychological Stage를 독립 Evidence로 인용한다.
+
 모든 v2 Story는 Source Mode에 맞는 `VERIFIED_TRUE_CASE`, `INSPIRED_BY_TRUE_EVENTS`, `ORIGINAL_FICTION` 중 하나를 Audience-facing Label로 선언한다. `TRUE_STORY`는 `EXPERT_ANALYSIS` Segment가 필수이며, `INSPIRED_BY_TRUE_EVENTS`는 전문가 분석 또는 명시적 N/A 근거가 필요하고, `ORIGINAL`은 선택 사항이다. 전문가 Claim은 Claim-Evidence와 연결하며 일반 Panel 의견은 Expert Fact로 인정하지 않는다. 통제 임상 용어는 `CONFIRMED_DIAGNOSIS`, `EXPERT_ASSESSMENT`, `MEDIA_DESCRIPTION`, `NARRATOR_OPINION`, `UNVERIFIED_LABEL` 중 하나로 분류하고 확정 진단은 전문가와 Evidence 연결을 요구한다.
 
 ### Presentation Contract v2.1
@@ -217,12 +225,14 @@ Channel Content Version 2.0 이상에서는 활성 Optional Capability에 따라
 - `reaction_segments.json`은 Segment 시간·배치·가설 변화와 `turns[]`를 정의한다. 각 Turn은 화자, 기능, 실제 발화, 근거 Clue, 공개 Fact와 Tone을 독립적으로 보존한다.
 - `CHARACTER_REACTION`, `PANEL_REACTION`, `AUDIENCE_PROMPT`는 서로 다른 의미이며 비율에는 외부 `PANEL_REACTION`만 포함한다.
 - `EXPERT_ANALYSIS`는 조건부 Presentation Segment다. Panel Reaction과 분리된 `expert_segments.json`과 `expert_analysis_script.md`를 Source로 사용하며 Expert Role, Credentials, Claim ID, Evidence Source ID, Confidence와 Limitations를 보존한다. Panel 의견을 Expert Fact로 승격시키지 않는다.
-- 가설 생성과 수정, 그리고 이상 탐지 또는 모순 탐지 기능을 실제 Reaction Segment에 포함한다.
+- Channel 2.0의 추리형 Panel은 가설 생성·수정과 이상 또는 모순 탐지를 포함한다. Channel 2.1은 `EMOTIONAL_REACTION`, `RISK_SIGNAL_RECOGNITION`, `VICTIM_CONTEXTUALIZATION`, `BELIEF_CORRECTION`을 필수로 하고 가설 Turn 비율을 0.35 이하로 제한한다.
 - `drama_script.md`, `narration_script.md`, `panel_reaction_script.md`는 분리 작성한다. Narration은 화면 행동이나 Panel 발화를 그대로 반복하지 않는다.
+- Channel 2.1 Narration은 `CHARACTER_ANCHOR`를 포함하고 Subjective Duration Ratio 0.70 이상, Analysis Exposition Ratio 0.15 이하, 인접 Drama/Panel 정보 중복 0.20 이하를 지켜야 하며 아직 공개되지 않은 Fact·Clue를 언급하지 않는다.
 - `draft_v01.md`와 `final_script.md`는 `SEGMENT`, `TYPE`, `SCENE`, `DURATION`, `END_SEGMENT` Marker로 모든 계획 Segment를 정확히 한 번, 같은 순서와 시간으로 통합한다. Final은 Layer 본문을 보존한 Broadcast Master다.
 - Viewer Timeline보다 먼저 공개된 Fact, 미공개 단서나 Fact를 사용하는 Panel, 역행하는 현재 절대시간, Actual Timeline과 다른 구조 완료 시각을 차단한다.
 - `09_PRODUCTION/panel_reaction_script.md`와 `edit_script.md`는 Reaction ID, Segment ID를 보존한다. 각 Edit Timecode의 시작·종료 초는 Presentation Plan의 `start_sec`, `duration_sec`와 정확히 일치해야 한다.
 - Segment `duration_sec` 합으로 계산한 Panel Reaction 비율은 계획된 편집 비율이다. Editorial Review는 각 Panel Segment의 실제 화자와 Script에서 재계산한 발화 단어 수를 보존하고, 발화시간과 Replay·Graphic·Reaction Hold 같은 비발화 요소가 계획시간을 완전히 설명하는지 검사한다.
+- Channel 2.1 Panel은 실제 Script Spoken Density 0.40 이상, Non-speech Ratio 0.60 이하를 지키고 Reaction Segment의 절반 이상을 `responds_to_turn_id`로 연결된 실제 교환으로 구성한다. `DRAMA → NARRATION → PANEL_REACTION`의 기계적 순환을 세 번 이상 반복하지 않는다.
 - `WORD_COUNT_ESTIMATE`는 명시한 WPM으로 예상 발화시간을 계산한다. `TABLE_READ`와 `RECORDED_AUDIO`는 Segment별 실측 `measured_duration_sec`와 합계를 요구한다. Human Editor는 이 근거로 방송 호흡과 의미상 중복을 최종 판단한다.
 - Validator는 모든 Turn의 화자·기능·근거·공개 시점과 Panel Script의 순서·문장을 검증한다. 자연스러운 집단 대화가 필요한 Reaction Segment는 최소 두 명 이상의 짧은 질문·반박·가설 수정·감정 연결을 허용한다. 결정론적 Validator가 Metadata나 문장 표면 일치로 잡기 어려운 의미상 조기 공개와 바꿔 쓴 반복은 Human Editorial Review 책임으로 남긴다.
 

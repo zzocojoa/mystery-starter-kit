@@ -9,13 +9,15 @@ Script와 모든 구조 Artifact 사이의 ID, Timeline, Knowledge, Clue, Runtim
 ## 입력과 출력
 
 - 입력: Layer Scripts, Final Script, Timelines, Audience Belief, Knowledge Matrix, Clue Matrix, Panel Cast, Reaction Segments, Presentation Plan, Production Package, Channel DNA
-- 출력: Continuity Report, Channel Consistency Report, Editorial Review
+- 출력: Script Realization Report, Continuity Report, Channel Consistency Report, Editorial Review
 
 ## Gate
 
 ERROR가 0건이어야 하며 핵심 단서는 Introduced/Revealed/Resolved 상태를 가져야 한다. 범인이 있는 구조는 Motive/Means/Opportunity가 일치하고 핵심 반전은 Surprise/Logic/Retrospective Meaning을 만족해야 한다.
 
 Channel Content Version 2.0 이상에서는 범죄·약탈적 위협, 신뢰 영역 배신, 통제 과정, 피해자 행위 주체성, 책임 귀속, 위험 신호 회수, Source Label, Expert Claim-Evidence, 임상 용어 분류를 활성 Channel Capability에 따라 검사한다. 1.1.0 Project에는 이 검사를 소급 적용하지 않는다.
+
+Channel 2.1에서는 `continuity.realization` Task가 Final Script의 실제 Drama Segment Selector와 Excerpt Hash를 다시 계산해 Stage별 `script_realization_report.json`을 작성한다. JSON 선언, Narration, Panel 또는 Candidate 점수만으로 Stage를 충족하지 않는다. Channel Consistency Report에는 같은 Scene·Segment Hash 근거를 포함한다. 이 검사는 2.0 Project에 소급 적용하지 않는다.
 
 ## 금지
 

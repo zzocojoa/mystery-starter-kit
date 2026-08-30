@@ -51,6 +51,12 @@ def presentation_schemas() -> dict[str, dict[str, object]]:
         "clinical_labels": load_json_object(
             ROOT / "STANDARD" / "schemas" / "clinical_labels.schema.json"
         ),
+        "psychological_arc": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "psychological_arc.schema.json"
+        ),
+        "script_realization_report": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "script_realization_report.schema.json"
+        ),
         "expert_segments": load_json_object(
             ROOT / "STANDARD" / "schemas" / "expert_segments.schema.json"
         ),

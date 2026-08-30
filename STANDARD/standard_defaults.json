@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/standard_defaults.schema.json",
-  "defaults_version": "1.1.0",
+  "defaults_version": "1.2.0",
   "optional_capability_defaults": {
     "NARRATION_POLICY": {
       "enabled": false,
@@ -98,6 +98,29 @@
       "enabled": false,
       "allowed_themes": ["UNSPECIFIED"],
       "require_episode_theme": false
+    },
+    "SCENE_REALIZATION_POLICY": {
+      "enabled": false,
+      "required_stages": [
+        "TRUST_FORMATION",
+        "EARLY_WARNING",
+        "RATIONALIZATION",
+        "BOUNDARY_EROSION",
+        "CONTROL_OR_DEPENDENCY",
+        "PSYCHOLOGICAL_CONSEQUENCE",
+        "HARM_OR_CRIME",
+        "RECOGNITION_AND_RESISTANCE",
+        "AGENCY_RECOVERY"
+      ],
+      "critical_stages": ["HARM_OR_CRIME"],
+      "minimum_distinct_drama_scenes": 1,
+      "maximum_stages_per_scene": 9,
+      "minimum_psychology_drama_ratio": 0.0,
+      "minimum_pre_harm_drama_ratio": 0.0,
+      "drama_realization_required": true,
+      "narration_only_satisfaction": false,
+      "panel_only_satisfaction": false,
+      "minimum_realization_score": 85
     }
   }
 }

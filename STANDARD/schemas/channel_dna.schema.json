@@ -103,6 +103,9 @@
         },
         "EPISODE_THEME_POLICY": {
           "$ref": "#/$defs/episodeThemePolicy"
+        },
+        "SCENE_REALIZATION_POLICY": {
+          "$ref": "#/$defs/sceneRealizationPolicy"
         }
       }
     }
@@ -434,6 +437,75 @@
         "require_episode_theme": {"type": "boolean"}
       }
     },
+    "sceneRealizationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "required_stages",
+        "critical_stages",
+        "minimum_distinct_drama_scenes",
+        "maximum_stages_per_scene",
+        "minimum_psychology_drama_ratio",
+        "minimum_pre_harm_drama_ratio",
+        "drama_realization_required",
+        "narration_only_satisfaction",
+        "panel_only_satisfaction",
+        "minimum_realization_score"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "required_stages": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "TRUST_FORMATION"},
+            {"const": "EARLY_WARNING"},
+            {"const": "RATIONALIZATION"},
+            {"const": "BOUNDARY_EROSION"},
+            {"const": "CONTROL_OR_DEPENDENCY"},
+            {"const": "PSYCHOLOGICAL_CONSEQUENCE"},
+            {"const": "HARM_OR_CRIME"},
+            {"const": "RECOGNITION_AND_RESISTANCE"},
+            {"const": "AGENCY_RECOVERY"}
+          ],
+          "items": false,
+          "minItems": 9,
+          "maxItems": 9
+        },
+        "critical_stages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/psychologicalStageType"}
+        },
+        "minimum_distinct_drama_scenes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maximum_stages_per_scene": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minimum_psychology_drama_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minimum_pre_harm_drama_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "drama_realization_required": {"const": true},
+        "narration_only_satisfaction": {"const": false},
+        "panel_only_satisfaction": {"const": false},
+        "minimum_realization_score": {
+          "type": "number",
+          "minimum": 85,
+          "maximum": 100
+        }
+      }
+    },
     "enumName": {
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9_]*$"
@@ -452,6 +524,19 @@
         "MEDIA_DESCRIPTION",
         "NARRATOR_OPINION",
         "UNVERIFIED_LABEL"
+      ]
+    },
+    "psychologicalStageType": {
+      "enum": [
+        "TRUST_FORMATION",
+        "EARLY_WARNING",
+        "RATIONALIZATION",
+        "BOUNDARY_EROSION",
+        "CONTROL_OR_DEPENDENCY",
+        "PSYCHOLOGICAL_CONSEQUENCE",
+        "HARM_OR_CRIME",
+        "RECOGNITION_AND_RESISTANCE",
+        "AGENCY_RECOVERY"
       ]
     },
     "genericPolicy": {

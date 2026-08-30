@@ -186,9 +186,15 @@
       "depends_on": ["beat_sheet", "audience_belief"],
       "owner_agent": "story_architect"
     },
+    "psychological_arc": {
+      "path": "05_STORY/psychological_arc.json",
+      "depends_on": ["story_dna", "crime_psychology", "characters", "beat_sheet"],
+      "owner_agent": "story_architect",
+      "required_when": {"all": [{"channel_version_at_least": "2.1.0"}, {"capability_enabled": "SCENE_REALIZATION_POLICY"}]}
+    },
     "scene_cards": {
       "path": "06_SCENE/scene_cards.json",
-      "depends_on": ["beat_sheet", "retention_plan", "clue_matrix"],
+      "depends_on": ["beat_sheet", "retention_plan", "psychological_arc", "clue_matrix"],
       "owner_agent": "scene_designer"
     },
     "production_footprint": {
@@ -209,7 +215,7 @@
     },
     "presentation_plan": {
       "path": "06_SCENE/presentation_plan.json",
-      "depends_on": ["scene_cards", "production_config", "panel_cast", "reaction_segments"],
+      "depends_on": ["scene_cards", "psychological_arc", "production_config", "panel_cast", "reaction_segments"],
       "owner_agent": "scene_designer"
     },
     "expert_segments": {
@@ -249,9 +255,15 @@
       "depends_on": ["draft_script", "presentation_plan"],
       "owner_agent": "script_writer"
     },
+    "script_realization_report": {
+      "path": "08_QA/script_realization_report.json",
+      "depends_on": ["psychological_arc", "scene_cards", "presentation_plan", "final_script"],
+      "owner_agent": "continuity_critic",
+      "required_when": {"all": [{"channel_version_at_least": "2.1.0"}, {"capability_enabled": "SCENE_REALIZATION_POLICY"}]}
+    },
     "continuity_report": {
       "path": "08_QA/continuity_report.json",
-      "depends_on": ["final_script", "actual_timeline", "viewer_timeline", "audience_belief", "knowledge_matrix", "clue_matrix", "panel_cast", "reaction_segments", "expert_segments", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "presentation_plan"],
+      "depends_on": ["final_script", "actual_timeline", "viewer_timeline", "audience_belief", "knowledge_matrix", "clue_matrix", "panel_cast", "reaction_segments", "expert_segments", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "presentation_plan", "script_realization_report"],
       "owner_agent": "continuity_critic"
     },
     "novelty_report": {
@@ -266,7 +278,7 @@
     },
     "channel_consistency_report": {
       "path": "08_QA/channel_consistency_report.json",
-      "depends_on": ["story_dna", "case_input", "crime_psychology", "claim_evidence", "source_disclosure", "clinical_labels", "clue_matrix", "characters", "scene_cards", "expert_segments", "expert_analysis_script", "panel_reaction_script", "final_script", "presentation_plan", "production_config"],
+      "depends_on": ["story_dna", "case_input", "crime_psychology", "psychological_arc", "claim_evidence", "source_disclosure", "clinical_labels", "clue_matrix", "characters", "scene_cards", "expert_segments", "expert_analysis_script", "panel_reaction_script", "final_script", "presentation_plan", "script_realization_report", "production_config"],
       "owner_agent": "continuity_critic"
     },
     "validation_report": {

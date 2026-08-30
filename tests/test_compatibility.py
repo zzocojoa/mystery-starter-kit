@@ -81,7 +81,7 @@ def test_current_channel_is_compatible() -> None:
     )
 
 
-def test_v1_1_contract_keeps_five_required_and_adds_v2_optional_capabilities() -> None:
+def test_v1_2_contract_keeps_five_required_and_adds_v21_optional_capability() -> None:
     """v2 지원은 Required Interface를 넓히지 않고 Optional로만 확장한다."""
     contract, _defaults, _channel = load_core_documents()
     interface = contract["channel_dna_interface"]
@@ -91,7 +91,7 @@ def test_v1_1_contract_keeps_five_required_and_adds_v2_optional_capabilities() -
     assert isinstance(required, list)
     assert isinstance(optional, list)
 
-    assert contract["contract_version"] == "1.1.0"
+    assert contract["contract_version"] == "1.2.0"
     assert len(required) == 5
     assert {
         "CRIME_PSYCHOLOGY_POLICY",
@@ -103,6 +103,7 @@ def test_v1_1_contract_keeps_five_required_and_adds_v2_optional_capabilities() -
         "SOURCE_DISCLOSURE_POLICY",
         "CLINICAL_LABEL_POLICY",
         "EPISODE_THEME_POLICY",
+        "SCENE_REALIZATION_POLICY",
     }.issubset(set(optional))
 
 
@@ -121,6 +122,7 @@ def test_v2_optional_capability_shapes_are_explicit() -> None:
         "sourceDisclosurePolicy",
         "clinicalLabelPolicy",
         "episodeThemePolicy",
+        "sceneRealizationPolicy",
     )
 
     for name in definition_names:
@@ -149,6 +151,7 @@ def test_v2_optional_defaults_match_explicit_channel_shapes() -> None:
         "SOURCE_DISCLOSURE_POLICY",
         "CLINICAL_LABEL_POLICY",
         "EPISODE_THEME_POLICY",
+        "SCENE_REALIZATION_POLICY",
     ):
         capabilities[capability_name] = deepcopy(optional_defaults[capability_name])
 

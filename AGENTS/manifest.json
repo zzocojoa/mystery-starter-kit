@@ -7,7 +7,7 @@
     "orchestrator": {
       "prompt_file": "orchestrator.md",
       "stage": 0,
-      "reads": ["project_manifest", "compatibility_report", "production_config", "project_constraints", "reference_profile", "variation_candidates", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "novelty_precheck", "story_dna", "story_fingerprint", "case_input", "facts", "crime_psychology", "sources", "claim_evidence", "source_case_brief", "verified_fact_ledger", "source_subjects", "verified_event_ledger", "source_truth_contract", "source_disclosure", "clinical_labels", "characters", "relationships", "knowledge_matrix", "actual_timeline", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "causal_graph", "beat_sheet", "retention_plan", "scene_cards", "production_footprint", "panel_cast", "reaction_segments", "expert_segments", "presentation_plan", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "draft_script", "final_script", "continuity_report", "novelty_report", "reference_collision_report", "channel_consistency_report", "validation_report", "shooting_script", "production_manifest", "narration", "production_panel_reaction_script", "production_expert_analysis_script", "subtitle_script", "edit_script", "editorial_review"],
+      "reads": ["project_manifest", "compatibility_report", "production_config", "project_constraints", "reference_profile", "variation_candidates", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "novelty_precheck", "story_dna", "story_fingerprint", "case_input", "facts", "crime_psychology", "sources", "claim_evidence", "source_case_brief", "verified_fact_ledger", "source_subjects", "verified_event_ledger", "source_truth_contract", "source_disclosure", "clinical_labels", "characters", "relationships", "knowledge_matrix", "actual_timeline", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "causal_graph", "beat_sheet", "retention_plan", "psychological_arc", "scene_cards", "production_footprint", "panel_cast", "reaction_segments", "expert_segments", "presentation_plan", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "draft_script", "final_script", "script_realization_report", "continuity_report", "novelty_report", "reference_collision_report", "channel_consistency_report", "validation_report", "shooting_script", "production_manifest", "narration", "production_panel_reaction_script", "production_expert_analysis_script", "subtitle_script", "edit_script", "editorial_review"],
       "writes": ["project_manifest", "compatibility_report", "production_config", "project_constraints", "variation_candidates", "candidate_eligibility", "candidate_approval", "validation_report", "shooting_script", "production_manifest", "narration", "production_panel_reaction_script", "production_expert_analysis_script", "subtitle_script", "edit_script"],
       "gates": ["GATE-00", "GATE-01", "GATE-12", "GATE-13"],
       "requires_agents": [],
@@ -27,8 +27,8 @@
     "story_architect": {
       "prompt_file": "story_architect.md",
       "stage": 2,
-      "reads": ["production_config", "verified_fact_ledger", "source_truth_contract", "reference_profile", "variation_candidates", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "story_dna", "case_input", "facts", "viewer_timeline", "clue_matrix", "crime_psychology"],
-      "writes": ["story_dna", "case_input", "facts", "crime_psychology", "beat_sheet", "retention_plan"],
+      "reads": ["production_config", "verified_fact_ledger", "source_truth_contract", "reference_profile", "variation_candidates", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "story_dna", "case_input", "facts", "characters", "viewer_timeline", "clue_matrix", "crime_psychology", "beat_sheet", "psychological_arc"],
+      "writes": ["story_dna", "case_input", "facts", "crime_psychology", "beat_sheet", "retention_plan", "psychological_arc"],
       "gates": ["GATE-02", "GATE-03", "GATE-06"],
       "requires_agents": ["variation_designer"],
       "resources": [],
@@ -57,7 +57,7 @@
     "scene_designer": {
       "prompt_file": "scene_designer.md",
       "stage": 6,
-      "reads": ["beat_sheet", "retention_plan", "scene_cards", "production_footprint", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "claim_evidence", "crime_psychology", "production_config", "project_constraints", "variation_candidates", "characters", "actual_timeline", "presentation_plan"],
+      "reads": ["beat_sheet", "retention_plan", "psychological_arc", "scene_cards", "production_footprint", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "claim_evidence", "crime_psychology", "production_config", "project_constraints", "variation_candidates", "characters", "actual_timeline", "presentation_plan"],
       "writes": ["scene_cards", "production_footprint", "panel_cast", "reaction_segments", "expert_segments", "presentation_plan"],
       "gates": ["GATE-07"],
       "requires_agents": ["story_architect", "mystery_designer"],
@@ -67,7 +67,7 @@
     "script_writer": {
       "prompt_file": "script_writer.md",
       "stage": 7,
-      "reads": ["scene_cards", "presentation_plan", "panel_cast", "reaction_segments", "expert_segments", "viewer_timeline", "audience_belief", "knowledge_matrix", "clue_matrix", "claim_evidence", "source_disclosure", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script"],
+      "reads": ["psychological_arc", "scene_cards", "presentation_plan", "panel_cast", "reaction_segments", "expert_segments", "viewer_timeline", "audience_belief", "knowledge_matrix", "clue_matrix", "claim_evidence", "source_disclosure", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script"],
       "writes": ["drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "draft_script", "final_script"],
       "gates": ["GATE-08"],
       "requires_agents": ["scene_designer"],
@@ -77,8 +77,8 @@
     "continuity_critic": {
       "prompt_file": "continuity_critic.md",
       "stage": 8,
-      "reads": ["production_config", "story_dna", "case_input", "crime_psychology", "claim_evidence", "source_disclosure", "clinical_labels", "final_script", "actual_timeline", "viewer_timeline", "audience_belief", "characters", "facts", "knowledge_matrix", "clue_matrix", "hypothesis_ledger", "beat_sheet", "scene_cards", "production_footprint", "panel_cast", "reaction_segments", "expert_segments", "presentation_plan", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "shooting_script", "production_manifest", "narration", "production_panel_reaction_script", "production_expert_analysis_script", "subtitle_script", "edit_script"],
-      "writes": ["continuity_report", "channel_consistency_report", "editorial_review"],
+      "reads": ["production_config", "story_dna", "case_input", "crime_psychology", "psychological_arc", "claim_evidence", "source_disclosure", "clinical_labels", "final_script", "script_realization_report", "actual_timeline", "viewer_timeline", "audience_belief", "characters", "facts", "knowledge_matrix", "clue_matrix", "hypothesis_ledger", "beat_sheet", "scene_cards", "production_footprint", "panel_cast", "reaction_segments", "expert_segments", "presentation_plan", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "shooting_script", "production_manifest", "narration", "production_panel_reaction_script", "production_expert_analysis_script", "subtitle_script", "edit_script"],
+      "writes": ["script_realization_report", "continuity_report", "channel_consistency_report", "editorial_review"],
       "gates": ["GATE-09", "GATE-12", "GATE-13"],
       "requires_agents": ["script_writer"],
       "resources": [],

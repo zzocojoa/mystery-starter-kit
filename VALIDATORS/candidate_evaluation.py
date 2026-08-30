@@ -17,6 +17,26 @@ SCORE_FIELDS: tuple[str, ...] = (
     "novelty_score",
     "production_score",
 )
+REALIZATION_SCORE_FIELDS: tuple[str, ...] = (
+    "psychological_arc_potential_score",
+    "trust_control_progression_score",
+    "victim_experience_score",
+    "scene_realizability_score",
+    "crime_threat_score",
+    "character_conflict_score",
+    "retrospective_reframe_score",
+    "production_score",
+)
+REALIZATION_WEIGHTS: Mapping[str, float] = {
+    "psychological_arc_potential_score": 20.0,
+    "trust_control_progression_score": 20.0,
+    "victim_experience_score": 15.0,
+    "scene_realizability_score": 15.0,
+    "crime_threat_score": 10.0,
+    "character_conflict_score": 10.0,
+    "retrospective_reframe_score": 5.0,
+    "production_score": 5.0,
+}
 SCORE_TOLERANCE = 0.01
 
 
@@ -116,6 +136,7 @@ def validate_evaluation_completeness(
 
 
 def validate_weighted_scores(
+    variations: Mapping[str, object],
     evaluation: Mapping[str, object],
     records: list[Mapping[str, object]],
 ) -> list[ValidationIssue]:
@@ -129,15 +150,20 @@ def validate_weighted_scores(
                 {},
             )
         ]
+    score_fields = (
+        REALIZATION_SCORE_FIELDS
+        if variations.get("variation_engine_version") == "2.1.0"
+        else SCORE_FIELDS
+    )
     normalized_weights: dict[str, float] = {}
-    for field in SCORE_FIELDS:
+    for field in score_fields:
         value = number_value(weights.get(field))
         if value is None:
             return [
                 make_candidate_issue(
                     "CANDIDATE_WEIGHTS_INVALID",
                     "모든 Candidate 평가 Dimension에 숫자 가중치가 필요합니다.",
-                    {"fields": list(SCORE_FIELDS)},
+                    {"fields": list(score_fields)},
                 )
             ]
         normalized_weights[field] = value
@@ -151,12 +177,30 @@ def validate_weighted_scores(
                 {"weight_sum": round(total_weight, 4)},
             )
         )
+    if score_fields == REALIZATION_SCORE_FIELDS:
+        mismatched_weights = {
+            field: {
+                "expected": REALIZATION_WEIGHTS[field],
+                "actual": normalized_weights[field],
+            }
+            for field in score_fields
+            if abs(normalized_weights[field] - REALIZATION_WEIGHTS[field])
+            > SCORE_TOLERANCE
+        }
+        if mismatched_weights:
+            issues.append(
+                make_candidate_issue(
+                    "CANDIDATE_REALIZATION_WEIGHTS_INVALID",
+                    "Channel 2.1 Candidate Potential 가중치가 표준과 다릅니다.",
+                    {"mismatches": mismatched_weights},
+                )
+            )
     for record in records:
         candidate_id = record.get("candidate_id")
         evidence = record.get("dimension_evidence")
         missing_evidence = [
             field
-            for field in SCORE_FIELDS
+            for field in score_fields
             if not isinstance(evidence, Mapping)
             or not isinstance(evidence.get(field), list)
             or not evidence.get(field)
@@ -173,16 +217,16 @@ def validate_weighted_scores(
                 )
             )
         normalized_scores: dict[str, float] = {}
-        for field in SCORE_FIELDS:
+        for field in score_fields:
             score = number_value(record.get(field))
             if score is not None:
                 normalized_scores[field] = score
-        if len(normalized_scores) != len(SCORE_FIELDS):
+        if len(normalized_scores) != len(score_fields):
             continue
         recomputed = round(
             sum(
                 normalized_scores[field] * normalized_weights[field] / 100.0
-                for field in SCORE_FIELDS
+                for field in score_fields
             ),
             2,
         )
@@ -331,7 +375,7 @@ def validate_candidate_evaluation(
     records = evaluation_records(evaluation)
     return [
         *validate_evaluation_completeness(variations, records),
-        *validate_weighted_scores(evaluation, records),
+        *validate_weighted_scores(variations, evaluation, records),
         *validate_input_hashes(
             variations,
             evaluation,

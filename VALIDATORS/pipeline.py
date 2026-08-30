@@ -28,6 +28,7 @@ from VALIDATORS.dependency import (
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
     runtime_evidence_issues,
+    validate_editorial_realization_evidence,
     validate_editorial_review,
 )
 from VALIDATORS.exceptions import (
@@ -56,6 +57,17 @@ from VALIDATORS.project_constraints import project_constraint_compiler_issues
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
     validate_reference_collision,
+)
+from VALIDATORS.scene_realization import (
+    validate_channel_realization_evidence,
+    validate_narration_realization,
+    validate_panel_design_realization,
+    validate_panel_script_density,
+    validate_primary_story_engine,
+    validate_psychological_arc,
+    validate_scene_coverage,
+    validate_script_realization,
+    validate_script_realization_report,
 )
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.source_truth import (
@@ -812,6 +824,7 @@ def run_production_validation(
     causal_graph = artifact_document(artifacts, "causal_graph")
     beat_sheet = artifact_document(artifacts, "beat_sheet")
     retention_plan = artifact_document(artifacts, "retention_plan")
+    psychological_arc = optional_artifact_document(artifacts, "psychological_arc")
     scene_cards = artifact_document(artifacts, "scene_cards")
     production_footprint = optional_artifact_document(artifacts, "production_footprint")
     panel_cast = artifact_document(artifacts, "panel_cast")
@@ -826,6 +839,14 @@ def run_production_validation(
     )
     draft_script = artifact_text(artifacts, "draft_script")
     final_script = artifact_text(artifacts, "final_script")
+    script_realization_report = optional_artifact_document(
+        artifacts,
+        "script_realization_report",
+    )
+    channel_consistency_report = optional_artifact_document(
+        artifacts,
+        "channel_consistency_report",
+    )
     editorial_review = artifact_document(artifacts, "editorial_review")
     production_manifest = optional_artifact_document(artifacts, "production_manifest")
     project_id = production_config.get("project_id")
@@ -929,6 +950,7 @@ def run_production_validation(
         *validate_user_case_constraints(production_config, story_document),
         *validate_reference_profile_alignment(story_document, reference_profile),
         *validate_variation_alignment(variation_candidates, story_document),
+        *validate_primary_story_engine(channel, story_document, case_input),
         *validate_approved_candidate_projection(
             production_config,
             variation_candidates,
@@ -1109,6 +1131,19 @@ def run_production_validation(
             "checkpoints",
             "05_STORY/retention_plan.json",
         ),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("psychological_arc",),
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "psychological_arc",
+            presentation_schemas["psychological_arc"],
+            "05_STORY/psychological_arc.json",
+        ),
+        *validate_psychological_arc(channel, psychological_arc),
     ]
     gate_07 = [
         *nonempty_list_issues(scene_cards, "scenes", "06_SCENE/scene_cards.json"),
@@ -1150,6 +1185,18 @@ def run_production_validation(
             channel,
             production_config,
         ),
+        *validate_scene_coverage(
+            channel,
+            psychological_arc,
+            scene_cards,
+            presentation_plan,
+        ),
+        *validate_narration_realization(channel, presentation_plan),
+        *validate_panel_design_realization(
+            channel,
+            reaction_segments,
+            presentation_plan,
+        ),
         *validate_production_footprint(
             project_constraints,
             production_footprint,
@@ -1180,6 +1227,18 @@ def run_production_validation(
             draft_script,
             final_script,
         ),
+        *validate_script_realization(
+            channel,
+            psychological_arc,
+            scene_cards,
+            presentation_plan,
+            final_script,
+        ),
+        *validate_panel_script_density(
+            channel,
+            reaction_segments,
+            panel_reaction_script,
+        ),
     ]
     continuity_report = validate_continuity(
         production_config,
@@ -1194,7 +1253,29 @@ def run_production_validation(
     continuity_issues = continuity_report.get("issues")
     if not isinstance(continuity_issues, list):
         raise ConfigurationError("Continuity Report issues 배열이 필요합니다.")
-    gate_09 = list(continuity_issues)
+    gate_09 = [
+        *list(continuity_issues),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("script_realization_report",),
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "script_realization_report",
+            presentation_schemas["script_realization_report"],
+            "08_QA/script_realization_report.json",
+        ),
+        *validate_script_realization_report(
+            channel,
+            psychological_arc,
+            scene_cards,
+            presentation_plan,
+            final_script,
+            script_realization_report,
+        ),
+    ]
     novelty_report = evaluate_novelty(fingerprint, story_history, novelty_thresholds)
     novelty_issues = novelty_report.get("issues")
     if not isinstance(novelty_issues, list):
@@ -1245,6 +1326,14 @@ def run_production_validation(
         )
     )
     gate_12.extend(
+        validate_channel_realization_evidence(
+            channel,
+            psychological_arc,
+            script_realization_report,
+            channel_consistency_report,
+        )
+    )
+    gate_12.extend(
         validate_approved_candidate_projection(
             production_config,
             variation_candidates,
@@ -1279,6 +1368,11 @@ def run_production_validation(
             project_id,
             editorial_artifact_hashes(artifacts),
             artifacts,
+        ),
+        *validate_editorial_realization_evidence(
+            channel,
+            editorial_review,
+            psychological_arc,
         ),
         *runtime_evidence_issues(
             editorial_review,

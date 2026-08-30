@@ -20,6 +20,7 @@ from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
     runtime_evidence_issues,
+    validate_editorial_realization_evidence,
     validate_editorial_review,
 )
 from VALIDATORS.fact_validation import validate_fact_integrity
@@ -35,6 +36,7 @@ from VALIDATORS.pipeline import (
     optional_artifact_text,
     optional_schema_issues,
     production_text_issues,
+    required_channel_artifact_issues,
     schema_issues,
     validate_compatibility_binding_current,
     validate_compatibility_gate,
@@ -58,6 +60,17 @@ from VALIDATORS.production_footprint import (
 )
 from VALIDATORS.project_constraints import project_constraint_compiler_issues
 from VALIDATORS.reference_validation import build_story_element_profile
+from VALIDATORS.scene_realization import (
+    validate_channel_realization_evidence,
+    validate_narration_realization,
+    validate_panel_design_realization,
+    validate_panel_script_density,
+    validate_primary_story_engine,
+    validate_psychological_arc,
+    validate_scene_coverage,
+    validate_script_realization,
+    validate_script_realization_report,
+)
 from VALIDATORS.source_truth import source_truth_requires_evidence
 from VALIDATORS.source_truth_contract import (
     validate_source_subject_mapping,
@@ -233,6 +246,7 @@ def validate_gate(
             *validate_user_case_constraints(production_config, story),
             *validate_reference_profile_alignment(story, reference_profile),
             *validate_variation_alignment(variations, story),
+            *validate_primary_story_engine(channel, story, {}),
             *validate_approved_candidate_projection(
                 production_config,
                 variations,
@@ -407,6 +421,22 @@ def validate_gate(
         return [
             *nonempty_list_issues(beats, "beats", "05_STORY/beat_sheet.json"),
             *nonempty_list_issues(retention, "checkpoints", "05_STORY/retention_plan.json"),
+            *required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("psychological_arc",),
+            ),
+            *optional_schema_issues(
+                artifacts,
+                "psychological_arc",
+                presentation_schemas["psychological_arc"],
+                "05_STORY/psychological_arc.json",
+            ),
+            *validate_psychological_arc(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+            ),
         ]
     scenes = artifact_document(artifacts, "scene_cards")
     panel_cast = artifact_document(artifacts, "panel_cast")
@@ -447,6 +477,18 @@ def validate_gate(
                 channel,
                 production_config,
             ),
+            *validate_scene_coverage(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                scenes,
+                presentation,
+            ),
+            *validate_narration_realization(channel, presentation),
+            *validate_panel_design_realization(
+                channel,
+                reaction_segments,
+                presentation,
+            ),
             *validate_production_footprint(
                 artifact_document(artifacts, "project_constraints"),
                 optional_artifact_document(artifacts, "production_footprint"),
@@ -483,6 +525,18 @@ def validate_gate(
                 artifact_text(artifacts, "draft_script"),
                 artifact_text(artifacts, "final_script"),
             ),
+            *validate_script_realization(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                scenes,
+                presentation,
+                artifact_text(artifacts, "final_script"),
+            ),
+            *validate_panel_script_density(
+                channel,
+                reaction_segments,
+                artifact_text(artifacts, "panel_reaction_script"),
+            ),
         ]
     if gate_id == "GATE-09":
         report = validate_continuity(
@@ -496,7 +550,33 @@ def validate_gate(
             scenes,
         )
         report_issues = report.get("issues")
-        return list(report_issues) if isinstance(report_issues, list) else []
+        realization_report = optional_artifact_document(
+            artifacts,
+            "script_realization_report",
+        )
+        return [
+            *(list(report_issues) if isinstance(report_issues, list) else []),
+            *required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("script_realization_report",),
+            ),
+            *optional_schema_issues(
+                artifacts,
+                "script_realization_report",
+                presentation_schemas["script_realization_report"],
+                "08_QA/script_realization_report.json",
+            ),
+            *validate_script_realization_report(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                scenes,
+                presentation,
+                artifact_text(artifacts, "final_script"),
+                realization_report,
+            ),
+        ]
     fingerprint = artifact_document(artifacts, "story_fingerprint")
     if gate_id == "GATE-10":
         novelty_report = evaluate_novelty(fingerprint, story_history, novelty_thresholds)
@@ -576,6 +656,20 @@ def validate_gate(
                 presentation_schemas["candidate_projection_contract"],
                 artifacts,
             ),
+            *validate_script_realization_report(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                scenes,
+                presentation,
+                final_script,
+                optional_artifact_document(artifacts, "script_realization_report"),
+            ),
+            *validate_channel_realization_evidence(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                optional_artifact_document(artifacts, "script_realization_report"),
+                optional_artifact_document(artifacts, "channel_consistency_report"),
+            ),
         ]
     if gate_id == "GATE-13":
         return [
@@ -614,6 +708,20 @@ def validate_gate(
                 channel,
                 build_channel_policy_inputs(artifacts),
             ),
+            *validate_script_realization_report(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                scenes,
+                presentation,
+                final_script,
+                optional_artifact_document(artifacts, "script_realization_report"),
+            ),
+            *validate_channel_realization_evidence(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                optional_artifact_document(artifacts, "script_realization_report"),
+                optional_artifact_document(artifacts, "channel_consistency_report"),
+            ),
             *production_text_issues(
                 artifacts,
                 production_config,
@@ -630,6 +738,11 @@ def validate_gate(
                 project_id,
                 editorial_artifact_hashes(artifacts),
                 artifacts,
+            ),
+            *validate_editorial_realization_evidence(
+                channel,
+                artifact_document(artifacts, "editorial_review"),
+                optional_artifact_document(artifacts, "psychological_arc"),
             ),
             *runtime_evidence_issues(
                 artifact_document(artifacts, "editorial_review"),

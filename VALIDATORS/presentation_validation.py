@@ -22,6 +22,9 @@ PANEL_FUNCTIONS = frozenset(
         "MORAL_REACTION",
         "TENSION_RELEASE",
         "EXPECTATION_BUILDING",
+        "RISK_SIGNAL_RECOGNITION",
+        "VICTIM_CONTEXTUALIZATION",
+        "BELIEF_CORRECTION",
     }
 )
 REQUIRED_PANEL_FUNCTIONS = frozenset(
@@ -306,17 +309,43 @@ def viewer_fact_reveal_orders(
 
 def reaction_function_issues(
     reaction_segments: Sequence[Mapping[str, object]],
+    channel: Mapping[str, object],
 ) -> list[ValidationIssue]:
-    """CO_INVESTIGATOR에 필요한 가설 기능 분포를 검증한다."""
+    """Channel Audience Position에 맞는 Panel 기능 분포를 검증한다."""
     functions = {
         function
         for segment in reaction_segments
         for turn in mapping_items(segment, "turns")
         if isinstance((function := turn.get("function")), str)
     }
-    invalid = sorted(functions - PANEL_FUNCTIONS)
-    missing = sorted(REQUIRED_PANEL_FUNCTIONS - functions)
-    if not functions.intersection(REQUIRED_REASONING_FUNCTIONS):
+    capabilities = channel.get("capabilities")
+    scene_policy = (
+        capabilities.get("SCENE_REALIZATION_POLICY")
+        if isinstance(capabilities, Mapping)
+        else None
+    )
+    reaction_policy = (
+        capabilities.get("REACTION_POLICY")
+        if isinstance(capabilities, Mapping)
+        else None
+    )
+    realization_enabled = (
+        isinstance(scene_policy, Mapping) and scene_policy.get("enabled") is True
+    )
+    channel_functions = (
+        set(string_items(reaction_policy, "functions"))
+        if isinstance(reaction_policy, Mapping)
+        else set()
+    )
+    required_functions = (
+        set(string_items(reaction_policy, "required_functions"))
+        if realization_enabled and isinstance(reaction_policy, Mapping)
+        else set(REQUIRED_PANEL_FUNCTIONS)
+    )
+    allowed_functions = channel_functions if realization_enabled else set(PANEL_FUNCTIONS)
+    invalid = sorted(functions - allowed_functions)
+    missing = sorted(required_functions - functions)
+    if not realization_enabled and not functions.intersection(REQUIRED_REASONING_FUNCTIONS):
         missing.append("ANOMALY_DETECTION_OR_CONTRADICTION_DETECTION")
     issues: list[ValidationIssue] = []
     if invalid:
@@ -719,7 +748,7 @@ def validate_presentation_design(
     reactions = mapping_items(reaction_segments_document, "reaction_segments")
     return [
         *validate_panel_cast(panel_cast),
-        *reaction_function_issues(reactions),
+        *reaction_function_issues(reactions, channel),
         *reaction_reference_issues(
             reactions,
             panel_cast,
