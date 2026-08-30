@@ -1,19 +1,22 @@
 """현재 Runtime 입력 Hash에 결속된 Human Evidence 입력 저장과 투영."""
 
 from collections.abc import Mapping
+from hashlib import sha256
 from pathlib import Path
 from typing import cast
 
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.event_store import append_event, load_run, run_root
 from RUNTIME.models import RuntimeRun
+from RUNTIME.transactions import acquire_project_lock, release_project_lock
+from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.schema_validation import collect_schema_errors
 
 
 def evidence_input_path(project_path: Path, run_id: str) -> Path:
     """Run별 Evidence Human Input의 고정 경로를 반환한다."""
-    return run_root(project_path, run_id) / "human_inputs" / "reference.build_evidence.json"
+    return run_root(project_path, run_id) / "human_inputs" / "reference.intake_evidence.json"
 
 
 def validate_evidence_input(
@@ -33,7 +36,7 @@ def validate_evidence_input(
             False,
             "HUMAN_INPUT",
             "Evidence 입력이 허용 Schema를 통과하지 못했습니다.",
-            "reference.build_evidence",
+            "reference.intake_evidence",
             None,
             {"errors": errors},
         )
@@ -43,7 +46,7 @@ def validate_evidence_input(
             False,
             "HUMAN_INPUT",
             "Evidence 입력 Project ID가 Run과 다릅니다.",
-            "reference.build_evidence",
+            "reference.intake_evidence",
             None,
             {"expected": project_id, "actual": document.get("project_id")},
         )
@@ -53,7 +56,7 @@ def validate_evidence_input(
             False,
             "HUMAN_INPUT",
             "Evidence 입력 Source Truth가 Project 고정값과 다릅니다.",
-            "reference.build_evidence",
+            "reference.intake_evidence",
             None,
             {
                 "expected": source_truth_classification,
@@ -74,7 +77,7 @@ def validate_evidence_input(
             False,
             "HUMAN_INPUT",
             "Evidence 하위 Artifact가 Project 또는 Source Truth와 다릅니다.",
-            "reference.build_evidence",
+            "reference.intake_evidence",
             None,
             {},
         )
@@ -85,7 +88,7 @@ def validate_evidence_input(
             False,
             "HUMAN_INPUT",
             "Evidence 입력이 현재 Task Input Hash에 결속되지 않았습니다.",
-            "reference.build_evidence",
+            "reference.intake_evidence",
             None,
             {
                 "expected": dict(input_hashes),
@@ -99,9 +102,23 @@ def submit_evidence_input(
     run_id: str,
     document: Mapping[str, object],
 ) -> dict[str, object]:
-    """WAITING_HUMAN Run에 검증된 Evidence 입력을 기록한다."""
+    """Project Lock을 획득하고 검증된 Evidence 입력을 기록한다."""
+    lock_run_id = f"human-input:{run_id}"
+    lock_path = acquire_project_lock(project_path, lock_run_id)
+    try:
+        return submit_evidence_input_locked(project_path, run_id, document)
+    finally:
+        release_project_lock(lock_path, lock_run_id)
+
+
+def submit_evidence_input_locked(
+    project_path: Path,
+    run_id: str,
+    document: Mapping[str, object],
+) -> dict[str, object]:
+    """Project Lock 안에서 Evidence 입력의 멱등성과 충돌을 판정한다."""
     run: RuntimeRun = load_run(project_path, run_id)
-    task_id = "reference.build_evidence"
+    task_id = "reference.intake_evidence"
     task_state = run["tasks"].get(task_id)
     if (
         run["status"] != "WAITING_HUMAN"
@@ -138,6 +155,24 @@ def submit_evidence_input(
         task_state["input_hashes"],
     )
     path = evidence_input_path(project_path, run_id)
+    if path.is_file():
+        current = load_json_object(path)
+        if document_sha256(current) == document_sha256(document):
+            return {
+                "run_id": run_id,
+                "task_id": task_id,
+                "input_path": str(path),
+                "status": "NO_OP",
+            }
+        raise RuntimeExecutionError(
+            "HUMAN_INPUT_CONFLICT",
+            False,
+            "HUMAN_INPUT",
+            "동일 Run의 Evidence 입력은 명시적 Revision 없이 변경할 수 없습니다.",
+            task_id,
+            None,
+            {"run_id": run_id, "input_path": str(path)},
+        )
     write_json_object(path, document)
     append_event(
         project_path,
@@ -195,13 +230,66 @@ def evidence_artifact_outputs(
             False,
             "HUMAN_INPUT",
             "검증된 Evidence 입력의 Artifact Bundle이 손상되었습니다.",
-            "reference.build_evidence",
+            "reference.intake_evidence",
             None,
             {},
         )
+    normalized_claims: list[dict[str, object]] = []
+    verified_facts: list[dict[str, object]] = []
+    for raw_claim in claims:
+        if not isinstance(raw_claim, Mapping):
+            raise RuntimeExecutionError(
+                "HUMAN_INPUT_INVALID", False, "HUMAN_INPUT",
+                "Evidence Claim 객체가 손상되었습니다.",
+                "reference.intake_evidence", None, {},
+            )
+        claim = dict(raw_claim)
+        statement = claim.get("claim")
+        if not isinstance(statement, str):
+            raise RuntimeExecutionError(
+                "HUMAN_INPUT_INVALID", False, "HUMAN_INPUT",
+                "Evidence Claim 문장이 없습니다.",
+                "reference.intake_evidence", None, {},
+            )
+        statement_hash = sha256(" ".join(statement.split()).casefold().encode()).hexdigest()
+        claim["canonical_claim_hash"] = statement_hash
+        normalized_claims.append(claim)
+        if claim.get("classification") == "FACT":
+            verified_facts.append(
+                {
+                    "fact_id": claim["fact_id"],
+                    "statement": statement,
+                    "classification": "FACT",
+                    "normalized_statement_hash": statement_hash,
+                    "source_ids": list(claim.get("evidence_source_ids", [])),
+                    "basis_fact_ids": [],
+                    "presented_as_fact": True,
+                }
+            )
+    if not verified_facts:
+        raise RuntimeExecutionError(
+            "HUMAN_INPUT_INVALID", False, "HUMAN_INPUT",
+            "사실 기반 Project에는 하나 이상의 FACT Claim이 필요합니다.",
+            "reference.intake_evidence", None, {},
+        )
+    source_ids = [
+        str(source["source_id"])
+        for source in sources
+        if isinstance(source, Mapping) and isinstance(source.get("source_id"), str)
+    ]
+    fact_ids = [str(fact["fact_id"]) for fact in verified_facts]
+    brief = " / ".join(str(fact["statement"]) for fact in verified_facts)
     return {
         "sources": {"project_id": project_id, "sources": sources},
-        "claim_evidence": {"project_id": project_id, "claims": claims},
+        "claim_evidence": {"project_id": project_id, "claims": normalized_claims},
+        "source_case_brief": {
+            "project_id": project_id,
+            "source_truth_classification": document["source_truth_classification"],
+            "source_ids": source_ids,
+            "verified_fact_ids": fact_ids,
+            "brief": brief,
+        },
+        "verified_fact_ledger": {"project_id": project_id, "facts": verified_facts},
         "source_disclosure": dict(disclosure),
         "clinical_labels": dict(clinical),
     }

@@ -92,12 +92,12 @@ Built-in `fake` Adapter는 외부 서비스를 호출하지 않는 결정론적 
 .venv/bin/mystery-runtime providers
 ```
 
-사실 기반 Project가 `reference.build_evidence`에서 `WAITING_HUMAN`으로 대기하면 Human은 원문 전문이 아닌 출처 Metadata, Claim 분류와 공개·임상 Label만 제출한다. 두 보조 명령은 같은 Runtime 입력 경로를 사용한다.
+사실 기반 Project가 `GATE-01`의 `reference.intake_evidence`에서 `WAITING_HUMAN`으로 대기하면 Human은 원문 전문이 아닌 출처 Metadata, Claim 분류와 공개·임상 Label만 제출한다. 검증된 `FACT`만 Source Case Brief와 Verified Fact Ledger로 투영된 뒤 Variation과 Story Task가 시작된다. 두 보조 명령은 같은 Runtime 입력 경로를 사용한다.
 
 ```bash
 .venv/bin/mystery-kit evidence-submit PROJECTS/PRJ-RUNTIME-TEST RUN-... evidence-input.json
 # 또는
-.venv/bin/mystery-runtime submit-input RUN-... reference.build_evidence evidence-input.json
+.venv/bin/mystery-runtime submit-input RUN-... reference.intake_evidence evidence-input.json
 .venv/bin/mystery-runtime resume RUN-...
 ```
 

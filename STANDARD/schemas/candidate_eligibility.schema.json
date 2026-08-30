@@ -23,12 +23,14 @@
       "additionalProperties": false,
       "required": [
         "production_config",
+        "project_constraints",
         "channel_dna",
         "variation_candidates",
         "novelty_precheck"
       ],
       "properties": {
         "production_config": {"$ref": "#/$defs/hash"},
+        "project_constraints": {"$ref": "#/$defs/hash"},
         "channel_dna": {"$ref": "#/$defs/hash"},
         "variation_candidates": {"$ref": "#/$defs/hash"},
         "novelty_precheck": {"$ref": "#/$defs/hash"}
@@ -64,6 +66,7 @@
         "technical_final_proof",
         "required_theme",
         "locked_constraints",
+        "project_constraints",
         "source_truth",
         "production_feasibility",
         "novelty"
@@ -79,6 +82,7 @@
         "technical_final_proof": {"$ref": "#/$defs/checkResult"},
         "required_theme": {"$ref": "#/$defs/checkResult"},
         "locked_constraints": {"$ref": "#/$defs/checkResult"},
+        "project_constraints": {"$ref": "#/$defs/checkResult"},
         "source_truth": {"$ref": "#/$defs/checkResult"},
         "production_feasibility": {"$ref": "#/$defs/checkResult"},
         "novelty": {"$ref": "#/$defs/checkResult"}

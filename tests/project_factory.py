@@ -1,6 +1,7 @@
 """Production Pipeline 테스트용 완전한 Project Artifact Factory."""
 
 from copy import deepcopy
+from hashlib import sha256
 from pathlib import Path
 
 from RUNTIME.providers.fake import (
@@ -21,7 +22,7 @@ from VALIDATORS.novelty import build_story_fingerprint, evaluate_variation_prech
 from VALIDATORS.pipeline import ArtifactContent
 from VALIDATORS.variation import (
     approve_variation_candidate,
-    generate_variation_candidates,
+    generate_variation_candidates_for_project,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,13 +48,20 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     story_document = deepcopy(
         load_json_object(ROOT / "EXAMPLES" / "story_dna.example.json")
     )
+    project_constraints = load_json_object(
+        ROOT / "TEMPLATES/PROJECT/00_PROJECT/project_constraints.json"
+    )
+    project_constraints["project_id"] = project_id
     catalog = load_json_object(ROOT / "STANDARD" / "variation_catalog.json")
-    variations = generate_variation_candidates(
+    variations = generate_variation_candidates_for_project(
         project_id,
         "공장 교대 중 사라진 작업자",
         5,
         catalog,
         "ORIGINAL_FICTION",
+        production_config,
+        project_constraints,
+        channel,
     )
     candidates = variations["candidates"]
     story_dna = story_document["story_dna"]
@@ -89,6 +97,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     novelty_precheck = evaluate_variation_precheck(variations, [], thresholds)
     candidate_eligibility = build_candidate_eligibility(
         production_config,
+        project_constraints,
         channel,
         variations,
         novelty_precheck,
@@ -113,8 +122,10 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "SYSTEM",
         "테스트 자동 승인",
         "2025-01-01T00:00:00Z",
+        production_config,
         variations,
         novelty_precheck,
+        candidate_eligibility,
         candidate_evaluation,
         "AUTO_CONTINUE",
         None,
@@ -133,8 +144,20 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     facts: dict[str, object] = {
         "project_id": project_id,
         "facts": [
-            {"fact_id": "FACT-01", "statement": "기계 로그에 7분 공백이 있다."},
-            {"fact_id": "FACT-02", "statement": "안전 센서는 점검 모드였다."},
+            {
+                "fact_id": f"FACT-{index:02d}",
+                "statement": statement,
+                "classification": "DRAMATIZATION",
+                "normalized_statement_hash": sha256(
+                    " ".join(statement.split()).casefold().encode()
+                ).hexdigest(),
+                "source_ids": [],
+                "basis_fact_ids": [],
+                "presented_as_fact": False,
+            }
+            for index, statement in enumerate(
+                ("기계 로그에 7분 공백이 있다.", "안전 센서는 점검 모드였다."), 1
+            )
         ],
     }
     characters: dict[str, object] = {
@@ -306,6 +329,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
             "errors": [],
         },
         "production_config": production_config,
+        "project_constraints": project_constraints,
         "reference_profile": {
             "project_id": project_id,
             "mode": "NONE",

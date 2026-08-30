@@ -29,10 +29,13 @@
     },
     "fact": {
       "type": "object",
-      "required": ["fact_id", "classification"],
+      "additionalProperties": false,
+      "required": ["fact_id", "statement", "classification", "normalized_statement_hash"],
       "properties": {
         "fact_id": {"$ref": "#/$defs/id"},
+        "statement": {"type": "string", "minLength": 1},
         "classification": {"enum": ["FACT", "INFERENCE", "DRAMATIZATION"]},
+        "normalized_statement_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "source_ids": {"$ref": "#/$defs/idList"},
         "basis_fact_ids": {"$ref": "#/$defs/idList"},
         "presented_as_fact": {"type": "boolean"}
@@ -57,6 +60,7 @@
     },
     "source": {
       "type": "object",
+      "additionalProperties": true,
       "required": ["source_id", "url"],
       "properties": {
         "source_id": {"$ref": "#/$defs/id"},
@@ -65,11 +69,56 @@
     },
     "claim": {
       "type": "object",
-      "required": ["fact_id", "evidence_source_ids"],
+      "additionalProperties": false,
+      "required": [
+        "fact_id",
+        "claim",
+        "classification",
+        "canonical_claim_hash",
+        "evidence_source_ids",
+        "basis_fact_ids",
+        "evidence_scope",
+        "confidence",
+        "presented_as_fact"
+      ],
       "properties": {
         "fact_id": {"$ref": "#/$defs/id"},
-        "evidence_source_ids": {"$ref": "#/$defs/idList"}
-      }
+        "claim": {"type": "string", "minLength": 1},
+        "classification": {"enum": ["FACT", "INFERENCE", "DRAMATIZATION"]},
+        "canonical_claim_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "evidence_source_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        },
+        "basis_fact_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        },
+        "evidence_scope": {"type": "string", "minLength": 1},
+        "confidence": {"enum": ["HIGH", "MEDIUM", "LOW"]},
+        "presented_as_fact": {"type": "boolean"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"classification": {"const": "FACT"}}},
+          "then": {
+            "properties": {
+              "evidence_source_ids": {"minItems": 1},
+              "presented_as_fact": {"const": true}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"classification": {"const": "INFERENCE"}}},
+          "then": {"properties": {"basis_fact_ids": {"minItems": 1}}}
+        },
+        {
+          "if": {"properties": {"classification": {"const": "DRAMATIZATION"}}},
+          "then": {"properties": {"presented_as_fact": {"const": false}}}
+        }
+      ]
     }
   }
 }

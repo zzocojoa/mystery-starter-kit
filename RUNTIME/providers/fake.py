@@ -3,6 +3,7 @@
 import json
 from collections.abc import Mapping
 from copy import deepcopy
+from hashlib import sha256
 from typing import TypeAlias, cast
 
 from RUNTIME.errors import RuntimeExecutionError
@@ -970,7 +971,12 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
     metadata = request.metadata
     project_id = metadata.get("project_id")
     source_mode = metadata.get("story_source_mode")
-    if not isinstance(project_id, str) or not isinstance(source_mode, str):
+    source_truth = metadata.get("source_truth_classification")
+    if (
+        not isinstance(project_id, str)
+        or not isinstance(source_mode, str)
+        or not isinstance(source_truth, str)
+    ):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
             False,
@@ -1020,14 +1026,34 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             }
         ]
     if task_id == "story.define_case":
-        facts: list[dict[str, object]] = [
-            {"fact_id": "FACT-01", "statement": "기계 로그에 7분 공백이 있다."},
-            {"fact_id": "FACT-02", "statement": "안전 센서는 점검 모드였다."},
-        ]
-        if source_mode in {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}:
+        if source_truth in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}:
+            ledger = context_artifact(request, "verified_fact_ledger")
+            ledger_facts = ledger.get("facts") if isinstance(ledger, Mapping) else None
+            if not isinstance(ledger_facts, list) or not ledger_facts:
+                raise RuntimeExecutionError(
+                    "RUNTIME_CONFIGURATION_ERROR", False, "TASK",
+                    "사실 기반 Case 생성에는 검증된 Fact Ledger가 필요합니다.",
+                    task_id, "verified_fact_ledger", {},
+                )
+            facts = [dict(fact) for fact in ledger_facts if isinstance(fact, Mapping)]
+        else:
+            statements = (
+                "기계 로그에 7분 공백이 있다.",
+                "안전 센서는 점검 모드였다.",
+            )
             facts = [
-                {**fact, "classification": "FACT", "source_ids": ["SRC-01"]}
-                for fact in facts
+                {
+                    "fact_id": f"FACT-{index:02d}",
+                    "statement": statement,
+                    "classification": "DRAMATIZATION",
+                    "normalized_statement_hash": sha256(
+                        " ".join(statement.split()).casefold().encode()
+                    ).hexdigest(),
+                    "source_ids": [],
+                    "basis_fact_ids": [],
+                    "presented_as_fact": False,
+                }
+                for index, statement in enumerate(statements, 1)
             ]
         return [
             {
@@ -1036,7 +1062,13 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "content": {
                     "project_id": project_id,
                     "title_working": "교대 기록의 7분",
-                    "source_type": "FICTION",
+                    "source_type": (
+                        "TRUE_STORY"
+                        if source_truth == "VERIFIED_TRUE_CASE"
+                        else "INSPIRED_BY_TRUE_EVENTS"
+                        if source_truth == "INSPIRED_BY_TRUE_EVENTS"
+                        else "FICTION"
+                    ),
                     "central_mystery": "작업자는 언제 통제 구역을 벗어났는가?",
                     "final_truth": "작업자는 정지한 이송 설비의 점검 공간에 갇혔다.",
                     "causal_truth": "센서 차단과 교대 기록 오류가 구조 지연을 만들었다.",

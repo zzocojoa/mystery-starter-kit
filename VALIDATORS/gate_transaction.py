@@ -309,21 +309,12 @@ def committed_gate_record(
     return records[-1] if records else None
 
 
-def source_mode(project_path: Path) -> str:
-    """Project의 Story Source Mode를 읽는다."""
-    config = load_json_object(project_path / "00_PROJECT" / "production_config.json")
-    value = config.get("story_source_mode")
-    if not isinstance(value, str):
-        raise ConfigurationError("production_config.story_source_mode 문자열이 필요합니다.")
-    return value
-
-
 def tasks_for_gate(
     repository_root: Path,
     project_path: Path,
     gate_id: str,
 ) -> dict[str, RuntimeTask]:
-    """현재 Source Mode에서 실행되는 Gate Task를 계약 순서로 반환한다."""
+    """현재 Project 조건에서 실행되는 Gate Task를 계약 순서로 반환한다."""
     catalog = load_task_catalog(repository_root)
     config = load_json_object(project_path / "00_PROJECT" / "production_config.json")
     channel, _manifest, _channel_path = resolve_project_channel(
@@ -339,7 +330,7 @@ def tasks_for_gate(
         if task["target_gate"] == gate_id
         and task_condition_matches(
             task["condition"],
-            source_mode(project_path),
+            config,
             channel,
             artifacts,
         )
@@ -1037,7 +1028,7 @@ def validate_gate_overlay(
             continue
         if not task_condition_matches(
             task["condition"],
-            source_mode(workspace),
+            production_config,
             channel,
             existing_artifacts,
         ):

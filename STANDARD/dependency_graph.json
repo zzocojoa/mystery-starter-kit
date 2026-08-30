@@ -18,14 +18,31 @@
       "depends_on": ["project_manifest", "compatibility_report"],
       "owner_agent": "orchestrator"
     },
+    "project_constraints": {
+      "path": "00_PROJECT/project_constraints.json",
+      "depends_on": ["project_manifest", "compatibility_report"],
+      "owner_agent": "orchestrator"
+    },
     "reference_profile": {
       "path": "00_PROJECT/reference_profile.json",
       "depends_on": ["production_config"],
       "owner_agent": "reference_auditor"
     },
+    "source_case_brief": {
+      "path": "01_CASE/source_case_brief.json",
+      "depends_on": ["production_config"],
+      "owner_agent": "reference_auditor",
+      "required_when": {"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}
+    },
+    "verified_fact_ledger": {
+      "path": "01_CASE/verified_fact_ledger.json",
+      "depends_on": ["source_case_brief"],
+      "owner_agent": "reference_auditor",
+      "required_when": {"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}
+    },
     "variation_candidates": {
       "path": "00_PROJECT/variation_candidates.json",
-      "depends_on": ["production_config", "reference_profile"],
+      "depends_on": ["production_config", "project_constraints", "reference_profile", "source_case_brief"],
       "owner_agent": "variation_designer"
     },
     "candidate_evaluation": {
@@ -45,12 +62,12 @@
     },
     "candidate_eligibility": {
       "path": "08_QA/candidate_eligibility.json",
-      "depends_on": ["production_config", "compatibility_report", "variation_candidates", "novelty_precheck"],
+      "depends_on": ["production_config", "project_constraints", "compatibility_report", "variation_candidates", "novelty_precheck"],
       "owner_agent": "orchestrator"
     },
     "story_dna": {
       "path": "00_PROJECT/story_dna.json",
-      "depends_on": ["reference_profile", "variation_candidates", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "novelty_precheck"],
+      "depends_on": ["reference_profile", "verified_fact_ledger", "variation_candidates", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "novelty_precheck"],
       "owner_agent": "story_architect"
     },
     "story_fingerprint": {
@@ -72,29 +89,29 @@
       "path": "01_CASE/crime_psychology.json",
       "depends_on": ["case_input", "facts", "story_dna"],
       "owner_agent": "story_architect",
-      "required_when_capability_enabled": "CRIME_PSYCHOLOGY_POLICY"
+      "required_when": {"all": [{"channel_version_at_least": "2.0.0"}, {"capability_enabled": "CRIME_PSYCHOLOGY_POLICY"}]}
     },
     "sources": {
       "path": "01_CASE/sources.json",
-      "depends_on": ["case_input"],
+      "depends_on": ["production_config", "source_case_brief"],
       "owner_agent": "reference_auditor"
     },
     "claim_evidence": {
       "path": "01_CASE/claim_evidence.json",
-      "depends_on": ["facts", "sources"],
+      "depends_on": ["sources", "verified_fact_ledger"],
       "owner_agent": "reference_auditor"
     },
     "source_disclosure": {
       "path": "01_CASE/source_disclosure.json",
-      "depends_on": ["production_config", "case_input", "sources"],
+      "depends_on": ["production_config", "sources", "source_case_brief"],
       "owner_agent": "reference_auditor",
-      "required_when_capability_enabled": "SOURCE_DISCLOSURE_POLICY"
+      "required_when": {"any": [{"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}, {"capability_enabled": "SOURCE_DISCLOSURE_POLICY"}]}
     },
     "clinical_labels": {
       "path": "01_CASE/clinical_labels.json",
       "depends_on": ["production_config", "claim_evidence"],
       "owner_agent": "reference_auditor",
-      "required_when_capability_enabled": "CLINICAL_LABEL_POLICY"
+      "required_when": {"any": [{"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}, {"capability_enabled": "CLINICAL_LABEL_POLICY"}]}
     },
     "characters": {
       "path": "02_CHARACTER/characters.json",
@@ -175,8 +192,7 @@
       "path": "06_SCENE/expert_segments.json",
       "depends_on": ["scene_cards", "presentation_plan", "claim_evidence", "crime_psychology"],
       "owner_agent": "scene_designer",
-      "required_when_capability_enabled": "EXPERT_ANALYSIS_POLICY",
-      "required_when_source_truth": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]
+      "required_when": {"all": [{"capability_enabled": "EXPERT_ANALYSIS_POLICY"}, {"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}]}
     },
     "drama_script": {
       "path": "07_SCRIPT/drama_script.md",
@@ -197,9 +213,7 @@
       "path": "07_SCRIPT/expert_analysis_script.md",
       "depends_on": ["expert_segments", "presentation_plan", "claim_evidence"],
       "owner_agent": "script_writer",
-      "required_when_capability_enabled": "EXPERT_ANALYSIS_POLICY",
-      "required_when_source_truth": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"],
-      "required_when_plan_status": {"artifact": "expert_segments", "status": "PLANNED"}
+      "required_when": {"all": [{"capability_enabled": "EXPERT_ANALYSIS_POLICY"}, {"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}, {"artifact_status": ["expert_segments", "PLANNED"]}]}
     },
     "draft_script": {
       "path": "07_SCRIPT/draft_v01.md",
@@ -255,9 +269,7 @@
       "path": "09_PRODUCTION/expert_analysis_script.md",
       "depends_on": ["shooting_script", "expert_analysis_script", "expert_segments"],
       "owner_agent": "orchestrator",
-      "required_when_capability_enabled": "EXPERT_ANALYSIS_POLICY",
-      "required_when_source_truth": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"],
-      "required_when_plan_status": {"artifact": "expert_segments", "status": "PLANNED"}
+      "required_when": {"all": [{"capability_enabled": "EXPERT_ANALYSIS_POLICY"}, {"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}, {"artifact_status": ["expert_segments", "PLANNED"]}]}
     },
     "subtitle_script": {
       "path": "09_PRODUCTION/subtitle_script.md",

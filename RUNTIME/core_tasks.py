@@ -44,7 +44,7 @@ from VALIDATORS.source_truth import require_source_truth_classification
 from VALIDATORS.variation import (
     apply_user_case_constraints,
     approve_variation_candidate,
-    generate_variation_candidates,
+    generate_variation_candidates_for_project,
 )
 
 
@@ -352,14 +352,26 @@ def variation_output(
     project_id: str,
     repository_root: Path,
     production_config: Mapping[str, object],
+    project_constraints: Mapping[str, object],
+    source_case_brief: Mapping[str, object] | None,
 ) -> dict[str, object]:
     """결정론적 후보 다섯 개를 승인하지 않은 상태로 생성한다."""
-    candidates = generate_variation_candidates(
+    channel, _manifest, _channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        None,
+    )
+    brief = source_case_brief.get("brief") if source_case_brief is not None else None
+    seed = brief if isinstance(brief, str) else f"{project_id}:runtime-v1"
+    candidates = generate_variation_candidates_for_project(
         project_id,
-        f"{project_id}:runtime-v1",
+        seed,
         5,
         load_json_object(repository_root / "STANDARD" / "variation_catalog.json"),
         require_source_truth_classification(production_config),
+        production_config,
+        project_constraints,
+        channel,
     )
     return apply_user_case_constraints(candidates, production_config)
 
@@ -428,7 +440,7 @@ def evidence_outputs(
                 False,
                 "TASK",
                 "사실 기반 Project에는 현재 Input Hash로 검증된 Evidence 입력이 필요합니다.",
-                "reference.build_evidence",
+                "reference.intake_evidence",
                 None,
                 {
                     "source_truth_classification": source_truth,
@@ -512,6 +524,49 @@ def reference_report_output(
     )
 
 
+def resolved_clinical_labels_output(
+    clinical_labels: Mapping[str, object],
+    characters: Mapping[str, object],
+) -> dict[str, object]:
+    """Evidence Subject ID를 생성된 Character ID에 결정론적으로 연결한다."""
+    raw_labels = clinical_labels.get("labels")
+    raw_characters = characters.get("characters")
+    if not isinstance(raw_labels, list) or not isinstance(raw_characters, list):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR", False, "TASK",
+            "Clinical Label 또는 Character 배열이 없습니다.",
+            "reference.resolve_clinical_subjects", "clinical_labels", {},
+        )
+    character_ids = [
+        character.get("character_id")
+        for character in raw_characters
+        if isinstance(character, Mapping) and isinstance(character.get("character_id"), str)
+    ]
+    labels: list[dict[str, object]] = []
+    for raw_label in raw_labels:
+        if not isinstance(raw_label, Mapping):
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR", False, "TASK",
+                "Clinical Label 객체가 손상되었습니다.",
+                "reference.resolve_clinical_subjects", "clinical_labels", {},
+            )
+        label = dict(raw_label)
+        source_subject = label.pop("source_subject_id", None)
+        if source_subject is not None:
+            suffix = str(source_subject).removeprefix("SUBJECT-")
+            index = int(suffix) - 1 if suffix.isdigit() else -1
+            if index < 0 or index >= len(character_ids):
+                raise RuntimeExecutionError(
+                    "HUMAN_INPUT_INVALID", False, "TASK",
+                    "Evidence Subject를 생성된 Character에 연결할 수 없습니다.",
+                    "reference.resolve_clinical_subjects", "clinical_labels",
+                    {"source_subject_id": source_subject},
+                )
+            label["subject_id"] = character_ids[index]
+        labels.append(label)
+    return {**dict(clinical_labels), "labels": labels}
+
+
 def core_task_outputs(
     task_id: str,
     repository_root: Path,
@@ -549,11 +604,14 @@ def core_task_outputs(
             )
         }
     if task_id == "variation.generate":
+        source_case_brief = artifacts.get("source_case_brief")
         return {
             "variation_candidates": variation_output(
                 project_id,
                 repository_root,
                 production_config,
+                mapping_artifact(artifacts, "project_constraints"),
+                source_case_brief if isinstance(source_case_brief, Mapping) else None,
             )
         }
     if task_id == "novelty.variation_precheck":
@@ -573,6 +631,7 @@ def core_task_outputs(
         return {
             "candidate_eligibility": build_candidate_eligibility(
                 production_config,
+                mapping_artifact(artifacts, "project_constraints"),
                 channel,
                 mapping_artifact(artifacts, "variation_candidates"),
                 mapping_artifact(artifacts, "novelty_precheck"),
@@ -634,20 +693,23 @@ def core_task_outputs(
                 actor,
                 reason,
                 approved_at,
+                production_config,
                 variations,
                 novelty,
+                mapping_artifact(artifacts, "candidate_eligibility"),
                 evaluation,
                 approval_policy,
                 runtime_approval,
             ),
         }
     if task_id in {
-        "reference.build_evidence",
+        "reference.intake_evidence",
+        "reference.initialize_fiction_evidence",
         "reference.build_source_disclosure",
         "reference.build_clinical_labels",
     }:
         run = load_run(project_path, run_id)
-        evidence_state = run["tasks"].get("reference.build_evidence")
+        evidence_state = run["tasks"].get("reference.intake_evidence")
         evidence_hashes = (
             evidence_state["input_hashes"]
             if evidence_state is not None and evidence_state["input_hashes"]
@@ -661,11 +723,22 @@ def core_task_outputs(
             evidence_hashes,
         )
         selected_outputs = {
-            "reference.build_evidence": ("sources", "claim_evidence"),
+            "reference.intake_evidence": (
+                "sources", "claim_evidence", "source_case_brief",
+                "verified_fact_ledger", "source_disclosure", "clinical_labels",
+            ),
+            "reference.initialize_fiction_evidence": ("sources", "claim_evidence"),
             "reference.build_source_disclosure": ("source_disclosure",),
             "reference.build_clinical_labels": ("clinical_labels",),
         }
         return {name: bundle[name] for name in selected_outputs[task_id]}
+    if task_id == "reference.resolve_clinical_subjects":
+        return {
+            "clinical_labels": resolved_clinical_labels_output(
+                mapping_artifact(artifacts, "clinical_labels"),
+                mapping_artifact(artifacts, "characters"),
+            )
+        }
     if task_id == "continuity.deterministic":
         report = validate_continuity(
             production_config,

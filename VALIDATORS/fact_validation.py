@@ -1,6 +1,7 @@
 """True Story의 Fact, Inference, Dramatization 경계 검증."""
 
 from collections.abc import Mapping
+from hashlib import sha256
 
 from VALIDATORS.continuity import require_records, require_string, require_string_array
 from VALIDATORS.exceptions import ConfigurationError
@@ -46,19 +47,41 @@ def validate_fact_integrity(
     facts_document: Mapping[str, object],
     sources_document: Mapping[str, object],
     claims_document: Mapping[str, object],
+    verified_fact_ledger: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """사실 기반 Mode에서 근거와 각색 표시가 분리되어 있는지 검사한다."""
     if not source_truth_requires_evidence(source_truth_classification):
         return []
     source_ids = record_ids(sources_document, "sources", "source_id", "sources")
     fact_records = require_records(facts_document, "facts", "facts")
+    ledger_records = require_records(
+        verified_fact_ledger, "facts", "verified_fact_ledger"
+    )
     fact_ids = record_ids(facts_document, "facts", "fact_id", "facts")
     issues: list[ValidationIssue] = []
     factual_ids: set[str] = set()
+    fact_by_id = {
+        require_string(fact, "fact_id", "facts"): fact for fact in fact_records
+    }
+    ledger_by_id = {
+        require_string(fact, "fact_id", "verified_fact_ledger"): fact
+        for fact in ledger_records
+    }
 
     for fact in fact_records:
         fact_id = require_string(fact, "fact_id", "facts")
         classification = require_string(fact, "classification", fact_id)
+        statement = require_string(fact, "statement", fact_id)
+        expected_hash = sha256(" ".join(statement.split()).casefold().encode()).hexdigest()
+        if fact.get("normalized_statement_hash") != expected_hash:
+            issues.append(
+                make_fact_issue(
+                    "FACT_CLAIM_CONTENT_MISMATCH",
+                    "Fact 문장 Hash가 정규화된 내용과 다릅니다.",
+                    "01_CASE/facts.json",
+                    {"fact_id": fact_id},
+                )
+            )
         if classification == "FACT":
             factual_ids.add(fact_id)
             referenced_sources = require_string_array(fact, "source_ids", fact_id)
@@ -70,6 +93,16 @@ def validate_fact_integrity(
                         "FACT에는 존재하는 Source가 하나 이상 연결되어야 합니다.",
                         "01_CASE/facts.json",
                         {"fact_id": fact_id, "unknown_source_ids": unknown_sources},
+                    )
+                )
+            ledger_fact = ledger_by_id.get(fact_id)
+            if ledger_fact is None or ledger_fact.get("statement") != statement:
+                issues.append(
+                    make_fact_issue(
+                        "FACT_CLAIM_CONTENT_MISMATCH",
+                        "Story FACT는 검증된 Fact Ledger와 내용이 같아야 합니다.",
+                        "01_CASE/facts.json",
+                        {"fact_id": fact_id},
                     )
                 )
         elif classification == "INFERENCE":
@@ -121,6 +154,58 @@ def validate_fact_integrity(
                     {"fact_id": fact_id},
                 )
             )
+        current_fact = fact_by_id.get(fact_id)
+        claim_classification = claim.get("classification")
+        if current_fact is not None and claim_classification != current_fact.get("classification"):
+            issues.append(
+                make_fact_issue(
+                    "FACT_CLAIM_CLASSIFICATION_MISMATCH",
+                    "Claim 분류가 대응 Fact 분류와 다릅니다.",
+                    "01_CASE/claim_evidence.json",
+                    {"fact_id": fact_id},
+                )
+            )
+        claim_text = claim.get("claim")
+        claim_hash = (
+            sha256(" ".join(claim_text.split()).casefold().encode()).hexdigest()
+            if isinstance(claim_text, str)
+            else None
+        )
+        if claim.get("canonical_claim_hash") != claim_hash or (
+            current_fact is not None
+            and current_fact.get("normalized_statement_hash") != claim_hash
+        ):
+            issues.append(
+                make_fact_issue(
+                    "FACT_CLAIM_CONTENT_MISMATCH",
+                    "Claim Hash 또는 내용이 대응 Fact와 다릅니다.",
+                    "01_CASE/claim_evidence.json",
+                    {"fact_id": fact_id},
+                )
+            )
+        if claim_classification == "INFERENCE" and not require_string_array(
+            claim, "basis_fact_ids", "claim_evidence.claims"
+        ):
+            issues.append(
+                make_fact_issue(
+                    "INFERENCE_BASIS_MISSING",
+                    "INFERENCE Claim에는 근거 Fact가 필요합니다.",
+                    "01_CASE/claim_evidence.json",
+                    {"fact_id": fact_id},
+                )
+            )
+        if (
+            claim_classification == "DRAMATIZATION"
+            and claim.get("presented_as_fact") is not False
+        ):
+            issues.append(
+                make_fact_issue(
+                    "FACT_CLAIM_CLASSIFICATION_MISMATCH",
+                    "DRAMATIZATION Claim은 사실로 제시할 수 없습니다.",
+                    "01_CASE/claim_evidence.json",
+                    {"fact_id": fact_id},
+                )
+            )
         unknown_sources = sorted(set(evidence_ids) - source_ids)
         if unknown_sources:
             issues.append(
@@ -135,6 +220,16 @@ def validate_fact_integrity(
             covered_fact_ids.add(fact_id)
 
     uncovered = sorted(factual_ids - covered_fact_ids)
+    invented_facts = sorted(factual_ids - set(ledger_by_id))
+    if invented_facts:
+        issues.append(
+            make_fact_issue(
+                "FACT_CLAIM_CONTENT_MISMATCH",
+                "검증 Ledger에 없는 FACT를 Story가 생성했습니다.",
+                "01_CASE/facts.json",
+                {"fact_ids": invented_facts},
+            )
+        )
     if uncovered:
         issues.append(
             make_fact_issue(

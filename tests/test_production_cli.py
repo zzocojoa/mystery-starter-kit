@@ -25,8 +25,13 @@ def write_candidate_evaluation(project_path: Path) -> str:
     project_id = variations.get("project_id")
     assert isinstance(project_id, str)
     config = load_json_object(project_path / "00_PROJECT" / "production_config.json")
+    constraints = load_json_object(
+        project_path / "00_PROJECT" / "project_constraints.json"
+    )
     channel, _manifest, _path = resolve_project_channel(ROOT, config, None)
-    eligibility = build_candidate_eligibility(config, channel, variations, precheck)
+    eligibility = build_candidate_eligibility(
+        config, constraints, channel, variations, precheck
+    )
     write_json_object(project_path / "08_QA" / "candidate_eligibility.json", eligibility)
     evaluation = fake_candidate_evaluation(
         project_id, variations, precheck, eligibility

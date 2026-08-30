@@ -18,6 +18,6 @@ def test_runtime_human_evidence_flow_is_documented() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
     assert "mystery-kit evidence-submit" in readme
-    assert "mystery-runtime submit-input RUN-... reference.build_evidence" in readme
+    assert "mystery-runtime submit-input RUN-... reference.intake_evidence" in readme
     assert "mystery-runtime resume RUN-..." in readme
     assert "bound_input_hashes" in readme

@@ -98,7 +98,7 @@ from VALIDATORS.gate_transaction import (
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.library_store import sync_novelty_gate
 from VALIDATORS.models import ProjectState, ValidationIssue
-from VALIDATORS.pipeline import load_project_artifacts
+from VALIDATORS.pipeline import load_existing_project_artifacts
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.state_machine import gate_index, gate_required_artifacts_for_project
 
@@ -225,6 +225,7 @@ def build_request(
     output_schema: dict[str, object],
     max_output_tokens: int,
     source_mode: str,
+    source_truth_classification: str,
     target_runtime_minutes: int,
     approved_selection: Mapping[str, str],
     revision_issues: Sequence[ValidationIssue],
@@ -261,6 +262,7 @@ def build_request(
             "attempt": str(attempt),
             "project_id": run["project_id"],
             "story_source_mode": source_mode,
+            "source_truth_classification": source_truth_classification,
             "target_runtime_minutes": str(target_runtime_minutes),
             "approved_selection": json.dumps(
                 dict(approved_selection),
@@ -333,6 +335,7 @@ async def generate_with_transport_retry(
     output_schema: dict[str, object],
     max_output_tokens: int,
     source_mode: str,
+    source_truth_classification: str,
     target_runtime_minutes: int,
     approved_selection: Mapping[str, str],
     revision_issues: Sequence[ValidationIssue],
@@ -359,6 +362,7 @@ async def generate_with_transport_retry(
                 output_schema,
                 max_output_tokens,
                 source_mode,
+                source_truth_classification,
                 target_runtime_minutes,
                 approved_selection,
                 revision_issues,
@@ -476,6 +480,7 @@ async def execute_llm_task(
     model_routes: Mapping[str, object],
     agent_manifest: Mapping[str, object],
     source_mode: str,
+    source_truth_classification: str,
     target_runtime_minutes: int,
     revision_issues: Sequence[ValidationIssue],
 ) -> tuple[dict[str, object], dict[str, object], RuntimeRun]:
@@ -560,6 +565,7 @@ async def execute_llm_task(
                 output_schema,
                 max_output_tokens,
                 source_mode,
+                source_truth_classification,
                 target_runtime_minutes,
                 approved_selection_document(
                     project_path,
@@ -710,7 +716,8 @@ async def execute_existing_run(
         None,
     )
     source_mode = production_config.get("story_source_mode")
-    if not isinstance(source_mode, str):
+    source_truth_classification = production_config.get("source_truth_classification")
+    if not isinstance(source_mode, str) or not isinstance(source_truth_classification, str):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
             False,
@@ -830,7 +837,7 @@ async def execute_existing_run(
                 for task_id in gate_task_ids
                 if task_condition_matches(
                     ranged_tasks[task_id]["condition"],
-                    source_mode,
+                    production_config,
                     channel,
                     gate_condition_artifacts,
                 )
@@ -857,7 +864,7 @@ async def execute_existing_run(
                     )
                     if not task_condition_matches(
                         task["condition"],
-                        source_mode,
+                        production_config,
                         channel,
                         condition_artifacts,
                     ):
@@ -1023,6 +1030,7 @@ async def execute_existing_run(
                             model_routes,
                             agent_manifest,
                             source_mode,
+                            source_truth_classification,
                             target_runtime_minutes,
                             revision_issues,
                         )
@@ -1054,10 +1062,9 @@ async def execute_existing_run(
                     gate_outputs,
                     dependency_graph,
                 )
-                staged_artifacts = load_project_artifacts(
+                staged_artifacts = load_existing_project_artifacts(
                     staging_path,
                     dependency_graph,
-                    channel,
                 )
                 current_run = update_run_status(
                     project_path,
@@ -1149,7 +1156,7 @@ async def execute_existing_run(
                     for task_id in gate_task_ids
                     if task_condition_matches(
                         ranged_tasks[task_id]["condition"],
-                        source_mode,
+                        production_config,
                         channel,
                         combined_artifacts(
                             project_path,

@@ -5,6 +5,7 @@ from collections.abc import Mapping
 from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.models import ValidationIssue
 from VALIDATORS.novelty import variation_precheck_source_hash
+from VALIDATORS.requirements import crime_v2_candidate_policy_applies
 from VALIDATORS.source_truth import require_source_truth_classification
 
 TRUSTED_DOMAINS = {
@@ -67,6 +68,7 @@ PROFILE_SELECTION_FIELDS = (
 
 def eligibility_input_hashes(
     production_config: Mapping[str, object],
+    project_constraints: Mapping[str, object],
     channel: Mapping[str, object],
     variations: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
@@ -74,6 +76,7 @@ def eligibility_input_hashes(
     """적격성 판정 입력의 정규 Hash를 반환한다."""
     return {
         "production_config": document_sha256(production_config),
+        "project_constraints": document_sha256(project_constraints),
         "channel_dna": document_sha256(channel),
         "variation_candidates": variation_precheck_source_hash(variations),
         "novelty_precheck": document_sha256(novelty_precheck),
@@ -172,25 +175,94 @@ def numeric_suffix(value: object, prefix: str) -> int | None:
     return int(suffix) if suffix.isdigit() else None
 
 
-def production_feasibility_passes(profile: Mapping[str, object]) -> bool:
-    """기본 방송 제작 범위를 벗어나는 구조를 결정론적으로 차단한다."""
+def rule_values_pass(
+    selection: Mapping[str, object],
+    rules: object,
+    expected_operator: str,
+) -> bool:
+    """Project Constraint의 허용 또는 금지 규칙을 Candidate에 적용한다."""
+    if not isinstance(rules, list):
+        return False
+    for rule in rules:
+        if not isinstance(rule, Mapping):
+            return False
+        field = rule.get("field")
+        operator = rule.get("operator")
+        values = rule.get("values")
+        if (
+            not isinstance(field, str)
+            or operator != expected_operator
+            or not isinstance(values, list)
+        ):
+            return False
+        matched = selection.get(field) in values
+        if (operator == "IN" and not matched) or (operator == "NOT_IN" and matched):
+            return False
+    return True
+
+
+def project_constraints_pass(
+    project_constraints: Mapping[str, object],
+    selection: Mapping[str, object],
+) -> bool:
+    """Candidate가 Project의 필수 사용 및 금지 규칙을 모두 만족하는지 판정한다."""
+    must_use_passes = rule_values_pass(
+        selection, project_constraints.get("must_use"), "IN"
+    )
+    must_not_use_passes = rule_values_pass(
+        selection, project_constraints.get("must_not_use"), "NOT_IN"
+    )
+    return must_use_passes and must_not_use_passes
+
+
+def enum_level_passes(value: object, maximum: object, order: tuple[str, ...]) -> bool:
+    """순서형 제작 수준이 Project 상한 이하인지 판정한다."""
+    return (
+        isinstance(value, str)
+        and isinstance(maximum, str)
+        and value in order
+        and maximum in order
+        and order.index(value) <= order.index(maximum)
+    )
+
+
+def production_feasibility_passes(
+    profile: Mapping[str, object],
+    project_constraints: Mapping[str, object],
+) -> bool:
+    """Project가 명시한 방송 제작 한계를 결정론적으로 적용한다."""
     locations = numeric_suffix(profile.get("location_count"), "LOCATIONS_")
     characters = numeric_suffix(profile.get("major_character_count"), "MAJOR_")
+    limits = project_constraints.get("production_limits")
+    if not isinstance(limits, Mapping):
+        return False
+    max_locations = limits.get("max_locations")
+    max_characters = limits.get("max_major_characters")
     return (
         locations is not None
-        and locations <= 5
+        and isinstance(max_locations, int)
+        and locations <= max_locations
         and characters is not None
-        and characters <= 7
-        and profile.get("special_effect_level") != "HIGH"
-        and profile.get("child_actor_use") != "PRIMARY"
-        and profile.get("vehicle_scene") != "MOVING"
-        and profile.get("graphic_violence") != "GRAPHIC"
-        and profile.get("production_complexity") not in {"HIGH", "EXTREME"}
+        and isinstance(max_characters, int)
+        and characters <= max_characters
+        and enum_level_passes(
+            profile.get("special_effect_level"),
+            limits.get("max_special_effect_level"),
+            ("NONE", "LOW", "MEDIUM", "HIGH"),
+        )
+        and (limits.get("allow_child_actor") is True or profile.get("child_actor_use") == "NONE")
+        and (limits.get("allow_moving_vehicle") is True or profile.get("vehicle_scene") != "MOVING")
+        and enum_level_passes(
+            profile.get("graphic_violence"),
+            limits.get("max_graphic_violence"),
+            ("NONE", "IMPLIED", "NON_GRAPHIC", "GRAPHIC"),
+        )
     )
 
 
 def candidate_checks(
     production_config: Mapping[str, object],
+    project_constraints: Mapping[str, object],
     channel: Mapping[str, object],
     candidate: Mapping[str, object],
     novelty_results: Mapping[str, str],
@@ -212,6 +284,7 @@ def candidate_checks(
                 "technical_final_proof",
                 "required_theme",
                 "locked_constraints",
+                "project_constraints",
                 "source_truth",
                 "production_feasibility",
                 "novelty",
@@ -272,20 +345,25 @@ def candidate_checks(
         == require_source_truth_classification(production_config)
     )
     candidate_id = candidate.get("candidate_id")
+    v2_policy_applies = crime_v2_candidate_policy_applies(production_config, channel)
     checks_bool = {
         "policy_profile": profile_matches_selection(selection, profile),
         "channel_genre": channel_genre,
-        "crime_threat": crime_threat,
-        "trusted_domain": profile.get("trusted_domain") in TRUSTED_DOMAINS,
-        "safe_domain_betrayal": profile.get("safe_domain_betrayal") != "ABSENT",
-        "responsible_agent": profile.get("responsible_agent_structure")
-        not in {"NO_CULPRIT", "SYSTEMIC_CAUSE"},
-        "structure_policy": structure_policy,
-        "technical_final_proof": technical_final_proof_absent(profile),
-        "required_theme": required_theme,
+        "crime_threat": not v2_policy_applies or crime_threat,
+        "trusted_domain": not v2_policy_applies
+        or profile.get("trusted_domain") in TRUSTED_DOMAINS,
+        "safe_domain_betrayal": not v2_policy_applies
+        or profile.get("safe_domain_betrayal") != "ABSENT",
+        "responsible_agent": not v2_policy_applies
+        or profile.get("responsible_agent_structure") not in {"NO_CULPRIT", "SYSTEMIC_CAUSE"},
+        "structure_policy": not v2_policy_applies or structure_policy,
+        "technical_final_proof": not v2_policy_applies
+        or technical_final_proof_absent(profile),
+        "required_theme": not v2_policy_applies or required_theme,
         "locked_constraints": locked_constraints_pass(production_config, selection),
+        "project_constraints": project_constraints_pass(project_constraints, selection),
         "source_truth": source_truth,
-        "production_feasibility": production_feasibility_passes(profile),
+        "production_feasibility": production_feasibility_passes(profile, project_constraints),
         "novelty": isinstance(candidate_id, str)
         and novelty_results.get(candidate_id) == "PASS",
     }
@@ -296,6 +374,7 @@ def candidate_checks(
 
 def build_candidate_eligibility(
     production_config: Mapping[str, object],
+    project_constraints: Mapping[str, object],
     channel: Mapping[str, object],
     variations: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
@@ -316,6 +395,7 @@ def build_candidate_eligibility(
             continue
         checks, reasons = candidate_checks(
             production_config,
+            project_constraints,
             channel,
             candidate,
             novelty_results,
@@ -339,6 +419,7 @@ def build_candidate_eligibility(
         "project_id": project_id,
         "input_hashes": eligibility_input_hashes(
             production_config,
+            project_constraints,
             channel,
             variations,
             novelty_precheck,
@@ -351,6 +432,7 @@ def build_candidate_eligibility(
 
 def validate_candidate_eligibility(
     production_config: Mapping[str, object],
+    project_constraints: Mapping[str, object],
     channel: Mapping[str, object],
     variations: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
@@ -359,6 +441,7 @@ def validate_candidate_eligibility(
     """저장된 적격성 Artifact가 Core 재계산 결과와 같은지 검증한다."""
     expected = build_candidate_eligibility(
         production_config,
+        project_constraints,
         channel,
         variations,
         novelty_precheck,

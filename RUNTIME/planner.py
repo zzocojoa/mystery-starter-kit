@@ -7,8 +7,10 @@ from RUNTIME.contracts import load_task_catalog
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.models import ExecutionPlan, PlannedTask, RuntimeTask
 from VALIDATORS.channel_registry import resolve_project_channel
+from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object
 from VALIDATORS.pipeline import load_existing_project_artifacts
+from VALIDATORS.requirements import requirement_matches
 from VALIDATORS.state_machine import gate_index
 
 
@@ -31,56 +33,20 @@ def next_gate_id(current_gate: str) -> str:
 
 
 def task_condition_matches(
-    condition: str,
-    source_mode: str,
+    condition: object,
+    production_config: Mapping[str, object],
     channel: Mapping[str, object],
     artifacts: Mapping[str, object],
 ) -> bool:
-    """Source, Capability와 선행 Artifact 상태로 Task 실행 여부를 판정한다."""
-    if condition == "ALWAYS":
-        return True
-    if condition == "REFERENCE_ONLY":
-        return source_mode == "REFERENCE_INSPIRED"
-    if condition == "TRUE_STORY_ONLY":
-        return source_mode in {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}
-    if condition.startswith("FACT_BASED_OR_CAPABILITY_ENABLED:"):
-        if source_mode in {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}:
-            return True
-        capability_id = condition.removeprefix(
-            "FACT_BASED_OR_CAPABILITY_ENABLED:"
-        )
-        capabilities = channel.get("capabilities")
-        capability = (
-            capabilities.get(capability_id)
-            if isinstance(capabilities, Mapping)
-            else None
-        )
-        return isinstance(capability, Mapping) and capability.get("enabled") is True
-    if condition.startswith("CAPABILITY_ENABLED:"):
-        capability_id = condition.removeprefix("CAPABILITY_ENABLED:")
-        capabilities = channel.get("capabilities")
-        capability = (
-            capabilities.get(capability_id)
-            if isinstance(capabilities, Mapping)
-            else None
-        )
-        return isinstance(capability, Mapping) and capability.get("enabled") is True
-    if condition.startswith("ARTIFACT_STATUS:"):
-        _prefix, artifact_name, expected_status = condition.split(":", 2)
-        artifact = artifacts.get(artifact_name)
-        return isinstance(artifact, Mapping) and artifact.get("status") == expected_status
-    if condition.startswith("ARTIFACT_EXISTS:"):
-        artifact_name = condition.removeprefix("ARTIFACT_EXISTS:")
-        return artifact_name in artifacts
-    raise RuntimeExecutionError(
-        "RUNTIME_CONFIGURATION_ERROR",
-        False,
-        "RUN",
-        "알 수 없는 Runtime Task Condition입니다.",
-        None,
-        None,
-        {"condition": condition},
-    )
+    """공통 Requirement Evaluator로 Task 실행 여부를 판정한다."""
+    try:
+        return requirement_matches(condition, production_config, channel, artifacts)
+    except ConfigurationError as error:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR", False, "RUN",
+            "Runtime Task Condition을 평가할 수 없습니다.", None, None,
+            {"condition": condition},
+        ) from error
 
 
 def tasks_in_gate_range(
@@ -143,11 +109,9 @@ def build_execution_plan(
     production_config = load_json_object(project_path / "00_PROJECT" / "production_config.json")
     project_id = state.get("project_id")
     current_gate = state.get("current_gate")
-    source_mode = production_config.get("story_source_mode")
     if (
         not isinstance(project_id, str)
         or not isinstance(current_gate, str)
-        or not isinstance(source_mode, str)
     ):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
@@ -201,7 +165,7 @@ def build_execution_plan(
             status="PLANNED"
             if task_condition_matches(
                 ranged[task_id]["condition"],
-                source_mode,
+                production_config,
                 channel,
                 artifacts,
             )

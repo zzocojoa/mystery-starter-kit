@@ -10,6 +10,7 @@ from VALIDATORS.dependency import (
     validate_dependency_graph,
 )
 from VALIDATORS.io import load_json_object
+from VALIDATORS.requirements import requirement_matches
 from VALIDATORS.schema_validation import collect_schema_errors
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,8 +51,12 @@ def test_story_dna_change_invalidates_all_downstream_artifacts() -> None:
 def test_v2_disabled_optional_capability_does_not_require_artifact() -> None:
     """v2 버전만으로 비활성 Optional Capability Artifact를 강제하지 않는다."""
     definition = {
-        "required_when_capability_enabled": "EXPERT_ANALYSIS_POLICY",
-        "required_when_source_truth": ["VERIFIED_TRUE_CASE"],
+        "required_when": {
+            "all": [
+                {"capability_enabled": "EXPERT_ANALYSIS_POLICY"},
+                {"source_truth_in": ["VERIFIED_TRUE_CASE"]},
+            ]
+        },
     }
     channel = {"capabilities": {"EXPERT_ANALYSIS_POLICY": {"enabled": False}}}
     config = {
@@ -65,9 +70,13 @@ def test_v2_disabled_optional_capability_does_not_require_artifact() -> None:
 def test_expert_script_requires_enabled_policy_truth_and_planned_status() -> None:
     """Expert Script는 Capability, 사실성, 계획 상태가 모두 충족될 때만 필수다."""
     definition = {
-        "required_when_capability_enabled": "EXPERT_ANALYSIS_POLICY",
-        "required_when_source_truth": ["VERIFIED_TRUE_CASE"],
-        "required_when_plan_status": {"artifact": "expert_segments", "status": "PLANNED"},
+        "required_when": {
+            "all": [
+                {"capability_enabled": "EXPERT_ANALYSIS_POLICY"},
+                {"source_truth_in": ["VERIFIED_TRUE_CASE"]},
+                {"artifact_status": ["expert_segments", "PLANNED"]},
+            ]
+        },
     }
     channel = {"capabilities": {"EXPERT_ANALYSIS_POLICY": {"enabled": True}}}
     config = {
@@ -81,3 +90,21 @@ def test_expert_script_requires_enabled_policy_truth_and_planned_status() -> Non
     assert not artifact_required_for_project(
         definition, channel, config, {"expert_segments": {"status": "NOT_APPLICABLE"}}
     )
+
+
+def test_fact_based_condition_uses_truth_classification_not_source_mode() -> None:
+    """USER_CASE와 REFERENCE_INSPIRED도 사실성 분류가 맞으면 증거 Task 조건을 충족한다."""
+    predicate = {
+        "source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]
+    }
+    channel: dict[str, object] = {"capabilities": {}}
+    cases = (
+        ("USER_CASE", "VERIFIED_TRUE_CASE"),
+        ("REFERENCE_INSPIRED", "INSPIRED_BY_TRUE_EVENTS"),
+    )
+    for source_mode, source_truth in cases:
+        config = {
+            "story_source_mode": source_mode,
+            "source_truth_classification": source_truth,
+        }
+        assert requirement_matches(predicate, config, channel, {})

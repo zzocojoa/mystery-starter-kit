@@ -3,6 +3,7 @@
 import asyncio
 import json
 from collections.abc import Awaitable, Callable
+from copy import deepcopy
 from hashlib import sha256
 from pathlib import Path
 
@@ -79,7 +80,7 @@ def evidence_input_document(
         "schema_family": "evidence-input",
         "schema_version": "1.0.0",
         "project_id": project_id,
-        "task_id": "reference.build_evidence",
+        "task_id": "reference.intake_evidence",
         "source_truth_classification": source_truth,
         "sources": [
             {
@@ -97,16 +98,20 @@ def evidence_input_document(
                 "claim": "기계 로그에는 7분 공백이 있었다.",
                 "classification": "FACT",
                 "evidence_source_ids": ["SRC-01"],
+                "basis_fact_ids": [],
                 "evidence_scope": "공식 요약의 사건 경과 부분",
                 "confidence": "HIGH",
+                "presented_as_fact": True,
             },
             {
                 "fact_id": "FACT-02",
                 "claim": "안전 센서는 점검 모드였다.",
                 "classification": "FACT",
                 "evidence_source_ids": ["SRC-01"],
+                "basis_fact_ids": [],
                 "evidence_scope": "공식 요약의 설비 상태 부분",
                 "confidence": "HIGH",
+                "presented_as_fact": True,
             },
         ],
         "source_disclosure": {
@@ -241,13 +246,16 @@ def test_true_story_evidence_submission_resumes_same_run_and_commits_gate_three(
     assert isinstance(run_id, str)
     waiting_tasks = waiting["tasks"]
     assert isinstance(waiting_tasks, dict)
-    task_state = waiting_tasks["reference.build_evidence"]
+    task_state = waiting_tasks["reference.intake_evidence"]
     assert isinstance(task_state, dict)
     input_hashes = task_state["input_hashes"]
     assert isinstance(input_hashes, dict)
     assert error_info.value.code == "HUMAN_INPUT_REQUIRED", error_info.value.as_dict()
     assert waiting["status"] == "WAITING_HUMAN"
-    assert waiting["current_task_id"] == "reference.build_evidence"
+    assert waiting["current_task_id"] == "reference.intake_evidence"
+    assert waiting_tasks["variation.evaluate"]["attempt"] == 0
+    assert waiting_tasks["story.design_dna"]["attempt"] == 0
+    assert waiting_tasks["story.define_case"]["attempt"] == 0
 
     wrong_truth = evidence_input_document(
         "PRJ-938",
@@ -279,6 +287,12 @@ def test_true_story_evidence_submission_resumes_same_run_and_commits_gate_three(
     )
     accepted = submit_evidence_input(project_path, run_id, document)
     assert accepted["status"] == "ACCEPTED"
+    assert submit_evidence_input(project_path, run_id, document)["status"] == "NO_OP"
+    conflicting = deepcopy(document)
+    conflicting["actor"] = "different-reviewer"
+    with pytest.raises(RuntimeExecutionError) as conflict_error:
+        submit_evidence_input(project_path, run_id, conflicting)
+    assert conflict_error.value.code == "HUMAN_INPUT_CONFLICT"
     assert (
         current_evidence_input(
             project_path,
@@ -299,6 +313,8 @@ def test_true_story_evidence_submission_resumes_same_run_and_commits_gate_three(
     for relative_path in (
         "01_CASE/sources.json",
         "01_CASE/claim_evidence.json",
+        "01_CASE/source_case_brief.json",
+        "01_CASE/verified_fact_ledger.json",
         "01_CASE/source_disclosure.json",
         "01_CASE/clinical_labels.json",
     ):
@@ -306,12 +322,12 @@ def test_true_story_evidence_submission_resumes_same_run_and_commits_gate_three(
     transaction_paths = sorted(
         (project_path / ".runtime" / "transactions").glob("*/transaction.json")
     )
-    gate_three = next(
+    gate_one = next(
         transaction
         for path in transaction_paths
-        if (transaction := load_json_object(path)).get("gate_id") == "GATE-03"
+        if (transaction := load_json_object(path)).get("gate_id") == "GATE-01"
     )
-    targets = gate_three["targets"]
+    targets = gate_one["targets"]
     assert isinstance(targets, list)
     target_names = {
         Path(str(target["target_path"])).name
@@ -321,11 +337,25 @@ def test_true_story_evidence_submission_resumes_same_run_and_commits_gate_three(
     assert {
         "sources.json",
         "claim_evidence.json",
+        "source_case_brief.json",
+        "verified_fact_ledger.json",
         "source_disclosure.json",
         "clinical_labels.json",
         "project_state.json",
         "change_log.jsonl",
     } <= target_names
+    ledger = load_json_object(project_path / "01_CASE" / "verified_fact_ledger.json")
+    story_facts = load_json_object(project_path / "01_CASE" / "facts.json")
+    ledger_facts = ledger["facts"]
+    generated_facts = story_facts["facts"]
+    assert isinstance(ledger_facts, list)
+    assert isinstance(generated_facts, list)
+    assert ledger_facts
+    assert all(
+        isinstance(fact, dict) and fact.get("classification") == "FACT"
+        for fact in ledger_facts
+    )
+    assert all(fact in generated_facts for fact in ledger_facts)
 
 
 def test_channel_tamper_fails_before_any_llm_call(tmp_path: Path) -> None:

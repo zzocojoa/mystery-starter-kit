@@ -32,11 +32,15 @@
       "required": [
         "variation_candidates",
         "novelty_precheck",
+        "production_config",
+        "candidate_eligibility",
         "candidate_evaluation"
       ],
       "properties": {
         "variation_candidates": {"$ref": "#/$defs/hash"},
+        "production_config": {"$ref": "#/$defs/hash"},
         "novelty_precheck": {"$ref": "#/$defs/hash"},
+        "candidate_eligibility": {"$ref": "#/$defs/hash"},
         "candidate_evaluation": {"$ref": "#/$defs/hash"}
       }
     },
@@ -49,7 +53,9 @@
       "type": "object",
       "minProperties": 1,
       "additionalProperties": {"$ref": "#/$defs/hash"}
-    }
+    },
+    "approval_decision": {"const": "APPROVED"},
+    "human_approval_record_hash": {"$ref": "#/$defs/hash"}
   },
   "allOf": [
     {
@@ -66,6 +72,8 @@
           "task_id",
           "created_at",
           "bound_input_hashes"
+          ,"approval_decision"
+          ,"human_approval_record_hash"
         ]
       }
     }

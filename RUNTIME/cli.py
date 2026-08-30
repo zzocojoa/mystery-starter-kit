@@ -275,12 +275,12 @@ async def dispatch(args: argparse.Namespace, repository_root: Path) -> object:
             args.reason,
         )
     if args.command == "submit-input":
-        if args.task_id != "reference.build_evidence":
+        if args.task_id != "reference.intake_evidence":
             raise RuntimeExecutionError(
                 "RUNTIME_CONFIGURATION_ERROR",
                 False,
                 "CLI",
-                "현재 지원하는 Human Input Task는 reference.build_evidence뿐입니다.",
+                "현재 지원하는 Human Input Task는 reference.intake_evidence뿐입니다.",
                 args.task_id,
                 None,
                 {},

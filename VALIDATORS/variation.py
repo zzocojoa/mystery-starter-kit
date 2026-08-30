@@ -6,7 +6,12 @@ from copy import deepcopy
 from hashlib import sha256
 from math import gcd
 
+from VALIDATORS.candidate_eligibility import (
+    production_feasibility_passes,
+    project_constraints_pass,
+)
 from VALIDATORS.exceptions import ConfigurationError
+from VALIDATORS.requirements import crime_v2_candidate_policy_applies
 from VALIDATORS.source_truth import SOURCE_TRUTH_CLASSIFICATIONS
 
 PROJECT_ID_PATTERN = re.compile(r"^PRJ-[0-9]{3,}$")
@@ -136,17 +141,20 @@ def choose_dimension_value(
     candidate_index: int,
     dimension_index: int,
 ) -> str:
-    """후보와 차원마다 다른 보폭으로 선택지를 결정한다."""
-    if candidate_index == 0:
-        return choices[0]
-    remaining = choices[1:]
-    offset = seed_offset(seed, dimension, len(remaining))
-    step = coprime_step(dimension_index * 2 + 1, len(remaining))
-    return remaining[(offset + (candidate_index - 1) * step) % len(remaining)]
+    """Seed, 후보와 차원마다 다른 보폭으로 선택지를 결정한다."""
+    offset = seed_offset(seed, dimension, len(choices))
+    step = coprime_step(dimension_index * 2 + 1, len(choices))
+    return choices[(offset + candidate_index * step) % len(choices)]
 
 
-def generation_choices(dimension: str, choices: list[str]) -> list[str]:
-    """기본 생성에서는 명시적 Hard Filter 안전 선택지만 반환한다."""
+def generation_choices(
+    dimension: str,
+    choices: list[str],
+    apply_v2_policy: bool,
+) -> list[str]:
+    """v2 범죄 심리 정책이 적용될 때만 안전 선택지를 반환한다."""
+    if not apply_v2_policy:
+        return choices
     allowed = SAFE_GENERATION_VALUES.get(dimension)
     if allowed is None:
         return choices
@@ -195,6 +203,71 @@ def candidate_signature(
     return sha256(payload.encode()).hexdigest()
 
 
+def generate_variation_candidates_for_project(
+    project_id: str,
+    story_seed: str,
+    candidate_count: int,
+    catalog: Mapping[str, object],
+    source_truth_classification: str,
+    production_config: Mapping[str, object],
+    project_constraints: Mapping[str, object],
+    channel: Mapping[str, object],
+) -> dict[str, object]:
+    """Project Channel 정책에 맞는 구조 후보군을 생성한다."""
+    apply_v2_policy = crime_v2_candidate_policy_applies(production_config, channel)
+    selected: list[dict[str, object]] = []
+    signatures: set[str] = set()
+    max_batches = 64
+    for batch_nonce in range(max_batches):
+        batch = generate_variation_candidates_with_policy(
+            project_id,
+            f"{story_seed}:batch:{batch_nonce}",
+            candidate_count,
+            catalog,
+            source_truth_classification,
+            apply_v2_policy,
+        )
+        constrained = apply_user_case_constraints(batch, production_config)
+        candidates = constrained.get("candidates")
+        if not isinstance(candidates, list):
+            raise ConfigurationError("생성된 Candidate 배열이 손상되었습니다.")
+        for candidate in candidates:
+            if not isinstance(candidate, Mapping):
+                continue
+            selection = candidate.get("selection")
+            profile = candidate.get("policy_profile")
+            signature = candidate.get("signature")
+            if (
+                isinstance(selection, Mapping)
+                and isinstance(profile, Mapping)
+                and isinstance(signature, str)
+                and signature not in signatures
+                and project_constraints_pass(project_constraints, selection)
+                and production_feasibility_passes(profile, project_constraints)
+            ):
+                signatures.add(signature)
+                selected.append(dict(candidate))
+            if len(selected) == candidate_count:
+                break
+        if len(selected) == candidate_count:
+            break
+    if len(selected) != candidate_count:
+        raise ConfigurationError(
+            "Project Constraint를 통과하는 Variation 후보를 충분히 생성하지 못했습니다: "
+            f"required={candidate_count}, actual={len(selected)}, max_batches={max_batches}"
+        )
+    for index, candidate in enumerate(selected, 1):
+        candidate["candidate_id"] = f"VAR-{index:02d}"
+    return {
+        "project_id": project_id,
+        "story_seed_hash": sha256(story_seed.encode()).hexdigest(),
+        "candidate_count": candidate_count,
+        "candidates": selected,
+        "approved_candidate_id": None,
+        "override": None,
+    }
+
+
 def generate_variation_candidates(
     project_id: str,
     story_seed: str,
@@ -202,7 +275,26 @@ def generate_variation_candidates(
     catalog: Mapping[str, object],
     source_truth_classification: str,
 ) -> dict[str, object]:
-    """Story 문장을 쓰지 않고 구조적으로 구분되는 후보군을 생성한다."""
+    """Channel Context가 없는 호출에서는 v2 전용 필터 없이 후보군을 생성한다."""
+    return generate_variation_candidates_with_policy(
+        project_id,
+        story_seed,
+        candidate_count,
+        catalog,
+        source_truth_classification,
+        False,
+    )
+
+
+def generate_variation_candidates_with_policy(
+    project_id: str,
+    story_seed: str,
+    candidate_count: int,
+    catalog: Mapping[str, object],
+    source_truth_classification: str,
+    apply_v2_policy: bool,
+) -> dict[str, object]:
+    """명시된 정책 적용 여부로 구조적으로 구분되는 후보군을 생성한다."""
     if PROJECT_ID_PATTERN.fullmatch(project_id) is None:
         raise ConfigurationError(f"Project ID 형식이 올바르지 않습니다: {project_id!r}")
     if not story_seed.strip():
@@ -219,7 +311,7 @@ def generate_variation_candidates(
     for candidate_index in range(candidate_count):
         selection = {
             name: choose_dimension_value(
-                generation_choices(name, choices),
+                generation_choices(name, choices, apply_v2_policy),
                 story_seed,
                 name,
                 candidate_index,

@@ -256,17 +256,11 @@ def required_channel_artifact_issues(
     channel: Mapping[str, object],
     artifact_names: Sequence[str],
 ) -> list[ValidationIssue]:
-    """후속 의미 검증에서 요구되는 Artifact 누락을 명시적으로 보고한다."""
-    capability_by_artifact = {
-        "crime_psychology": "CRIME_PSYCHOLOGY_POLICY",
-        "source_disclosure": "SOURCE_DISCLOSURE_POLICY",
-        "clinical_labels": "CLINICAL_LABEL_POLICY",
-        "expert_segments": "EXPERT_ANALYSIS_POLICY",
-        "expert_analysis_script": "EXPERT_ANALYSIS_POLICY",
-        "production_expert_analysis_script": "EXPERT_ANALYSIS_POLICY",
-    }
-    capabilities = channel.get("capabilities")
-    capability_values = capabilities if isinstance(capabilities, Mapping) else {}
+    """공통 Artifact Requirement Predicate로 누락을 보고한다."""
+    graph = load_json_object(
+        Path(__file__).resolve().parents[1] / "STANDARD" / "dependency_graph.json"
+    )
+    definitions = dependency_artifacts(graph)
     return [
         make_pipeline_issue(
             "REQUIRED_CHANNEL_ARTIFACT_MISSING",
@@ -276,12 +270,9 @@ def required_channel_artifact_issues(
         )
         for artifact_name in artifact_names
         if artifact_name not in artifacts
-        and isinstance(capability_values.get(capability_by_artifact[artifact_name]), Mapping)
-        and cast(
-            Mapping[str, object],
-            capability_values[capability_by_artifact[artifact_name]],
-        ).get("enabled")
-        is True
+        and artifact_required_for_project(
+            definitions[artifact_name], channel, production_config, artifacts
+        )
     ]
 
 
@@ -735,7 +726,8 @@ def validate_reference_gate(
 
 def production_text_issues(
     artifacts: Mapping[str, ArtifactContent],
-    require_expert_script: bool,
+    production_config: Mapping[str, object],
+    channel: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """Project Version에서 필수인 Production 인계 문서 내용을 검사한다."""
     artifact_names = [
@@ -745,7 +737,13 @@ def production_text_issues(
         "subtitle_script",
         "edit_script",
     ]
-    if require_expert_script or "production_expert_analysis_script" in artifacts:
+    graph = load_json_object(
+        Path(__file__).resolve().parents[1] / "STANDARD" / "dependency_graph.json"
+    )
+    definition = dependency_artifacts(graph)["production_expert_analysis_script"]
+    if artifact_required_for_project(
+        definition, channel, production_config, artifacts
+    ) or "production_expert_analysis_script" in artifacts:
         artifact_names.append("production_expert_analysis_script")
     issues: list[ValidationIssue] = []
     for artifact_name in artifact_names:
@@ -782,6 +780,7 @@ def run_production_validation(
     project_manifest = artifact_document(artifacts, "project_manifest")
     compatibility = artifact_document(artifacts, "compatibility_report")
     production_config = artifact_document(artifacts, "production_config")
+    project_constraints = artifact_document(artifacts, "project_constraints")
     reference_profile = artifact_document(artifacts, "reference_profile")
     variation_candidates = artifact_document(artifacts, "variation_candidates")
     candidate_eligibility = artifact_document(artifacts, "candidate_eligibility")
@@ -794,6 +793,9 @@ def run_production_validation(
     facts = artifact_document(artifacts, "facts")
     sources = artifact_document(artifacts, "sources")
     claim_evidence = artifact_document(artifacts, "claim_evidence")
+    verified_fact_ledger = optional_artifact_document(
+        artifacts, "verified_fact_ledger"
+    )
     characters = artifact_document(artifacts, "characters")
     relationships = artifact_document(artifacts, "relationships")
     knowledge_matrix = artifact_document(artifacts, "knowledge_matrix")
@@ -822,22 +824,6 @@ def run_production_validation(
     project_id = production_config.get("project_id")
     if not isinstance(project_id, str):
         raise ConfigurationError("production_config.project_id 문자열이 필요합니다.")
-    capabilities = channel.get("capabilities")
-    expert_policy = (
-        capabilities.get("EXPERT_ANALYSIS_POLICY")
-        if isinstance(capabilities, Mapping)
-        else None
-    )
-    expert_document = artifacts.get("expert_segments")
-    expert_script_required = (
-        isinstance(expert_policy, Mapping)
-        and expert_policy.get("enabled") is True
-        and production_config.get("source_truth_classification")
-        in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}
-        and isinstance(expert_document, Mapping)
-        and expert_document.get("status") == "PLANNED"
-    )
-
     gate_00 = [
         *validate_compatibility_gate(compatibility),
         *validate_compatibility_binding_current(
@@ -884,12 +870,14 @@ def run_production_validation(
         ),
         *validate_candidate_eligibility(
             production_config,
+            project_constraints,
             channel,
             variation_candidates,
             novelty_precheck,
             candidate_eligibility,
         ),
         *validate_candidate_approval(
+            production_config,
             variation_candidates,
             novelty_precheck,
             candidate_eligibility,
@@ -954,6 +942,7 @@ def run_production_validation(
                 facts,
                 sources,
                 claim_evidence,
+                verified_fact_ledger,
             )
         )
     gate_04 = [
@@ -1136,7 +1125,7 @@ def run_production_validation(
             channel,
             ("production_expert_analysis_script",),
         ),
-        *production_text_issues(artifacts, expert_script_required),
+        *production_text_issues(artifacts, production_config, channel),
         *validate_production_presentation(
             presentation_plan,
             reaction_segments,

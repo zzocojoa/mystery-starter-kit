@@ -1,22 +1,33 @@
 """Runtime이 소유하는 Candidate 승인 기록 생성과 검증."""
 
 from collections.abc import Mapping
+from copy import deepcopy
 
 from RUNTIME.models import RuntimeApproval
 from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.models import ValidationIssue
-from VALIDATORS.novelty import variation_precheck_source_hash
 
 
 def approval_input_hashes(
+    production_config: Mapping[str, object],
     variations: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
+    candidate_eligibility: Mapping[str, object],
     candidate_evaluation: Mapping[str, object],
 ) -> dict[str, str]:
     """승인 입력 Hash를 계산한다."""
+    variation_input = deepcopy(dict(variations))
+    variation_input["approved_candidate_id"] = None
+    candidates = variation_input.get("candidates")
+    if isinstance(candidates, list):
+        for candidate in candidates:
+            if isinstance(candidate, dict):
+                candidate["selection_status"] = "PENDING"
     return {
-        "variation_candidates": variation_precheck_source_hash(variations),
+        "production_config": document_sha256(production_config),
+        "variation_candidates": document_sha256(variation_input),
         "novelty_precheck": document_sha256(novelty_precheck),
+        "candidate_eligibility": document_sha256(candidate_eligibility),
         "candidate_evaluation": document_sha256(candidate_evaluation),
     }
 
@@ -28,8 +39,10 @@ def build_candidate_approval(
     actor: str,
     reason: str,
     approved_at: str,
+    production_config: Mapping[str, object],
     variations: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
+    candidate_eligibility: Mapping[str, object],
     candidate_evaluation: Mapping[str, object],
     approval_policy: str,
     runtime_approval: RuntimeApproval | None,
@@ -53,8 +66,10 @@ def build_candidate_approval(
         "actor": actor,
         "reason": reason,
         "input_hashes": approval_input_hashes(
+            production_config,
             variations,
             novelty_precheck,
+            candidate_eligibility,
             candidate_evaluation,
         ),
         "approved_at": approved_at,
@@ -67,12 +82,15 @@ def build_candidate_approval(
                 "task_id": runtime_approval["task_id"],
                 "created_at": runtime_approval["created_at"],
                 "bound_input_hashes": runtime_approval["bound_input_hashes"],
+                "approval_decision": runtime_approval["decision"],
+                "human_approval_record_hash": document_sha256(runtime_approval),
             }
         )
     return document
 
 
 def validate_candidate_approval(
+    production_config: Mapping[str, object],
     variations: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
@@ -84,8 +102,10 @@ def validate_candidate_approval(
     recommended = candidate_evaluation.get("recommended_candidate_id")
     eligible = candidate_eligibility.get("eligible_candidate_ids")
     expected_hashes = approval_input_hashes(
+        production_config,
         variations,
         novelty_precheck,
+        candidate_eligibility,
         candidate_evaluation,
     )
     problems: list[str] = []
@@ -112,6 +132,8 @@ def validate_candidate_approval(
             "task_id",
             "created_at",
             "bound_input_hashes",
+            "approval_decision",
+            "human_approval_record_hash",
         )
         present_count = sum(field in candidate_approval for field in provenance_fields)
         if present_count != len(provenance_fields):
@@ -123,6 +145,27 @@ def validate_candidate_approval(
                 problems.append("HUMAN_APPROVAL_ACTOR_INVALID")
             if candidate_approval.get("approved_at") != candidate_approval.get("created_at"):
                 problems.append("HUMAN_APPROVAL_TIMESTAMP_MISMATCH")
+            bound = candidate_approval.get("bound_input_hashes")
+            if not isinstance(bound, Mapping) or any(
+                bound.get(name) != value for name, value in expected_hashes.items()
+            ):
+                problems.append("HUMAN_APPROVAL_INPUT_HASH_MISMATCH")
+            reconstructed = {
+                "schema_family": "runtime-approval",
+                "schema_version": "1.0.0",
+                "approval_id": candidate_approval.get("approval_id"),
+                "run_id": candidate_approval.get("run_id"),
+                "task_id": candidate_approval.get("task_id"),
+                "decision": candidate_approval.get("approval_decision"),
+                "actor": candidate_approval.get("actor"),
+                "reason": candidate_approval.get("reason"),
+                "bound_input_hashes": bound,
+                "created_at": candidate_approval.get("created_at"),
+            }
+            if candidate_approval.get("human_approval_record_hash") != document_sha256(
+                reconstructed
+            ):
+                problems.append("HUMAN_APPROVAL_RECORD_HASH_MISMATCH")
     if not problems:
         return []
     return [

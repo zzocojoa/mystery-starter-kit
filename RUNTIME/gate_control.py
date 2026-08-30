@@ -8,7 +8,6 @@ from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.causal_validation import validate_causal_graph
 from VALIDATORS.channel_policy_v2 import (
     build_channel_policy_inputs,
-    v2_policy_applies,
     validate_channel_policy_v2,
 )
 from VALIDATORS.channel_validation import validate_channel_consistency
@@ -117,6 +116,7 @@ def validate_gate(
             *validate_project_setup(manifest, production_config, channel),
         ]
     if gate_id == "GATE-01":
+        project_constraints = artifact_document(artifacts, "project_constraints")
         variations = artifact_document(artifacts, "variation_candidates")
         eligibility = artifact_document(artifacts, "candidate_eligibility")
         candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
@@ -152,12 +152,14 @@ def validate_gate(
             ),
             *validate_candidate_eligibility(
                 production_config,
+                project_constraints,
                 channel,
                 variations,
                 precheck,
                 eligibility,
             ),
             *validate_candidate_approval(
+                production_config,
                 variations,
                 precheck,
                 eligibility,
@@ -216,7 +218,13 @@ def validate_gate(
             issues.extend(nonempty_list_issues(sources, "sources", "01_CASE/sources.json"))
             issues.extend(nonempty_list_issues(claims, "claims", "01_CASE/claim_evidence.json"))
             issues.extend(
-                validate_fact_integrity(source_truth, facts, sources, claims)
+                validate_fact_integrity(
+                    source_truth,
+                    facts,
+                    sources,
+                    claims,
+                    artifact_document(artifacts, "verified_fact_ledger"),
+                )
             )
         return issues
     characters = artifact_document(artifacts, "characters")
@@ -446,7 +454,8 @@ def validate_gate(
             ),
             *production_text_issues(
                 artifacts,
-                v2_policy_applies(production_config),
+                production_config,
+                channel,
             ),
             *validate_production_presentation(
                 presentation,

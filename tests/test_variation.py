@@ -12,7 +12,6 @@ from VALIDATORS.variation import (
     apply_user_case_constraints,
     approve_variation_candidate,
     generate_variation_candidates,
-    generation_choices,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -75,8 +74,24 @@ def test_generator_returns_reproducible_distinct_candidates() -> None:
     assert collect_schema_errors(first, schema, "variation_candidates") == []
 
 
-def test_generator_avoids_safe_dimension_repetition_until_choices_are_exhausted() -> None:
-    """Hard Filter 안전 선택지는 소진 전까지 Dimension 값을 반복하지 않는다."""
+def test_first_candidate_signature_changes_with_seed() -> None:
+    """VAR-01도 고정 특례 없이 Seed 변화에 반응해야 한다."""
+    catalog = load_json_object(CATALOG_PATH)
+    first = generate_variation_candidates(
+        "PRJ-001", "첫 번째 구조 Seed", 5, catalog, "ORIGINAL_FICTION"
+    )
+    second = generate_variation_candidates(
+        "PRJ-001", "완전히 다른 구조 Seed", 5, catalog, "ORIGINAL_FICTION"
+    )
+    first_candidates = first["candidates"]
+    second_candidates = second["candidates"]
+    assert isinstance(first_candidates, list)
+    assert isinstance(second_candidates, list)
+    assert first_candidates[0]["signature"] != second_candidates[0]["signature"]
+
+
+def test_generator_without_channel_context_does_not_apply_v2_safe_values() -> None:
+    """Channel Context가 없는 Generator에는 v2 안전 목록을 전역 적용하지 않는다."""
     catalog = load_json_object(CATALOG_PATH)
     generated = generate_variation_candidates(
         "PRJ-004", "open-city-seed", 5, catalog, "ORIGINAL_FICTION"
@@ -89,12 +104,15 @@ def test_generator_avoids_safe_dimension_repetition_until_choices_are_exhausted(
     for dimension, choices in dimensions.items():
         assert isinstance(dimension, str)
         assert isinstance(choices, list)
-        safe_choices = generation_choices(dimension, choices)
         selected = {
             candidate["selection"][dimension]
             for candidate in candidates
         }
-        assert len(selected) == min(len(safe_choices), len(candidates)), dimension
+        assert selected <= set(choices), dimension
+    threat_values = {
+        candidate["selection"]["threat_type"] for candidate in candidates
+    }
+    assert "NO_CRIME" in threat_values
 
 
 def test_generator_rejects_too_few_candidates() -> None:

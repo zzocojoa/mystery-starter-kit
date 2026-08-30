@@ -198,7 +198,7 @@ class RuntimeTask(TypedDict):
     optional_reads: NotRequired[list[str]]
     writes: list[str]
     depends_on_tasks: list[str]
-    condition: str
+    condition: object
     model_profile: str | None
     output_contract: str
     commit_policy: str

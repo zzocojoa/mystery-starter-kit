@@ -90,7 +90,7 @@ from VALIDATORS.state_machine import GATES, advance_gate, gate_index
 from VALIDATORS.variation import (
     apply_user_case_constraints,
     approve_variation_candidate,
-    generate_variation_candidates,
+    generate_variation_candidates_for_project,
 )
 
 ROOT = Path.cwd().resolve()
@@ -500,6 +500,7 @@ def synchronize_compatibility_state(
         "project_manifest",
         "compatibility_report",
         "production_config",
+        "project_constraints",
     )
     definitions = dependency_artifacts(dependency_graph)
     artifacts_changed = False
@@ -1017,12 +1018,20 @@ def run_variations(args: argparse.Namespace) -> int:
     production_config = load_json_object(
         args.project_path / "00_PROJECT" / "production_config.json"
     )
-    candidates = generate_variation_candidates(
+    channel, _manifest, _channel_path = resolve_project_channel(
+        ROOT,
+        production_config,
+        None,
+    )
+    candidates = generate_variation_candidates_for_project(
         project_id,
         args.seed,
         args.count,
         catalog,
         require_source_truth_classification(production_config),
+        production_config,
+        load_json_object(args.project_path / "00_PROJECT" / "project_constraints.json"),
+        channel,
     )
     candidates = apply_user_case_constraints(
         candidates,
@@ -1067,12 +1076,17 @@ def run_validate(args: argparse.Namespace) -> int:
 def run_candidate_eligibility(args: argparse.Namespace) -> int:
     """현재 Channel과 Novelty 입력으로 Core 적격성을 기록한다."""
     config = load_json_object(args.project_path / "00_PROJECT" / "production_config.json")
+    project_constraints = load_json_object(
+        args.project_path / "00_PROJECT" / "project_constraints.json"
+    )
     channel, _manifest, _path = resolve_project_channel(ROOT, config, None)
     variations = load_json_object(
         args.project_path / "00_PROJECT" / "variation_candidates.json"
     )
     novelty = load_json_object(args.project_path / "08_QA" / "novelty_precheck.json")
-    eligibility = build_candidate_eligibility(config, channel, variations, novelty)
+    eligibility = build_candidate_eligibility(
+        config, project_constraints, channel, variations, novelty
+    )
     output_path = args.project_path / "08_QA" / "candidate_eligibility.json"
     write_json_object(output_path, eligibility)
     print(output_path)
@@ -1192,6 +1206,7 @@ def run_approve(args: argparse.Namespace) -> int:
         )
     eligibility_issues = validate_candidate_eligibility(
         production_config,
+        load_json_object(args.project_path / "00_PROJECT" / "project_constraints.json"),
         channel,
         document,
         novelty_precheck,
@@ -1283,24 +1298,12 @@ def run_approve(args: argparse.Namespace) -> int:
             actor=str(args.actor),
             reason=str(args.reason),
             bound_input_hashes={
-                "production_config": artifact_hash(
-                    encoded_artifact(production_config, "application/json")
-                ),
-                "channel_dna": artifact_hash(
-                    encoded_artifact(channel, "application/json")
-                ),
-                "variation_candidates": artifact_hash(
-                    encoded_artifact(document, "application/json")
-                ),
-                "novelty_precheck": artifact_hash(
-                    encoded_artifact(novelty_precheck, "application/json")
-                ),
-                "candidate_eligibility": artifact_hash(
-                    encoded_artifact(candidate_eligibility, "application/json")
-                ),
-                "candidate_evaluation": artifact_hash(
-                    encoded_artifact(evaluation, "application/json")
-                ),
+                "production_config": document_sha256(production_config),
+                "channel_dna": document_sha256(channel),
+                "variation_candidates": document_sha256(document),
+                "novelty_precheck": document_sha256(novelty_precheck),
+                "candidate_eligibility": document_sha256(candidate_eligibility),
+                "candidate_evaluation": document_sha256(evaluation),
             },
             created_at=changed_at,
         )
@@ -1317,8 +1320,10 @@ def run_approve(args: argparse.Namespace) -> int:
         if human_decision
         else "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다.",
         changed_at,
+        production_config,
         document,
         novelty_precheck,
+        candidate_eligibility,
         evaluation,
         str(approval_policy),
         runtime_approval,
