@@ -11,6 +11,8 @@ from typing import cast
 from uuid import uuid4
 
 from RUNTIME.errors import RuntimeExecutionError
+from RUNTIME.human_inputs import submit_evidence_input
+from RUNTIME.models import RuntimeApproval
 from RUNTIME.output_gateway import encoded_artifact
 from RUNTIME.transactions import (
     acquire_project_lock,
@@ -18,8 +20,11 @@ from RUNTIME.transactions import (
     release_project_lock,
 )
 from VALIDATORS.candidate_approval import build_candidate_approval
-from VALIDATORS.candidate_eligibility import build_candidate_eligibility
-from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_eligibility import (
+    build_candidate_eligibility,
+    validate_candidate_eligibility,
+)
+from VALIDATORS.candidate_evaluation import document_sha256, validate_candidate_evaluation
 from VALIDATORS.change_log import append_change_log, change_log_bytes
 from VALIDATORS.channel_registry import (
     registered_channel_relative_path,
@@ -52,6 +57,7 @@ from VALIDATORS.exceptions import (
     StarterKitError,
 )
 from VALIDATORS.gate_transaction import (
+    audit_artifact_names,
     audit_project,
     full_validation_report,
     process_conformance,
@@ -161,6 +167,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     reference_parser.add_argument("project_path", type=Path)
     reference_parser.add_argument("reference_source", type=Path)
+
+    evidence_parser = subparsers.add_parser(
+        "evidence-submit",
+        help="Runtime Evidence Human Input을 제출합니다.",
+    )
+    evidence_parser.add_argument("project_path", type=Path)
+    evidence_parser.add_argument("run_id")
+    evidence_parser.add_argument("input_path", type=Path)
 
     validate_parser = subparsers.add_parser(
         "validate",
@@ -546,6 +560,7 @@ def synchronize_compatibility_state(
         "GATE-00",
         compatibility_passed,
         updated_at,
+        GATES[gate_index("GATE-00")]["required_artifacts"],
     )
     write_json_object(project_path / "00_PROJECT" / "project_state.json", synchronized)
     return synchronized
@@ -715,7 +730,13 @@ def synchronize_project_state(
     for gate in GATES:
         gate_id = gate["gate_id"]
         passed = gate_results.get(gate_id) == "PASS"
-        state = advance_gate(state, gate_id, passed, updated_at)
+        state = advance_gate(
+            state,
+            gate_id,
+            passed,
+            updated_at,
+            gate["required_artifacts"],
+        )
         if not passed:
             break
     state = mark_issue_artifacts_invalid(state, dependency_graph, issues)
@@ -1058,8 +1079,39 @@ def run_candidate_eligibility(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_evidence_submit(args: argparse.Namespace) -> int:
+    """Project 보조 CLI에서 Runtime Evidence 입력을 제출한다."""
+    result = submit_evidence_input(
+        args.project_path.resolve(),
+        args.run_id,
+        load_json_object(args.input_path.resolve()),
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
+def canonical_file_hashes(paths: Sequence[Path]) -> dict[Path, str]:
+    """승인 검증과 Commit 사이 Drift를 막을 Canonical 파일 Hash를 계산한다."""
+    try:
+        return {path: artifact_hash(path.read_bytes()) for path in paths}
+    except OSError as error:
+        raise GateTransactionError(
+            "CANDIDATE_APPROVAL_INPUT_MISSING",
+            "Candidate 승인 입력 파일을 읽을 수 없습니다.",
+            {"detail": str(error)},
+        ) from error
+
+
 def run_approve(args: argparse.Namespace) -> int:
     """최신 Novelty와 평가 근거를 통과한 Variation 후보를 승인한다."""
+    production_config = load_json_object(
+        args.project_path / "00_PROJECT" / "production_config.json"
+    )
+    channel, _manifest, channel_path = resolve_project_channel(
+        ROOT,
+        production_config,
+        None,
+    )
     path = args.project_path / "00_PROJECT" / "variation_candidates.json"
     document = load_json_object(path)
     evaluation_path = args.project_path / "00_PROJECT" / "candidate_evaluation.json"
@@ -1089,6 +1141,42 @@ def run_approve(args: argparse.Namespace) -> int:
     novelty_precheck = load_json_object(novelty_path)
     eligibility_path = args.project_path / "08_QA" / "candidate_eligibility.json"
     candidate_eligibility = load_json_object(eligibility_path)
+    state_path = args.project_path / "00_PROJECT" / "project_state.json"
+    log_path = args.project_path / "00_PROJECT" / "change_log.jsonl"
+    current_state = load_project_state(args.project_path)
+    approval_source_paths = (
+        args.project_path / "00_PROJECT" / "production_config.json",
+        channel_path,
+        path,
+        evaluation_path,
+        novelty_path,
+        eligibility_path,
+        state_path,
+        log_path,
+    )
+    approval_document_hashes = {
+        approval_source_paths[0]: document_sha256(production_config),
+        approval_source_paths[1]: document_sha256(channel),
+        approval_source_paths[2]: document_sha256(document),
+        approval_source_paths[3]: document_sha256(evaluation),
+        approval_source_paths[4]: document_sha256(novelty_precheck),
+        approval_source_paths[5]: document_sha256(candidate_eligibility),
+        approval_source_paths[6]: document_sha256(current_state),
+    }
+    approval_source_hashes = canonical_file_hashes(approval_source_paths)
+    eligibility_schema_errors = collect_schema_errors(
+        candidate_eligibility,
+        load_json_object(
+            ROOT / "STANDARD" / "schemas" / "candidate_eligibility.schema.json"
+        ),
+        str(eligibility_path),
+    )
+    if eligibility_schema_errors:
+        raise GateTransactionError(
+            "CANDIDATE_ELIGIBILITY_INVALID",
+            "Candidate 적격성 문서가 Schema를 통과하지 못했습니다.",
+            {"issues": eligibility_schema_errors},
+        )
     novelty_schema_errors = collect_schema_errors(
         novelty_precheck,
         load_json_object(
@@ -1101,6 +1189,20 @@ def run_approve(args: argparse.Namespace) -> int:
             "CANDIDATE_NOVELTY_PRECHECK_REQUIRED",
             "Variation 승인 전에 전체 Candidate Novelty Precheck가 필요합니다.",
             {"issues": novelty_schema_errors},
+        )
+    eligibility_issues = validate_candidate_eligibility(
+        production_config,
+        channel,
+        document,
+        novelty_precheck,
+        candidate_eligibility,
+    )
+    if eligibility_issues:
+        issue = eligibility_issues[0]
+        raise GateTransactionError(
+            issue["code"],
+            issue["message"],
+            issue["context"],
         )
     evaluation_issues = validate_candidate_evaluation(
         document,
@@ -1130,6 +1232,13 @@ def run_approve(args: argparse.Namespace) -> int:
             {"candidate_id": args.candidate_id},
         )
     is_override = args.candidate_id != recommended
+    approval_policy = production_config.get("approval_policy")
+    if approval_policy not in {"AUTO_CONTINUE", "HUMAN_REVIEW"}:
+        raise GateTransactionError(
+            "CANDIDATE_APPROVAL_POLICY_INVALID",
+            "Candidate Approval Policy가 올바르지 않습니다.",
+            {"approval_policy": approval_policy},
+        )
     if is_override and (
         args.override is not True
         or not isinstance(args.actor, str)
@@ -1148,36 +1257,154 @@ def run_approve(args: argparse.Namespace) -> int:
             "추천 후보에는 Human Override를 사용할 수 없습니다.",
             {"candidate_id": args.candidate_id},
         )
-    approved = approve_variation_candidate(document, args.candidate_id)
+    human_confirmation = approval_policy == "HUMAN_REVIEW" and not is_override
+    if human_confirmation and (
+        not isinstance(args.actor, str)
+        or not args.actor
+        or not isinstance(args.reason, str)
+        or not args.reason
+    ):
+        raise GateTransactionError(
+            "CANDIDATE_HUMAN_CONFIRMATION_REQUIRED",
+            "HUMAN_REVIEW 추천 후보 승인에는 --actor와 --reason이 필요합니다.",
+            {"candidate_id": args.candidate_id},
+        )
     changed_at = utc_now()
+    human_decision = is_override or human_confirmation
+    run_id = f"CLI-APPROVE-{uuid4().hex[:12].upper()}"
+    runtime_approval = (
+        RuntimeApproval(
+            schema_family="runtime-approval",
+            schema_version="1.0.0",
+            approval_id=f"APR-{uuid4().hex[:12].upper()}",
+            run_id=run_id,
+            task_id="variation.approve",
+            decision="APPROVED",
+            actor=str(args.actor),
+            reason=str(args.reason),
+            bound_input_hashes={
+                "production_config": artifact_hash(
+                    encoded_artifact(production_config, "application/json")
+                ),
+                "channel_dna": artifact_hash(
+                    encoded_artifact(channel, "application/json")
+                ),
+                "variation_candidates": artifact_hash(
+                    encoded_artifact(document, "application/json")
+                ),
+                "novelty_precheck": artifact_hash(
+                    encoded_artifact(novelty_precheck, "application/json")
+                ),
+                "candidate_eligibility": artifact_hash(
+                    encoded_artifact(candidate_eligibility, "application/json")
+                ),
+                "candidate_evaluation": artifact_hash(
+                    encoded_artifact(evaluation, "application/json")
+                ),
+            },
+            created_at=changed_at,
+        )
+        if human_decision
+        else None
+    )
+    approved = approve_variation_candidate(document, args.candidate_id)
     approval = build_candidate_approval(
         project_id_from_manifest(args.project_path),
         args.candidate_id,
         recommended,
-        args.actor if is_override else "SYSTEM",
-        args.reason if is_override else "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다.",
+        args.actor if human_decision else "SYSTEM",
+        args.reason
+        if human_decision
+        else "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다.",
         changed_at,
         document,
         novelty_precheck,
         evaluation,
+        str(approval_policy),
+        runtime_approval,
     )
-    write_json_object(path, approved)
-    write_json_object(
-        args.project_path / "00_PROJECT" / "candidate_approval.json",
+    approval_schema_errors = collect_schema_errors(
         approval,
+        load_json_object(
+            ROOT / "STANDARD" / "schemas" / "candidate_approval.schema.json"
+        ),
+        "candidate_approval",
     )
-    record_artifact_change(
-        args.project_path,
+    if approval_schema_errors:
+        raise GateTransactionError(
+            "CANDIDATE_APPROVAL_INVALID",
+            "Candidate 승인 기록이 Schema를 통과하지 못했습니다.",
+            {"issues": approval_schema_errors},
+        )
+    dependency_graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
+    approved_bytes = encoded_artifact(approved, "application/json")
+    approval_bytes = encoded_artifact(approval, "application/json")
+    next_state = invalidate_artifact_dependents(
+        dependency_graph,
+        current_state,
         "variation_candidates",
-        path,
+        artifact_hash(approved_bytes),
         changed_at,
     )
-    append_change_log(
-        args.project_path,
+    next_state = invalidate_artifact_dependents(
+        dependency_graph,
+        next_state,
+        "candidate_approval",
+        artifact_hash(approval_bytes),
+        changed_at,
+    )
+    next_state = mark_artifact_clean(
+        next_state,
+        "variation_candidates",
+        artifact_hash(approved_bytes),
+        changed_at,
+    )
+    next_state = mark_artifact_clean(
+        next_state,
+        "candidate_approval",
+        artifact_hash(approval_bytes),
+        changed_at,
+    )
+    existing_log = log_path.read_bytes() if log_path.is_file() else b""
+    next_log = change_log_bytes(
+        existing_log,
         "VARIATION_APPROVED",
-        {"candidate_id": args.candidate_id},
+        {
+            "candidate_id": args.candidate_id,
+            "approval_type": approval["approval_type"],
+        },
         changed_at,
     )
+    lock_path = acquire_project_lock(args.project_path, run_id)
+    try:
+        current_document_hashes = {
+            source_path: document_sha256(load_json_object(source_path))
+            for source_path in approval_source_paths[:-1]
+        }
+        if (
+            canonical_file_hashes(approval_source_paths) != approval_source_hashes
+            or current_document_hashes != approval_document_hashes
+        ):
+            raise GateTransactionError(
+                "CANDIDATE_APPROVAL_INPUT_CHANGED",
+                "Candidate 승인 검증 후 입력이 변경되어 Commit을 중단했습니다.",
+                {},
+            )
+        commit_gate_transaction(
+            args.project_path,
+            run_id,
+            "CANDIDATE_APPROVAL",
+            args.project_path,
+            {
+                "variation_candidates": approved,
+                "candidate_approval": approval,
+            },
+            dependency_graph,
+            next_state,
+            {"00_PROJECT/change_log.jsonl": next_log},
+        )
+    finally:
+        release_project_lock(lock_path, run_id)
     print(path)
     return 0
 
@@ -1458,10 +1685,17 @@ def run_editorial_approve(args: argparse.Namespace) -> int:
         state = load_project_state(args.project_path)
         review = load_json_object(args.project_path / "08_QA" / "editorial_review.json")
         dependency_graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
+        auditable_artifacts = set(
+            audit_artifact_names(ROOT, args.project_path, dependency_graph)
+        )
         reviewed_artifacts = load_selected_project_artifacts(
             args.project_path,
             dependency_graph,
-            list(EDITORIAL_REVIEWED_ARTIFACTS),
+            [
+                artifact_name
+                for artifact_name in EDITORIAL_REVIEWED_ARTIFACTS
+                if artifact_name in auditable_artifacts
+            ],
         )
         approved_at = utc_now()
         approved = approve_editorial_review(
@@ -1569,6 +1803,8 @@ def run_cli(argv: Sequence[str]) -> int:
             return run_candidate_eligibility(args)
         if args.command == "reference-profile":
             return run_reference_profile(args)
+        if args.command == "evidence-submit":
+            return run_evidence_submit(args)
         if args.command == "precheck":
             return run_precheck(args)
         if args.command == "register":

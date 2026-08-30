@@ -16,14 +16,17 @@ GRAPH_PATH = ROOT / "STANDARD" / "dependency_graph.json"
 STATE_SCHEMA_PATH = ROOT / "STANDARD" / "schemas" / "project_state.schema.json"
 
 
-def test_every_dependency_artifact_has_a_template_file() -> None:
-    """Dependency Graph의 모든 경로는 Project Template에 실제 파일로 존재해야 한다."""
+def test_every_unconditional_dependency_artifact_has_a_template_file() -> None:
+    """항상 필요한 Dependency Artifact는 Project Template에 실제 파일로 존재한다."""
     graph = load_json_object(GRAPH_PATH)
 
     missing = [
         artifact_name
         for artifact_name, definition in dependency_artifacts(graph).items()
         if isinstance((relative_path := definition.get("path")), str)
+        and "required_when_capability_enabled" not in definition
+        and "required_when_artifact_status" not in definition
+        and "required_when_artifact_exists" not in definition
         and not (TEMPLATE_ROOT / relative_path).is_file()
     ]
 

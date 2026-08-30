@@ -1,7 +1,7 @@
 """Runtime 계약 경계에서 사용하는 엄격한 데이터 형식."""
 
 from dataclasses import dataclass
-from typing import Literal, Protocol, TypedDict, runtime_checkable
+from typing import Literal, NotRequired, Protocol, TypedDict, runtime_checkable
 
 ProviderCapability = Literal[
     "TEXT_GENERATION",
@@ -195,6 +195,7 @@ class RuntimeTask(TypedDict):
     executor: ExecutorKind
     target_gate: str
     reads: list[str]
+    optional_reads: NotRequired[list[str]]
     writes: list[str]
     depends_on_tasks: list[str]
     condition: str

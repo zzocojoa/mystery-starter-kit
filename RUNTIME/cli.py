@@ -12,6 +12,7 @@ from RUNTIME.contracts import load_provider_registry, validate_runtime_contracts
 from RUNTIME.engine import execute_run, request_cancel, resume_run
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.event_store import append_event, find_run, load_run
+from RUNTIME.human_inputs import submit_evidence_input
 from RUNTIME.models import ExecutionPlan, LLMProvider, RuntimeRun
 from RUNTIME.planner import build_execution_plan, next_gate_id
 from RUNTIME.providers.base import provider_descriptor_document
@@ -63,6 +64,14 @@ def build_parser() -> argparse.ArgumentParser:
     approve_parser.add_argument("task_id")
     approve_parser.add_argument("--actor", required=True)
     approve_parser.add_argument("--reason", required=True)
+
+    input_parser = subparsers.add_parser(
+        "submit-input",
+        help="WAITING_HUMAN Run에 현재 Hash와 결속된 Human Input을 제출합니다.",
+    )
+    input_parser.add_argument("run_id")
+    input_parser.add_argument("task_id")
+    input_parser.add_argument("input_path", type=Path)
 
     cancel_parser = subparsers.add_parser("cancel", help="Runtime Run 취소를 요청합니다.")
     cancel_parser.add_argument("run_id")
@@ -264,6 +273,23 @@ async def dispatch(args: argparse.Namespace, repository_root: Path) -> object:
             args.task_id,
             args.actor,
             args.reason,
+        )
+    if args.command == "submit-input":
+        if args.task_id != "reference.build_evidence":
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "CLI",
+                "현재 지원하는 Human Input Task는 reference.build_evidence뿐입니다.",
+                args.task_id,
+                None,
+                {},
+            )
+        project_path, _run = find_run(repository_root, args.run_id)
+        return submit_evidence_input(
+            project_path,
+            args.run_id,
+            load_json_object(args.input_path.expanduser().resolve()),
         )
     if args.command == "cancel":
         return request_cancel(repository_root, args.run_id)

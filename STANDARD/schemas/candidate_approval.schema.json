@@ -23,7 +23,7 @@
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "selected_candidate_id": {"$ref": "#/$defs/candidateId"},
     "recommended_candidate_id": {"$ref": "#/$defs/candidateId"},
-    "approval_type": {"enum": ["AUTO_POLICY", "HUMAN_OVERRIDE"]},
+    "approval_type": {"enum": ["AUTO_POLICY", "HUMAN_CONFIRMATION", "HUMAN_OVERRIDE"]},
     "actor": {"type": "string", "minLength": 1},
     "reason": {"type": "string", "minLength": 1},
     "input_hashes": {
@@ -40,8 +40,36 @@
         "candidate_evaluation": {"$ref": "#/$defs/hash"}
       }
     },
-    "approved_at": {"type": "string", "format": "date-time"}
+    "approved_at": {"type": "string", "format": "date-time"},
+    "approval_id": {"type": "string", "pattern": "^APR-[A-F0-9]{12}$"},
+    "run_id": {"type": "string", "minLength": 1},
+    "task_id": {"const": "variation.approve"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "bound_input_hashes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/hash"}
+    }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "approval_type": {"enum": ["HUMAN_CONFIRMATION", "HUMAN_OVERRIDE"]}
+        },
+        "required": ["approval_type"]
+      },
+      "then": {
+        "required": [
+          "approval_id",
+          "run_id",
+          "task_id",
+          "created_at",
+          "bound_input_hashes"
+        ]
+      }
+    }
+  ],
   "$defs": {
     "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "candidateId": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"}

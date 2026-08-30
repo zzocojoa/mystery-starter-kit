@@ -202,6 +202,21 @@ def optional_artifact_text(
     return value
 
 
+def optional_artifact_document(
+    artifacts: Mapping[str, ArtifactContent],
+    artifact_name: str,
+) -> Mapping[str, object]:
+    """현재 Project에서 선택 JSON Artifact가 없으면 빈 객체를 반환한다."""
+    value = artifacts.get(artifact_name)
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        raise ConfigurationError(
+            f"JSON Artifact 객체가 필요합니다: artifact={artifact_name}"
+        )
+    return value
+
+
 def schema_issues(
     document: Mapping[str, object],
     schema: Mapping[str, object],
@@ -625,10 +640,25 @@ def validate_variation_alignment(
     overrides = story_document.get("variation_overrides")
     override_dimensions = set(overrides) if isinstance(overrides, Mapping) else set()
     override_reason = story_document.get("override_reason")
+    story_dimensions = {
+        "mystery_type",
+        "architecture",
+        "protagonist_role",
+        "perspective",
+        "timeline_style",
+        "incident_type",
+        "setting",
+        "culprit_structure",
+        "primary_twist",
+        "relationship_engine",
+        "pressure_engine",
+        "dramatic_engine",
+    }
     mismatches = sorted(
         dimension
         for dimension, selected_value in selection.items()
         if isinstance(dimension, str)
+        and dimension in story_dimensions
         and story_dimension_value(story_dna, dimension) != selected_value
         and dimension not in override_dimensions
     )

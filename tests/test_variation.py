@@ -12,6 +12,7 @@ from VALIDATORS.variation import (
     apply_user_case_constraints,
     approve_variation_candidate,
     generate_variation_candidates,
+    generation_choices,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -74,8 +75,8 @@ def test_generator_returns_reproducible_distinct_candidates() -> None:
     assert collect_schema_errors(first, schema, "variation_candidates") == []
 
 
-def test_generator_avoids_dimension_repetition_until_choices_are_exhausted() -> None:
-    """선택지가 충분한 Dimension은 후보 수만큼 서로 다른 값을 사용해야 한다."""
+def test_generator_avoids_safe_dimension_repetition_until_choices_are_exhausted() -> None:
+    """Hard Filter 안전 선택지는 소진 전까지 Dimension 값을 반복하지 않는다."""
     catalog = load_json_object(CATALOG_PATH)
     generated = generate_variation_candidates(
         "PRJ-004", "open-city-seed", 5, catalog, "ORIGINAL_FICTION"
@@ -88,13 +89,12 @@ def test_generator_avoids_dimension_repetition_until_choices_are_exhausted() -> 
     for dimension, choices in dimensions.items():
         assert isinstance(dimension, str)
         assert isinstance(choices, list)
-        if len(choices) < len(candidates):
-            continue
+        safe_choices = generation_choices(dimension, choices)
         selected = {
             candidate["selection"][dimension]
             for candidate in candidates
         }
-        assert len(selected) == len(candidates), dimension
+        assert len(selected) == min(len(safe_choices), len(candidates)), dimension
 
 
 def test_generator_rejects_too_few_candidates() -> None:

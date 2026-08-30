@@ -37,24 +37,32 @@ from RUNTIME.transactions import (
     release_project_lock,
     write_artifact,
 )
+from VALIDATORS.channel_registry import resolve_project_channel
 from VALIDATORS.dependency import (
     artifact_hash,
-    artifact_required_for_channel_version,
+    artifact_required_for_project,
     dependency_artifacts,
 )
 from VALIDATORS.exceptions import ConfigurationError, GateTransactionError
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.models import ProductionValidationReport, ProjectState
 from VALIDATORS.pipeline import (
+    load_existing_project_artifacts,
     load_project_artifacts,
     load_selected_project_artifacts,
     run_production_validation,
 )
 from VALIDATORS.schema_validation import collect_schema_errors
-from VALIDATORS.state_machine import GATES, expected_gate, gate_index
+from VALIDATORS.state_machine import (
+    GATES,
+    expected_gate,
+    gate_index,
+    gate_required_artifacts_for_project,
+)
 
 PROCESS_TRACE_PATH = "00_PROJECT/process_trace.jsonl"
 VALIDATOR_VERSION = "1.0.0"
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def parse_audit_timestamp(value: object, source: str) -> datetime:
@@ -317,11 +325,24 @@ def tasks_for_gate(
 ) -> dict[str, RuntimeTask]:
     """현재 Source Mode에서 실행되는 Gate Task를 계약 순서로 반환한다."""
     catalog = load_task_catalog(repository_root)
+    config = load_json_object(project_path / "00_PROJECT" / "production_config.json")
+    channel, _manifest, _channel_path = resolve_project_channel(
+        repository_root,
+        config,
+        None,
+    )
+    dependency_graph = load_json_object(repository_root / "STANDARD/dependency_graph.json")
+    artifacts = load_existing_project_artifacts(project_path, dependency_graph)
     selected = {
         task_id: task
         for task_id, task in catalog.items()
         if task["target_gate"] == gate_id
-        and task_condition_matches(task["condition"], source_mode(project_path))
+        and task_condition_matches(
+            task["condition"],
+            source_mode(project_path),
+            channel,
+            artifacts,
+        )
     }
     if not selected:
         raise GateTransactionError(
@@ -459,6 +480,7 @@ def canonical_artifact_drift(
 
 
 def audit_artifact_names(
+    repository_root: Path,
     project_path: Path,
     dependency_graph: Mapping[str, object],
 ) -> list[str]:
@@ -466,19 +488,25 @@ def audit_artifact_names(
     production_config = load_json_object(
         project_path / "00_PROJECT" / "production_config.json"
     )
-    channel_content_version = production_config.get("channel_content_version")
-    if not isinstance(channel_content_version, str):
-        raise ConfigurationError(
-            "production_config.channel_content_version 문자열이 필요합니다."
-        )
+    channel, _manifest, _channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        None,
+    )
+    existing_artifacts = load_existing_project_artifacts(
+        project_path,
+        dependency_graph,
+    )
     return sorted(
         artifact_name
         for artifact_name, definition in dependency_artifacts(
             dependency_graph
         ).items()
-        if artifact_required_for_channel_version(
+        if artifact_required_for_project(
             definition,
-            channel_content_version,
+            channel,
+            production_config,
+            existing_artifacts,
         )
         or (
             isinstance(definition.get("path"), str)
@@ -814,7 +842,9 @@ def generate_core_outputs(
             outputs,
             dependency_graph,
             reference_source,
-            False,
+            None,
+            "CODEX-MANUAL",
+            {"manual_context": artifact_hash(task_id.encode("utf-8"))},
         )
         validate_core_outputs(
             repository_root,
@@ -992,24 +1022,40 @@ def validate_gate_overlay(
 ) -> None:
     """Workspace에서 현재 Gate Validator만 실행한다."""
     catalog = load_task_catalog(repository_root)
+    production_config = load_json_object(
+        workspace / "00_PROJECT" / "production_config.json"
+    )
+    channel, _manifest, _channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        None,
+    )
+    existing_artifacts = load_existing_project_artifacts(workspace, dependency_graph)
     required_artifacts: set[str] = set()
     for task in catalog.values():
         if gate_index(task["target_gate"]) > gate_index(gate_id):
             continue
-        if not task_condition_matches(task["condition"], source_mode(workspace)):
+        if not task_condition_matches(
+            task["condition"],
+            source_mode(workspace),
+            channel,
+            existing_artifacts,
+        ):
             continue
         required_artifacts.update(task["reads"])
         required_artifacts.update(task["writes"])
+        required_artifacts.update(
+            artifact_name
+            for artifact_name in task.get("optional_reads", [])
+            if artifact_name in existing_artifacts
+        )
     artifacts = load_selected_project_artifacts(
         workspace,
         dependency_graph,
         sorted(required_artifacts),
     )
-    production_config = load_json_object(
-        workspace / "00_PROJECT" / "production_config.json"
-    )
     (
-        channel,
+        resolved_channel,
         story_schema,
         fingerprint_schema,
         presentation_schemas,
@@ -1026,7 +1072,7 @@ def validate_gate_overlay(
     issues = validate_gate(
         gate_id,
         artifacts,
-        channel,
+        resolved_channel,
         story_schema,
         fingerprint_schema,
         presentation_schemas,
@@ -1148,6 +1194,18 @@ def task_submit(
             reference_source,
         )
         input_hashes = cast(Mapping[str, str], active["input_hashes"])
+        production_config = load_json_object(
+            workspace / "00_PROJECT" / "production_config.json"
+        )
+        channel, _manifest, _channel_path = resolve_project_channel(
+            repository_root,
+            production_config,
+            None,
+        )
+        workspace_artifacts = load_existing_project_artifacts(
+            workspace,
+            dependency_graph,
+        )
         next_state = next_project_state(
             state,
             gate_id,
@@ -1155,6 +1213,13 @@ def task_submit(
             outputs,
             dependency_graph,
             completed_at,
+            gate_required_artifacts_for_project(
+                gate_id,
+                dependency_graph,
+                channel,
+                production_config,
+                workspace_artifacts,
+            ),
         )
         contracts = load_artifact_contracts(repository_root)
         commit_sha = gate_commit_sha(outputs, contracts)
@@ -1532,7 +1597,7 @@ def audit_project(
         project_path,
         dependency_graph,
         state,
-        audit_artifact_names(project_path, dependency_graph),
+        audit_artifact_names(repository_root, project_path, dependency_graph),
     )
     validation = full_validation_report(
         repository_root,

@@ -27,7 +27,7 @@
     "story_architect": {
       "prompt_file": "story_architect.md",
       "stage": 2,
-      "reads": ["production_config", "reference_profile", "variation_candidates", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "story_dna", "viewer_timeline", "clue_matrix", "crime_psychology"],
+      "reads": ["production_config", "reference_profile", "variation_candidates", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "story_dna", "case_input", "facts", "viewer_timeline", "clue_matrix", "crime_psychology"],
       "writes": ["story_dna", "case_input", "facts", "crime_psychology", "beat_sheet", "retention_plan"],
       "gates": ["GATE-02", "GATE-03", "GATE-06"],
       "requires_agents": ["variation_designer"],
@@ -57,7 +57,7 @@
     "scene_designer": {
       "prompt_file": "scene_designer.md",
       "stage": 6,
-      "reads": ["beat_sheet", "retention_plan", "scene_cards", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "claim_evidence", "crime_psychology", "production_config"],
+      "reads": ["beat_sheet", "retention_plan", "scene_cards", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "claim_evidence", "crime_psychology", "production_config", "presentation_plan"],
       "writes": ["scene_cards", "panel_cast", "reaction_segments", "expert_segments", "presentation_plan"],
       "gates": ["GATE-07"],
       "requires_agents": ["story_architect", "mystery_designer"],
@@ -97,7 +97,7 @@
     "reference_auditor": {
       "prompt_file": "reference_auditor.md",
       "stage": 1,
-      "reads": ["production_config", "reference_profile", "sources", "claim_evidence", "source_disclosure", "clinical_labels", "story_dna", "case_input", "crime_psychology", "characters", "relationships", "actual_timeline", "clue_matrix", "causal_graph", "beat_sheet", "expert_segments", "expert_analysis_script", "final_script"],
+      "reads": ["production_config", "reference_profile", "sources", "claim_evidence", "source_disclosure", "clinical_labels", "story_dna", "case_input", "facts", "crime_psychology", "characters", "relationships", "actual_timeline", "clue_matrix", "causal_graph", "beat_sheet", "expert_segments", "expert_analysis_script", "final_script"],
       "writes": ["reference_profile", "sources", "claim_evidence", "source_disclosure", "clinical_labels", "reference_collision_report"],
       "gates": ["GATE-01", "GATE-03", "GATE-11"],
       "requires_agents": [],

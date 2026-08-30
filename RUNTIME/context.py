@@ -73,7 +73,22 @@ def build_minimal_context(
     state = load_project_state(project_path)
     definitions = dependency_artifacts(dependency_graph)
     items: list[ContextItem] = []
-    for index, artifact_name in enumerate(task["reads"], start=1):
+    required_reads = task["reads"]
+    optional_reads = task.get("optional_reads", [])
+    selected_optional_reads = [
+        artifact_name
+        for artifact_name in optional_reads
+        if artifact_name in overlay
+        or (
+            artifact_name in definitions
+            and isinstance(definitions[artifact_name].get("path"), str)
+            and (project_path / cast(str, definitions[artifact_name]["path"])).is_file()
+        )
+    ]
+    for index, artifact_name in enumerate(
+        [*required_reads, *selected_optional_reads],
+        start=1,
+    ):
         definition = definitions.get(artifact_name)
         if definition is None or not isinstance(definition.get("path"), str):
             raise RuntimeExecutionError(

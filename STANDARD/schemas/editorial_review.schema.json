@@ -282,14 +282,11 @@
               "audience_belief",
               "panel_cast",
               "reaction_segments",
-              "expert_segments",
               "presentation_plan",
               "panel_reaction_script",
-              "expert_analysis_script",
               "shooting_script",
               "narration",
               "production_panel_reaction_script",
-              "production_expert_analysis_script",
               "subtitle_script",
               "edit_script"
             ]

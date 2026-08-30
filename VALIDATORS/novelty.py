@@ -610,8 +610,22 @@ def evaluate_variation_precheck(
         selection = candidate.get("selection")
         if not isinstance(candidate_id, str) or not isinstance(selection, Mapping):
             raise ConfigurationError("Variation Candidate ID와 selection 객체가 필요합니다.")
+        candidate_story = dict(selection)
+        for field in LIST_STORY_FIELDS:
+            value = candidate_story.get(field)
+            if isinstance(value, str):
+                candidate_story[field] = [value]
         comparisons: list[dict[str, object]] = []
         for index, existing in enumerate(comparable_history):
+            normalized_existing = dict(existing)
+            existing_story = existing.get("story")
+            if isinstance(existing_story, Mapping):
+                normalized_story = dict(existing_story)
+                for field in LIST_STORY_FIELDS:
+                    value = normalized_story.get(field)
+                    if isinstance(value, str):
+                        normalized_story[field] = [value]
+                normalized_existing["story"] = normalized_story
             distance_from_latest = history_count - index
             threshold_key = (
                 "recent_5_max"
@@ -621,10 +635,14 @@ def evaluate_variation_precheck(
                 else "overall_max"
             )
             maximum = threshold_value(thresholds, threshold_key)
-            score = similarity_score({"story": dict(selection)}, existing, weights)
+            score = similarity_score(
+                {"story": candidate_story},
+                normalized_existing,
+                weights,
+            )
             components = similarity_components(
-                {"story": dict(selection)},
-                existing,
+                {"story": candidate_story},
+                normalized_existing,
                 weights,
             )
             comparisons.append(

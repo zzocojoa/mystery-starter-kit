@@ -4,7 +4,10 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from RUNTIME.errors import RuntimeExecutionError
+from RUNTIME.event_store import load_run, utc_now
 from RUNTIME.gate_control import validation_report_through
+from RUNTIME.human_inputs import current_evidence_input, evidence_artifact_outputs
+from RUNTIME.models import RuntimeApproval
 from VALIDATORS.candidate_approval import build_candidate_approval
 from VALIDATORS.candidate_eligibility import build_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
@@ -406,18 +409,33 @@ def approved_variation_output(
 def evidence_outputs(
     project_id: str,
     source_truth: object,
+    project_path: Path,
+    run_id: str,
+    input_hashes: Mapping[str, str],
 ) -> dict[str, object]:
-    """Fiction은 빈 Evidence를 만들고 사실 기반 분류는 Human 입력을 요구한다."""
+    """Fiction은 빈 Evidence를 만들고 사실 기반 분류는 검증된 Human 입력을 읽는다."""
     if source_truth in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}:
-        raise RuntimeExecutionError(
-            "HUMAN_APPROVAL_REQUIRED",
-            False,
-            "TASK",
-            "사실 기반 Project에는 검증된 Source와 Claim-Evidence 입력이 필요합니다.",
-            "reference.build_evidence",
-            None,
-            {"source_truth_classification": source_truth},
+        human_input = current_evidence_input(
+            project_path,
+            run_id,
+            project_id,
+            str(source_truth),
+            input_hashes,
         )
+        if human_input is None:
+            raise RuntimeExecutionError(
+                "HUMAN_INPUT_REQUIRED",
+                False,
+                "TASK",
+                "사실 기반 Project에는 현재 Input Hash로 검증된 Evidence 입력이 필요합니다.",
+                "reference.build_evidence",
+                None,
+                {
+                    "source_truth_classification": source_truth,
+                    "input_hashes": dict(input_hashes),
+                },
+            )
+        return evidence_artifact_outputs(project_id, human_input)
     return {
         "sources": {"project_id": project_id, "sources": []},
         "claim_evidence": {"project_id": project_id, "claims": []},
@@ -501,7 +519,9 @@ def core_task_outputs(
     overlay: Mapping[str, object],
     dependency_graph: Mapping[str, object],
     reference_source: Path | None,
-    human_approved: bool,
+    runtime_approval: RuntimeApproval | None,
+    run_id: str,
+    input_hashes: Mapping[str, str],
 ) -> dict[str, object]:
     """Task ID에 대응하는 결정론적 Core 출력을 반환한다."""
     artifacts = combined_artifacts(project_path, dependency_graph, overlay)
@@ -588,24 +608,64 @@ def core_task_outputs(
                 "candidate_approval",
                 {},
             )
+        approval_policy = production_config.get("approval_policy")
+        if not isinstance(approval_policy, str):
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Candidate Approval Policy가 없습니다.",
+                task_id,
+                "production_config",
+                {},
+            )
+        actor = "SYSTEM"
+        reason = "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다."
+        approved_at = utc_now()
+        if runtime_approval is not None:
+            actor = runtime_approval["actor"]
+            reason = runtime_approval["reason"]
+            approved_at = runtime_approval["created_at"]
         return {
             "candidate_approval": build_candidate_approval(
                 project_id,
                 selected_candidate_id,
                 recommended,
-                "SYSTEM",
-                "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다.",
-                "1970-01-01T00:00:00Z",
+                actor,
+                reason,
+                approved_at,
                 variations,
                 novelty,
                 evaluation,
+                approval_policy,
+                runtime_approval,
             ),
         }
-    if task_id == "reference.build_evidence":
-        return evidence_outputs(
+    if task_id in {
+        "reference.build_evidence",
+        "reference.build_source_disclosure",
+        "reference.build_clinical_labels",
+    }:
+        run = load_run(project_path, run_id)
+        evidence_state = run["tasks"].get("reference.build_evidence")
+        evidence_hashes = (
+            evidence_state["input_hashes"]
+            if evidence_state is not None and evidence_state["input_hashes"]
+            else input_hashes
+        )
+        bundle = evidence_outputs(
             project_id,
             production_config.get("source_truth_classification"),
+            project_path,
+            run_id,
+            evidence_hashes,
         )
+        selected_outputs = {
+            "reference.build_evidence": ("sources", "claim_evidence"),
+            "reference.build_source_disclosure": ("source_disclosure",),
+            "reference.build_clinical_labels": ("clinical_labels",),
+        }
+        return {name: bundle[name] for name in selected_outputs[task_id]}
     if task_id == "continuity.deterministic":
         report = validate_continuity(
             production_config,

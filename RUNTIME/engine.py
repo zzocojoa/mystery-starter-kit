@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import cast
 from uuid import uuid4
 
-from RUNTIME.approvals import approval_is_current
+from RUNTIME.approvals import current_approval
 from RUNTIME.context import build_minimal_context, context_data_classes, context_input_hashes
 from RUNTIME.contracts import (
     load_artifact_contracts,
@@ -49,6 +49,7 @@ from RUNTIME.models import (
     OutputMode,
     PromptBundle,
     RunStatus,
+    RuntimeApproval,
     RuntimeRun,
     RuntimeTask,
     SelectedRoute,
@@ -81,7 +82,7 @@ from RUNTIME.transactions import (
     verify_artifact_hashes,
 )
 from VALIDATORS.agent_validation import manifest_agents
-from VALIDATORS.change_log import append_change_log
+from VALIDATORS.change_log import change_log_bytes
 from VALIDATORS.dependency import artifact_hash, dependency_artifacts
 from VALIDATORS.exceptions import StarterKitError
 from VALIDATORS.gate_transaction import (
@@ -99,7 +100,7 @@ from VALIDATORS.library_store import sync_novelty_gate
 from VALIDATORS.models import ProjectState, ValidationIssue
 from VALIDATORS.pipeline import load_project_artifacts
 from VALIDATORS.schema_validation import collect_schema_errors
-from VALIDATORS.state_machine import gate_index
+from VALIDATORS.state_machine import gate_index, gate_required_artifacts_for_project
 
 
 def project_state(project_path: Path) -> ProjectState:
@@ -819,7 +820,25 @@ async def execute_existing_run(
                 for task_id in ordered_all
                 if ranged_tasks[task_id]["target_gate"] == gate_id
             ]
-            canonical_inputs = gate_canonical_inputs(gate_task_ids, ranged_tasks)
+            gate_condition_artifacts = combined_artifacts(
+                project_path,
+                dependency_graph,
+                {},
+            )
+            active_gate_task_ids = [
+                task_id
+                for task_id in gate_task_ids
+                if task_condition_matches(
+                    ranged_tasks[task_id]["condition"],
+                    source_mode,
+                    channel,
+                    gate_condition_artifacts,
+                )
+            ]
+            canonical_inputs = gate_canonical_inputs(
+                active_gate_task_ids,
+                ranged_tasks,
+            )
             captured_hashes = capture_artifact_hashes(
                 project_path, canonical_inputs, dependency_graph
             )
@@ -831,7 +850,17 @@ async def execute_existing_run(
                 output_provenance: dict[str, dict[str, object]] = {}
                 for task_id in gate_task_ids:
                     task = ranged_tasks[task_id]
-                    if not task_condition_matches(task["condition"], source_mode):
+                    condition_artifacts = combined_artifacts(
+                        project_path,
+                        dependency_graph,
+                        gate_outputs,
+                    )
+                    if not task_condition_matches(
+                        task["condition"],
+                        source_mode,
+                        channel,
+                        condition_artifacts,
+                    ):
                         current_run = update_task_state(
                             project_path,
                             current_run,
@@ -864,13 +893,13 @@ async def execute_existing_run(
                         task_id == "variation.approve"
                         and production_config.get("approval_policy") == "HUMAN_REVIEW"
                     )
-                    approved = approval_is_current(
+                    runtime_approval = current_approval(
                         project_path,
                         current_run["run_id"],
                         task_id,
                         input_hashes,
                     )
-                    if human_approval_needed and not approved:
+                    if human_approval_needed and runtime_approval is None:
                         current_run = update_task_state(
                             project_path,
                             current_run,
@@ -899,16 +928,60 @@ async def execute_existing_run(
                         task_id,
                         {"semantic_attempt": semantic_attempt},
                     )
+                    current_run = update_task_state(
+                        project_path,
+                        current_run,
+                        task_id,
+                        "RUNNING",
+                        current_run["tasks"][task_id]["attempt"],
+                        None,
+                        None,
+                        input_hashes,
+                        None,
+                        None,
+                    )
                     if task["executor"] == "CORE":
-                        outputs = core_task_outputs(
-                            task_id,
-                            repository_root,
-                            project_path,
-                            gate_outputs,
-                            dependency_graph,
-                            reference_source,
-                            approved,
-                        )
+                        core_approval: RuntimeApproval | None = runtime_approval
+                        if task_id == "variation.record_approval":
+                            approval_state = current_run["tasks"].get("variation.approve")
+                            core_approval = (
+                                current_approval(
+                                    project_path,
+                                    current_run["run_id"],
+                                    "variation.approve",
+                                    approval_state["input_hashes"],
+                                )
+                                if approval_state is not None
+                                and approval_state["input_hashes"]
+                                else None
+                            )
+                        try:
+                            outputs = core_task_outputs(
+                                task_id,
+                                repository_root,
+                                project_path,
+                                gate_outputs,
+                                dependency_graph,
+                                reference_source,
+                                core_approval,
+                                current_run["run_id"],
+                                input_hashes,
+                            )
+                        except RuntimeExecutionError as error:
+                            if error.code == "HUMAN_INPUT_REQUIRED":
+                                current_run = update_task_state(
+                                    project_path,
+                                    current_run,
+                                    task_id,
+                                    "BLOCKED",
+                                    current_run["tasks"][task_id]["attempt"],
+                                    None,
+                                    None,
+                                    input_hashes,
+                                    None,
+                                    error.as_dict(),
+                                )
+                            raise
                         validate_core_outputs(
                             repository_root,
                             task_id,
@@ -1049,6 +1122,13 @@ async def execute_existing_run(
                     gate_outputs,
                     dependency_graph,
                     utc_now(),
+                    gate_required_artifacts_for_project(
+                        gate_id,
+                        dependency_graph,
+                        channel,
+                        production_config,
+                        staged_artifacts,
+                    ),
                 )
                 artifact_definitions = dependency_artifacts(dependency_graph)
                 changed_artifacts = {
@@ -1070,6 +1150,12 @@ async def execute_existing_run(
                     if task_condition_matches(
                         ranged_tasks[task_id]["condition"],
                         source_mode,
+                        channel,
+                        combined_artifacts(
+                            project_path,
+                            dependency_graph,
+                            gate_outputs,
+                        ),
                     )
                 }
                 traces = build_gate_traces(
@@ -1107,6 +1193,20 @@ async def execute_existing_run(
                     if conformant and gate_id == "GATE-13"
                     else "NONCONFORMANT"
                 )
+                change_log_path = project_path / "00_PROJECT" / "change_log.jsonl"
+                existing_change_log = (
+                    change_log_path.read_bytes() if change_log_path.is_file() else b""
+                )
+                committed_at = utc_now()
+                next_change_log = change_log_bytes(
+                    existing_change_log,
+                    "RUNTIME_GATE_COMMITTED",
+                    {
+                        "run_id": current_run["run_id"],
+                        "gate_id": gate_id,
+                    },
+                    committed_at,
+                )
                 transaction_id = commit_gate_transaction(
                     project_path,
                     current_run["run_id"],
@@ -1115,7 +1215,10 @@ async def execute_existing_run(
                     gate_outputs,
                     dependency_graph,
                     next_state,
-                    {PROCESS_TRACE_PATH: process_trace_bytes(project_path, traces)},
+                    {
+                        PROCESS_TRACE_PATH: process_trace_bytes(project_path, traces),
+                        "00_PROJECT/change_log.jsonl": next_change_log,
+                    },
                 )
                 sync_novelty_gate(
                     repository_root,
@@ -1143,19 +1246,9 @@ async def execute_existing_run(
                             **provenance,
                             "schema_hash": schema_hash,
                             "transaction_id": transaction_id,
-                            "committed_at": utc_now(),
+                            "committed_at": committed_at,
                         },
                     )
-                append_change_log(
-                    project_path,
-                    "RUNTIME_GATE_COMMITTED",
-                    {
-                        "run_id": current_run["run_id"],
-                        "gate_id": gate_id,
-                        "transaction_id": transaction_id,
-                    },
-                    utc_now(),
-                )
                 append_event(
                     project_path,
                     current_run["run_id"],
@@ -1208,7 +1301,7 @@ async def execute_existing_run(
             mark_project_blocked(project_path)
         status: RunStatus = (
             "WAITING_HUMAN"
-            if error.code == "HUMAN_APPROVAL_REQUIRED"
+            if error.code in {"HUMAN_APPROVAL_REQUIRED", "HUMAN_INPUT_REQUIRED"}
             else "CANCELLED"
             if error.code == "RUN_CANCELLED"
             else "FAILED"
@@ -1221,7 +1314,9 @@ async def execute_existing_run(
             error.as_dict(),
         )
         event_type = (
-            "HUMAN_REVIEW_REQUIRED"
+            "HUMAN_INPUT_REQUIRED"
+            if error.code == "HUMAN_INPUT_REQUIRED"
+            else "HUMAN_REVIEW_REQUIRED"
             if status == "WAITING_HUMAN"
             else "RUN_CANCELLED"
             if status == "CANCELLED"

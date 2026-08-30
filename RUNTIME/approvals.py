@@ -82,13 +82,39 @@ def approval_is_current(
     input_hashes: Mapping[str, str],
 ) -> bool:
     """승인 Decision과 결합 Input Hash가 현재 입력과 같은지 판정한다."""
+    return current_approval(project_path, run_id, task_id, input_hashes) is not None
+
+
+def current_approval(
+    project_path: Path,
+    run_id: str,
+    task_id: str,
+    input_hashes: Mapping[str, str],
+) -> RuntimeApproval | None:
+    """현재 입력 Hash와 일치하는 검증된 승인 레코드를 반환한다."""
     path = approval_path(project_path, run_id, task_id)
     if not path.is_file():
-        return False
+        return None
     approval = load_json_object(path)
+    schema = load_json_object(
+        Path(__file__).resolve().parent / "schemas" / "approval.schema.json"
+    )
+    errors = collect_schema_errors(approval, schema, "runtime_approval")
+    if errors:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "APPROVAL",
+            "저장된 Human Approval Schema가 손상되었습니다.",
+            task_id,
+            None,
+            {"errors": errors},
+        )
     bound = approval.get("bound_input_hashes")
-    return (
+    if not (
         approval.get("decision") == "APPROVED"
         and isinstance(bound, Mapping)
         and dict(bound) == dict(input_hashes)
-    )
+    ):
+        return None
+    return cast(RuntimeApproval, approval)

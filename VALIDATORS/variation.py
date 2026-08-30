@@ -11,14 +11,83 @@ from VALIDATORS.source_truth import SOURCE_TRUTH_CLASSIFICATIONS
 
 PROJECT_ID_PATTERN = re.compile(r"^PRJ-[0-9]{3,}$")
 USER_CASE_STATUSES = {"LOCKED", "FLEXIBLE", "UNKNOWN"}
-CRIME_INCIDENTS = {
-    "MURDER",
-    "BLACKMAIL",
-    "FRAUD",
-    "KIDNAPPING",
-    "THEFT",
-    "COVER_UP",
-    "FALSE_ACCUSATION",
+POLICY_DIMENSIONS = (
+    "genre",
+    "threat_type",
+    "trusted_domain",
+    "safe_domain_betrayal",
+    "responsible_agent_structure",
+    "information_mechanism",
+    "clue_mechanism",
+    "reveal_mode",
+    "final_proof_mechanism",
+    "victim_agency_mode",
+    "technical_dependency_level",
+    "production_complexity",
+    "episode_theme",
+    "location_count",
+    "major_character_count",
+    "special_effect_level",
+    "child_actor_use",
+    "vehicle_scene",
+    "graphic_violence",
+    "incident_type",
+    "culprit_structure",
+    "primary_twist",
+    "pressure_engine",
+)
+SAFE_GENERATION_VALUES: dict[str, frozenset[str]] = {
+    "threat_type": frozenset({"CRIME", "PREDATORY"}),
+    "safe_domain_betrayal": frozenset(
+        {"TRUST_ABUSED", "AUTHORITY_ABUSED", "CARE_EXPECTATION_BETRAYED"}
+    ),
+    "responsible_agent_structure": frozenset(
+        {"SINGLE_AGENT", "DUAL_AGENTS", "COMPLICIT_GROUP"}
+    ),
+    "information_mechanism": frozenset(
+        {"TESTIMONIAL_CONTRADICTION", "RELATIONAL_DISCLOSURE", "OWNERSHIP_CHAIN"}
+    ),
+    "clue_mechanism": frozenset(
+        {"LINGUISTIC", "BEHAVIORAL", "RELATIONAL", "DOCUMENTARY"}
+    ),
+    "reveal_mode": frozenset(
+        {"RELATIONAL_REFRAME", "TESTIMONIAL_COLLAPSE", "OWNERSHIP_RECONSTRUCTION"}
+    ),
+    "final_proof_mechanism": frozenset(
+        {"INDEPENDENT_NONTECHNICAL_GROUNDS", "CLAIM_EVIDENCE_CHAIN"}
+    ),
+    "victim_agency_mode": frozenset(
+        {"BOUNDARY_RESTORED", "EVIDENCE_PRESERVED", "INFORMED_EXIT"}
+    ),
+    "technical_dependency_level": frozenset({"LOW", "MEDIUM"}),
+    "production_complexity": frozenset({"LOW", "MEDIUM"}),
+    "location_count": frozenset({"LOCATIONS_2", "LOCATIONS_3", "LOCATIONS_5"}),
+    "major_character_count": frozenset({"MAJOR_4", "MAJOR_5", "MAJOR_7"}),
+    "special_effect_level": frozenset({"NONE", "LOW"}),
+    "child_actor_use": frozenset({"NONE", "SUPPORTING"}),
+    "vehicle_scene": frozenset({"NONE", "STATIC"}),
+    "graphic_violence": frozenset({"NONE", "IMPLIED"}),
+    "incident_type": frozenset(
+        {
+            "DISAPPEARANCE",
+            "MURDER",
+            "BLACKMAIL",
+            "FRAUD",
+            "KIDNAPPING",
+            "THEFT",
+            "COVER_UP",
+            "FALSE_ACCUSATION",
+        }
+    ),
+    "culprit_structure": frozenset({"SINGLE", "DUAL"}),
+    "primary_twist": frozenset(
+        {
+            "TW-03_FALSE_VICTIM",
+            "TW-01_MISIDENTIFIED_OWNER",
+            "TW-14_WITNESS_CAUSED_EVENT",
+            "TW-10_RESOLUTION_CHANGES_INCIDENT",
+        }
+    ),
 }
 
 
@@ -68,9 +137,25 @@ def choose_dimension_value(
     dimension_index: int,
 ) -> str:
     """후보와 차원마다 다른 보폭으로 선택지를 결정한다."""
-    offset = seed_offset(seed, dimension, len(choices))
-    step = coprime_step(dimension_index * 2 + 1, len(choices))
-    return choices[(offset + candidate_index * step) % len(choices)]
+    if candidate_index == 0:
+        return choices[0]
+    remaining = choices[1:]
+    offset = seed_offset(seed, dimension, len(remaining))
+    step = coprime_step(dimension_index * 2 + 1, len(remaining))
+    return remaining[(offset + (candidate_index - 1) * step) % len(remaining)]
+
+
+def generation_choices(dimension: str, choices: list[str]) -> list[str]:
+    """기본 생성에서는 명시적 Hard Filter 안전 선택지만 반환한다."""
+    allowed = SAFE_GENERATION_VALUES.get(dimension)
+    if allowed is None:
+        return choices
+    filtered = [choice for choice in choices if choice in allowed]
+    if not filtered:
+        raise ConfigurationError(
+            f"Variation Catalog에 안전 생성 선택지가 없습니다: dimension={dimension}"
+        )
+    return filtered
 
 
 def candidate_policy_profile(
@@ -83,22 +168,7 @@ def candidate_policy_profile(
             "Source Truth Classification이 올바르지 않습니다: "
             f"value={source_truth_classification!r}"
         )
-    incident_type = selection.get("incident_type")
-    culprit_structure = selection.get("culprit_structure")
-    setting = selection.get("setting")
-    pressure_engine = selection.get("pressure_engine")
-    perspective = selection.get("perspective")
-    relationship_engine = selection.get("relationship_engine")
-    dramatic_engine = selection.get("dramatic_engine")
-    required_values = {
-        "incident_type": incident_type,
-        "culprit_structure": culprit_structure,
-        "setting": setting,
-        "pressure_engine": pressure_engine,
-        "perspective": perspective,
-        "relationship_engine": relationship_engine,
-        "dramatic_engine": dramatic_engine,
-    }
+    required_values = {name: selection.get(name) for name in POLICY_DIMENSIONS}
     missing = sorted(
         key for key, value in required_values.items() if not isinstance(value, str)
     )
@@ -106,33 +176,9 @@ def candidate_policy_profile(
         raise ConfigurationError(
             f"Candidate Policy Profile 입력 Dimension이 없습니다: fields={missing}"
         )
-    threat_type = (
-        "CRIME"
-        if incident_type in CRIME_INCIDENTS
-        else "PREDATORY"
-        if incident_type == "DISAPPEARANCE"
-        else "NONE"
-    )
-    technical_dependency_level = (
-        "MEDIUM"
-        if perspective in {"FOUND_FOOTAGE", "SCREENLIFE"}
-        else "LOW"
-    )
-    episode_theme = (
-        "TRUST_BETRAYAL"
-        if relationship_engine == "BROKEN_TRUST"
-        or dramatic_engine == "TRUST_EROSION"
-        else "UNSPECIFIED"
-    )
     return {
-        "threat_type": threat_type,
-        "trusted_domain": str(setting),
-        "incident_type": str(incident_type),
-        "culprit_structure": str(culprit_structure),
-        "psychological_engine": str(pressure_engine),
-        "technical_dependency_level": technical_dependency_level,
+        **{name: str(required_values[name]) for name in POLICY_DIMENSIONS},
         "source_truth_classification": source_truth_classification,
-        "episode_theme": episode_theme,
     }
 
 
@@ -173,7 +219,7 @@ def generate_variation_candidates(
     for candidate_index in range(candidate_count):
         selection = {
             name: choose_dimension_value(
-                choices,
+                generation_choices(name, choices),
                 story_seed,
                 name,
                 candidate_index,

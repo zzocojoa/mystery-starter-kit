@@ -40,6 +40,38 @@ def write_candidate_evaluation(project_path: Path) -> str:
     return recommended
 
 
+def prepare_candidate_approval_project(
+    tmp_path: Path,
+    project_id: str,
+) -> tuple[Path, str]:
+    """CLI Candidate 승인 직전 상태의 격리 Project를 만든다."""
+    projects_root = tmp_path / project_id
+    assert run_cli(
+        [
+            "init",
+            project_id,
+            "--projects-root",
+            str(projects_root),
+            "--created-at",
+            "2026-08-25T00:00:00Z",
+        ]
+    ) == 0
+    project_path = projects_root / project_id
+    assert run_cli(["compat", str(project_path)]) == 0
+    assert run_cli(
+        [
+            "variations",
+            str(project_path),
+            "--seed",
+            "Candidate 승인 원자성 검증",
+            "--count",
+            "5",
+        ]
+    ) == 0
+    assert run_cli(["precheck", str(project_path)]) == 0
+    return project_path, write_candidate_evaluation(project_path)
+
+
 def write_complete_artifacts(
     project_path: Path,
     artifacts: dict[str, ArtifactContent],
@@ -387,6 +419,105 @@ def test_approve_before_candidate_evaluation_fails(tmp_path: Path) -> None:
     ) == 0
 
     assert run_cli(["approve", str(project_path), "VAR-01"]) == 2
+
+
+def test_approve_recalculates_tampered_eligibility(tmp_path: Path) -> None:
+    """저장된 적격성 결과를 변조해도 CLI Core 재계산에서 차단한다."""
+    project_path, recommended = prepare_candidate_approval_project(tmp_path, "PRJ-920")
+    path = project_path / "08_QA" / "candidate_eligibility.json"
+    eligibility = load_json_object(path)
+    eligibility["eligible_candidate_ids"] = []
+    write_json_object(path, eligibility)
+
+    assert run_cli(["approve", str(project_path), recommended]) == 2
+    candidates = load_json_object(
+        project_path / "00_PROJECT" / "variation_candidates.json"
+    )
+    assert candidates["approved_candidate_id"] is None
+
+
+def test_approve_rejects_stale_candidate_evaluation(tmp_path: Path) -> None:
+    """평가 뒤 Candidate 입력이 바뀌면 저장된 평가를 승인하지 않는다."""
+    project_path, recommended = prepare_candidate_approval_project(tmp_path, "PRJ-921")
+    path = project_path / "00_PROJECT" / "candidate_evaluation.json"
+    evaluation = load_json_object(path)
+    input_hashes = evaluation["input_hashes"]
+    assert isinstance(input_hashes, dict)
+    input_hashes["variation_candidates"] = "0" * 64
+    write_json_object(path, evaluation)
+
+    assert run_cli(["approve", str(project_path), recommended]) == 2
+
+
+def test_nonrecommended_candidate_requires_explicit_override(tmp_path: Path) -> None:
+    """추천 외 적격 후보는 Override Actor와 Reason 없이 승인할 수 없다."""
+    project_path, recommended = prepare_candidate_approval_project(tmp_path, "PRJ-922")
+    eligibility = load_json_object(
+        project_path / "08_QA" / "candidate_eligibility.json"
+    )
+    eligible = eligibility["eligible_candidate_ids"]
+    assert isinstance(eligible, list)
+    selected = next(
+        candidate_id
+        for candidate_id in eligible
+        if isinstance(candidate_id, str) and candidate_id != recommended
+    )
+
+    assert run_cli(["approve", str(project_path), selected]) == 2
+
+
+@pytest.mark.parametrize(
+    "target_name",
+    [
+        "variation_candidates.json",
+        "candidate_approval.json",
+        "project_state.json",
+        "change_log.jsonl",
+    ],
+)
+def test_candidate_approval_rolls_back_each_canonical_write(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    target_name: str,
+) -> None:
+    """승인 Transaction 어느 Canonical 교체가 실패해도 기존 파일을 복원한다."""
+    project_id = {
+        "variation_candidates.json": "PRJ-923",
+        "candidate_approval.json": "PRJ-924",
+        "project_state.json": "PRJ-925",
+        "change_log.jsonl": "PRJ-926",
+    }[target_name]
+    project_path, recommended = prepare_candidate_approval_project(tmp_path, project_id)
+    canonical_paths = [
+        project_path / "00_PROJECT" / name
+        for name in (
+            "variation_candidates.json",
+            "candidate_approval.json",
+            "project_state.json",
+            "change_log.jsonl",
+        )
+    ]
+    before = {path: path.read_bytes() for path in canonical_paths}
+    original_replace = os.replace
+    injected = False
+
+    def fail_target_once(
+        source: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        destination: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+    ) -> None:
+        """지정 Canonical Target의 첫 교체만 실패시킨다."""
+        nonlocal injected
+        destination_path = Path(os.fsdecode(destination))
+        if not injected and destination_path.name == target_name:
+            injected = True
+            raise OSError(f"injected approval failure: {target_name}")
+        original_replace(source, destination)
+
+    monkeypatch.setattr("RUNTIME.transactions.os.replace", fail_target_once)
+
+    assert run_cli(["approve", str(project_path), recommended]) == 2
+    assert injected
+    assert {path: path.read_bytes() for path in canonical_paths} == before
 
 
 def test_migrate_channel_pin_preserves_story_artifacts(tmp_path: Path) -> None:

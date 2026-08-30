@@ -26,9 +26,13 @@
         "executor": {"enum": ["CORE", "LLM", "HYBRID", "HUMAN", "COMPOSITE"]},
         "target_gate": {"type": "string", "pattern": "^GATE-(0[0-9]|1[0-3])$"},
         "reads": {"$ref": "#/$defs/stringList"},
+        "optional_reads": {"$ref": "#/$defs/stringList"},
         "writes": {"$ref": "#/$defs/nonEmptyStringList"},
         "depends_on_tasks": {"$ref": "#/$defs/stringList"},
-        "condition": {"enum": ["ALWAYS", "REFERENCE_ONLY", "TRUE_STORY_ONLY"]},
+        "condition": {
+          "type": "string",
+          "pattern": "^(ALWAYS|REFERENCE_ONLY|TRUE_STORY_ONLY|CAPABILITY_ENABLED:[A-Z][A-Z0-9_]*|FACT_BASED_OR_CAPABILITY_ENABLED:[A-Z][A-Z0-9_]*|ARTIFACT_STATUS:[a-z][a-z0-9_]*:[A-Z][A-Z0-9_]*|ARTIFACT_EXISTS:[a-z][a-z0-9_]*)$"
+        },
         "model_profile": {"type": ["string", "null"]},
         "output_contract": {"type": "string", "minLength": 1},
         "commit_policy": {"enum": ["ATOMIC_ON_PASS", "ALWAYS_DIAGNOSTIC", "EPHEMERAL"]},

@@ -3,6 +3,9 @@
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
+
+from RUNTIME.models import RuntimeApproval
 from RUNTIME.providers.fake import fake_candidate_evaluation
 from VALIDATORS.candidate_approval import build_candidate_approval, validate_candidate_approval
 from VALIDATORS.candidate_eligibility import (
@@ -86,6 +89,71 @@ def test_tampered_eligibility_fails_core_recalculation() -> None:
     )[0]["code"] == "CANDIDATE_ELIGIBILITY_MISMATCH"
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "expected_reason"),
+    [
+        ("trusted_domain", "APARTMENT_COMPLEX", "TRUSTED_DOMAIN"),
+        ("culprit_structure", "NO_CULPRIT", "STRUCTURE_POLICY"),
+        ("culprit_structure", "VICTIM_SELF_ENGINEERED", "STRUCTURE_POLICY"),
+        ("primary_twist", "SELF_CREATED_TRAP", "STRUCTURE_POLICY"),
+        ("final_proof_mechanism", "SINGLE_TECHNICAL_RECORD", "TECHNICAL_FINAL_PROOF"),
+        ("location_count", "LOCATIONS_8", "PRODUCTION_FEASIBILITY"),
+    ],
+)
+def test_explicit_candidate_policy_dimensions_fail_closed(
+    field: str,
+    value: str,
+    expected_reason: str,
+) -> None:
+    """장소 추론, 금지 구조, 기술 단독 증명과 제작 초과를 직접 차단한다."""
+    config, channel, variations, precheck, _eligibility, _evaluation = candidate_inputs()
+    changed = deepcopy(variations)
+    candidates = changed["candidates"]
+    assert isinstance(candidates, list)
+    candidate = candidates[0]
+    assert isinstance(candidate, dict)
+    selection = candidate["selection"]
+    profile = candidate["policy_profile"]
+    assert isinstance(selection, dict)
+    assert isinstance(profile, dict)
+    selection[field] = value
+    profile[field] = value
+
+    eligibility = build_candidate_eligibility(config, channel, changed, precheck)
+    results = eligibility["candidate_results"]
+    assert isinstance(results, list)
+    result = results[0]
+    assert isinstance(result, dict)
+    reasons = result["reasons"]
+    assert isinstance(reasons, list)
+    assert result["result"] == "FAIL"
+    assert expected_reason in reasons
+
+
+def test_missing_genre_is_not_inferred_as_mystery() -> None:
+    """Genre 누락을 기본 MYSTERY로 보정하지 않고 적격성 실패로 유지한다."""
+    config, channel, variations, precheck, _eligibility, _evaluation = candidate_inputs()
+    changed = deepcopy(variations)
+    candidates = changed["candidates"]
+    assert isinstance(candidates, list)
+    candidate = candidates[0]
+    assert isinstance(candidate, dict)
+    selection = candidate["selection"]
+    profile = candidate["policy_profile"]
+    assert isinstance(selection, dict)
+    assert isinstance(profile, dict)
+    selection.pop("genre")
+    profile.pop("genre")
+
+    eligibility = build_candidate_eligibility(config, channel, changed, precheck)
+    results = eligibility["candidate_results"]
+    assert isinstance(results, list)
+    result = results[0]
+    assert isinstance(result, dict)
+    assert result["result"] == "FAIL"
+    assert "POLICY_PROFILE" in result["reasons"]
+
+
 def test_approval_is_separate_and_hash_bound() -> None:
     """승인은 별도 Runtime Artifact로 현재 입력 Hash에 결속된다."""
     _config, _channel, variations, precheck, eligibility, evaluation = candidate_inputs()
@@ -95,6 +163,7 @@ def test_approval_is_separate_and_hash_bound() -> None:
     approval = build_candidate_approval(
         "PRJ-910", selected, selected, "SYSTEM", "자동 승인",
         "2025-01-01T00:00:00Z", approved, precheck, evaluation,
+        "AUTO_CONTINUE", None,
     )
     assert validate_candidate_approval(
         approved, precheck, eligibility, evaluation, approval
@@ -104,3 +173,55 @@ def test_approval_is_separate_and_hash_bound() -> None:
     assert validate_candidate_approval(
         approved, precheck, eligibility, changed, approval
     )
+
+
+def test_human_override_preserves_runtime_approval_provenance() -> None:
+    """비추천 적격 후보 승인에는 Human Override와 실제 승인 출처를 보존한다."""
+    _config, _channel, variations, precheck, eligibility, evaluation = candidate_inputs()
+    recommended = evaluation["recommended_candidate_id"]
+    eligible = eligibility["eligible_candidate_ids"]
+    assert isinstance(recommended, str)
+    assert isinstance(eligible, list)
+    selected = next(
+        candidate_id
+        for candidate_id in eligible
+        if isinstance(candidate_id, str) and candidate_id != recommended
+    )
+    approved = approve_variation_candidate(variations, selected)
+    runtime_approval = RuntimeApproval(
+        schema_family="runtime-approval",
+        schema_version="1.0.0",
+        approval_id="APR-ABCDEF123456",
+        run_id="RUN-TEST-OVERRIDE",
+        task_id="variation.approve",
+        decision="APPROVED",
+        actor="human-reviewer",
+        reason="추천 외 적격 후보의 구조적 장점을 검토함",
+        bound_input_hashes={"variation_candidates": "a" * 64},
+        created_at="2026-08-30T01:00:00Z",
+    )
+    approval = build_candidate_approval(
+        "PRJ-910",
+        selected,
+        recommended,
+        runtime_approval["actor"],
+        runtime_approval["reason"],
+        runtime_approval["created_at"],
+        approved,
+        precheck,
+        evaluation,
+        "HUMAN_REVIEW",
+        runtime_approval,
+    )
+
+    assert approval["approval_type"] == "HUMAN_OVERRIDE"
+    assert approval["approval_id"] == "APR-ABCDEF123456"
+    assert approval["actor"] == "human-reviewer"
+    assert approval["reason"] == "추천 외 적격 후보의 구조적 장점을 검토함"
+    assert validate_candidate_approval(
+        approved,
+        precheck,
+        eligibility,
+        evaluation,
+        approval,
+    ) == []

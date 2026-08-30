@@ -69,7 +69,7 @@ Continuity Critic의 `editorial_review.json`이 PASS여도 이는 기술적 Edit
 
 Presentation Contract v2.1은 `panel_cast.json`, `reaction_segments.json`, Drama/Narration/Panel Reaction Layer Script를 별도 Artifact로 유지한다. Reaction Segment의 `turns[]`는 각 패널 발화별 화자·기능·Clue·Fact·Tone을 보존하며 Validator는 모든 Turn을 대본 순서와 대조한다. `draft_v01.md`와 `final_script.md`는 모든 Segment를 방송 순서대로 한 번씩 포함하고, Edit Script는 계획된 절대 Timecode를 보존한다. Panel Reaction 비율은 Segment `duration_sec` 합으로 계산한다.
 
-## Runtime Core 회귀 모드
+## Runtime Core Flow
 
 Built-in `fake` Adapter는 외부 서비스를 호출하지 않는 결정론적 Test Double이다. `mystery-runtime`의 14개 Gate, Staging, Schema 검증, 원자 Commit, Provenance를 로컬과 CI에서 재현하지만 실제 Story·Character·Script를 제작하는 용도가 아니다.
 
@@ -84,7 +84,7 @@ Built-in `fake` Adapter는 외부 서비스를 호출하지 않는 결정론적 
 
 ```bash
 .venv/bin/mystery-runtime status PROJECTS/PRJ-RUNTIME-TEST
-.venv/bin/mystery-runtime approve RUN-... variation.generate \
+.venv/bin/mystery-runtime approve RUN-... variation.approve \
   --actor reviewer@example.com \
   --reason "후보 구조와 신규성을 검토함"
 .venv/bin/mystery-runtime resume RUN-...
@@ -92,9 +92,22 @@ Built-in `fake` Adapter는 외부 서비스를 호출하지 않는 결정론적 
 .venv/bin/mystery-runtime providers
 ```
 
+사실 기반 Project가 `reference.build_evidence`에서 `WAITING_HUMAN`으로 대기하면 Human은 원문 전문이 아닌 출처 Metadata, Claim 분류와 공개·임상 Label만 제출한다. 두 보조 명령은 같은 Runtime 입력 경로를 사용한다.
+
+```bash
+.venv/bin/mystery-kit evidence-submit PROJECTS/PRJ-RUNTIME-TEST RUN-... evidence-input.json
+# 또는
+.venv/bin/mystery-runtime submit-input RUN-... reference.build_evidence evidence-input.json
+.venv/bin/mystery-runtime resume RUN-...
+```
+
+제출 시 Evidence 문서의 `bound_input_hashes`를 대기 중 Task의 현재 입력 Hash와 대조한다. 일치한 입력만 같은 Run에서 재개되며, 입력 Artifact가 바뀌면 기존 Human Input은 무효다. GATE-03의 `sources.json`, `claim_evidence.json`, 조건부 `source_disclosure.json`·`clinical_labels.json`, Project State와 Change Log는 하나의 Write-ahead Transaction으로 Commit한다.
+
 Runtime 종료 코드는 성공 `0`, Runtime·입력·구성 오류 `2`다. Gate 또는 Provider 실패는 구조화 오류로 `run.json`과 `events.jsonl`에 남고 Canonical Artifact는 마지막 통과 Gate 상태를 유지한다.
 
-Codex App이 필요에 따라 호출할 수 있는 결정론적 제작 보조 명령도 유지한다.
+## Codex App 보조 CLI Flow
+
+Codex App이 필요에 따라 호출할 수 있는 결정론적 제작 보조 명령도 유지한다. 이 흐름은 위 Runtime Core의 Run 승인·Human Input 명령과 별개다.
 
 ```bash
 .venv/bin/mystery-kit compat PROJECTS/PRJ-002

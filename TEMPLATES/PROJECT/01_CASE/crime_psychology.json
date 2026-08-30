@@ -1,8 +1,0 @@
-{
-  "$schema": "../../../STANDARD/schemas/crime_psychology.schema.json",
-  "schema_family": "crime-psychology",
-  "schema_version": "1.0.0",
-  "project_id": "PRJ-000",
-  "applicable": false,
-  "not_applicable_reason": "Channel Content Version 1.1.0에서는 필수 정책이 아닙니다."
-}

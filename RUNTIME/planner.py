@@ -6,7 +6,9 @@ from pathlib import Path
 from RUNTIME.contracts import load_task_catalog
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.models import ExecutionPlan, PlannedTask, RuntimeTask
+from VALIDATORS.channel_registry import resolve_project_channel
 from VALIDATORS.io import load_json_object
+from VALIDATORS.pipeline import load_existing_project_artifacts
 from VALIDATORS.state_machine import gate_index
 
 
@@ -28,14 +30,48 @@ def next_gate_id(current_gate: str) -> str:
     return f"GATE-{index:02d}"
 
 
-def task_condition_matches(condition: str, source_mode: str) -> bool:
-    """Project Source Mode에 따라 조건부 Task 실행 여부를 판정한다."""
+def task_condition_matches(
+    condition: str,
+    source_mode: str,
+    channel: Mapping[str, object],
+    artifacts: Mapping[str, object],
+) -> bool:
+    """Source, Capability와 선행 Artifact 상태로 Task 실행 여부를 판정한다."""
     if condition == "ALWAYS":
         return True
     if condition == "REFERENCE_ONLY":
         return source_mode == "REFERENCE_INSPIRED"
     if condition == "TRUE_STORY_ONLY":
         return source_mode in {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}
+    if condition.startswith("FACT_BASED_OR_CAPABILITY_ENABLED:"):
+        if source_mode in {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}:
+            return True
+        capability_id = condition.removeprefix(
+            "FACT_BASED_OR_CAPABILITY_ENABLED:"
+        )
+        capabilities = channel.get("capabilities")
+        capability = (
+            capabilities.get(capability_id)
+            if isinstance(capabilities, Mapping)
+            else None
+        )
+        return isinstance(capability, Mapping) and capability.get("enabled") is True
+    if condition.startswith("CAPABILITY_ENABLED:"):
+        capability_id = condition.removeprefix("CAPABILITY_ENABLED:")
+        capabilities = channel.get("capabilities")
+        capability = (
+            capabilities.get(capability_id)
+            if isinstance(capabilities, Mapping)
+            else None
+        )
+        return isinstance(capability, Mapping) and capability.get("enabled") is True
+    if condition.startswith("ARTIFACT_STATUS:"):
+        _prefix, artifact_name, expected_status = condition.split(":", 2)
+        artifact = artifacts.get(artifact_name)
+        return isinstance(artifact, Mapping) and artifact.get("status") == expected_status
+    if condition.startswith("ARTIFACT_EXISTS:"):
+        artifact_name = condition.removeprefix("ARTIFACT_EXISTS:")
+        return artifact_name in artifacts
     raise RuntimeExecutionError(
         "RUNTIME_CONFIGURATION_ERROR",
         False,
@@ -148,6 +184,13 @@ def build_execution_plan(
             {"from_gate": from_gate, "to_gate": to_gate},
         )
     catalog = load_task_catalog(repository_root)
+    dependency_graph = load_json_object(repository_root / "STANDARD/dependency_graph.json")
+    channel, _manifest, _channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        None,
+    )
+    artifacts = load_existing_project_artifacts(project_path, dependency_graph)
     ranged = tasks_in_gate_range(catalog, from_gate, to_gate)
     ordered = topological_task_ids(ranged)
     planned = [
@@ -156,7 +199,12 @@ def build_execution_plan(
             target_gate=ranged[task_id]["target_gate"],
             executor=ranged[task_id]["executor"],
             status="PLANNED"
-            if task_condition_matches(ranged[task_id]["condition"], source_mode)
+            if task_condition_matches(
+                ranged[task_id]["condition"],
+                source_mode,
+                channel,
+                artifacts,
+            )
             else "SKIPPED",
         )
         for task_id in ordered

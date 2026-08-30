@@ -116,6 +116,8 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         variations,
         novelty_precheck,
         candidate_evaluation,
+        "AUTO_CONTINUE",
+        None,
     )
     case_input: dict[str, object] = {
         "project_id": project_id,

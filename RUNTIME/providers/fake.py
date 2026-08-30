@@ -1020,6 +1020,15 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             }
         ]
     if task_id == "story.define_case":
+        facts: list[dict[str, object]] = [
+            {"fact_id": "FACT-01", "statement": "기계 로그에 7분 공백이 있다."},
+            {"fact_id": "FACT-02", "statement": "안전 센서는 점검 모드였다."},
+        ]
+        if source_mode in {"TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"}:
+            facts = [
+                {**fact, "classification": "FACT", "source_ids": ["SRC-01"]}
+                for fact in facts
+            ]
         return [
             {
                 "artifact_name": "case_input",
@@ -1041,12 +1050,12 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "media_type": "application/json",
                 "content": {
                     "project_id": project_id,
-                    "facts": [
-                        {"fact_id": "FACT-01", "statement": "기계 로그에 7분 공백이 있다."},
-                        {"fact_id": "FACT-02", "statement": "안전 센서는 점검 모드였다."},
-                    ],
+                    "facts": facts,
                 },
             },
+        ]
+    if task_id == "story.define_crime_psychology":
+        return [
             {
                 "artifact_name": "crime_psychology",
                 "media_type": "application/json",
@@ -1055,11 +1064,9 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     "schema_version": "1.0.0",
                     "project_id": project_id,
                     "applicable": False,
-                    "not_applicable_reason": (
-                        "Channel Content Version 1.1.0에서는 필수 정책이 아닙니다."
-                    ),
+                    "not_applicable_reason": "FakeProvider 정책 Fixture에는 적용하지 않습니다.",
                 },
-            },
+            }
         ]
     if task_id == "character.design":
         return [
@@ -1323,6 +1330,14 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "content": fake_reaction_segments(project_id, total_seconds),
             },
             {
+                "artifact_name": "presentation_plan",
+                "media_type": "application/json",
+                "content": fake_presentation_plan(project_id, total_seconds),
+            },
+        ]
+    if task_id == "scene.design_experts":
+        return [
+            {
                 "artifact_name": "expert_segments",
                 "media_type": "application/json",
                 "content": {
@@ -1330,17 +1345,10 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     "schema_version": "1.0.0",
                     "project_id": project_id,
                     "status": "NOT_APPLICABLE",
-                    "not_applicable_reason": (
-                        "Channel Content Version 1.1.0에서는 전문가 분석이 선택 사항입니다."
-                    ),
+                    "not_applicable_reason": "FakeProvider 정책 Fixture에는 적용하지 않습니다.",
                     "segments": [],
                 },
-            },
-            {
-                "artifact_name": "presentation_plan",
-                "media_type": "application/json",
-                "content": fake_presentation_plan(project_id, total_seconds),
-            },
+            }
         ]
     if task_id == "script.write_layers":
         layer_scripts = fake_script_layers(target_runtime_seconds(metadata))
@@ -1352,16 +1360,14 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             }
             for artifact_name, content in layer_scripts.items()
         ]
+        return layer_outputs
+    if task_id == "script.write_expert":
         return [
-            *layer_outputs,
             {
                 "artifact_name": "expert_analysis_script",
                 "media_type": "text/markdown",
-                "content": (
-                    "# Expert Analysis\n\n"
-                    "Channel Content Version 1.1.0에서는 적용 대상이 아닙니다."
-                ),
-            },
+                "content": "# Expert Analysis\n\n검증된 Claim과 Evidence를 연결합니다.",
+            }
         ]
     if task_id == "script.integrate":
         broadcast_master = fake_broadcast_master(target_runtime_seconds(metadata))
@@ -1399,14 +1405,6 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 ),
             },
             {
-                "artifact_name": "production_expert_analysis_script",
-                "media_type": "text/markdown",
-                "content": (
-                    "# Production Expert Analysis\n\n"
-                    "Channel Content Version 1.1.0에서는 적용 대상이 아닙니다."
-                ),
-            },
-            {
                 "artifact_name": "subtitle_script",
                 "media_type": "text/markdown",
                 "content": "00:00 지안은 7분의 공백을 발견한다.",
@@ -1416,6 +1414,14 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "media_type": "text/markdown",
                 "content": fake_edit_script(project_id, target_runtime_seconds(metadata)),
             },
+        ]
+    if task_id == "production.package_expert":
+        return [
+            {
+                "artifact_name": "production_expert_analysis_script",
+                "media_type": "text/markdown",
+                "content": "# Production Expert Analysis\n\n전문가 분석 촬영 Cue",
+            }
         ]
     if task_id == "editorial.review":
         return [

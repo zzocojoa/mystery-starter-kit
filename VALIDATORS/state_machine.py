@@ -1,8 +1,10 @@
 """GATE-00부터 GATE-13까지의 Project 상태 전이."""
 
+from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from typing import TypedDict
 
+from VALIDATORS.dependency import artifact_required_for_project, dependency_artifacts
 from VALIDATORS.exceptions import StateTransitionError
 from VALIDATORS.models import ProjectState, ProjectStatus
 
@@ -156,15 +158,37 @@ def expected_gate(state: ProjectState) -> GateDefinition:
 
 def missing_clean_artifacts(
     state: ProjectState,
-    gate: GateDefinition,
+    required_artifacts: Sequence[str],
 ) -> list[str]:
     """Gate에 필요하지만 CLEAN이 아닌 Artifact 이름을 반환한다."""
     missing: list[str] = []
-    for artifact_name in gate["required_artifacts"]:
+    for artifact_name in required_artifacts:
         artifact_state = state["artifacts"].get(artifact_name)
         if artifact_state is None or artifact_state["status"] != "CLEAN":
             missing.append(artifact_name)
     return missing
+
+
+def gate_required_artifacts_for_project(
+    gate_id: str,
+    dependency_graph: Mapping[str, object],
+    channel: Mapping[str, object],
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, object],
+) -> tuple[str, ...]:
+    """Gate 기본 목록에서 현재 Project에 실제로 필요한 Artifact만 반환한다."""
+    gate = GATES[gate_index(gate_id)]
+    definitions = dependency_artifacts(dependency_graph)
+    return tuple(
+        artifact_name
+        for artifact_name in gate["required_artifacts"]
+        if artifact_required_for_project(
+            definitions[artifact_name],
+            channel,
+            production_config,
+            artifacts,
+        )
+    )
 
 
 def advance_gate(
@@ -172,6 +196,7 @@ def advance_gate(
     gate_id: str,
     passed: bool,
     updated_at: str,
+    required_artifacts: Sequence[str],
 ) -> ProjectState:
     """정해진 순서와 CLEAN 조건을 만족할 때만 Project 상태를 전이한다."""
     gate = expected_gate(state)
@@ -185,7 +210,7 @@ def advance_gate(
         next_state["state"] = "BLOCKED"
         return next_state
 
-    missing = missing_clean_artifacts(state, gate)
+    missing = missing_clean_artifacts(state, required_artifacts)
     if missing:
         raise StateTransitionError(
             f"Gate 필수 Artifact가 CLEAN이 아닙니다: gate={gate_id}, artifacts={missing}"

@@ -27,6 +27,8 @@ from VALIDATORS.pipeline import (
     artifact_text,
     nonempty_list_issues,
     nonempty_string_issues,
+    optional_artifact_text,
+    optional_schema_issues,
     production_text_issues,
     schema_issues,
     validate_compatibility_binding_current,
@@ -180,11 +182,8 @@ def validate_gate(
     story = artifact_document(artifacts, "story_dna")
     case_input = artifact_document(artifacts, "case_input")
     facts = artifact_document(artifacts, "facts")
-    crime_psychology = artifact_document(artifacts, "crime_psychology")
     sources = artifact_document(artifacts, "sources")
     claims = artifact_document(artifacts, "claim_evidence")
-    source_disclosure = artifact_document(artifacts, "source_disclosure")
-    clinical_labels = artifact_document(artifacts, "clinical_labels")
     if gate_id == "GATE-03":
         issues = [
             *nonempty_string_issues(
@@ -193,18 +192,21 @@ def validate_gate(
                 "01_CASE/case_input.json",
             ),
             *nonempty_list_issues(facts, "facts", "01_CASE/facts.json"),
-            *schema_issues(
-                crime_psychology,
+            *optional_schema_issues(
+                artifacts,
+                "crime_psychology",
                 presentation_schemas["crime_psychology"],
                 "01_CASE/crime_psychology.json",
             ),
-            *schema_issues(
-                source_disclosure,
+            *optional_schema_issues(
+                artifacts,
+                "source_disclosure",
                 presentation_schemas["source_disclosure"],
                 "01_CASE/source_disclosure.json",
             ),
-            *schema_issues(
-                clinical_labels,
+            *optional_schema_issues(
+                artifacts,
+                "clinical_labels",
                 presentation_schemas["clinical_labels"],
                 "01_CASE/clinical_labels.json",
             ),
@@ -259,7 +261,6 @@ def validate_gate(
     scenes = artifact_document(artifacts, "scene_cards")
     panel_cast = artifact_document(artifacts, "panel_cast")
     reaction_segments = artifact_document(artifacts, "reaction_segments")
-    expert_segments = artifact_document(artifacts, "expert_segments")
     presentation = artifact_document(artifacts, "presentation_plan")
     if gate_id == "GATE-07":
         return [
@@ -279,8 +280,9 @@ def validate_gate(
                 presentation_schemas["presentation_plan"],
                 "06_SCENE/presentation_plan.json",
             ),
-            *schema_issues(
-                expert_segments,
+            *optional_schema_issues(
+                artifacts,
+                "expert_segments",
                 presentation_schemas["expert_segments"],
                 "06_SCENE/expert_segments.json",
             ),
@@ -319,7 +321,7 @@ def validate_gate(
                 artifact_text(artifacts, "drama_script"),
                 artifact_text(artifacts, "narration_script"),
                 artifact_text(artifacts, "panel_reaction_script"),
-                artifact_text(artifacts, "expert_analysis_script"),
+                optional_artifact_text(artifacts, "expert_analysis_script"),
                 artifact_text(artifacts, "draft_script"),
                 artifact_text(artifacts, "final_script"),
             ),
@@ -390,7 +392,7 @@ def validate_gate(
                 artifact_text(artifacts, "drama_script"),
                 artifact_text(artifacts, "narration_script"),
                 artifact_text(artifacts, "panel_reaction_script"),
-                artifact_text(artifacts, "expert_analysis_script"),
+                optional_artifact_text(artifacts, "expert_analysis_script"),
                 artifact_text(artifacts, "draft_script"),
                 final_script,
             ),
@@ -428,7 +430,7 @@ def validate_gate(
                 artifact_text(artifacts, "drama_script"),
                 artifact_text(artifacts, "narration_script"),
                 artifact_text(artifacts, "panel_reaction_script"),
-                artifact_text(artifacts, "expert_analysis_script"),
+                optional_artifact_text(artifacts, "expert_analysis_script"),
                 artifact_text(artifacts, "draft_script"),
                 final_script,
             ),

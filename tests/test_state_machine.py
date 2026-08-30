@@ -33,6 +33,7 @@ def test_all_fourteen_gates_require_editorial_review() -> None:
             definition["gate_id"],
             True,
             "2026-08-25T00:01:00Z",
+            definition["required_artifacts"],
         )
 
     assert state["state"] == "EDITORIAL_REVIEW_REQUIRED"
@@ -47,7 +48,13 @@ def test_out_of_order_gate_is_rejected() -> None:
     state = make_clean_state()
 
     with pytest.raises(StateTransitionError, match="Gate 순서"):
-        advance_gate(state, "GATE-01", True, "2026-08-25T00:01:00Z")
+        advance_gate(
+            state,
+            "GATE-01",
+            True,
+            "2026-08-25T00:01:00Z",
+            GATES[1]["required_artifacts"],
+        )
 
 
 def test_dirty_required_artifact_blocks_transition() -> None:
@@ -60,15 +67,33 @@ def test_dirty_required_artifact_blocks_transition() -> None:
     compatibility["status"] = "DIRTY"
 
     with pytest.raises(StateTransitionError, match="CLEAN"):
-        advance_gate(state, "GATE-00", True, "2026-08-25T00:01:00Z")
+        advance_gate(
+            state,
+            "GATE-00",
+            True,
+            "2026-08-25T00:01:00Z",
+            GATES[0]["required_artifacts"],
+        )
 
 
 def test_failed_gate_preserves_last_passed_gate_for_retry() -> None:
     """실패한 Gate는 BLOCKED로 표시하되 같은 Gate를 다시 실행할 수 있어야 한다."""
     state = make_clean_state()
 
-    blocked = advance_gate(state, "GATE-00", False, "2026-08-25T00:01:00Z")
-    recovered = advance_gate(blocked, "GATE-00", True, "2026-08-25T00:02:00Z")
+    blocked = advance_gate(
+        state,
+        "GATE-00",
+        False,
+        "2026-08-25T00:01:00Z",
+        GATES[0]["required_artifacts"],
+    )
+    recovered = advance_gate(
+        blocked,
+        "GATE-00",
+        True,
+        "2026-08-25T00:02:00Z",
+        GATES[0]["required_artifacts"],
+    )
 
     assert blocked["state"] == "BLOCKED"
     assert blocked["current_gate"] == "NONE"

@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/runtime/evidence-input-1.0.0.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "task_id",
+    "source_truth_classification",
+    "sources",
+    "claims",
+    "source_disclosure",
+    "clinical_labels",
+    "actor",
+    "reason",
+    "submitted_at",
+    "bound_input_hashes"
+  ],
+  "properties": {
+    "schema_family": {"const": "evidence-input"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "task_id": {"const": "reference.build_evidence"},
+    "source_truth_classification": {
+      "enum": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/source"}
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/claim"}
+    },
+    "source_disclosure": {"$ref": "#/$defs/sourceDisclosure"},
+    "clinical_labels": {"$ref": "#/$defs/clinicalLabels"},
+    "actor": {"type": "string", "minLength": 1},
+    "reason": {"type": "string", "minLength": 1},
+    "submitted_at": {"type": "string", "format": "date-time"},
+    "bound_input_hashes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+    }
+  },
+  "$defs": {
+    "canonicalId": {"type": "string", "pattern": "^[A-Z]+-[0-9]{2,}$"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "url", "title", "publisher", "published_at", "source_type"],
+      "properties": {
+        "source_id": {"$ref": "#/$defs/canonicalId"},
+        "url": {"type": "string", "format": "uri", "pattern": "^https?://"},
+        "title": {"type": "string", "minLength": 1},
+        "publisher": {"type": "string", "minLength": 1},
+        "published_at": {"type": "string", "format": "date"},
+        "source_type": {
+          "enum": ["PRIMARY", "SECONDARY", "COURT_RECORD", "OFFICIAL_RECORD", "NEWS", "EXPERT_PUBLICATION"]
+        }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact_id", "claim", "classification", "evidence_source_ids", "evidence_scope", "confidence"],
+      "properties": {
+        "fact_id": {"$ref": "#/$defs/canonicalId"},
+        "claim": {"type": "string", "minLength": 1},
+        "classification": {"enum": ["FACT", "INFERENCE", "DRAMATIZATION"]},
+        "evidence_source_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/canonicalId"}
+        },
+        "evidence_scope": {"type": "string", "minLength": 1},
+        "confidence": {"enum": ["HIGH", "MEDIUM", "LOW"]}
+      }
+    },
+    "sourceDisclosure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_family",
+        "schema_version",
+        "project_id",
+        "internal_mode",
+        "audience_label_text"
+      ],
+      "properties": {
+        "$schema": {"type": "string"},
+        "schema_family": {"const": "source-disclosure"},
+        "schema_version": {"const": "1.0.0"},
+        "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+        "internal_mode": {
+          "enum": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]
+        },
+        "audience_label_text": {"type": "string", "minLength": 1}
+      }
+    },
+    "clinicalLabels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_family", "schema_version", "project_id", "labels"],
+      "properties": {
+        "$schema": {"type": "string"},
+        "schema_family": {"const": "clinical-labels"},
+        "schema_version": {"const": "1.0.0"},
+        "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+        "labels": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/clinicalLabel"}
+        }
+      }
+    },
+    "clinicalLabel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "term",
+        "subject_id",
+        "classification",
+        "source_claim_ids",
+        "qualified_expert",
+        "documented_assessment"
+      ],
+      "properties": {
+        "term": {"type": "string", "minLength": 1},
+        "subject_id": {"type": "string", "pattern": "^CHAR-[0-9]{2,}$"},
+        "classification": {
+          "enum": [
+            "CONFIRMED_DIAGNOSIS",
+            "EXPERT_ASSESSMENT",
+            "MEDIA_DESCRIPTION",
+            "NARRATOR_OPINION",
+            "UNVERIFIED_LABEL"
+          ]
+        },
+        "source_claim_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[A-Z]+-[0-9]{2,}$"}
+        },
+        "qualified_expert": {"type": "boolean"},
+        "documented_assessment": {"type": "boolean"}
+      }
+    }
+  }
+}

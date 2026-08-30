@@ -82,13 +82,13 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "sources"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "sources": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["source_id", "url"], "properties": {"source_id": {"$ref": "#/$defs/canonicalId"}, "url": {"$ref": "#/$defs/nonEmptyString"}, "title": {"type": "string"}}}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "sources": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["source_id", "url"], "properties": {"source_id": {"$ref": "#/$defs/canonicalId"}, "url": {"$ref": "#/$defs/nonEmptyString"}, "title": {"type": "string"}, "publisher": {"type": "string"}, "published_at": {"type": "string"}, "source_type": {"enum": ["PRIMARY", "SECONDARY", "COURT_RECORD", "OFFICIAL_RECORD", "NEWS", "EXPERT_PUBLICATION"]}}}}}
     },
     "claimEvidence": {
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "claims"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "claims": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["fact_id", "evidence_source_ids"], "properties": {"fact_id": {"$ref": "#/$defs/canonicalId"}, "evidence_source_ids": {"$ref": "#/$defs/nonEmptyStringList"}}}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "claims": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["fact_id", "evidence_source_ids"], "properties": {"fact_id": {"$ref": "#/$defs/canonicalId"}, "claim": {"type": "string"}, "classification": {"enum": ["FACT", "INFERENCE", "DRAMATIZATION"]}, "evidence_source_ids": {"$ref": "#/$defs/nonEmptyStringList"}, "evidence_scope": {"type": "string"}, "confidence": {"enum": ["HIGH", "MEDIUM", "LOW"]}}}}}
     },
     "characters": {
       "type": "object",

@@ -2,6 +2,7 @@
 
 from collections.abc import Mapping
 
+from RUNTIME.models import RuntimeApproval
 from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.models import ValidationIssue
 from VALIDATORS.novelty import variation_precheck_source_hash
@@ -30,14 +31,18 @@ def build_candidate_approval(
     variations: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
     candidate_evaluation: Mapping[str, object],
+    approval_policy: str,
+    runtime_approval: RuntimeApproval | None,
 ) -> dict[str, object]:
     """자동 또는 명시적 Human Override 승인 기록을 만든다."""
     approval_type = (
-        "AUTO_POLICY"
-        if selected_candidate_id == recommended_candidate_id
-        else "HUMAN_OVERRIDE"
+        "HUMAN_OVERRIDE"
+        if selected_candidate_id != recommended_candidate_id
+        else "HUMAN_CONFIRMATION"
+        if approval_policy == "HUMAN_REVIEW"
+        else "AUTO_POLICY"
     )
-    return {
+    document: dict[str, object] = {
         "$schema": "../../../STANDARD/schemas/candidate_approval.schema.json",
         "schema_family": "candidate-approval",
         "schema_version": "1.0.0",
@@ -54,6 +59,17 @@ def build_candidate_approval(
         ),
         "approved_at": approved_at,
     }
+    if runtime_approval is not None:
+        document.update(
+            {
+                "approval_id": runtime_approval["approval_id"],
+                "run_id": runtime_approval["run_id"],
+                "task_id": runtime_approval["task_id"],
+                "created_at": runtime_approval["created_at"],
+                "bound_input_hashes": runtime_approval["bound_input_hashes"],
+            }
+        )
+    return document
 
 
 def validate_candidate_approval(
@@ -81,9 +97,32 @@ def validate_candidate_approval(
         problems.append("CANDIDATE_INELIGIBLE")
     if candidate_approval.get("input_hashes") != expected_hashes:
         problems.append("APPROVAL_STALE")
-    expected_type = "AUTO_POLICY" if selected == recommended else "HUMAN_OVERRIDE"
-    if candidate_approval.get("approval_type") != expected_type:
+    approval_type = candidate_approval.get("approval_type")
+    if selected != recommended and approval_type != "HUMAN_OVERRIDE":
         problems.append("APPROVAL_TYPE_MISMATCH")
+    if selected == recommended and approval_type not in {
+        "AUTO_POLICY",
+        "HUMAN_CONFIRMATION",
+    }:
+        problems.append("APPROVAL_TYPE_MISMATCH")
+    if approval_type in {"HUMAN_CONFIRMATION", "HUMAN_OVERRIDE"}:
+        provenance_fields = (
+            "approval_id",
+            "run_id",
+            "task_id",
+            "created_at",
+            "bound_input_hashes",
+        )
+        present_count = sum(field in candidate_approval for field in provenance_fields)
+        if present_count != len(provenance_fields):
+            problems.append("HUMAN_APPROVAL_PROVENANCE_INCOMPLETE")
+        if present_count == len(provenance_fields):
+            if candidate_approval.get("task_id") != "variation.approve":
+                problems.append("HUMAN_APPROVAL_TASK_MISMATCH")
+            if candidate_approval.get("actor") in {None, "SYSTEM"}:
+                problems.append("HUMAN_APPROVAL_ACTOR_INVALID")
+            if candidate_approval.get("approved_at") != candidate_approval.get("created_at"):
+                problems.append("HUMAN_APPROVAL_TIMESTAMP_MISMATCH")
     if not problems:
         return []
     return [

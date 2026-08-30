@@ -7,6 +7,63 @@ from VALIDATORS.models import ValidationIssue
 from VALIDATORS.novelty import variation_precheck_source_hash
 from VALIDATORS.source_truth import require_source_truth_classification
 
+TRUSTED_DOMAINS = {
+    "SPOUSE",
+    "ROMANTIC_PARTNER",
+    "FAMILY",
+    "FRIEND",
+    "EMPLOYMENT",
+    "RELIGIOUS_AUTHORITY",
+    "EDUCATIONAL_AUTHORITY",
+    "MEDICAL_CARE",
+    "HOME_SAFETY",
+    "NEIGHBOR",
+    "ONLINE_COMMUNITY",
+    "FINANCIAL_TRUST",
+}
+DEFAULT_REJECTED_STRUCTURES = {
+    "NO_CRIME",
+    "NO_CULPRIT",
+    "VICTIM_SELF_ENGINEERED",
+    "SELF_CREATED_TRAP",
+    "TW-14_SELF_CREATED_TRAP",
+    "SYSTEMIC_CAUSE",
+}
+TECHNICAL_REVEAL_VALUES = {
+    "TIMESTAMP_CORRECTION",
+    "MACHINE_RECORD_RESOLUTION",
+}
+TECHNICAL_FINAL_PROOF_VALUES = {
+    "SINGLE_TECHNICAL_RECORD",
+    "METADATA_ONLY",
+    "CCTV_ONLY",
+}
+PROFILE_SELECTION_FIELDS = (
+    "genre",
+    "threat_type",
+    "trusted_domain",
+    "safe_domain_betrayal",
+    "responsible_agent_structure",
+    "information_mechanism",
+    "clue_mechanism",
+    "reveal_mode",
+    "final_proof_mechanism",
+    "victim_agency_mode",
+    "incident_type",
+    "culprit_structure",
+    "primary_twist",
+    "pressure_engine",
+    "technical_dependency_level",
+    "production_complexity",
+    "location_count",
+    "major_character_count",
+    "special_effect_level",
+    "child_actor_use",
+    "vehicle_scene",
+    "graphic_violence",
+    "episode_theme",
+)
+
 
 def eligibility_input_hashes(
     production_config: Mapping[str, object],
@@ -70,6 +127,68 @@ def locked_constraints_pass(
     return True
 
 
+def channel_episode_overrides(channel: Mapping[str, object]) -> set[str]:
+    """Channel이 명시한 예외 구조 ID만 반환한다."""
+    capabilities = channel.get("capabilities")
+    policy = (
+        capabilities.get("STORY_VARIATION_POLICY")
+        if isinstance(capabilities, Mapping)
+        else None
+    )
+    values = policy.get("episode_overrides") if isinstance(policy, Mapping) else None
+    if not isinstance(values, list):
+        return set()
+    return {value for value in values if isinstance(value, str)}
+
+
+def profile_matches_selection(
+    selection: Mapping[str, object],
+    profile: Mapping[str, object],
+) -> bool:
+    """정책 Profile이 명시 Dimension을 그대로 보존하는지 판정한다."""
+    return all(
+        isinstance(selection.get(field), str)
+        and profile.get(field) == selection.get(field)
+        for field in PROFILE_SELECTION_FIELDS
+    )
+
+
+def technical_final_proof_absent(profile: Mapping[str, object]) -> bool:
+    """단일 기술 기록이 최종 진실을 확정하는 Candidate를 차단한다."""
+    final_proof = profile.get("final_proof_mechanism")
+    reveal_mode = profile.get("reveal_mode")
+    return (
+        profile.get("technical_dependency_level") != "FINAL_PROOF"
+        and final_proof not in TECHNICAL_FINAL_PROOF_VALUES
+        and reveal_mode not in TECHNICAL_REVEAL_VALUES
+    )
+
+
+def numeric_suffix(value: object, prefix: str) -> int | None:
+    """고정 Prefix 뒤의 양의 정수를 읽는다."""
+    if not isinstance(value, str) or not value.startswith(prefix):
+        return None
+    suffix = value.removeprefix(prefix)
+    return int(suffix) if suffix.isdigit() else None
+
+
+def production_feasibility_passes(profile: Mapping[str, object]) -> bool:
+    """기본 방송 제작 범위를 벗어나는 구조를 결정론적으로 차단한다."""
+    locations = numeric_suffix(profile.get("location_count"), "LOCATIONS_")
+    characters = numeric_suffix(profile.get("major_character_count"), "MAJOR_")
+    return (
+        locations is not None
+        and locations <= 5
+        and characters is not None
+        and characters <= 7
+        and profile.get("special_effect_level") != "HIGH"
+        and profile.get("child_actor_use") != "PRIMARY"
+        and profile.get("vehicle_scene") != "MOVING"
+        and profile.get("graphic_violence") != "GRAPHIC"
+        and profile.get("production_complexity") not in {"HIGH", "EXTREME"}
+    )
+
+
 def candidate_checks(
     production_config: Mapping[str, object],
     channel: Mapping[str, object],
@@ -83,8 +202,14 @@ def candidate_checks(
         failed = {
             name: "FAIL"
             for name in (
+                "policy_profile",
                 "channel_genre",
                 "crime_threat",
+                "trusted_domain",
+                "safe_domain_betrayal",
+                "responsible_agent",
+                "structure_policy",
+                "technical_final_proof",
                 "required_theme",
                 "locked_constraints",
                 "source_truth",
@@ -106,16 +231,32 @@ def candidate_checks(
             values = genre_policy.get(field)
             if isinstance(values, list):
                 allowed_genres.update(str(value) for value in values)
-    genre = selection.get("genre", "MYSTERY")
+    genre = profile.get("genre")
     channel_genre = not allowed_genres or genre in allowed_genres
 
     crime_policy = enabled_capability(channel, "CRIME_PSYCHOLOGY_POLICY")
     allowed_threats = crime_policy.get("threat_types") if crime_policy else None
-    crime_threat = (
-        True
-        if crime_policy is None
-        else isinstance(allowed_threats, list)
-        and profile.get("threat_type") in allowed_threats
+    threat = profile.get("threat_type")
+    crime_threat = threat in {"CRIME", "PREDATORY"} and (
+        crime_policy is None
+        or (
+            isinstance(allowed_threats, list)
+            and threat in allowed_threats
+        )
+    )
+
+    overrides = channel_episode_overrides(channel)
+    structure_values = {
+        profile.get("incident_type"),
+        profile.get("culprit_structure"),
+        profile.get("responsible_agent_structure"),
+        profile.get("primary_twist"),
+    }
+    structure_policy = all(
+        not isinstance(value, str)
+        or value not in DEFAULT_REJECTED_STRUCTURES
+        or value in overrides
+        for value in structure_values
     )
 
     theme_policy = enabled_capability(channel, "EPISODE_THEME_POLICY")
@@ -130,15 +271,21 @@ def candidate_checks(
         profile.get("source_truth_classification")
         == require_source_truth_classification(production_config)
     )
-    feasibility = profile.get("technical_dependency_level") != "FINAL_PROOF"
     candidate_id = candidate.get("candidate_id")
     checks_bool = {
+        "policy_profile": profile_matches_selection(selection, profile),
         "channel_genre": channel_genre,
         "crime_threat": crime_threat,
+        "trusted_domain": profile.get("trusted_domain") in TRUSTED_DOMAINS,
+        "safe_domain_betrayal": profile.get("safe_domain_betrayal") != "ABSENT",
+        "responsible_agent": profile.get("responsible_agent_structure")
+        not in {"NO_CULPRIT", "SYSTEMIC_CAUSE"},
+        "structure_policy": structure_policy,
+        "technical_final_proof": technical_final_proof_absent(profile),
         "required_theme": required_theme,
         "locked_constraints": locked_constraints_pass(production_config, selection),
         "source_truth": source_truth,
-        "production_feasibility": feasibility,
+        "production_feasibility": production_feasibility_passes(profile),
         "novelty": isinstance(candidate_id, str)
         and novelty_results.get(candidate_id) == "PASS",
     }
