@@ -468,6 +468,21 @@ def validate_truth_dimensions(
 ) -> list[ValidationIssue]:
     """검증된 구조 Dimension과 UNKNOWN 경계를 생성 Artifact에 적용한다."""
     issues: list[ValidationIssue] = []
+    psychology_responsible = (
+        crime_psychology.get("responsible_agent_structure")
+        if crime_psychology is not None
+        else None
+    )
+    case_responsible = (
+        case_input.get("responsible_agent_structure")
+        if case_input is not None
+        else None
+    )
+    responsible_agent_structure = (
+        psychology_responsible
+        if isinstance(psychology_responsible, str)
+        else case_responsible
+    )
     targets: dict[str, tuple[object, str, bool]] = {
         "incident_type": (
             story_dimension_value(story, "incident_type") if story is not None else None,
@@ -480,13 +495,9 @@ def validate_truth_dimensions(
             story is not None,
         ),
         "responsible_agent_structure": (
-            crime_psychology.get("responsible_agent_structure")
-            if crime_psychology is not None
-            else case_input.get("responsible_agent_structure")
-            if case_input is not None
-            else None,
+            responsible_agent_structure,
             "VERIFIED_SUBJECT_ROLE_CHANGED",
-            crime_psychology is not None or case_input is not None,
+            isinstance(responsible_agent_structure, str),
         ),
         "legal_outcome": (
             case_input.get("legal_outcome") if case_input is not None else None,
