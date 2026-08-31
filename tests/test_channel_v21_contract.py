@@ -70,12 +70,16 @@ def test_v21_preserves_exact_identity_and_disables_rigid_psychology() -> None:
     channel, _runtime = runtime()
     schema = load_json_object(ROOT / "STANDARD/schemas/channel_dna.schema.json")
     capabilities = channel["capabilities"]
+    identity = channel["identity"]
     assert isinstance(capabilities, dict)
+    assert isinstance(identity, dict)
+    explicit_policy = capabilities["EXPLICIT_CRIME_EVENT_POLICY"]
+    assert isinstance(explicit_policy, dict)
     assert collect_schema_errors(channel, schema, str(CHANNEL_PATH)) == []
-    assert channel["identity"]["statement"] == EXACT_STATEMENT  # type: ignore[index]
-    assert capabilities["EXPLICIT_CRIME_EVENT_POLICY"]["enabled"] is True  # type: ignore[index]
+    assert identity["statement"] == EXACT_STATEMENT
+    assert explicit_policy["enabled"] is True
     assert "SCENE_REALIZATION_POLICY" not in capabilities
-    assert capabilities["EXPLICIT_CRIME_EVENT_POLICY"]["require_survival"] is False  # type: ignore[index]
+    assert explicit_policy["require_survival"] is False
 
 
 def test_v21_generates_event_before_story_dimensions() -> None:
@@ -149,11 +153,17 @@ def test_v21_candidate_evaluation_uses_event_weights() -> None:
 def test_new_capability_is_optional_but_required_by_v21_engine() -> None:
     """Legacy Interface는 유지하되 2.1 Engine은 새 Capability 없이는 실패한다."""
     contract = load_json_object(ROOT / "STANDARD/compatibility_contract.json")
-    optional = contract["channel_dna_interface"]["optional_capabilities"]
+    interface = contract["channel_dna_interface"]
+    assert isinstance(interface, dict)
+    optional = interface["optional_capabilities"]
+    assert isinstance(optional, list)
     assert "EXPLICIT_CRIME_EVENT_POLICY" in optional
     channel, _resolved = runtime()
-    broken = {**channel, "capabilities": dict(channel["capabilities"])}
-    broken["capabilities"].pop("EXPLICIT_CRIME_EVENT_POLICY")  # type: ignore[union-attr]
+    raw_capabilities = channel["capabilities"]
+    assert isinstance(raw_capabilities, dict)
+    broken_capabilities = dict(raw_capabilities)
+    broken_capabilities.pop("EXPLICIT_CRIME_EVENT_POLICY")
+    broken = {**channel, "capabilities": broken_capabilities}
     try:
         resolve_variation_runtime_for_channel(
             ROOT,
