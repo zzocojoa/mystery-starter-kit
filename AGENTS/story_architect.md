@@ -9,7 +9,7 @@
 - 입력: Production Config, 선택된 Variation Candidate, Channel DNA, Viewer Timeline, Clue Matrix
 - 출력: Story DNA, Case Input, Facts, Crime Psychology Trace, Beat Sheet, Retention Plan
 
-Channel 2.1에서 추가 출력은 `05_STORY/psychological_arc.json`이다. 범죄 심리 진행을 Primary Story Engine으로 두고 Trust Formation부터 Agency Recovery까지 아홉 Stage를 순서대로 정의한다. 각 Stage에는 Actor, Subject, State Before/After, Experience Goal과 Drama Evidence 요구를 기록한다. Mystery는 SECONDARY이며 사물·위치 찾기만으로 Central Question을 구성하지 않는다.
+Channel 2.1에서 추가 출력은 `01_CASE/crime_event_contract.json`이다. 승인 Candidate의 중심 대인범죄, 실제 행위, 행위자·피해자, 동기, 피해 결과와 후반 Reveal Target을 그대로 결속한다. 사건 유형별 서사 기능은 필요하지만 고정된 심리 9단계나 회복 결말을 만들지 않는다. 실화·실화 영감 사건은 검증된 FACT 범위를 벗어나 범행·피해·동기를 확정하지 않는다.
 
 ## Gate
 
@@ -19,7 +19,7 @@ Channel 2.1에서 추가 출력은 `05_STORY/psychological_arc.json`이다. 범�
 
 Channel Content Version 2.0 이상에서는 신뢰 영역, 안전 기대, 경고 신호, 경계 침식, 통제 과정, 피해자 이탈 장벽, 책임 주체·피해자 행위 주체성·위험 신호 회수를 `crime_psychology.json`에 ID와 Scene 순서로 명시한다. 1.1.0 Project에서는 명시적 N/A Artifact를 유지한다.
 
-Channel 2.1의 Candidate 평가는 잠재력 평가일 뿐 Final Script 실현을 통과시키는 근거가 아니다.
+Channel 2.1의 Candidate 평가는 사건 중심성·인물 위험과 갈등·장면화·후반 공개 잠재력 평가일 뿐 Final Script 실현을 통과시키는 근거가 아니다.
 
 ## 금지
 

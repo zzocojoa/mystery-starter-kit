@@ -22,10 +22,10 @@
     },
     "2.1.0": {
       "path": "STANDARD/variation_catalogs/2.1.0.json",
-      "catalog_sha256": "732fa720e38ba547da7cb7296b892575bb90bb4f8286d9754a717c8735ab2e7c",
+      "catalog_sha256": "f77593da9e4b7e913da4274d72e5eb9a95817b9d3d4e5c318686d326c2b6b758",
       "supported_channel_content_versions": {"min_inclusive": "2.1.0", "max_exclusive": "3.0.0"},
       "supported_engine_versions": {"min_inclusive": "2.1.0", "max_exclusive": "3.0.0"},
-      "required_capabilities": ["CRIME_PSYCHOLOGY_POLICY", "SCENE_REALIZATION_POLICY"]
+      "required_capabilities": ["EXPLICIT_CRIME_EVENT_POLICY"]
     }
   }
 }

@@ -13,9 +13,7 @@ from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.variation_registry import resolve_variation_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
-V1_CHANNEL_PATH = (
-    ROOT / "CHANNELS" / "mystery_main" / "versions" / "1.1.0" / "channel_dna.json"
-)
+V1_CHANNEL_PATH = ROOT / "CHANNELS" / "mystery_main" / "versions" / "1.1.0" / "channel_dna.json"
 
 
 def presentation_schemas() -> dict[str, dict[str, object]]:
@@ -44,6 +42,9 @@ def presentation_schemas() -> dict[str, dict[str, object]]:
         ),
         "crime_psychology": load_json_object(
             ROOT / "STANDARD" / "schemas" / "crime_psychology.schema.json"
+        ),
+        "crime_event_contract": load_json_object(
+            ROOT / "STANDARD" / "schemas" / "crime_event_contract.schema.json"
         ),
         "source_disclosure": load_json_object(
             ROOT / "STANDARD" / "schemas" / "source_disclosure.schema.json"

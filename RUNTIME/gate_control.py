@@ -17,9 +17,18 @@ from VALIDATORS.channel_policy_v2 import (
 )
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.continuity import validate_continuity
+from VALIDATORS.crime_event import (
+    validate_channel_crime_evidence,
+    validate_crime_event_contract,
+    validate_crime_script_realization_report,
+    validate_scene_crime_realization,
+    validate_script_crime_realization,
+)
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
+    explicit_crime_runtime_evidence_issues,
     runtime_evidence_issues,
+    validate_editorial_crime_assessments,
     validate_editorial_realization_evidence,
     validate_editorial_review,
 )
@@ -272,6 +281,10 @@ def validate_gate(
     sources = artifact_document(artifacts, "sources")
     claims = artifact_document(artifacts, "claim_evidence")
     if gate_id == "GATE-03":
+        crime_event_contract = optional_artifact_document(
+            artifacts,
+            "crime_event_contract",
+        )
         issues = [
             *nonempty_string_issues(
                 case_input,
@@ -279,6 +292,25 @@ def validate_gate(
                 "01_CASE/case_input.json",
             ),
             *nonempty_list_issues(facts, "facts", "01_CASE/facts.json"),
+            *required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("crime_event_contract",),
+            ),
+            *optional_schema_issues(
+                artifacts,
+                "crime_event_contract",
+                presentation_schemas["crime_event_contract"],
+                "01_CASE/crime_event_contract.json",
+            ),
+            *validate_crime_event_contract(
+                channel,
+                production_config,
+                artifact_document(artifacts, "variation_candidates"),
+                crime_event_contract,
+                facts,
+            ),
             *optional_schema_issues(
                 artifacts,
                 "crime_psychology",
@@ -328,6 +360,11 @@ def validate_gate(
                 {
                     "story_dna": story,
                     "case_input": case_input,
+                    **(
+                        {"crime_event_contract": artifacts["crime_event_contract"]}
+                        if "crime_event_contract" in artifacts
+                        else {}
+                    ),
                     **(
                         {"crime_psychology": artifacts["crime_psychology"]}
                         if "crime_psychology" in artifacts
@@ -497,6 +534,12 @@ def validate_gate(
                 actual,
                 artifact_document(artifacts, "variation_candidates"),
             ),
+            *validate_scene_crime_realization(
+                channel,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                scenes,
+                presentation,
+            ),
         ]
     if gate_id == "GATE-08":
         return [
@@ -530,6 +573,15 @@ def validate_gate(
                 optional_artifact_document(artifacts, "psychological_arc"),
                 scenes,
                 presentation,
+                artifact_text(artifacts, "final_script"),
+            ),
+            *validate_script_crime_realization(
+                channel,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                scenes,
+                presentation,
+                reaction_segments,
+                viewer,
                 artifact_text(artifacts, "final_script"),
             ),
             *validate_panel_script_density(
@@ -573,6 +625,17 @@ def validate_gate(
                 optional_artifact_document(artifacts, "psychological_arc"),
                 scenes,
                 presentation,
+                artifact_text(artifacts, "final_script"),
+                realization_report,
+            ),
+            *validate_crime_script_realization_report(
+                channel,
+                project_id,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                scenes,
+                presentation,
+                reaction_segments,
+                viewer,
                 artifact_text(artifacts, "final_script"),
                 realization_report,
             ),
@@ -664,9 +727,25 @@ def validate_gate(
                 final_script,
                 optional_artifact_document(artifacts, "script_realization_report"),
             ),
+            *validate_crime_script_realization_report(
+                channel,
+                project_id,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                scenes,
+                presentation,
+                reaction_segments,
+                viewer,
+                final_script,
+                optional_artifact_document(artifacts, "script_realization_report"),
+            ),
             *validate_channel_realization_evidence(
                 channel,
                 optional_artifact_document(artifacts, "psychological_arc"),
+                optional_artifact_document(artifacts, "script_realization_report"),
+                optional_artifact_document(artifacts, "channel_consistency_report"),
+            ),
+            *validate_channel_crime_evidence(
+                channel,
                 optional_artifact_document(artifacts, "script_realization_report"),
                 optional_artifact_document(artifacts, "channel_consistency_report"),
             ),
@@ -716,9 +795,25 @@ def validate_gate(
                 final_script,
                 optional_artifact_document(artifacts, "script_realization_report"),
             ),
+            *validate_crime_script_realization_report(
+                channel,
+                project_id,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                scenes,
+                presentation,
+                reaction_segments,
+                viewer,
+                final_script,
+                optional_artifact_document(artifacts, "script_realization_report"),
+            ),
             *validate_channel_realization_evidence(
                 channel,
                 optional_artifact_document(artifacts, "psychological_arc"),
+                optional_artifact_document(artifacts, "script_realization_report"),
+                optional_artifact_document(artifacts, "channel_consistency_report"),
+            ),
+            *validate_channel_crime_evidence(
+                channel,
                 optional_artifact_document(artifacts, "script_realization_report"),
                 optional_artifact_document(artifacts, "channel_consistency_report"),
             ),
@@ -744,10 +839,20 @@ def validate_gate(
                 artifact_document(artifacts, "editorial_review"),
                 optional_artifact_document(artifacts, "psychological_arc"),
             ),
+            *validate_editorial_crime_assessments(
+                channel,
+                artifact_document(artifacts, "editorial_review"),
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                artifacts,
+            ),
             *runtime_evidence_issues(
                 artifact_document(artifacts, "editorial_review"),
                 presentation,
                 artifact_text(artifacts, "panel_reaction_script"),
+            ),
+            *explicit_crime_runtime_evidence_issues(
+                channel,
+                artifact_document(artifacts, "editorial_review"),
             ),
             *validate_final_production_footprint(
                 artifact_document(artifacts, "project_constraints"),

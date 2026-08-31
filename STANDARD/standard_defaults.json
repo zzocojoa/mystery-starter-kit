@@ -121,6 +121,34 @@
       "narration_only_satisfaction": false,
       "panel_only_satisfaction": false,
       "minimum_realization_score": 85
+    },
+    "EXPLICIT_CRIME_EVENT_POLICY": {
+      "enabled": false,
+      "core_crimes": [
+        "MURDER",
+        "KIDNAPPING",
+        "CONFINEMENT",
+        "ASSAULT",
+        "STALKING",
+        "HOME_INVASION",
+        "DATING_VIOLENCE",
+        "DOMESTIC_VIOLENCE"
+      ],
+      "require_central_event": true,
+      "allow_overlapping_crimes": true,
+      "method_detail_level": "NON_ACTIONABLE_SUMMARY_ONLY",
+      "required_reveal_targets": ["CULPRIT", "MOTIVE", "METHOD", "HARM_RESULT"],
+      "development_functions_by_family": {
+        "MURDER": ["HARM_OR_DANGER_RECOGNITION", "INVOLVEMENT_OR_SUSPICION", "MOTIVE_AND_RESPONSIBILITY", "EVENT_RECONSTRUCTION"],
+        "LIBERTY_CRIME": ["LIBERTY_DEPRIVATION", "THREAT_AND_CHOICE_CONSTRAINT", "RESPONSE_OR_DISCOVERY", "HARM_OUTCOME"],
+        "RELATIONAL_VIOLENCE": ["VIOLENCE_OR_THREAT", "RELATIONSHIP_AND_POWER", "RESPONSE_BARRIER", "VIOLENCE_OUTCOME"],
+        "ACCESS_CRIME": ["REPEATED_ACCESS_OR_INTRUSION", "SAFETY_COLLAPSE", "SAFETY_RESPONSE", "OFFENDER_RESPONSIBILITY"]
+      },
+      "nonlinear_development_allowed": true,
+      "require_survival": false,
+      "require_direct_reporting": false,
+      "require_forgiveness": false,
+      "require_recovery": false
     }
   }
 }

@@ -27,6 +27,11 @@ from VALIDATORS.compatibility import (
     make_project_compatibility_report,
 )
 from VALIDATORS.continuity import validate_continuity
+from VALIDATORS.crime_event import (
+    build_crime_script_realization_report,
+    crime_channel_evidence,
+    explicit_crime_policy,
+)
 from VALIDATORS.exceptions import ConfigurationError, StoryLibraryError
 from VALIDATORS.io import load_json_object
 from VALIDATORS.library import novelty_history
@@ -195,14 +200,14 @@ def runtime_validation_inputs(
             "crime_psychology": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "crime_psychology.schema.json"
             ),
+            "crime_event_contract": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "crime_event_contract.schema.json"
+            ),
             "psychological_arc": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "psychological_arc.schema.json"
             ),
             "script_realization_report": load_json_object(
-                repository_root
-                / "STANDARD"
-                / "schemas"
-                / "script_realization_report.schema.json"
+                repository_root / "STANDARD" / "schemas" / "script_realization_report.schema.json"
             ),
             "source_disclosure": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "source_disclosure.schema.json"
@@ -859,14 +864,26 @@ def core_task_outputs(
             production_config,
             None,
         )
-        report = build_script_realization_report(
-            project_id,
-            channel,
-            mapping_artifact(artifacts, "psychological_arc"),
-            mapping_artifact(artifacts, "scene_cards"),
-            mapping_artifact(artifacts, "presentation_plan"),
-            text_artifact(artifacts, "final_script"),
-        )
+        if explicit_crime_policy(channel) is not None:
+            report = build_crime_script_realization_report(
+                project_id,
+                channel,
+                mapping_artifact(artifacts, "crime_event_contract"),
+                mapping_artifact(artifacts, "scene_cards"),
+                mapping_artifact(artifacts, "presentation_plan"),
+                mapping_artifact(artifacts, "reaction_segments"),
+                mapping_artifact(artifacts, "viewer_timeline"),
+                text_artifact(artifacts, "final_script"),
+            )
+        else:
+            report = build_script_realization_report(
+                project_id,
+                channel,
+                mapping_artifact(artifacts, "psychological_arc"),
+                mapping_artifact(artifacts, "scene_cards"),
+                mapping_artifact(artifacts, "presentation_plan"),
+                text_artifact(artifacts, "final_script"),
+            )
         return {"script_realization_report": report}
     if task_id == "continuity.deterministic":
         report = validate_continuity(
@@ -929,6 +946,8 @@ def core_task_outputs(
             channel_report["scene_realization_evidence"] = channel_realization_evidence(
                 script_report
             )
+            if explicit_crime_policy(channel) is not None:
+                channel_report["crime_realization_evidence"] = crime_channel_evidence(script_report)
         return {"channel_consistency_report": channel_report}
     if task_id in {"orchestrator.validation", "production.finalize"}:
         (

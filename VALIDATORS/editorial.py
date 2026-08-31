@@ -8,6 +8,7 @@ from hashlib import sha256
 from math import isfinite
 from typing import cast
 
+from VALIDATORS.crime_event import explicit_crime_policy, required_semantic_subjects
 from VALIDATORS.exceptions import ConfigurationError, StateTransitionError
 from VALIDATORS.models import ProjectState, ValidationIssue
 from VALIDATORS.presentation_validation import parse_script_segments, presentation_segments
@@ -24,6 +25,8 @@ EDITORIAL_CHECKS = (
 )
 EDITORIAL_REVIEWED_ARTIFACTS = (
     "psychological_arc",
+    "crime_event_contract",
+    "scene_cards",
     "final_script",
     "script_realization_report",
     "actual_timeline",
@@ -57,6 +60,7 @@ EVIDENCE_SELECTOR_FIELDS = {
     "EVENT_ID": "event_id",
     "FACT_ID": "fact_id",
     "CLUE_ID": "clue_id",
+    "REVEAL_TARGET_ID": "reveal_target_id",
 }
 
 
@@ -122,9 +126,7 @@ def json_selector_matches(
         ]
     if isinstance(value, list):
         return [
-            match
-            for child in value
-            for match in json_selector_matches(child, field, selector_id)
+            match for child in value for match in json_selector_matches(child, field, selector_id)
         ]
     return []
 
@@ -147,9 +149,7 @@ def resolve_editorial_excerpt(
         segments, malformed = parse_script_segments(artifact)
         if malformed:
             return None
-        script_matches = [
-            segment for segment in segments if segment["segment_id"] == selector_id
-        ]
+        script_matches = [segment for segment in segments if segment["segment_id"] == selector_id]
         return script_matches[0] if len(script_matches) == 1 else None
     if isinstance(artifact, Mapping):
         json_matches = json_selector_matches(artifact, field, selector_id)
@@ -450,9 +450,7 @@ def runtime_evidence_issues(
             if (duration := numeric_value(item.get("duration_sec"))) is not None
         )
         spoken_duration = (
-            measured_duration
-            if method in {"TABLE_READ", "RECORDED_AUDIO"}
-            else estimated_duration
+            measured_duration if method in {"TABLE_READ", "RECORDED_AUDIO"} else estimated_duration
         )
         timing_gap = (
             None
@@ -521,6 +519,145 @@ def runtime_evidence_issues(
     return issues
 
 
+def explicit_crime_runtime_evidence_issues(
+    channel: Mapping[str, object],
+    review: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """사건 중심 Channel의 한국어 발화·행동·비발화 시간 근거를 검사한다."""
+    if explicit_crime_policy(channel) is None:
+        return []
+    evidence = review.get("runtime_evidence")
+    if not isinstance(evidence, Mapping):
+        return [
+            make_editorial_issue(
+                "CRIME_RUNTIME_EVIDENCE_MISSING",
+                "사건 중심 Editorial Review에는 Runtime Evidence가 필요합니다.",
+                {},
+            )
+        ]
+    assumptions = evidence.get("estimation_assumptions")
+    issues: list[ValidationIssue] = []
+    if (
+        evidence.get("language_unit") != "KOREAN_EOJEOL"
+        or not isinstance(assumptions, list)
+        or not assumptions
+        or not all(isinstance(item, str) and item.strip() for item in assumptions)
+    ):
+        issues.append(
+            make_editorial_issue(
+                "CRIME_RUNTIME_ESTIMATION_BASIS_INVALID",
+                "한국어 어절 기준과 명시적인 시간 추정 가정이 필요합니다.",
+                {},
+            )
+        )
+    for record in mapping_records(evidence, "panel_segments"):
+        segment_id = record.get("segment_id")
+        action_total = 0.0
+        non_speaking_total = 0.0
+        invalid_elements: list[int] = []
+        unsupported_elements: list[int] = []
+        for index, element in enumerate(mapping_records(record, "non_speech_elements")):
+            duration = numeric_value(element.get("duration_sec"))
+            time_class = element.get("time_class")
+            support_status = element.get("support_status")
+            source_reference = element.get("source_reference")
+            if (
+                duration is None
+                or time_class not in {"ACTION", "NON_SPEAKING"}
+                or support_status not in {"SUPPORTED", "UNSUPPORTED"}
+                or not isinstance(source_reference, str)
+                or not source_reference.strip()
+            ):
+                invalid_elements.append(index)
+                continue
+            if time_class == "ACTION":
+                action_total += duration
+            else:
+                non_speaking_total += duration
+            if support_status == "UNSUPPORTED":
+                unsupported_elements.append(index)
+        declared_action = numeric_value(record.get("action_duration_sec"))
+        declared_non_speaking = numeric_value(record.get("non_speaking_duration_sec"))
+        if (
+            invalid_elements
+            or declared_action is None
+            or declared_non_speaking is None
+            or abs(declared_action - action_total) > 0.01
+            or abs(declared_non_speaking - non_speaking_total) > 0.01
+        ):
+            issues.append(
+                make_editorial_issue(
+                    "CRIME_RUNTIME_CLASSIFICATION_INVALID",
+                    "행동 시간과 비발화 시간은 근거 요소의 분류별 합계와 일치해야 합니다.",
+                    {
+                        "segment_id": segment_id,
+                        "invalid_element_indexes": invalid_elements,
+                        "expected_action_duration_sec": action_total,
+                        "expected_non_speaking_duration_sec": non_speaking_total,
+                    },
+                )
+            )
+        if unsupported_elements:
+            issues.append(
+                make_editorial_issue(
+                    "CRIME_RUNTIME_SOURCE_UNSUPPORTED",
+                    "Graphic·행동·비발화 시간은 실제 Script 또는 편집 근거로 뒷받침되어야 합니다.",
+                    {
+                        "segment_id": segment_id,
+                        "unsupported_element_indexes": unsupported_elements,
+                    },
+                )
+            )
+    return issues
+
+
+def validate_editorial_crime_assessments(
+    channel: Mapping[str, object],
+    review: Mapping[str, object],
+    contract: Mapping[str, object],
+    reviewed_artifacts: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """CORE 근거를 실제 의미 충족으로 승격하는 Editorial 평가를 검사한다."""
+    if explicit_crime_policy(channel) is None:
+        return []
+    expected = required_semantic_subjects(contract)
+    assessments = mapping_records(review, "semantic_assessments")
+    observed = [(str(item.get("category")), str(item.get("subject_id"))) for item in assessments]
+    missing = sorted(expected - set(observed))
+    duplicates = sorted({subject for subject in observed if observed.count(subject) > 1})
+    issues: list[ValidationIssue] = []
+    if missing or duplicates or len(observed) != len(expected):
+        issues.append(
+            make_editorial_issue(
+                "CRIME_SEMANTIC_ASSESSMENT_COVERAGE_INVALID",
+                "사건·Narration·Panel·Reveal·단서 의미 평가는 대상별로 정확히 하나 필요합니다.",
+                {"missing": missing, "duplicates": duplicates, "observed": observed},
+            )
+        )
+    for assessment in assessments:
+        subject = (str(assessment.get("category")), str(assessment.get("subject_id")))
+        evidence = assessment.get("evidence")
+        notes = assessment.get("notes")
+        if (
+            subject not in expected
+            or assessment.get("status") != "EVIDENCED"
+            or not isinstance(evidence, list)
+            or not evidence
+            or not isinstance(notes, str)
+            or not notes.strip()
+        ):
+            issues.append(
+                make_editorial_issue(
+                    "CRIME_SEMANTIC_ASSESSMENT_NOT_EVIDENCED",
+                    "각 의미 평가는 실제 발췌 근거와 EVIDENCED 판정이 필요합니다.",
+                    {"subject": subject, "status": assessment.get("status")},
+                )
+            )
+            continue
+        issues.extend(editorial_evidence_issues(evidence, reviewed_artifacts, ":".join(subject)))
+    return issues
+
+
 def validate_editorial_review(
     review: Mapping[str, object],
     project_id: str,
@@ -567,9 +704,7 @@ def validate_editorial_review(
             ):
                 evidence_missing.append(name)
                 continue
-            issues.extend(
-                editorial_evidence_issues(raw_evidence, reviewed_artifacts, name)
-            )
+            issues.extend(editorial_evidence_issues(raw_evidence, reviewed_artifacts, name))
     if evidence_missing:
         issues.append(
             make_editorial_issue(
@@ -678,8 +813,7 @@ def approve_editorial_review(
         raise StateTransitionError("Editorial 승인에는 actor와 reason이 필요합니다.")
     if state["state"] != "EDITORIAL_REVIEW_REQUIRED":
         raise StateTransitionError(
-            "Editorial Review Required 상태에서만 승인할 수 있습니다: "
-            f"state={state['state']}"
+            f"Editorial Review Required 상태에서만 승인할 수 있습니다: state={state['state']}"
         )
     readiness = state["readiness"]
     readiness_values: Mapping[str, object] = readiness
@@ -743,11 +877,7 @@ def finalize_production_ready(
             f"Production Ready 조건이 충족되지 않았습니다: mismatches={mismatches}"
         )
     runtime_evidence = review.get("runtime_evidence")
-    method = (
-        runtime_evidence.get("method")
-        if isinstance(runtime_evidence, Mapping)
-        else None
-    )
+    method = runtime_evidence.get("method") if isinstance(runtime_evidence, Mapping) else None
     segments = (
         mapping_records(runtime_evidence, "panel_segments")
         if isinstance(runtime_evidence, Mapping)

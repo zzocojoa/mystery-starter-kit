@@ -21,13 +21,22 @@ from VALIDATORS.channel_policy_v2 import (
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.compatibility import channel_dna_sha256, parse_semantic_version
 from VALIDATORS.continuity import validate_continuity
+from VALIDATORS.crime_event import (
+    validate_channel_crime_evidence,
+    validate_crime_event_contract,
+    validate_crime_script_realization_report,
+    validate_scene_crime_realization,
+    validate_script_crime_realization,
+)
 from VALIDATORS.dependency import (
     artifact_required_for_project,
     dependency_artifacts,
 )
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
+    explicit_crime_runtime_evidence_issues,
     runtime_evidence_issues,
+    validate_editorial_crime_assessments,
     validate_editorial_realization_evidence,
     validate_editorial_review,
 )
@@ -807,6 +816,10 @@ def run_production_validation(
     fingerprint = artifact_document(artifacts, "story_fingerprint")
     case_input = artifact_document(artifacts, "case_input")
     facts = artifact_document(artifacts, "facts")
+    crime_event_contract = optional_artifact_document(
+        artifacts,
+        "crime_event_contract",
+    )
     sources = artifact_document(artifacts, "sources")
     claim_evidence = artifact_document(artifacts, "claim_evidence")
     verified_fact_ledger = optional_artifact_document(artifacts, "verified_fact_ledger")
@@ -861,9 +874,7 @@ def run_production_validation(
             source_subjects,
             verified_event_ledger,
         )
-        if source_truth_requires_evidence(
-            production_config.get("source_truth_classification")
-        )
+        if source_truth_requires_evidence(production_config.get("source_truth_classification"))
         else []
     )
     gate_00 = [
@@ -978,6 +989,25 @@ def run_production_validation(
             artifacts,
             production_config,
             channel,
+            ("crime_event_contract",),
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "crime_event_contract",
+            presentation_schemas["crime_event_contract"],
+            "01_CASE/crime_event_contract.json",
+        ),
+        *validate_crime_event_contract(
+            channel,
+            production_config,
+            variation_candidates,
+            crime_event_contract,
+            facts,
+        ),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
             ("crime_psychology", "source_disclosure", "clinical_labels"),
         ),
         *optional_schema_issues(
@@ -1034,6 +1064,11 @@ def run_production_validation(
             {
                 "story_dna": story_document,
                 "case_input": case_input,
+                **(
+                    {"crime_event_contract": artifacts["crime_event_contract"]}
+                    if "crime_event_contract" in artifacts
+                    else {}
+                ),
                 **(
                     {"crime_psychology": artifacts["crime_psychology"]}
                     if "crime_psychology" in artifacts
@@ -1205,6 +1240,12 @@ def run_production_validation(
             actual_timeline,
             variation_candidates,
         ),
+        *validate_scene_crime_realization(
+            channel,
+            crime_event_contract,
+            scene_cards,
+            presentation_plan,
+        ),
     ]
     gate_08 = [
         *required_channel_artifact_issues(
@@ -1232,6 +1273,15 @@ def run_production_validation(
             psychological_arc,
             scene_cards,
             presentation_plan,
+            final_script,
+        ),
+        *validate_script_crime_realization(
+            channel,
+            crime_event_contract,
+            scene_cards,
+            presentation_plan,
+            reaction_segments,
+            viewer_timeline,
             final_script,
         ),
         *validate_panel_script_density(
@@ -1272,6 +1322,17 @@ def run_production_validation(
             psychological_arc,
             scene_cards,
             presentation_plan,
+            final_script,
+            script_realization_report,
+        ),
+        *validate_crime_script_realization_report(
+            channel,
+            project_id,
+            crime_event_contract,
+            scene_cards,
+            presentation_plan,
+            reaction_segments,
+            viewer_timeline,
             final_script,
             script_realization_report,
         ),
@@ -1334,6 +1395,13 @@ def run_production_validation(
         )
     )
     gate_12.extend(
+        validate_channel_crime_evidence(
+            channel,
+            script_realization_report,
+            channel_consistency_report,
+        )
+    )
+    gate_12.extend(
         validate_approved_candidate_projection(
             production_config,
             variation_candidates,
@@ -1374,11 +1442,18 @@ def run_production_validation(
             editorial_review,
             psychological_arc,
         ),
+        *validate_editorial_crime_assessments(
+            channel,
+            editorial_review,
+            crime_event_contract,
+            artifacts,
+        ),
         *runtime_evidence_issues(
             editorial_review,
             presentation_plan,
             panel_reaction_script,
         ),
+        *explicit_crime_runtime_evidence_issues(channel, editorial_review),
         *validate_final_production_footprint(
             project_constraints,
             production_footprint,

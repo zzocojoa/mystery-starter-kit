@@ -181,9 +181,7 @@ def jaccard_similarity(candidate: object, existing: object, field: str) -> float
     candidate_values = set(
         require_string_sequence(candidate, f"candidate_fingerprint.story.{field}")
     )
-    existing_values = set(
-        require_string_sequence(existing, f"existing_fingerprint.story.{field}")
-    )
+    existing_values = set(require_string_sequence(existing, f"existing_fingerprint.story.{field}"))
     union = candidate_values | existing_values
     if not union:
         raise ConfigurationError(f"Jaccard 비교 배열은 비어 있을 수 없습니다: field={field}")
@@ -223,12 +221,8 @@ def causal_structure_similarity(candidate: object, existing: object) -> float:
         or not existing.get(field)
     ]
     if invalid_fields:
-        raise ConfigurationError(
-            f"Causal 유사도 필드가 누락되었습니다: fields={invalid_fields}"
-        )
-    matches = sum(
-        1 for field in CAUSAL_FIELDS if candidate.get(field) == existing.get(field)
-    )
+        raise ConfigurationError(f"Causal 유사도 필드가 누락되었습니다: fields={invalid_fields}")
+    matches = sum(1 for field in CAUSAL_FIELDS if candidate.get(field) == existing.get(field))
     return matches / len(CAUSAL_FIELDS)
 
 
@@ -259,9 +253,7 @@ def semantic_causal_similarity(candidate: object, existing: object) -> float:
         or not existing.get(field)
     ]
     if invalid:
-        raise ConfigurationError(
-            f"Semantic Causal 유사도 필드가 누락되었습니다: fields={invalid}"
-        )
+        raise ConfigurationError(f"Semantic Causal 유사도 필드가 누락되었습니다: fields={invalid}")
     role_similarity = jaccard_similarity(
         candidate["normalized_roles"],
         existing["normalized_roles"],
@@ -316,9 +308,7 @@ def component_similarity(
     if field == "semantic_causal":
         return semantic_causal_similarity(candidate_value, existing_value)
     if not isinstance(candidate_value, str) or not isinstance(existing_value, str):
-        raise ConfigurationError(
-            f"Exact 유사도 Dimension은 문자열이어야 합니다: field={field}"
-        )
+        raise ConfigurationError(f"Exact 유사도 Dimension은 문자열이어야 합니다: field={field}")
     return 1.0 if candidate_value == existing_value else 0.0
 
 
@@ -345,9 +335,7 @@ def similarity_components(
     for field in numeric_weights:
         candidate_value = fingerprint_component(candidate, candidate_story, field)
         existing_value = fingerprint_component(existing, existing_story, field)
-        if not has_comparable_value(candidate_value) or not has_comparable_value(
-            existing_value
-        ):
+        if not has_comparable_value(candidate_value) or not has_comparable_value(existing_value):
             continue
         components[field] = component_similarity(
             field,
@@ -376,8 +364,7 @@ def similarity_score(
     components = similarity_components(candidate, existing, weights)
     total_weight = sum(numeric_weights[field] for field in components)
     matched_weight = sum(
-        numeric_weights[field] * similarity
-        for field, similarity in components.items()
+        numeric_weights[field] * similarity for field, similarity in components.items()
     )
     return round((matched_weight / total_weight) * 100, 2)
 
@@ -500,8 +487,7 @@ def evaluate_novelty(
                 "project_id": project_id,
                 "similarity": score,
                 "components": {
-                    field: round(component * 100, 2)
-                    for field, component in components.items()
+                    field: round(component * 100, 2) for field, component in components.items()
                 },
                 "threshold": maximum,
                 "causal_hard_collision": hard_collision,
@@ -546,6 +532,7 @@ def evaluate_novelty(
     return {
         "project_id": candidate.get("project_id", ""),
         "result": "FAIL" if issues else "PASS",
+        "comparison_status": ("COMPARISON_COMPLETE" if comparisons else "NO_COMPARISON_DATA"),
         "comparisons": comparisons,
         "hard_collisions": [
             comparison["project_id"]
@@ -574,12 +561,19 @@ def variation_precheck_source_hash(
         "project_id": candidates_document.get("project_id"),
         "candidates": [
             {
-                "candidate_id": candidate.get("candidate_id"),
-                "selection": candidate.get("selection"),
-                "signature": candidate.get("signature"),
+                **{
+                    "candidate_id": candidate.get("candidate_id"),
+                    "selection": candidate.get("selection"),
+                    "signature": candidate.get("signature"),
+                },
+                **(
+                    {"crime_event": candidate.get("crime_event")}
+                    if "crime_event" in candidate
+                    else {}
+                ),
             }
             for candidate in candidates
-        ]
+        ],
     }
     serialized = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return sha256(serialized.encode()).hexdigest()
@@ -650,23 +644,21 @@ def evaluate_variation_precheck(
                     "project_id": existing.get("project_id", ""),
                     "similarity": score,
                     "components": {
-                        field: round(component * 100, 2)
-                        for field, component in components.items()
+                        field: round(component * 100, 2) for field, component in components.items()
                     },
                     "threshold": maximum,
                     "exceeded": score > maximum,
                 }
             )
-        collisions = [
-            comparison
-            for comparison in comparisons
-            if comparison["exceeded"] is True
-        ]
+        collisions = [comparison for comparison in comparisons if comparison["exceeded"] is True]
         result = "FAIL" if collisions else "PASS"
         candidate_results.append(
             {
                 "candidate_id": candidate_id,
                 "result": result,
+                "comparison_status": (
+                    "COMPARISON_COMPLETE" if comparisons else "NO_COMPARISON_DATA"
+                ),
                 "comparisons": comparisons,
             }
         )

@@ -3,6 +3,10 @@
 from collections.abc import Mapping
 
 from VALIDATORS.candidate_evaluation import document_sha256
+from VALIDATORS.crime_event import (
+    explicit_crime_policy,
+    validate_candidate_crime_event,
+)
 from VALIDATORS.models import ValidationIssue
 from VALIDATORS.novelty import variation_precheck_source_hash
 from VALIDATORS.requirements import crime_v2_candidate_policy_applies
@@ -134,9 +138,7 @@ def channel_episode_overrides(channel: Mapping[str, object]) -> set[str]:
     """Channel이 명시한 예외 구조 ID만 반환한다."""
     capabilities = channel.get("capabilities")
     policy = (
-        capabilities.get("STORY_VARIATION_POLICY")
-        if isinstance(capabilities, Mapping)
-        else None
+        capabilities.get("STORY_VARIATION_POLICY") if isinstance(capabilities, Mapping) else None
     )
     values = policy.get("episode_overrides") if isinstance(policy, Mapping) else None
     if not isinstance(values, list):
@@ -150,8 +152,7 @@ def profile_matches_selection(
 ) -> bool:
     """정책 Profile이 명시 Dimension을 그대로 보존하는지 판정한다."""
     return all(
-        isinstance(selection.get(field), str)
-        and profile.get(field) == selection.get(field)
+        isinstance(selection.get(field), str) and profile.get(field) == selection.get(field)
         for field in PROFILE_SELECTION_FIELDS
     )
 
@@ -206,9 +207,7 @@ def project_constraints_pass(
     selection: Mapping[str, object],
 ) -> bool:
     """Candidate가 Project의 필수 사용 및 금지 규칙을 모두 만족하는지 판정한다."""
-    must_use_passes = rule_values_pass(
-        selection, project_constraints.get("must_use"), "IN"
-    )
+    must_use_passes = rule_values_pass(selection, project_constraints.get("must_use"), "IN")
     must_not_use_passes = rule_values_pass(
         selection, project_constraints.get("must_not_use"), "NOT_IN"
     )
@@ -311,20 +310,15 @@ def candidate_checks(
             "required_theme": True,
             "locked_constraints": locked_constraints_pass(production_config, selection),
             "project_constraints": project_constraints_pass(project_constraints, selection),
-            "source_truth": isinstance(
-                require_source_truth_classification(production_config), str
-            ),
+            "source_truth": isinstance(require_source_truth_classification(production_config), str),
             "production_feasibility": True,
             "novelty": isinstance(candidate_id, str)
             and novelty_results.get(candidate_id) == "PASS",
         }
         legacy_checks = {
-            name: "PASS" if passed else "FAIL"
-            for name, passed in legacy_checks_bool.items()
+            name: "PASS" if passed else "FAIL" for name, passed in legacy_checks_bool.items()
         }
-        legacy_reasons = [
-            name.upper() for name, passed in legacy_checks_bool.items() if not passed
-        ]
+        legacy_reasons = [name.upper() for name, passed in legacy_checks_bool.items() if not passed]
         return legacy_checks, legacy_reasons
 
     if not isinstance(profile, Mapping):
@@ -350,11 +344,7 @@ def candidate_checks(
         return failed, ["CANDIDATE_POLICY_PROFILE_INVALID"]
 
     capabilities = channel.get("capabilities")
-    genre_policy = (
-        capabilities.get("GENRE_POLICY")
-        if isinstance(capabilities, Mapping)
-        else None
-    )
+    genre_policy = capabilities.get("GENRE_POLICY") if isinstance(capabilities, Mapping) else None
     allowed_genres: set[str] = set()
     if isinstance(genre_policy, Mapping):
         for field in ("allowed_genres", "adjacent_genres"):
@@ -368,11 +358,7 @@ def candidate_checks(
     allowed_threats = crime_policy.get("threat_types") if crime_policy else None
     threat = profile.get("threat_type")
     crime_threat = threat in {"CRIME", "PREDATORY"} and (
-        crime_policy is None
-        or (
-            isinstance(allowed_threats, list)
-            and threat in allowed_threats
-        )
+        crime_policy is None or (isinstance(allowed_threats, list) and threat in allowed_threats)
     )
 
     overrides = channel_episode_overrides(channel)
@@ -383,9 +369,7 @@ def candidate_checks(
         profile.get("primary_twist"),
     }
     structure_policy = all(
-        not isinstance(value, str)
-        or value not in DEFAULT_REJECTED_STRUCTURES
-        or value in overrides
+        not isinstance(value, str) or value not in DEFAULT_REJECTED_STRUCTURES or value in overrides
         for value in structure_values
     )
 
@@ -394,37 +378,39 @@ def candidate_checks(
     required_theme = (
         True
         if theme_policy is None or theme_policy.get("require_episode_theme") is not True
-        else isinstance(allowed_themes, list)
-        and profile.get("episode_theme") in allowed_themes
+        else isinstance(allowed_themes, list) and profile.get("episode_theme") in allowed_themes
     )
-    source_truth = (
-        profile.get("source_truth_classification")
-        == require_source_truth_classification(production_config)
-    )
+    source_truth = profile.get(
+        "source_truth_classification"
+    ) == require_source_truth_classification(production_config)
     v2_policy_applies = crime_v2_candidate_policy_applies(production_config, channel)
+    explicit_crime_applies = explicit_crime_policy(channel) is not None
+    explicit_crime_issues = validate_candidate_crime_event(channel, candidate)
     checks_bool = {
         "policy_profile": profile_matches_selection(selection, profile),
         "channel_genre": channel_genre,
-        "crime_threat": not v2_policy_applies or crime_threat,
-        "trusted_domain": not v2_policy_applies
-        or profile.get("trusted_domain") in TRUSTED_DOMAINS,
+        "crime_threat": (
+            not explicit_crime_issues
+            if explicit_crime_applies
+            else not v2_policy_applies or crime_threat
+        ),
+        "trusted_domain": not v2_policy_applies or profile.get("trusted_domain") in TRUSTED_DOMAINS,
         "safe_domain_betrayal": not v2_policy_applies
         or profile.get("safe_domain_betrayal") != "ABSENT",
         "responsible_agent": not v2_policy_applies
         or profile.get("responsible_agent_structure") not in {"NO_CULPRIT", "SYSTEMIC_CAUSE"},
         "structure_policy": not v2_policy_applies or structure_policy,
-        "technical_final_proof": not v2_policy_applies
-        or technical_final_proof_absent(profile),
+        "technical_final_proof": not v2_policy_applies or technical_final_proof_absent(profile),
         "required_theme": not v2_policy_applies or required_theme,
         "locked_constraints": locked_constraints_pass(production_config, selection),
         "project_constraints": project_constraints_pass(project_constraints, selection),
         "source_truth": source_truth,
         "production_feasibility": production_feasibility_passes(profile, project_constraints),
-        "novelty": isinstance(candidate_id, str)
-        and novelty_results.get(candidate_id) == "PASS",
+        "novelty": isinstance(candidate_id, str) and novelty_results.get(candidate_id) == "PASS",
     }
     checks = {name: "PASS" if passed else "FAIL" for name, passed in checks_bool.items()}
     reasons = [name.upper() for name, passed in checks_bool.items() if not passed]
+    reasons.extend(issue["code"] for issue in explicit_crime_issues if issue["code"] not in reasons)
     return checks, reasons
 
 

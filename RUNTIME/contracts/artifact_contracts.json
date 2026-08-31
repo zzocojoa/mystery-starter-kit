@@ -19,6 +19,7 @@
     "story_dna": {"media_type": "application/json", "schema": "STANDARD/schemas/story_dna.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},
     "case_input": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/caseInput", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},
     "facts": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/facts", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
+    "crime_event_contract": {"media_type": "application/json", "schema": "STANDARD/schemas/crime_event_contract.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "crime_psychology": {"media_type": "application/json", "schema": "STANDARD/schemas/crime_psychology.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "sources": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/sources", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "claim_evidence": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/claimEvidence", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},

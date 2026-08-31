@@ -17,25 +17,19 @@ SCORE_FIELDS: tuple[str, ...] = (
     "novelty_score",
     "production_score",
 )
-REALIZATION_SCORE_FIELDS: tuple[str, ...] = (
-    "psychological_arc_potential_score",
-    "trust_control_progression_score",
-    "victim_experience_score",
+EVENT_SCORE_FIELDS: tuple[str, ...] = (
+    "crime_event_centrality_score",
+    "character_risk_conflict_score",
     "scene_realizability_score",
-    "crime_threat_score",
-    "character_conflict_score",
-    "retrospective_reframe_score",
+    "reveal_persuasion_score",
     "production_score",
 )
-REALIZATION_WEIGHTS: Mapping[str, float] = {
-    "psychological_arc_potential_score": 20.0,
-    "trust_control_progression_score": 20.0,
-    "victim_experience_score": 15.0,
-    "scene_realizability_score": 15.0,
-    "crime_threat_score": 10.0,
-    "character_conflict_score": 10.0,
-    "retrospective_reframe_score": 5.0,
-    "production_score": 5.0,
+EVENT_WEIGHTS: Mapping[str, float] = {
+    "crime_event_centrality_score": 25.0,
+    "character_risk_conflict_score": 25.0,
+    "scene_realizability_score": 20.0,
+    "reveal_persuasion_score": 15.0,
+    "production_score": 15.0,
 }
 SCORE_TOLERANCE = 0.01
 
@@ -151,7 +145,7 @@ def validate_weighted_scores(
             )
         ]
     score_fields = (
-        REALIZATION_SCORE_FIELDS
+        EVENT_SCORE_FIELDS
         if variations.get("variation_engine_version") == "2.1.0"
         else SCORE_FIELDS
     )
@@ -177,21 +171,20 @@ def validate_weighted_scores(
                 {"weight_sum": round(total_weight, 4)},
             )
         )
-    if score_fields == REALIZATION_SCORE_FIELDS:
+    if score_fields == EVENT_SCORE_FIELDS:
         mismatched_weights = {
             field: {
-                "expected": REALIZATION_WEIGHTS[field],
+                "expected": EVENT_WEIGHTS[field],
                 "actual": normalized_weights[field],
             }
             for field in score_fields
-            if abs(normalized_weights[field] - REALIZATION_WEIGHTS[field])
-            > SCORE_TOLERANCE
+            if abs(normalized_weights[field] - EVENT_WEIGHTS[field]) > SCORE_TOLERANCE
         }
         if mismatched_weights:
             issues.append(
                 make_candidate_issue(
-                    "CANDIDATE_REALIZATION_WEIGHTS_INVALID",
-                    "Channel 2.1 Candidate Potential 가중치가 표준과 다릅니다.",
+                    "CANDIDATE_EVENT_WEIGHTS_INVALID",
+                    "Channel 2.1 사건 중심 Candidate 가중치가 표준과 다릅니다.",
                     {"mismatches": mismatched_weights},
                 )
             )
@@ -261,8 +254,7 @@ def validate_input_hashes(
     actual_hashes = evaluation.get("input_hashes")
     issues: list[ValidationIssue] = []
     if not isinstance(actual_hashes, Mapping) or any(
-        actual_hashes.get(name) != expected
-        for name, expected in expected_hashes.items()
+        actual_hashes.get(name) != expected for name, expected in expected_hashes.items()
     ):
         issues.append(
             make_candidate_issue(
@@ -305,9 +297,7 @@ def validate_recommendation(
 ) -> list[ValidationIssue]:
     """추천 후보가 Core 적격 후보 중 최고 Soft 점수인지 검증한다."""
     recommended_id = evaluation.get("recommended_candidate_id")
-    recommended_records = [
-        record for record in records if record.get("decision") == "RECOMMENDED"
-    ]
+    recommended_records = [record for record in records if record.get("decision") == "RECOMMENDED"]
     issues: list[ValidationIssue] = []
     if (
         not isinstance(recommended_id, str)

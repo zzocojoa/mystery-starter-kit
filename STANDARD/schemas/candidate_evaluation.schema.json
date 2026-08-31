@@ -22,7 +22,7 @@
     "weights": {
       "oneOf": [
         {"$ref": "#/$defs/dimensions"},
-        {"$ref": "#/$defs/realizationDimensions"}
+        {"$ref": "#/$defs/eventDimensions"}
       ]
     },
     "input_hashes": {
@@ -50,7 +50,7 @@
       "items": {
         "oneOf": [
           {"$ref": "#/$defs/evaluation"},
-          {"$ref": "#/$defs/realizationEvaluation"}
+          {"$ref": "#/$defs/eventEvaluation"}
         ]
       }
     }
@@ -75,9 +75,9 @@
       },
       "then": {
         "properties": {
-          "weights": {"$ref": "#/$defs/realizationDimensions"},
+          "weights": {"$ref": "#/$defs/eventDimensions"},
           "evaluations": {
-            "items": {"$ref": "#/$defs/realizationEvaluation"}
+            "items": {"$ref": "#/$defs/eventEvaluation"}
           }
         }
       }
@@ -141,51 +141,39 @@
         "production_score": {"$ref": "#/$defs/evidenceList"}
       }
     },
-    "realizationDimensions": {
+    "eventDimensions": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "psychological_arc_potential_score",
-        "trust_control_progression_score",
-        "victim_experience_score",
+        "crime_event_centrality_score",
+        "character_risk_conflict_score",
         "scene_realizability_score",
-        "crime_threat_score",
-        "character_conflict_score",
-        "retrospective_reframe_score",
+        "reveal_persuasion_score",
         "production_score"
       ],
       "properties": {
-        "psychological_arc_potential_score": {"$ref": "#/$defs/weight"},
-        "trust_control_progression_score": {"$ref": "#/$defs/weight"},
-        "victim_experience_score": {"$ref": "#/$defs/weight"},
+        "crime_event_centrality_score": {"$ref": "#/$defs/weight"},
+        "character_risk_conflict_score": {"$ref": "#/$defs/weight"},
         "scene_realizability_score": {"$ref": "#/$defs/weight"},
-        "crime_threat_score": {"$ref": "#/$defs/weight"},
-        "character_conflict_score": {"$ref": "#/$defs/weight"},
-        "retrospective_reframe_score": {"$ref": "#/$defs/weight"},
+        "reveal_persuasion_score": {"$ref": "#/$defs/weight"},
         "production_score": {"$ref": "#/$defs/weight"}
       }
     },
-    "realizationDimensionEvidence": {
+    "eventDimensionEvidence": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "psychological_arc_potential_score",
-        "trust_control_progression_score",
-        "victim_experience_score",
+        "crime_event_centrality_score",
+        "character_risk_conflict_score",
         "scene_realizability_score",
-        "crime_threat_score",
-        "character_conflict_score",
-        "retrospective_reframe_score",
+        "reveal_persuasion_score",
         "production_score"
       ],
       "properties": {
-        "psychological_arc_potential_score": {"$ref": "#/$defs/evidenceList"},
-        "trust_control_progression_score": {"$ref": "#/$defs/evidenceList"},
-        "victim_experience_score": {"$ref": "#/$defs/evidenceList"},
+        "crime_event_centrality_score": {"$ref": "#/$defs/evidenceList"},
+        "character_risk_conflict_score": {"$ref": "#/$defs/evidenceList"},
         "scene_realizability_score": {"$ref": "#/$defs/evidenceList"},
-        "crime_threat_score": {"$ref": "#/$defs/evidenceList"},
-        "character_conflict_score": {"$ref": "#/$defs/evidenceList"},
-        "retrospective_reframe_score": {"$ref": "#/$defs/evidenceList"},
+        "reveal_persuasion_score": {"$ref": "#/$defs/evidenceList"},
         "production_score": {"$ref": "#/$defs/evidenceList"}
       }
     },
@@ -223,19 +211,16 @@
         "decision_reason": {"type": "string", "minLength": 1}
       }
     },
-    "realizationEvaluation": {
+    "eventEvaluation": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "candidate_id",
         "dimension_evidence",
-        "psychological_arc_potential_score",
-        "trust_control_progression_score",
-        "victim_experience_score",
+        "crime_event_centrality_score",
+        "character_risk_conflict_score",
         "scene_realizability_score",
-        "crime_threat_score",
-        "character_conflict_score",
-        "retrospective_reframe_score",
+        "reveal_persuasion_score",
         "production_score",
         "total_score",
         "decision",
@@ -243,14 +228,11 @@
       ],
       "properties": {
         "candidate_id": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
-        "dimension_evidence": {"$ref": "#/$defs/realizationDimensionEvidence"},
-        "psychological_arc_potential_score": {"$ref": "#/$defs/score"},
-        "trust_control_progression_score": {"$ref": "#/$defs/score"},
-        "victim_experience_score": {"$ref": "#/$defs/score"},
+        "dimension_evidence": {"$ref": "#/$defs/eventDimensionEvidence"},
+        "crime_event_centrality_score": {"$ref": "#/$defs/score"},
+        "character_risk_conflict_score": {"$ref": "#/$defs/score"},
         "scene_realizability_score": {"$ref": "#/$defs/score"},
-        "crime_threat_score": {"$ref": "#/$defs/score"},
-        "character_conflict_score": {"$ref": "#/$defs/score"},
-        "retrospective_reframe_score": {"$ref": "#/$defs/score"},
+        "reveal_persuasion_score": {"$ref": "#/$defs/score"},
         "production_score": {"$ref": "#/$defs/score"},
         "total_score": {"$ref": "#/$defs/score"},
         "decision": {"enum": ["RECOMMENDED", "REJECTED"]},

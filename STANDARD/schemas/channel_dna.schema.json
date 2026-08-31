@@ -106,6 +106,9 @@
         },
         "SCENE_REALIZATION_POLICY": {
           "$ref": "#/$defs/sceneRealizationPolicy"
+        },
+        "EXPLICIT_CRIME_EVENT_POLICY": {
+          "$ref": "#/$defs/explicitCrimeEventPolicy"
         }
       }
     }
@@ -505,6 +508,78 @@
           "maximum": 100
         }
       }
+    },
+    "explicitCrimeEventPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "core_crimes",
+        "require_central_event",
+        "allow_overlapping_crimes",
+        "method_detail_level",
+        "required_reveal_targets",
+        "development_functions_by_family",
+        "nonlinear_development_allowed",
+        "require_survival",
+        "require_direct_reporting",
+        "require_forgiveness",
+        "require_recovery"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "core_crimes": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/explicitCrimeType"}
+        },
+        "require_central_event": {"type": "boolean"},
+        "allow_overlapping_crimes": {"type": "boolean"},
+        "method_detail_level": {"const": "NON_ACTIONABLE_SUMMARY_ONLY"},
+        "required_reveal_targets": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {"enum": ["CULPRIT", "MOTIVE", "METHOD", "HARM_RESULT"]}
+        },
+        "development_functions_by_family": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["MURDER", "LIBERTY_CRIME", "RELATIONAL_VIOLENCE", "ACCESS_CRIME"],
+          "properties": {
+            "MURDER": {"$ref": "#/$defs/developmentFunctionList"},
+            "LIBERTY_CRIME": {"$ref": "#/$defs/developmentFunctionList"},
+            "RELATIONAL_VIOLENCE": {"$ref": "#/$defs/developmentFunctionList"},
+            "ACCESS_CRIME": {"$ref": "#/$defs/developmentFunctionList"}
+          }
+        },
+        "nonlinear_development_allowed": {"type": "boolean"},
+        "require_survival": {"type": "boolean"},
+        "require_direct_reporting": {"type": "boolean"},
+        "require_forgiveness": {"type": "boolean"},
+        "require_recovery": {"type": "boolean"}
+      }
+    },
+    "explicitCrimeType": {
+      "enum": [
+        "MURDER",
+        "KIDNAPPING",
+        "CONFINEMENT",
+        "ASSAULT",
+        "STALKING",
+        "HOME_INVASION",
+        "DATING_VIOLENCE",
+        "DOMESTIC_VIOLENCE"
+      ]
+    },
+    "developmentFunctionList": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
     },
     "enumName": {
       "type": "string",

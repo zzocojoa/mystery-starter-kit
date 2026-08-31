@@ -25,10 +25,11 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["candidate_id", "result", "comparisons"],
+        "required": ["candidate_id", "result", "comparison_status", "comparisons"],
         "properties": {
           "candidate_id": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
           "result": {"enum": ["PASS", "FAIL"]},
+          "comparison_status": {"enum": ["COMPARISON_COMPLETE", "NO_COMPARISON_DATA"]},
           "comparisons": {"type": "array"}
         }
       }

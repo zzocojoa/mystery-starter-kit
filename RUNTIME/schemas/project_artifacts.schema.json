@@ -261,7 +261,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "reveals"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "reveals": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["reveal_id", "fact_id"], "properties": {"reveal_id": {"$ref": "#/$defs/canonicalId"}, "scene_id": {"$ref": "#/$defs/canonicalId"}, "scene_order": {"type": "integer", "minimum": 1}, "fact_id": {"$ref": "#/$defs/canonicalId"}, "information": {"type": "string"}, "effect": {"type": "string"}}, "anyOf": [{"required": ["scene_id"]}, {"required": ["scene_order"]}]}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "reveals": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["reveal_id", "fact_id"], "properties": {"reveal_id": {"$ref": "#/$defs/canonicalId"}, "scene_id": {"$ref": "#/$defs/canonicalId"}, "scene_order": {"type": "integer", "minimum": 1}, "fact_id": {"$ref": "#/$defs/canonicalId"}, "reveal_target_id": {"type": "string", "pattern": "^REVEAL-TARGET-[0-9]{2,}$"}, "intentional_prereveal": {"type": "boolean"}, "information": {"type": "string"}, "effect": {"type": "string"}}, "anyOf": [{"required": ["scene_id"]}, {"required": ["scene_order"]}]}}}
     },
     "audienceBelief": {
       "type": "object",
@@ -297,7 +297,25 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "scenes"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "scenes": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["scene_id", "order", "beat_id", "estimated_seconds", "clue_ids", "knowledge_claims"], "properties": {"scene_id": {"$ref": "#/$defs/canonicalId"}, "order": {"type": "integer", "minimum": 1}, "beat_id": {"$ref": "#/$defs/canonicalId"}, "estimated_seconds": {"type": "number", "exclusiveMinimum": 0}, "clue_ids": {"$ref": "#/$defs/stringList"}, "knowledge_claims": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["character_id", "fact_id"], "properties": {"character_id": {"$ref": "#/$defs/canonicalId"}, "fact_id": {"$ref": "#/$defs/canonicalId"}}}}, "psychological_realization": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/psychologicalRealization"}}, "location_id": {"type": "string", "minLength": 1}, "cast_ids": {"$ref": "#/$defs/stringList"}, "child_actor_use": {"enum": ["NONE", "SUPPORTING", "PRIMARY"]}, "vehicle_scene": {"enum": ["NONE", "STATIC", "MOVING"]}, "special_effect_level": {"enum": ["NONE", "LOW", "MEDIUM", "HIGH"]}, "graphic_violence": {"enum": ["NONE", "IMPLIED", "NON_GRAPHIC", "GRAPHIC"]}, "production_complexity": {"enum": ["LOW", "MEDIUM", "HIGH", "EXTREME"]}, "summary": {"type": "string"}}}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "scenes": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["scene_id", "order", "beat_id", "estimated_seconds", "clue_ids", "knowledge_claims"], "properties": {"scene_id": {"$ref": "#/$defs/canonicalId"}, "order": {"type": "integer", "minimum": 1}, "beat_id": {"$ref": "#/$defs/canonicalId"}, "estimated_seconds": {"type": "number", "exclusiveMinimum": 0}, "clue_ids": {"$ref": "#/$defs/stringList"}, "knowledge_claims": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["character_id", "fact_id"], "properties": {"character_id": {"$ref": "#/$defs/canonicalId"}, "fact_id": {"$ref": "#/$defs/canonicalId"}}}}, "psychological_realization": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/psychologicalRealization"}}, "crime_realization": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/crimeRealization"}}, "location_id": {"type": "string", "minLength": 1}, "cast_ids": {"$ref": "#/$defs/stringList"}, "child_actor_use": {"enum": ["NONE", "SUPPORTING", "PRIMARY"]}, "vehicle_scene": {"enum": ["NONE", "STATIC", "MOVING"]}, "special_effect_level": {"enum": ["NONE", "LOW", "MEDIUM", "HIGH"]}, "graphic_violence": {"enum": ["NONE", "IMPLIED", "NON_GRAPHIC", "GRAPHIC"]}, "production_complexity": {"enum": ["LOW", "MEDIUM", "HIGH", "EXTREME"]}, "summary": {"type": "string"}}}}}
+    },
+    "crimeRealization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "harm_ids", "actor_ids", "victim_ids", "realization_mode", "action_evidence", "dialogue_or_behavior_evidence", "choice_or_emotion_change", "result_change", "planned_segment_ids", "expected_excerpt_anchor"],
+      "properties": {
+        "event_id": {"type": "string", "pattern": "^EVENT-[0-9]{2,}$"},
+        "harm_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^HARM-[0-9]{2,}$"}},
+        "actor_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/canonicalId"}},
+        "victim_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/canonicalId"}},
+        "realization_mode": {"enum": ["DIRECT_ACTION", "IMPLIED_ACTION", "AFTERMATH_CAUSAL"]},
+        "action_evidence": {"$ref": "#/$defs/nonEmptyString"},
+        "dialogue_or_behavior_evidence": {"$ref": "#/$defs/nonEmptyString"},
+        "choice_or_emotion_change": {"$ref": "#/$defs/nonEmptyString"},
+        "result_change": {"$ref": "#/$defs/nonEmptyString"},
+        "planned_segment_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^SEG-[0-9]{3,}$"}},
+        "expected_excerpt_anchor": {"$ref": "#/$defs/nonEmptyString"}
+      }
     },
     "psychologicalRealization": {
       "type": "object",
@@ -324,7 +342,7 @@
         "schema_version": {"enum": ["2.0.0", "2.1.0"]},
         "project_id": {"$ref": "#/$defs/projectId"},
         "modes": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"enum": ["DRAMA", "NARRATION", "PANEL_REACTION", "AUDIENCE_PROMPT", "EXPERT_ANALYSIS"]}},
-        "segments": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["segment_id", "segment_type", "scene_id", "start_sec", "duration_sec", "source_artifact", "revealed_fact_ids", "revealed_clue_ids"], "properties": {"segment_id": {"type": "string", "pattern": "^SEG-[0-9]{3,}$"}, "segment_type": {"enum": ["DRAMA", "NARRATION", "PANEL_REACTION", "AUDIENCE_PROMPT", "EXPERT_ANALYSIS"]}, "scene_id": {"$ref": "#/$defs/canonicalId"}, "reaction_segment_id": {"type": "string", "pattern": "^RSEG-[0-9]{3,}$"}, "start_sec": {"type": "number", "minimum": 0}, "duration_sec": {"type": "number", "exclusiveMinimum": 0}, "source_artifact": {"enum": ["drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script"]}, "revealed_fact_ids": {"$ref": "#/$defs/stringList"}, "revealed_clue_ids": {"$ref": "#/$defs/stringList"}, "referenced_fact_ids": {"$ref": "#/$defs/stringList"}, "referenced_clue_ids": {"$ref": "#/$defs/stringList"}, "psychological_stage_ids": {"$ref": "#/$defs/stringList"}, "psychological_stage_types": {"$ref": "#/$defs/stringList"}, "narration_function": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}}}}
+        "segments": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["segment_id", "segment_type", "scene_id", "start_sec", "duration_sec", "source_artifact", "revealed_fact_ids", "revealed_clue_ids"], "properties": {"segment_id": {"type": "string", "pattern": "^SEG-[0-9]{3,}$"}, "segment_type": {"enum": ["DRAMA", "NARRATION", "PANEL_REACTION", "AUDIENCE_PROMPT", "EXPERT_ANALYSIS"]}, "scene_id": {"$ref": "#/$defs/canonicalId"}, "reaction_segment_id": {"type": "string", "pattern": "^RSEG-[0-9]{3,}$"}, "start_sec": {"type": "number", "minimum": 0}, "duration_sec": {"type": "number", "exclusiveMinimum": 0}, "source_artifact": {"enum": ["drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script"]}, "revealed_fact_ids": {"$ref": "#/$defs/stringList"}, "revealed_clue_ids": {"$ref": "#/$defs/stringList"}, "referenced_fact_ids": {"$ref": "#/$defs/stringList"}, "referenced_clue_ids": {"$ref": "#/$defs/stringList"}, "referenced_reveal_target_ids": {"$ref": "#/$defs/stringList"}, "revealed_reveal_target_ids": {"$ref": "#/$defs/stringList"}, "intentional_prereveal_ids": {"$ref": "#/$defs/stringList"}, "psychological_stage_ids": {"$ref": "#/$defs/stringList"}, "psychological_stage_types": {"$ref": "#/$defs/stringList"}, "narrator_character_id": {"$ref": "#/$defs/canonicalId"}, "narration_function": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}}}}
       }
     },
     "issue": {
@@ -337,7 +355,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["project_id", "result", "issues"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "result": {"enum": ["PASS", "FAIL"]}, "issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}}, "scene_realization_evidence": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/sceneRealizationEvidence"}}}
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "result": {"enum": ["PASS", "FAIL"]}, "issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}}, "scene_realization_evidence": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/sceneRealizationEvidence"}}, "crime_realization_evidence": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/crimeRealizationEvidence"}}}
     },
     "sceneRealizationEvidence": {
       "type": "object",
@@ -350,11 +368,23 @@
         "excerpt_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
       }
     },
+    "crimeRealizationEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "scene_id", "segment_id", "excerpt_hash", "status"],
+      "properties": {
+        "event_id": {"type": "string", "pattern": "^EVENT-[0-9]{2,}$"},
+        "scene_id": {"type": "string", "pattern": "^SCN-[0-9]{2,}$"},
+        "segment_id": {"type": "string", "pattern": "^SEG-[0-9]{3,}$"},
+        "excerpt_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "status": {"enum": ["NEEDS_REVIEW", "MISSING"]}
+      }
+    },
     "noveltyReport": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["project_id", "result", "comparisons", "hard_collisions", "semantic_hard_collisions", "issues"],
-      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "result": {"enum": ["PASS", "FAIL"]}, "comparisons": {"type": "array", "items": {"type": "object"}}, "hard_collisions": {"type": "array", "items": {"type": "string"}}, "semantic_hard_collisions": {"type": "array", "items": {"type": "string"}}, "issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}}}
+      "required": ["project_id", "result", "comparison_status", "comparisons", "hard_collisions", "semantic_hard_collisions", "issues"],
+      "properties": {"project_id": {"$ref": "#/$defs/projectId"}, "result": {"enum": ["PASS", "FAIL"]}, "comparison_status": {"enum": ["COMPARISON_COMPLETE", "NO_COMPARISON_DATA"]}, "comparisons": {"type": "array", "items": {"type": "object"}}, "hard_collisions": {"type": "array", "items": {"type": "string"}}, "semantic_hard_collisions": {"type": "array", "items": {"type": "string"}}, "issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}}}
     },
     "referenceReport": {
       "type": "object",

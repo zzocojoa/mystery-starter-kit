@@ -27,12 +27,8 @@ PANEL_FUNCTIONS = frozenset(
         "BELIEF_CORRECTION",
     }
 )
-REQUIRED_PANEL_FUNCTIONS = frozenset(
-    {"HYPOTHESIS_GENERATION", "HYPOTHESIS_REVISION"}
-)
-REQUIRED_REASONING_FUNCTIONS = frozenset(
-    {"ANOMALY_DETECTION", "CONTRADICTION_DETECTION"}
-)
+REQUIRED_PANEL_FUNCTIONS = frozenset({"HYPOTHESIS_GENERATION", "HYPOTHESIS_REVISION"})
+REQUIRED_REASONING_FUNCTIONS = frozenset({"ANOMALY_DETECTION", "CONTRADICTION_DETECTION"})
 SEGMENT_MARKER = re.compile(
     r"<!-- SEGMENT:(?P<segment_id>SEG-[0-9]{3,}) "
     r"TYPE:(?P<segment_type>[A-Z_]+) "
@@ -250,8 +246,7 @@ def validate_panel_cast(panel_cast: Mapping[str, object]) -> list[ValidationIssu
             )
         )
     function_profiles = {
-        tuple(sorted(string_items(panelist, "allowed_functions")))
-        for panelist in panelists
+        tuple(sorted(string_items(panelist, "allowed_functions"))) for panelist in panelists
     }
     if len(panelists) >= 2 and len(function_profiles) < 2:
         issues.append(
@@ -259,11 +254,7 @@ def validate_panel_cast(panel_cast: Mapping[str, object]) -> list[ValidationIssu
                 "PANEL_CAST_MISSING",
                 "Panel Cast는 최소 2개의 서로 다른 기능 구성을 가져야 합니다.",
                 "06_SCENE/panel_cast.json",
-                {
-                    "function_profiles": [
-                        list(profile) for profile in sorted(function_profiles)
-                    ]
-                },
+                {"function_profiles": [list(profile) for profile in sorted(function_profiles)]},
             )
         )
     invalid_scopes = sorted(
@@ -320,17 +311,19 @@ def reaction_function_issues(
     }
     capabilities = channel.get("capabilities")
     scene_policy = (
-        capabilities.get("SCENE_REALIZATION_POLICY")
-        if isinstance(capabilities, Mapping)
-        else None
+        capabilities.get("SCENE_REALIZATION_POLICY") if isinstance(capabilities, Mapping) else None
     )
     reaction_policy = (
-        capabilities.get("REACTION_POLICY")
+        capabilities.get("REACTION_POLICY") if isinstance(capabilities, Mapping) else None
+    )
+    realization_enabled = isinstance(scene_policy, Mapping) and scene_policy.get("enabled") is True
+    explicit_policy = (
+        capabilities.get("EXPLICIT_CRIME_EVENT_POLICY")
         if isinstance(capabilities, Mapping)
         else None
     )
-    realization_enabled = (
-        isinstance(scene_policy, Mapping) and scene_policy.get("enabled") is True
+    explicit_enabled = (
+        isinstance(explicit_policy, Mapping) and explicit_policy.get("enabled") is True
     )
     channel_functions = (
         set(string_items(reaction_policy, "functions"))
@@ -339,13 +332,26 @@ def reaction_function_issues(
     )
     required_functions = (
         set(string_items(reaction_policy, "required_functions"))
-        if realization_enabled and isinstance(reaction_policy, Mapping)
+        if (realization_enabled or explicit_enabled) and isinstance(reaction_policy, Mapping)
         else set(REQUIRED_PANEL_FUNCTIONS)
     )
-    allowed_functions = channel_functions if realization_enabled else set(PANEL_FUNCTIONS)
+    required_any_of = (
+        set(string_items(reaction_policy, "required_function_any_of"))
+        if explicit_enabled and isinstance(reaction_policy, Mapping)
+        else set()
+    )
+    allowed_functions = (
+        channel_functions if realization_enabled or explicit_enabled else set(PANEL_FUNCTIONS)
+    )
     invalid = sorted(functions - allowed_functions)
     missing = sorted(required_functions - functions)
-    if not realization_enabled and not functions.intersection(REQUIRED_REASONING_FUNCTIONS):
+    if required_any_of and not functions.intersection(required_any_of):
+        missing.append("ONE_OF:" + "|".join(sorted(required_any_of)))
+    if (
+        not realization_enabled
+        and not explicit_enabled
+        and not functions.intersection(REQUIRED_REASONING_FUNCTIONS)
+    ):
         missing.append("ANOMALY_DETECTION_OR_CONTRADICTION_DETECTION")
     issues: list[ValidationIssue] = []
     if invalid:
@@ -384,9 +390,7 @@ def reaction_reference_issues(
         if isinstance(panelist.get("panelist_id"), str)
     }
     panelist_functions = {
-        cast(str, panelist.get("panelist_id")): set(
-            string_items(panelist, "allowed_functions")
-        )
+        cast(str, panelist.get("panelist_id")): set(string_items(panelist, "allowed_functions"))
         for panelist in mapping_items(panel_cast, "panelists")
         if isinstance(panelist.get("panelist_id"), str)
     }
@@ -459,8 +463,7 @@ def reaction_reference_issues(
                 if evidence_id in clues
                 and isinstance(scene_order, int)
                 and isinstance(clues[evidence_id].get("introduced_scene_order"), int)
-                and cast(int, clues[evidence_id].get("introduced_scene_order"))
-                > scene_order
+                and cast(int, clues[evidence_id].get("introduced_scene_order")) > scene_order
             )
             if premature_evidence:
                 issues.append(
@@ -591,8 +594,7 @@ def validate_presentation_timeline(
     reaction_orders = [
         cast(int, reaction.get("order"))
         for reaction in reactions
-        if isinstance(reaction.get("order"), int)
-        and not isinstance(reaction.get("order"), bool)
+        if isinstance(reaction.get("order"), int) and not isinstance(reaction.get("order"), bool)
     ]
     expected_reaction_orders = list(range(1, len(reactions) + 1))
     if sorted(reaction_orders) != expected_reaction_orders:
@@ -933,17 +935,14 @@ def layer_alignment_issues(
         for artifact_name, content in layer_scripts.items()
     }
     parsed_layers = {
-        artifact_name: result[0]
-        for artifact_name, result in parsed_layer_results.items()
+        artifact_name: result[0] for artifact_name, result in parsed_layer_results.items()
     }
     layer_by_id = {
         artifact_name: {segment["segment_id"]: segment for segment in segments}
         for artifact_name, segments in parsed_layers.items()
     }
     mismatches: list[dict[str, object]] = []
-    expected_by_layer: dict[str, list[str]] = {
-        artifact_name: [] for artifact_name in layer_scripts
-    }
+    expected_by_layer: dict[str, list[str]] = {artifact_name: [] for artifact_name in layer_scripts}
     for plan_segment in presentation_segments(presentation_plan):
         segment_id = plan_segment.get("segment_id")
         source = plan_segment.get("source_artifact")
@@ -1032,8 +1031,7 @@ def panel_script_issues(
         expected_turns = [
             (turn.get("panelist_id"), cast(str, turn.get("spoken_line")).strip())
             for turn in turns
-            if isinstance(turn.get("panelist_id"), str)
-            and isinstance(turn.get("spoken_line"), str)
+            if isinstance(turn.get("panelist_id"), str) and isinstance(turn.get("spoken_line"), str)
         ]
         if (
             header is None
@@ -1163,9 +1161,7 @@ def audience_belief_alignment_issues(
             if isinstance(current_order, int) and order <= current_order
         )
         current_belief_facts = (
-            belief_facts_by_order[available_belief_orders[-1]]
-            if available_belief_orders
-            else set()
+            belief_facts_by_order[available_belief_orders[-1]] if available_belief_orders else set()
         )
         for fact_id in sorted(segment_fact_ids(segment, plan_segment)):
             reveal_order = reveal_orders.get(fact_id)
@@ -1265,9 +1261,7 @@ def rescue_timeline_minute(actual_timeline: Mapping[str, object]) -> float | Non
             and not isinstance(start_minute, bool)
         ):
             return float(start_minute)
-    completion_pattern = re.compile(
-        r"구조(?:한다|했다|된다|됐다|되었다|되었다고|함(?:\.|$))"
-    )
+    completion_pattern = re.compile(r"구조(?:한다|했다|된다|됐다|되었다|되었다고|함(?:\.|$))")
     for event in mapping_items(actual_timeline, "events"):
         description = event.get("description")
         start_minute = event.get("start_minute")

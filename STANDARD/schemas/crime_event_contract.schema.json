@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/crime-event-contract-1.0.0.json",
+  "title": "Explicit Interpersonal Crime Event Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "approved_candidate_id",
+    "candidate_event_sha256",
+    "event_id",
+    "primary_crime",
+    "related_crimes",
+    "core_action_type",
+    "relationship_context",
+    "actor_ids",
+    "victim_ids",
+    "motive",
+    "act_summary",
+    "harm_ids",
+    "harm_result",
+    "harm_classifications",
+    "protagonist_goal",
+    "protagonist_risk",
+    "depiction_mode",
+    "development_functions",
+    "reveal_targets",
+    "method_detail_level",
+    "truth_basis"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "crime-event-contract"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "approved_candidate_id": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
+    "candidate_event_sha256": {"$ref": "#/$defs/hash"},
+    "event_id": {"$ref": "#/$defs/eventId"},
+    "primary_crime": {"$ref": "#/$defs/coreCrime"},
+    "related_crimes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/coreCrime"}
+    },
+    "core_action_type": {"$ref": "#/$defs/crimeAction"},
+    "relationship_context": {"type": "string", "minLength": 1},
+    "actor_ids": {"$ref": "#/$defs/characterIds"},
+    "victim_ids": {"$ref": "#/$defs/characterIds"},
+    "motive": {"type": "string", "minLength": 1},
+    "act_summary": {"type": "string", "minLength": 1},
+    "harm_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/harmId"}
+    },
+    "harm_result": {"type": "string", "minLength": 1},
+    "harm_classifications": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "FATALITY",
+          "BODILY_INJURY",
+          "LIBERTY_DEPRIVATION",
+          "SAFETY_COLLAPSE",
+          "THREAT_OR_TRAUMA",
+          "COMPOUND_HARM"
+        ]
+      }
+    },
+    "protagonist_goal": {"type": "string", "minLength": 1},
+    "protagonist_risk": {"type": "string", "minLength": 1},
+    "depiction_mode": {
+      "enum": ["DIRECT_NON_GRAPHIC", "IMPLIED", "AFTERMATH_CAUSAL"]
+    },
+    "development_functions": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/developmentFunction"}
+    },
+    "reveal_targets": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/revealTarget"}
+    },
+    "method_detail_level": {"const": "NON_ACTIONABLE_SUMMARY_ONLY"},
+    "truth_basis": {"$ref": "#/$defs/truthBasis"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "eventId": {"type": "string", "pattern": "^EVENT-[0-9]{2,}$"},
+    "harmId": {"type": "string", "pattern": "^HARM-[0-9]{2,}$"},
+    "characterId": {"type": "string", "pattern": "^CHAR-[0-9]{2,}$"},
+    "characterIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/characterId"}
+    },
+    "coreCrime": {
+      "enum": [
+        "MURDER",
+        "KIDNAPPING",
+        "CONFINEMENT",
+        "ASSAULT",
+        "STALKING",
+        "HOME_INVASION",
+        "DATING_VIOLENCE",
+        "DOMESTIC_VIOLENCE"
+      ]
+    },
+    "crimeAction": {
+      "enum": [
+        "MURDER",
+        "KIDNAPPING",
+        "CONFINEMENT",
+        "ASSAULT",
+        "STALKING",
+        "HOME_INVASION"
+      ]
+    },
+    "developmentFunction": {
+      "enum": [
+        "HARM_OR_DANGER_RECOGNITION",
+        "INVOLVEMENT_OR_SUSPICION",
+        "MOTIVE_AND_RESPONSIBILITY",
+        "EVENT_RECONSTRUCTION",
+        "LIBERTY_DEPRIVATION",
+        "THREAT_AND_CHOICE_CONSTRAINT",
+        "RESPONSE_OR_DISCOVERY",
+        "HARM_OUTCOME",
+        "VIOLENCE_OR_THREAT",
+        "RELATIONSHIP_AND_POWER",
+        "RESPONSE_BARRIER",
+        "VIOLENCE_OUTCOME",
+        "REPEATED_ACCESS_OR_INTRUSION",
+        "SAFETY_COLLAPSE",
+        "SAFETY_RESPONSE",
+        "OFFENDER_RESPONSIBILITY"
+      ]
+    },
+    "revealTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reveal_target_id",
+        "target_type",
+        "summary",
+        "planned_phase",
+        "planned_segment_id"
+      ],
+      "properties": {
+        "reveal_target_id": {
+          "type": "string",
+          "pattern": "^REVEAL-TARGET-[0-9]{2,}$"
+        },
+        "target_type": {"enum": ["CULPRIT", "MOTIVE", "METHOD", "HARM_RESULT"]},
+        "summary": {"type": "string", "minLength": 1},
+        "planned_phase": {"enum": ["EARLY", "MIDDLE", "LATE"]},
+        "planned_segment_id": {
+          "type": ["string", "null"],
+          "pattern": "^SEG-[0-9]{3,}$"
+        }
+      }
+    },
+    "truthBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_truth_classification", "status", "source_fact_ids", "unknown_fields"],
+      "properties": {
+        "source_truth_classification": {
+          "enum": [
+            "ORIGINAL_FICTION",
+            "VERIFIED_TRUE_CASE",
+            "INSPIRED_BY_TRUE_EVENTS"
+          ]
+        },
+        "status": {"enum": ["ORIGINAL_FICTION", "EVIDENCE_LOCKED"]},
+        "source_fact_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^FACT-[0-9]{2,}$"}
+        },
+        "unknown_fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["primary_crime", "motive", "act_summary", "harm_result", "legal_outcome"]
+          }
+        }
+      }
+    }
+  }
+}

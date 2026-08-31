@@ -1,76 +1,48 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/script-realization-report-1.0.0.json",
-  "title": "Script Realization Report v1",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "schema_family",
-    "schema_version",
-    "project_id",
-    "applicable",
-    "minimum_realization_score",
-    "realization_score",
-    "stage_results",
-    "result",
-    "issues"
-  ],
-  "properties": {
-    "$schema": {"type": "string"},
-    "schema_family": {"const": "script-realization-report"},
-    "schema_version": {"const": "1.0.0"},
-    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
-    "applicable": {"type": "boolean"},
-    "minimum_realization_score": {"type": "number", "minimum": 0, "maximum": 100},
-    "realization_score": {"type": "number", "minimum": 0, "maximum": 100},
-    "input_hashes": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "psychological_arc",
-        "scene_cards",
-        "presentation_plan",
-        "final_script"
-      ],
-      "properties": {
-        "psychological_arc": {"$ref": "#/$defs/hash"},
-        "scene_cards": {"$ref": "#/$defs/hash"},
-        "presentation_plan": {"$ref": "#/$defs/hash"},
-        "final_script": {"$ref": "#/$defs/hash"}
-      }
-    },
-    "stage_results": {
-      "type": "array",
-      "items": {"$ref": "#/$defs/stageResult"}
-    },
-    "result": {"enum": ["PASS", "FAIL"]},
-    "issues": {"type": "array", "items": {"type": "object"}}
-  },
-  "allOf": [
-    {
-      "if": {"properties": {"applicable": {"const": true}}},
-      "then": {
-        "required": ["input_hashes"],
-        "properties": {"stage_results": {"minItems": 9}}
-      }
-    }
+  "$id": "https://example.local/schemas/script-realization-report-1.0-2.0.json",
+  "title": "Script Realization Report v1/v2",
+  "oneOf": [
+    {"$ref": "#/$defs/psychologicalReport"},
+    {"$ref": "#/$defs/crimeReport"}
   ],
   "$defs": {
     "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "nullableHash": {"anyOf": [{"$ref": "#/$defs/hash"}, {"type": "null"}]},
+    "status": {"enum": ["NEEDS_REVIEW", "MISSING"]},
+    "psychologicalReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_family", "schema_version", "project_id", "applicable", "minimum_realization_score", "realization_score", "stage_results", "result", "issues"],
+      "properties": {
+        "$schema": {"type": "string"},
+        "schema_family": {"const": "script-realization-report"},
+        "schema_version": {"const": "1.0.0"},
+        "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+        "applicable": {"type": "boolean"},
+        "minimum_realization_score": {"type": "number", "minimum": 0, "maximum": 100},
+        "realization_score": {"type": "number", "minimum": 0, "maximum": 100},
+        "input_hashes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["psychological_arc", "scene_cards", "presentation_plan", "final_script"],
+          "properties": {
+            "psychological_arc": {"$ref": "#/$defs/hash"},
+            "scene_cards": {"$ref": "#/$defs/hash"},
+            "presentation_plan": {"$ref": "#/$defs/hash"},
+            "final_script": {"$ref": "#/$defs/hash"}
+          }
+        },
+        "stage_results": {"type": "array", "items": {"$ref": "#/$defs/stageResult"}},
+        "result": {"enum": ["PASS", "FAIL"]},
+        "issues": {"type": "array", "items": {"type": "object"}}
+      },
+      "allOf": [{"if": {"properties": {"applicable": {"const": true}}}, "then": {"required": ["input_hashes"], "properties": {"stage_results": {"minItems": 9}}}}]
+    },
     "stageResult": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "stage_id",
-        "stage_type",
-        "status",
-        "satisfaction_mode",
-        "scene_id",
-        "segment_id",
-        "selector_type",
-        "excerpt_hash",
-        "state_delta_observed"
-      ],
+      "required": ["stage_id", "stage_type", "status", "satisfaction_mode", "scene_id", "segment_id", "selector_type", "excerpt_hash", "state_delta_observed"],
       "properties": {
         "stage_id": {"type": "string", "pattern": "^PSTAGE-[0-9]{3,}$"},
         "stage_type": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
@@ -79,10 +51,77 @@
         "scene_id": {"type": ["string", "null"], "pattern": "^SCN-[0-9]{2,}$"},
         "segment_id": {"type": ["string", "null"], "pattern": "^SEG-[0-9]{3,}$"},
         "selector_type": {"const": "SEGMENT_ID"},
-        "excerpt_hash": {
-          "anyOf": [{"$ref": "#/$defs/hash"}, {"type": "null"}]
-        },
+        "excerpt_hash": {"$ref": "#/$defs/nullableHash"},
         "state_delta_observed": {"type": "boolean"}
+      }
+    },
+    "crimeReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_family", "schema_version", "project_id", "applicable", "result", "event_results", "reveal_results", "layer_results", "issues"],
+      "properties": {
+        "$schema": {"type": "string"},
+        "schema_family": {"const": "script-realization-report"},
+        "schema_version": {"const": "2.0.0"},
+        "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+        "applicable": {"type": "boolean"},
+        "input_hashes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["crime_event_contract", "scene_cards", "presentation_plan", "reaction_segments", "viewer_timeline", "final_script"],
+          "properties": {
+            "crime_event_contract": {"$ref": "#/$defs/hash"},
+            "scene_cards": {"$ref": "#/$defs/hash"},
+            "presentation_plan": {"$ref": "#/$defs/hash"},
+            "reaction_segments": {"$ref": "#/$defs/hash"},
+            "viewer_timeline": {"$ref": "#/$defs/hash"},
+            "final_script": {"$ref": "#/$defs/hash"}
+          }
+        },
+        "result": {"enum": ["NEEDS_REVIEW", "MISSING", "NOT_APPLICABLE"]},
+        "event_results": {"type": "array", "items": {"$ref": "#/$defs/eventResult"}},
+        "reveal_results": {"type": "array", "items": {"$ref": "#/$defs/revealResult"}},
+        "layer_results": {"type": "array", "items": {"$ref": "#/$defs/layerResult"}},
+        "issues": {"type": "array", "items": {"type": "object"}}
+      },
+      "allOf": [{"if": {"properties": {"applicable": {"const": true}}}, "then": {"required": ["input_hashes"], "properties": {"event_results": {"minItems": 1}, "reveal_results": {"minItems": 4}, "layer_results": {"minItems": 3}}}}]
+    },
+    "eventResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "harm_ids", "status", "scene_id", "segment_id", "selector_type", "excerpt_hash", "realization_mode"],
+      "properties": {
+        "event_id": {"type": "string", "pattern": "^EVENT-[0-9]{2,}$"},
+        "harm_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^HARM-[0-9]{2,}$"}},
+        "status": {"$ref": "#/$defs/status"},
+        "scene_id": {"type": ["string", "null"], "pattern": "^SCN-[0-9]{2,}$"},
+        "segment_id": {"type": ["string", "null"], "pattern": "^SEG-[0-9]{3,}$"},
+        "selector_type": {"const": "SEGMENT_ID"},
+        "excerpt_hash": {"$ref": "#/$defs/nullableHash"},
+        "realization_mode": {"enum": ["DIRECT_ACTION", "IMPLIED_ACTION", "AFTERMATH_CAUSAL", null]}
+      }
+    },
+    "revealResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reveal_target_id", "target_type", "status", "segment_id", "selector_type", "excerpt_hash"],
+      "properties": {
+        "reveal_target_id": {"type": "string", "pattern": "^REVEAL-TARGET-[0-9]{2,}$"},
+        "target_type": {"enum": ["CULPRIT", "MOTIVE", "METHOD", "HARM_RESULT"]},
+        "status": {"$ref": "#/$defs/status"},
+        "segment_id": {"type": ["string", "null"], "pattern": "^SEG-[0-9]{3,}$"},
+        "selector_type": {"const": "SEGMENT_ID"},
+        "excerpt_hash": {"$ref": "#/$defs/nullableHash"}
+      }
+    },
+    "layerResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layer", "status", "segment_ids"],
+      "properties": {
+        "layer": {"enum": ["DRAMA", "NARRATION", "PANEL_REACTION"]},
+        "status": {"$ref": "#/$defs/status"},
+        "segment_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^SEG-[0-9]{3,}$"}}
       }
     }
   }

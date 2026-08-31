@@ -61,6 +61,14 @@
         "pattern": "^[A-Z]+-[0-9]{2,}$"
       }
     },
+    "revealTargetList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^REVEAL-TARGET-[0-9]{2,}$"
+      }
+    },
     "presentationSegment": {
       "type": "object",
       "additionalProperties": false,
@@ -124,6 +132,15 @@
         "referenced_clue_ids": {
           "$ref": "#/$defs/identifierList"
         },
+        "referenced_reveal_target_ids": {
+          "$ref": "#/$defs/revealTargetList"
+        },
+        "revealed_reveal_target_ids": {
+          "$ref": "#/$defs/revealTargetList"
+        },
+        "intentional_prereveal_ids": {
+          "$ref": "#/$defs/revealTargetList"
+        },
         "psychological_stage_ids": {
           "type": "array",
           "uniqueItems": true,
@@ -137,6 +154,10 @@
         "narration_function": {
           "type": "string",
           "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "narrator_character_id": {
+          "type": "string",
+          "pattern": "^[A-Z]+-[0-9]{2,}$"
         }
       },
       "allOf": [

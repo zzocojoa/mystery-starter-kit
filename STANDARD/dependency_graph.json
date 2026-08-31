@@ -103,6 +103,12 @@
       "depends_on": ["case_input"],
       "owner_agent": "story_architect"
     },
+    "crime_event_contract": {
+      "path": "01_CASE/crime_event_contract.json",
+      "depends_on": ["production_config", "variation_candidates", "candidate_approval", "story_dna", "case_input", "facts", "source_truth_contract"],
+      "owner_agent": "story_architect",
+      "required_when": {"capability_enabled": "EXPLICIT_CRIME_EVENT_POLICY"}
+    },
     "crime_psychology": {
       "path": "01_CASE/crime_psychology.json",
       "depends_on": ["case_input", "facts", "story_dna"],
@@ -194,7 +200,7 @@
     },
     "scene_cards": {
       "path": "06_SCENE/scene_cards.json",
-      "depends_on": ["beat_sheet", "retention_plan", "psychological_arc", "clue_matrix"],
+      "depends_on": ["beat_sheet", "retention_plan", "psychological_arc", "crime_event_contract", "clue_matrix"],
       "owner_agent": "scene_designer"
     },
     "production_footprint": {
@@ -215,7 +221,7 @@
     },
     "presentation_plan": {
       "path": "06_SCENE/presentation_plan.json",
-      "depends_on": ["scene_cards", "psychological_arc", "production_config", "panel_cast", "reaction_segments"],
+      "depends_on": ["scene_cards", "psychological_arc", "crime_event_contract", "production_config", "panel_cast", "reaction_segments"],
       "owner_agent": "scene_designer"
     },
     "expert_segments": {
@@ -226,7 +232,7 @@
     },
     "drama_script": {
       "path": "07_SCRIPT/drama_script.md",
-      "depends_on": ["scene_cards", "knowledge_matrix", "clue_matrix"],
+      "depends_on": ["scene_cards", "crime_event_contract", "knowledge_matrix", "clue_matrix"],
       "owner_agent": "script_writer"
     },
     "narration_script": {
@@ -257,9 +263,9 @@
     },
     "script_realization_report": {
       "path": "08_QA/script_realization_report.json",
-      "depends_on": ["psychological_arc", "scene_cards", "presentation_plan", "final_script"],
+      "depends_on": ["psychological_arc", "crime_event_contract", "scene_cards", "presentation_plan", "reaction_segments", "viewer_timeline", "final_script"],
       "owner_agent": "continuity_critic",
-      "required_when": {"all": [{"channel_version_at_least": "2.1.0"}, {"capability_enabled": "SCENE_REALIZATION_POLICY"}]}
+      "required_when": {"any": [{"capability_enabled": "SCENE_REALIZATION_POLICY"}, {"capability_enabled": "EXPLICIT_CRIME_EVENT_POLICY"}]}
     },
     "continuity_report": {
       "path": "08_QA/continuity_report.json",
@@ -278,7 +284,7 @@
     },
     "channel_consistency_report": {
       "path": "08_QA/channel_consistency_report.json",
-      "depends_on": ["story_dna", "case_input", "crime_psychology", "psychological_arc", "claim_evidence", "source_disclosure", "clinical_labels", "clue_matrix", "characters", "scene_cards", "expert_segments", "expert_analysis_script", "panel_reaction_script", "final_script", "presentation_plan", "script_realization_report", "production_config"],
+      "depends_on": ["story_dna", "case_input", "crime_event_contract", "crime_psychology", "psychological_arc", "claim_evidence", "source_disclosure", "clinical_labels", "clue_matrix", "characters", "scene_cards", "expert_segments", "expert_analysis_script", "panel_reaction_script", "final_script", "presentation_plan", "script_realization_report", "production_config"],
       "owner_agent": "continuity_critic"
     },
     "validation_report": {
@@ -325,7 +331,7 @@
     },
     "editorial_review": {
       "path": "08_QA/editorial_review.json",
-      "depends_on": ["final_script", "viewer_timeline", "audience_belief", "reaction_segments", "expert_segments", "presentation_plan", "panel_reaction_script", "expert_analysis_script", "shooting_script", "production_manifest", "narration", "production_panel_reaction_script", "production_expert_analysis_script", "subtitle_script", "edit_script"],
+      "depends_on": ["crime_event_contract", "scene_cards", "final_script", "viewer_timeline", "audience_belief", "reaction_segments", "expert_segments", "presentation_plan", "panel_reaction_script", "expert_analysis_script", "script_realization_report", "shooting_script", "production_manifest", "narration", "production_panel_reaction_script", "production_expert_analysis_script", "subtitle_script", "edit_script"],
       "owner_agent": "continuity_critic"
     }
   }

@@ -24,9 +24,7 @@ CHANNEL_SCHEMA_PATH = ROOT / "STANDARD" / "schemas" / "channel_dna.schema.json"
 STORY_SCHEMA_PATH = ROOT / "STANDARD" / "schemas" / "story_dna.schema.json"
 STORY_EXAMPLE_PATH = ROOT / "EXAMPLES" / "story_dna.example.json"
 CHANNEL_MANIFEST_PATH = ROOT / "CHANNELS" / "mystery_main" / "channel_manifest.json"
-CHANNEL_MANIFEST_SCHEMA_PATH = (
-    ROOT / "STANDARD" / "schemas" / "channel_manifest.schema.json"
-)
+CHANNEL_MANIFEST_SCHEMA_PATH = ROOT / "STANDARD" / "schemas" / "channel_manifest.schema.json"
 
 
 def load_core_documents() -> tuple[dict[str, object], dict[str, object], dict[str, object]]:
@@ -41,31 +39,46 @@ def load_core_documents() -> tuple[dict[str, object], dict[str, object], dict[st
 def test_shipped_documents_match_their_schemas() -> None:
     """저장소 기준 문서가 선언된 Schema를 통과해야 한다."""
     contract, defaults, channel = load_core_documents()
-    assert collect_schema_errors(
-        contract,
-        load_json_object(CONTRACT_SCHEMA_PATH),
-        str(CONTRACT_PATH),
-    ) == []
-    assert collect_schema_errors(
-        defaults,
-        load_json_object(DEFAULTS_SCHEMA_PATH),
-        str(DEFAULTS_PATH),
-    ) == []
-    assert collect_schema_errors(
-        channel,
-        load_json_object(CHANNEL_SCHEMA_PATH),
-        str(CHANNEL_PATH),
-    ) == []
-    assert collect_schema_errors(
-        load_json_object(STORY_EXAMPLE_PATH),
-        load_json_object(STORY_SCHEMA_PATH),
-        str(STORY_EXAMPLE_PATH),
-    ) == []
-    assert collect_schema_errors(
-        load_json_object(CHANNEL_MANIFEST_PATH),
-        load_json_object(CHANNEL_MANIFEST_SCHEMA_PATH),
-        str(CHANNEL_MANIFEST_PATH),
-    ) == []
+    assert (
+        collect_schema_errors(
+            contract,
+            load_json_object(CONTRACT_SCHEMA_PATH),
+            str(CONTRACT_PATH),
+        )
+        == []
+    )
+    assert (
+        collect_schema_errors(
+            defaults,
+            load_json_object(DEFAULTS_SCHEMA_PATH),
+            str(DEFAULTS_PATH),
+        )
+        == []
+    )
+    assert (
+        collect_schema_errors(
+            channel,
+            load_json_object(CHANNEL_SCHEMA_PATH),
+            str(CHANNEL_PATH),
+        )
+        == []
+    )
+    assert (
+        collect_schema_errors(
+            load_json_object(STORY_EXAMPLE_PATH),
+            load_json_object(STORY_SCHEMA_PATH),
+            str(STORY_EXAMPLE_PATH),
+        )
+        == []
+    )
+    assert (
+        collect_schema_errors(
+            load_json_object(CHANNEL_MANIFEST_PATH),
+            load_json_object(CHANNEL_MANIFEST_SCHEMA_PATH),
+            str(CHANNEL_MANIFEST_PATH),
+        )
+        == []
+    )
 
 
 def test_current_channel_is_compatible() -> None:
@@ -76,9 +89,7 @@ def test_current_channel_is_compatible() -> None:
     assert report["compatibility"] == "PASS"
     assert report["required_capabilities"]["GENRE_POLICY"] == "SUPPORTED"
     assert report["optional_capabilities"]["HOST_POLICY"] == "MISSING_USE_DEFAULT"
-    assert report["resolved_optional_capabilities"]["HOST_POLICY"]["source"] == (
-        "STANDARD_DEFAULT"
-    )
+    assert report["resolved_optional_capabilities"]["HOST_POLICY"]["source"] == ("STANDARD_DEFAULT")
 
 
 def test_v1_2_contract_keeps_five_required_and_adds_v21_optional_capability() -> None:
@@ -104,6 +115,7 @@ def test_v1_2_contract_keeps_five_required_and_adds_v21_optional_capability() ->
         "CLINICAL_LABEL_POLICY",
         "EPISODE_THEME_POLICY",
         "SCENE_REALIZATION_POLICY",
+        "EXPLICIT_CRIME_EVENT_POLICY",
     }.issubset(set(optional))
 
 
@@ -123,6 +135,7 @@ def test_v2_optional_capability_shapes_are_explicit() -> None:
         "clinicalLabelPolicy",
         "episodeThemePolicy",
         "sceneRealizationPolicy",
+        "explicitCrimeEventPolicy",
     )
 
     for name in definition_names:
@@ -152,14 +165,18 @@ def test_v2_optional_defaults_match_explicit_channel_shapes() -> None:
         "CLINICAL_LABEL_POLICY",
         "EPISODE_THEME_POLICY",
         "SCENE_REALIZATION_POLICY",
+        "EXPLICIT_CRIME_EVENT_POLICY",
     ):
         capabilities[capability_name] = deepcopy(optional_defaults[capability_name])
 
-    assert collect_schema_errors(
-        changed_channel,
-        load_json_object(CHANNEL_SCHEMA_PATH),
-        "channel_with_v2_defaults",
-    ) == []
+    assert (
+        collect_schema_errors(
+            changed_channel,
+            load_json_object(CHANNEL_SCHEMA_PATH),
+            "channel_with_v2_defaults",
+        )
+        == []
+    )
 
 
 def test_channel_value_is_never_overwritten_by_default() -> None:
@@ -272,9 +289,7 @@ def test_unregistered_content_version_fails_binding() -> None:
     )
 
     assert report["compatibility"] == "FAIL"
-    assert [error["code"] for error in report["errors"]] == [
-        "CHANNEL_CONTENT_VERSION_NOT_FOUND"
-    ]
+    assert [error["code"] for error in report["errors"]] == ["CHANNEL_CONTENT_VERSION_NOT_FOUND"]
 
 
 def test_content_version_mismatch_fails_binding() -> None:
@@ -317,10 +332,7 @@ def test_channel_hash_mismatch_fails_binding() -> None:
         channel,
     )
 
-    assert any(
-        error["code"] == "CHANNEL_DNA_HASH_MISMATCH"
-        for error in report["errors"]
-    )
+    assert any(error["code"] == "CHANNEL_DNA_HASH_MISMATCH" for error in report["errors"])
 
 
 def test_semantic_versions_are_compared_numerically() -> None:

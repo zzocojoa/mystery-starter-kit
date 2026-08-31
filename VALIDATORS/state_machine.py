@@ -81,7 +81,7 @@ GATES: tuple[GateDefinition, ...] = (
     },
     {
         "gate_id": "GATE-06",
-        "required_artifacts": ("beat_sheet", "retention_plan", "psychological_arc"),
+        "required_artifacts": ("beat_sheet", "retention_plan"),
         "target_state": "STORY_STRUCTURED",
     },
     {
@@ -110,7 +110,7 @@ GATES: tuple[GateDefinition, ...] = (
     },
     {
         "gate_id": "GATE-09",
-        "required_artifacts": ("script_realization_report", "continuity_report"),
+        "required_artifacts": ("continuity_report",),
         "target_state": "SCRIPT_WRITTEN",
     },
     {

@@ -2,21 +2,15 @@
   "schema_family": "variation-engine-specification",
   "schema_version": "1.0.0",
   "variation_engine_version": "2.1.0",
-  "algorithm_id": "PSYCHOLOGICAL_ARCHITECTURE_FIRST_V21",
+  "algorithm_id": "EXPLICIT_CRIME_EVENT_FIRST_V21",
   "supported_channel_content_versions": {"min_inclusive": "2.1.0", "max_exclusive": "3.0.0"},
   "supported_catalog_versions": {"min_inclusive": "2.1.0", "max_exclusive": "3.0.0"},
-  "required_capabilities": ["CRIME_PSYCHOLOGY_POLICY", "SCENE_REALIZATION_POLICY"],
-  "dimension_order": "PRIMARY_PSYCHOLOGICAL_ARCHITECTURE_THEN_SECONDARY_MYSTERY",
+  "required_capabilities": ["EXPLICIT_CRIME_EVENT_POLICY"],
+  "dimension_order": "CAUSAL_CRIME_EVENT_THEN_STORY_VARIATION",
   "seed_material": "{story_seed}:batch:{batch_nonce}",
-  "batch_pipeline": [
-    "GENERATE_PSYCHOLOGICAL_ARCHITECTURE",
-    "GENERATE_SECONDARY_MYSTERY",
-    "NOVELTY_PRECHECK",
-    "CORE_ELIGIBILITY",
-    "ELIGIBLE_POOL_MERGE"
-  ],
-  "deduplication": ["SIGNATURE", "INTERNAL_SELECTION_SIMILARITY", "NOVELTY_HARD_CONSTRAINT"],
+  "batch_pipeline": ["GENERATE_EXPLICIT_CRIME_EVENT", "BIND_ACTION_RELATIONSHIP_HARM", "GENERATE_STORY_VARIATION", "NOVELTY_PRECHECK", "CORE_ELIGIBILITY", "ELIGIBLE_POOL_MERGE"],
+  "deduplication": ["EVENT_SIGNATURE", "INTERNAL_SELECTION_SIMILARITY", "NOVELTY_HARD_CONSTRAINT"],
   "canonical_id_assignment": "AFTER_ELIGIBLE_POOL_FINALIZATION",
-  "signature_payload": "SELECTION_AND_POLICY_PROFILE_CANONICAL_JSON",
+  "signature_payload": "SELECTION_POLICY_PROFILE_AND_CRIME_EVENT_CANONICAL_JSON",
   "signature_digest": "SHA-256"
 }
