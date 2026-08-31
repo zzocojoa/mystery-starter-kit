@@ -831,6 +831,10 @@ def test_user_case_locked_values_flow_into_cli_variations(tmp_path: Path) -> Non
     story_document = load_json_object(story_path)
     manifest["story_source_mode"] = "USER_CASE"
     production_config["story_source_mode"] = "USER_CASE"
+    production_config["channel_content_version"] = "2.0.0"
+    production_config["variation_engine_version"] = "2.0.0"
+    production_config["variation_catalog_version"] = "2.0.0"
+    production_config["genre"] = "CRIME_PSYCHOLOGICAL_THRILLER"
     production_config["user_case_constraints"] = [
         {"field": "protagonist_role", "value": "REPORTER", "status": "LOCKED"},
         {"field": "incident_type", "value": "DISAPPEARANCE", "status": "LOCKED"},

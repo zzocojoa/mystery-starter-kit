@@ -4,7 +4,7 @@
   "schema_version": "1.0.0",
   "channel_id": "MYSTERY_MAIN",
   "display_name": "미스터리 메인",
-  "active_content_version": "2.0.0",
+  "active_content_version": "2.1.0",
   "available_versions": [
     {
       "content_version": "1.1.0",

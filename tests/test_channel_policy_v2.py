@@ -16,8 +16,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def v2_channel() -> dict[str, object]:
     """모든 신규 정책을 활성화한 v2 Channel Fixture를 만든다."""
-    channel = deepcopy(load_json_object(ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"))
-    channel["content_version"] = "2.0.0"
+    channel = deepcopy(
+        load_json_object(
+            ROOT / "CHANNELS/mystery_main/versions/2.0.0/channel_dna.json"
+        )
+    )
     capabilities = channel["capabilities"]
     assert isinstance(capabilities, dict)
     capabilities.update(

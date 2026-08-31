@@ -1,4 +1,4 @@
-"""Channel DNA 2.0 활성 Snapshot과 신규 Scaffold의 Golden 회귀 검증."""
+"""Channel DNA 2.0 고정 Pin과 2.1 활성 Scaffold의 회귀 검증."""
 
 from collections.abc import Mapping
 from pathlib import Path
@@ -35,8 +35,8 @@ def candidate_projection(
     return projected
 
 
-def test_active_v2_snapshot_manifest_and_scaffold_are_bound() -> None:
-    """활성 Alias, Manifest Hash와 신규 Scaffold Pin이 모두 v2에 결속되어야 한다."""
+def test_registered_v2_snapshot_and_active_v21_scaffold_are_independent() -> None:
+    """기존 v2 Snapshot은 보존하고 활성 Alias와 신규 Scaffold만 v2.1에 결속한다."""
     active_path = ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"
     snapshot_path = (
         ROOT
@@ -44,6 +44,14 @@ def test_active_v2_snapshot_manifest_and_scaffold_are_bound() -> None:
         / "mystery_main"
         / "versions"
         / "2.0.0"
+        / "channel_dna.json"
+    )
+    active_snapshot_path = (
+        ROOT
+        / "CHANNELS"
+        / "mystery_main"
+        / "versions"
+        / "2.1.0"
         / "channel_dna.json"
     )
     manifest = load_json_object(
@@ -56,6 +64,7 @@ def test_active_v2_snapshot_manifest_and_scaffold_are_bound() -> None:
         ROOT / "TEMPLATES" / "PROJECT" / "00_PROJECT" / "project_constraints.json"
     )
     active = load_json_object(active_path)
+    v2_snapshot = load_json_object(snapshot_path)
     versions = manifest["available_versions"]
     limits = constraints["production_limits"]
     assert isinstance(versions, list)
@@ -66,14 +75,15 @@ def test_active_v2_snapshot_manifest_and_scaffold_are_bound() -> None:
         if isinstance(entry, Mapping) and entry.get("content_version") == "2.0.0"
     )
 
-    assert active_path.read_bytes() == snapshot_path.read_bytes()
-    assert manifest["active_content_version"] == "2.0.0"
+    assert active_path.read_bytes() == active_snapshot_path.read_bytes()
+    assert active["content_version"] == "2.1.0"
+    assert manifest["active_content_version"] == "2.1.0"
     assert v2_entry["channel_dna"] == "versions/2.0.0/channel_dna.json"
-    assert v2_entry["channel_dna_sha256"] == channel_dna_sha256(active)
-    assert config["channel_content_version"] == "2.0.0"
-    assert config["variation_engine_version"] == "2.0.0"
-    assert config["variation_catalog_version"] == "2.0.0"
-    assert config["genre"] == "CRIME_PSYCHOLOGICAL_THRILLER"
+    assert v2_entry["channel_dna_sha256"] == channel_dna_sha256(v2_snapshot)
+    assert config["channel_content_version"] == "2.1.0"
+    assert config["variation_engine_version"] == "2.1.0"
+    assert config["variation_catalog_version"] == "2.1.0"
+    assert config["genre"] == "CRIME_EVENT_THRILLER"
     assert limits["enforce_final_footprint"] is True
 
 
@@ -83,6 +93,10 @@ def test_v2_golden_candidate_pool_is_reproducible() -> None:
     config = load_json_object(
         ROOT / "TEMPLATES" / "PROJECT" / "00_PROJECT" / "production_config.json"
     )
+    config["channel_content_version"] = "2.0.0"
+    config["variation_engine_version"] = "2.0.0"
+    config["variation_catalog_version"] = "2.0.0"
+    config["genre"] = "CRIME_PSYCHOLOGICAL_THRILLER"
     constraints = load_json_object(
         ROOT / "TEMPLATES" / "PROJECT" / "00_PROJECT" / "project_constraints.json"
     )

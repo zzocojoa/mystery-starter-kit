@@ -2,261 +2,79 @@
   "$schema": "../../STANDARD/schemas/channel_dna.schema.json",
   "schema_family": "channel-dna",
   "schema_version": "1.0.0",
-  "content_version": "2.0.0",
+  "content_version": "2.1.0",
   "channel_id": "MYSTERY_MAIN",
   "identity": {
-    "statement": "현실적인 범죄 심리 미스터리를 피해자 중심 재연 드라마로 체험하게 하고 Narration, Reaction, 조건부 Expert Analysis를 통해 관객이 위험 신호와 관계의 배신을 추적하며 진실에 접근하게 한다.",
+    "statement": "살인·납치·감금·폭행·스토킹·주거침입·교제폭력·가정폭력 등 구체적인 대인범죄 사건을 피해자·목격자·연루자의 시점으로 재연하고, 주관적 내레이션과 외부 패널의 감정 반응·용의자 추적을 교차시켜 후반에 범인, 범행 동기, 범행 방식과 피해 결과를 공개하는 범죄사건 재연·추적 예능 채널이다.",
+    "subhead": "살인·납치·감금·폭행 사건을 재연하고 패널과 함께 전모를 추적한다",
     "keywords": [
       "GROUNDED",
-      "CRIME_PSYCHOLOGY",
-      "VICTIM_CENTERED",
-      "TRUST_BETRAYAL",
-      "IMMERSIVE",
-      "CONVERSATIONAL",
-      "SUSPENSEFUL",
-      "AUDIENCE_PARTICIPATORY",
-      "REACTION_DRIVEN",
-      "FAIR_PLAY",
-      "RISK_LITERACY",
-      "ACCESSIBLE"
+      "EXPLICIT_INTERPERSONAL_CRIME",
+      "CRIME_REENACTMENT",
+      "VICTIM_WITNESS_INVOLVED_POV",
+      "SUBJECTIVE_NARRATION",
+      "PANEL_PURSUIT",
+      "LATE_CASE_REVEAL"
     ]
   },
   "capabilities": {
     "GENRE_POLICY": {
-      "allowed_genres": [
-        "CRIME_PSYCHOLOGICAL_THRILLER",
-        "CRIME",
-        "PSYCHOLOGICAL_MYSTERY",
-        "SOCIAL_THRILLER",
-        "MYSTERY"
-      ],
-      "adjacent_genres": [
-        "THRILLER",
-        "SUSPENSE",
-        "DOMESTIC_MYSTERY",
-        "INVESTIGATION",
-        "REACTION_DRAMA"
-      ],
+      "allowed_genres": ["CRIME_EVENT_THRILLER", "CRIME_REENACTMENT_THRILLER", "CRIME_THRILLER"],
+      "adjacent_genres": ["THRILLER", "SUSPENSE", "CRIME_MYSTERY"],
       "realism": "GROUNDED",
-      "prohibited_resolutions": [
-        "UNEXPLAINED_SUPERNATURAL_FORCE",
-        "MAGIC_DEPENDENT_REVEAL",
-        "PSYCHIC_DEDUCTION"
-      ]
+      "primary_story_engine": "EXPLICIT_INTERPERSONAL_CRIME_EVENT",
+      "mystery_engine_priority": "SUPPORTING_PURSUIT",
+      "prohibited_resolutions": ["UNEXPLAINED_SUPERNATURAL_FORCE", "MAGIC_DEPENDENT_REVEAL", "PSYCHIC_DEDUCTION"]
     },
     "TONE_POLICY": {
-      "primary_tones": [
-        "GROUNDED",
-        "IMMERSIVE",
-        "CONVERSATIONAL",
-        "SUSPENSEFUL",
-        "ACCESSIBLE"
-      ],
-      "prohibited_tones": [
-        "MELODRAMATIC_EXCESS",
-        "CONSTANT_COMEDY",
-        "DETACHED_LECTURE",
-        "VICTIM_BLAMING"
-      ]
+      "primary_tones": ["GROUNDED", "SUSPENSEFUL", "VICTIM_CENTERED"],
+      "prohibited_tones": ["DETACHED_LECTURE", "VICTIM_BLAMING", "GRAPHIC_EXPLOITATION"]
     },
     "PRESENTATION_POLICY": {
-      "modes": [
-        "DRAMA",
-        "NARRATION",
-        "PANEL_REACTION"
-      ],
-      "audience_position": "CO_INVESTIGATOR",
-      "information_cycle": [
-        "DRAMA",
-        "PANEL_REACTION",
-        "INFORMATION",
-        "HYPOTHESIS_UPDATE"
-      ],
+      "modes": ["DRAMA", "NARRATION", "PANEL_REACTION"],
+      "audience_position": "WITNESS",
+      "information_cycle": ["CRIME_EVENT_REENACTMENT", "SUBJECTIVE_NARRATION", "EMOTIONAL_REACTION", "SUSPECT_PURSUIT", "LATE_CASE_REVEAL"],
       "mechanical_cycle_repetition": false
     },
     "AUDIENCE_CONTRACT": {
       "fair_play": true,
       "promises": [
-        "핵심 결론에 필요한 정보는 Reveal 전에 제시한다.",
-        "새 정보 투입보다 기존 정보의 재해석으로 반전을 만든다.",
-        "관객이 등장인물과 함께 가설을 세우고 수정할 기회를 준다.",
-        "피해자의 선택을 비난하지 않고 가해 책임과 이탈 장벽을 분명히 한다.",
-        "실화성, 각색 범위와 임상 용어의 근거 수준을 관객에게 명확히 밝힌다.",
-        "설명되지 않는 초자연적 힘으로 현실 미스터리를 해결하지 않는다."
+        "구체적인 대인범죄 사건의 행동과 피해 인과를 재연한다.",
+        "주관적 내레이션은 사건 내부 인물의 감정·오해·기억을 전달한다.",
+        "외부 패널은 감정 반응과 수상 행동·용의자 추적·의견 수정을 수행한다.",
+        "후반에 범인, 동기, 방식과 피해 결과를 공개한다."
       ]
     },
     "STORY_VARIATION_POLICY": {
-      "fixed_dimensions": [
-        "CHANNEL_IDENTITY",
-        "FAIR_PLAY",
-        "AUDIENCE_PARTICIPATION",
-        "DRAMA_NARRATION_REACTION_MIX",
-        "VICTIM_CENTERED_ACCOUNTABILITY",
-        "SOURCE_DISCLOSURE"
-      ],
-      "variable_dimensions": [
-        "MYSTERY_TYPE",
-        "STORY_ARCHITECTURE",
-        "PROTAGONIST_ROLE",
-        "PERSPECTIVE",
-        "TIMELINE_STYLE",
-        "INCIDENT_TYPE",
-        "SETTING_LOGIC",
-        "CULPRIT_STRUCTURE",
-        "TWIST_FAMILY",
-        "INFORMATION_MECHANISM",
-        "CLUE_MECHANISM",
-        "RELATIONSHIP_ENGINE",
-        "PRESSURE_ENGINE",
-        "DRAMATIC_ENGINE",
-        "THREAT_TYPE",
-        "TRUSTED_DOMAIN",
-        "SAFE_DOMAIN_BETRAYAL",
-        "RESPONSIBLE_AGENT_STRUCTURE",
-        "VICTIM_AGENCY_MODE",
-        "EPISODE_THEME",
-        "FINAL_PROOF_MECHANISM",
-        "TECHNICAL_DEPENDENCY_LEVEL",
-        "ENDING_TYPE"
-      ],
+      "fixed_dimensions": ["CHANNEL_IDENTITY", "EXPLICIT_CRIME_EVENT", "VICTIM_DIGNITY", "LATE_CASE_REVEAL"],
+      "variable_dimensions": ["INCIDENT_TYPE", "CORE_ACTION_TYPE", "RELATIONSHIP_CONTEXT", "HARM_CLASSIFICATION", "MOTIVE_CATEGORY", "PROTAGONIST_GOAL", "PROTAGONIST_RISK", "DEPICTION_MODE", "REVEAL_STRUCTURE"],
+      "generation_order": ["INCIDENT_TYPE", "CORE_ACTION_TYPE", "RELATIONSHIP_CONTEXT", "HARM_CLASSIFICATION", "MOTIVE_CATEGORY", "PROTAGONIST_GOAL", "PROTAGONIST_RISK", "DEPICTION_MODE", "REVEAL_STRUCTURE"],
       "minimum_candidates": 5,
-      "compare_recent_projects": [
-        5,
-        10
-      ]
+      "compare_recent_projects": [5, 10]
     },
     "NARRATION_POLICY": {
       "enabled": true,
-      "purposes": [
-        "PERSPECTIVE",
-        "EMOTION",
-        "MEMORY",
-        "INTERPRETATION",
-        "TIME_COMPRESSION",
-        "REVEAL_REINFORCEMENT"
-      ],
-      "repeat_visible_information": false
+      "purposes": ["CHARACTER_SUBJECTIVITY", "EMOTIONAL_CONTINUITY", "MEMORY_LIMITATION", "TIME_COMPRESSION"],
+      "repeat_visible_information": false,
+      "premature_fact_or_clue_reference": false
     },
     "REACTION_POLICY": {
       "enabled": true,
-      "target_ratio": {
-        "min": 0.15,
-        "max": 0.3
-      },
-      "functions": [
-        "EMOTIONAL_REACTION",
-        "ANOMALY_DETECTION",
-        "HYPOTHESIS_GENERATION",
-        "HYPOTHESIS_REVISION",
-        "CONTRADICTION_DETECTION",
-        "TENSION_RELEASE",
-        "MORAL_REACTION",
-        "RISK_SIGNAL_RECOGNITION"
-      ],
-      "required_functions": [
-        "HYPOTHESIS_GENERATION",
-        "HYPOTHESIS_REVISION"
-      ],
-      "required_function_any_of": [
-        "ANOMALY_DETECTION",
-        "CONTRADICTION_DETECTION"
-      ]
-    },
-    "HUMOR_POLICY": {
-      "enabled": true,
-      "mode": "CONTROLLED_RELEASE",
-      "never_undermine": [
-        "VICTIM_HARM",
-        "CORE_REVEAL",
-        "EMOTIONAL_AFTERMATH",
-        "COERCIVE_CONTROL",
-        "CLINICAL_DISCUSSION"
-      ]
-    },
-    "VISUAL_POLICY": {
-      "mode": "REENACTMENT_FIRST",
-      "priorities": [
-        "SPATIAL_CLARITY",
-        "CLUE_VISIBILITY",
-        "REACTION_READABILITY",
-        "RISK_SIGNAL_VISIBILITY"
-      ]
-    },
-    "PACING_POLICY": {
-      "mode": "MEDIUM_FAST",
-      "slowdown_allowed_for": [
-        "EMOTIONAL_WEIGHT",
-        "CLUE_COMPREHENSION",
-        "REVEAL_RECONTEXTUALIZATION",
-        "VICTIM_AGENCY",
-        "EXPERT_CONTEXT"
-      ]
+      "target_ratio": {"min": 0.1, "max": 0.3},
+      "functions": ["EMOTIONAL_REACTION", "ANOMALY_DETECTION", "HYPOTHESIS_GENERATION", "SUSPECT_DISCUSSION", "HYPOTHESIS_REVISION", "CONTRADICTION_DETECTION", "MORAL_REACTION", "TENSION_RELEASE", "EXPECTATION_BUILDING", "RISK_SIGNAL_RECOGNITION", "VICTIM_CONTEXTUALIZATION", "BELIEF_CORRECTION"],
+      "required_functions": ["EMOTIONAL_REACTION"],
+      "required_function_any_of": ["ANOMALY_DETECTION", "SUSPECT_DISCUSSION", "HYPOTHESIS_REVISION", "BELIEF_CORRECTION"]
     },
     "RETENTION_POLICY": {
-      "mode": "HYPOTHESIS_DRIVEN",
-      "required_progression": [
-        "QUESTION",
-        "PARTIAL_ANSWER",
-        "CONTRADICTION",
-        "UPDATED_QUESTION"
-      ]
-    },
-    "CRIME_PSYCHOLOGY_POLICY": {
-      "enabled": true,
-      "primary_genres": [
-        "CRIME_PSYCHOLOGICAL_THRILLER"
-      ],
-      "threat_types": [
-        "CRIME",
-        "PREDATORY"
-      ],
-      "require_psychological_pressure": true,
-      "technical_markers": [
-        "TECHNICAL",
-        "MACHINE_LOG",
-        "METADATA_ONLY",
-        "SENSOR_ONLY",
-        "CCTV_ONLY"
-      ],
-      "max_technical_clue_ratio": 0.2,
-      "procedural_markers": [
-        "POLICE_PROCEDURAL",
-        "COURTROOM_PROCEDURAL",
-        "FORENSIC_PROCEDURAL"
-      ]
-    },
-    "TRUST_AND_SAFETY_BETRAYAL_POLICY": {
-      "enabled": true,
-      "require_trusted_domain": true,
-      "require_safe_domain_expectation": true
-    },
-    "COERCIVE_CONTROL_POLICY": {
-      "enabled": true,
-      "require_warning_signals": true,
-      "require_boundary_erosion": true,
-      "require_control_tactics": true,
-      "require_exit_barriers": true
+      "mode": "CASE_REENACTMENT_AND_PURSUIT",
+      "required_functions": ["EVENT_ENTRY", "RISK_ESCALATION", "PURSUIT_UPDATE", "LATE_CASE_REVEAL"],
+      "fixed_stage_order": false
     },
     "VICTIM_CENTERED_POLICY": {
       "enabled": true,
-      "require_agency_outcome": true,
+      "require_agency_outcome": false,
       "require_responsible_agent_payoff": true,
-      "prohibited_phrases": [
-        "피해자가 자초했다",
-        "피해자도 잘못했다",
-        "왜 떠나지 않았나"
-      ]
-    },
-    "EXPERT_ANALYSIS_POLICY": {
-      "enabled": true,
-      "true_story_requirement": "REQUIRED",
-      "inspired_requirement": "REQUIRED_OR_NA",
-      "original_requirement": "OPTIONAL",
-      "require_claim_evidence": true
-    },
-    "RISK_SIGNAL_AND_PUBLIC_VALUE_POLICY": {
-      "enabled": true,
-      "require_risk_signal_payoff": true
+      "prohibited_phrases": ["피해자가 자초했다", "피해자도 잘못했다", "왜 떠나지 않았나"]
     },
     "SOURCE_DISCLOSURE_POLICY": {
       "enabled": true,
@@ -266,33 +84,24 @@
         "INSPIRED_BY_TRUE_EVENTS": "INSPIRED_BY_TRUE_EVENTS"
       }
     },
-    "CLINICAL_LABEL_POLICY": {
+    "EXPLICIT_CRIME_EVENT_POLICY": {
       "enabled": true,
-      "controlled_terms": [
-        "사이코패스",
-        "소시오패스",
-        "반사회성 인격장애",
-        "반사회성 성격장애"
-      ],
-      "allowed_classifications": [
-        "CONFIRMED_DIAGNOSIS",
-        "EXPERT_ASSESSMENT",
-        "MEDIA_DESCRIPTION",
-        "NARRATOR_OPINION",
-        "UNVERIFIED_LABEL"
-      ],
-      "diagnosis_requires_expert": true,
-      "diagnosis_requires_evidence": true
-    },
-    "EPISODE_THEME_POLICY": {
-      "enabled": true,
-      "allowed_themes": [
-        "TRUST_BETRAYAL",
-        "COERCIVE_CONTROL",
-        "FALSE_ACCUSATION",
-        "ACCOUNTABILITY"
-      ],
-      "require_episode_theme": true
+      "core_crimes": ["MURDER", "KIDNAPPING", "CONFINEMENT", "ASSAULT", "STALKING", "HOME_INVASION", "DATING_VIOLENCE", "DOMESTIC_VIOLENCE"],
+      "require_central_event": true,
+      "allow_overlapping_crimes": true,
+      "method_detail_level": "NON_ACTIONABLE_SUMMARY_ONLY",
+      "required_reveal_targets": ["CULPRIT", "MOTIVE", "METHOD", "HARM_RESULT"],
+      "development_functions_by_family": {
+        "MURDER": ["HARM_OR_DANGER_RECOGNITION", "INVOLVEMENT_OR_SUSPICION", "MOTIVE_AND_RESPONSIBILITY", "EVENT_RECONSTRUCTION"],
+        "LIBERTY_CRIME": ["LIBERTY_DEPRIVATION", "THREAT_AND_CHOICE_CONSTRAINT", "RESPONSE_OR_DISCOVERY", "HARM_OUTCOME"],
+        "RELATIONAL_VIOLENCE": ["VIOLENCE_OR_THREAT", "RELATIONSHIP_AND_POWER", "RESPONSE_BARRIER", "VIOLENCE_OUTCOME"],
+        "ACCESS_CRIME": ["REPEATED_ACCESS_OR_INTRUSION", "SAFETY_COLLAPSE", "SAFETY_RESPONSE", "OFFENDER_RESPONSIBILITY"]
+      },
+      "nonlinear_development_allowed": true,
+      "require_survival": false,
+      "require_direct_reporting": false,
+      "require_forgiveness": false,
+      "require_recovery": false
     }
   }
 }

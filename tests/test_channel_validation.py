@@ -14,7 +14,7 @@ def make_project_inputs() -> tuple[dict[str, object], dict[str, object], dict[st
     """Channel 일관성 테스트용 Story와 제작 설정을 만든다."""
     story: dict[str, object] = {"story_dna": {"mystery_type": "WHY"}}
     production: dict[str, object] = {
-        "genre": "MYSTERY",
+        "genre": "CRIME_EVENT_THRILLER",
         "tones": ["GROUNDED", "SUSPENSEFUL"],
     }
     presentation: dict[str, object] = {

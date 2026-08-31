@@ -38,8 +38,8 @@ def runtime() -> tuple[dict[str, object], object]:
     return channel, resolved
 
 
-def test_support_commit_registers_v21_without_activation() -> None:
-    """지원 Commit에서는 Active 2.0 Pin과 기존 Snapshot을 유지한다."""
+def test_active_v21_alias_manifest_and_scaffold_are_bound() -> None:
+    """활성화 Commit은 Alias와 신규 Scaffold를 등록된 2.1에 결속한다."""
     manifest = load_json_object(ROOT / "CHANNELS/mystery_main/channel_manifest.json")
     active = load_json_object(ROOT / "CHANNELS/mystery_main/channel_dna.json")
     entries = manifest["available_versions"]
@@ -49,8 +49,17 @@ def test_support_commit_registers_v21_without_activation() -> None:
         for entry in entries
         if isinstance(entry, dict) and entry.get("content_version") == "2.1.0"
     )
-    assert manifest["active_content_version"] == "2.0.0"
-    assert active["content_version"] == "2.0.0"
+    config = load_json_object(
+        ROOT / "TEMPLATES/PROJECT/00_PROJECT/production_config.json"
+    )
+    assert manifest["active_content_version"] == "2.1.0"
+    assert active["content_version"] == "2.1.0"
+    assert (ROOT / "CHANNELS/mystery_main/channel_dna.json").read_bytes() == (
+        CHANNEL_PATH.read_bytes()
+    )
+    assert config["channel_content_version"] == "2.1.0"
+    assert config["variation_engine_version"] == "2.1.0"
+    assert config["variation_catalog_version"] == "2.1.0"
     assert v21["channel_dna_sha256"] == channel_dna_sha256(
         load_json_object(CHANNEL_PATH)
     )

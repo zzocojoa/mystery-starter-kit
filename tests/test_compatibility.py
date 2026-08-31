@@ -257,7 +257,7 @@ def test_project_channel_binding_records_version_and_hash() -> None:
         evaluate_compatibility(contract, defaults, channel),
         {
             "channel_id": "MYSTERY_MAIN",
-            "channel_content_version": "2.0.0",
+            "channel_content_version": "2.1.0",
         },
         load_json_object(CHANNEL_MANIFEST_PATH),
         channel,
@@ -268,7 +268,7 @@ def test_project_channel_binding_records_version_and_hash() -> None:
         "channel_id": "MYSTERY_MAIN",
         "schema_family": "channel-dna",
         "schema_version": "1.0.0",
-        "content_version": "2.0.0",
+        "content_version": "2.1.0",
         "channel_dna_sha256": channel_dna_sha256(channel),
     }
 
@@ -319,14 +319,14 @@ def test_channel_hash_mismatch_fails_binding() -> None:
     entry = next(
         item
         for item in entries
-        if isinstance(item, dict) and item.get("content_version") == "2.0.0"
+        if isinstance(item, dict) and item.get("content_version") == "2.1.0"
     )
     entry["channel_dna_sha256"] = "0" * 64
     report = evaluate_channel_binding(
         evaluate_compatibility(contract, defaults, channel),
         {
             "channel_id": "MYSTERY_MAIN",
-            "channel_content_version": "2.0.0",
+            "channel_content_version": "2.1.0",
         },
         manifest,
         channel,
