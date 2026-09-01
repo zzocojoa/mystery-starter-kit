@@ -22,17 +22,17 @@ Write-ahead Transaction → Canonical Artifacts + Project State
 
 ```text
 Codex App
-    ↓ task-open / reads
+    ↓ task-open / 선행 CORE / 현재 Task reads
 AGENTS.md + Agent Manifest + Contract + Schema
-    ↓ writes allowed candidates
-Gate Staging Workspace
-    ↓ task-submit PASS
+    ↓ 현재 Task의 allowed_writes만 작성
+Gate Staging Workspace → task-submit → 후속 CORE → 다음 LLM Task
+    ↓ Gate 전체 PASS
 Atomic Canonical Commit + Project State + Process Trace
     ↓ GATE-13 / Human Editorial Approval
 Production Ready → Story Library
 ```
 
-Codex App은 Canonical Project를 직접 편집하지 않는다. `task-open`이 현재 Gate의 Agent, reads, writes, 입력 Hash, 금지 경로와 Staging Workspace를 고정하고 `task-submit`이 Future Artifact, 권한, Drift, Schema와 현재 Gate를 검사한다. 이 운영 모드에는 외부 LLM Provider가 필요하지 않다. Built-in FakeProvider는 Provider-independent Runtime의 Staging, Transaction, Hash Drift, Retry, Provenance를 재현하는 CI·E2E Test Double로만 사용한다. 따라서 `mystery-runtime run`의 Fake 출력은 실제 작품 결과로 취급하지 않는다.
+Codex App은 Canonical Project를 직접 편집하지 않는다. `task-open`은 현재 Gate의 의존 가능한 CORE를 실행한 뒤 첫 LLM Task의 Agent, reads, writes, 입력 Hash, 금지 경로와 Staging Workspace를 고정한다. `task-submit`은 현재 Task의 Future Artifact, 권한, Drift와 Schema를 검사하고 후속 CORE를 실행한다. 다음 LLM Task가 있으면 같은 Transaction에서 최소 권한을 다시 열며, Gate 전체 Validator가 통과할 때만 Commit한다. 이 운영 모드에는 외부 LLM Provider가 필요하지 않다. Built-in FakeProvider는 Provider-independent Runtime의 Staging, Transaction, Hash Drift, Retry, Provenance를 재현하는 CI·E2E Test Double로만 사용한다. 따라서 `mystery-runtime run`의 Fake 출력은 실제 작품 결과로 취급하지 않는다.
 
 통과한 Canonical Artifact는 다음 Task를 열기 전 Project State Hash와 다시 대조한다. Critic Issue는 `task-return`으로 Artifact Owner의 LLM Gate에 반환하며, 목표 Gate 이후 상태를 `DIRTY`로 바꾸고 `process_revision`을 증가시킨다. 과거 Trace는 감사 이력으로 남지만 현재 Revision의 Process Conformance에는 포함하지 않는다.
 
@@ -51,7 +51,7 @@ Runtime 시작 시 JSON Schema뿐 아니라 Task가 Agent Manifest 권한을 넓
 
 한 Gate의 Task 출력은 메모리에서 결합한 뒤 Canonical Project를 복제한 Staging Overlay에 기록한다. 기존 Gate Validator가 Overlay 전체를 통과시킨 경우에만 Transaction Record를 `PREPARED`로 남기고 Artifact와 Project State를 교체한다. 중간 교체가 실패하면 모든 백업을 복구해 `ROLLED_BACK`으로 기록한다. Process가 Commit 도중 종료돼 `PREPARED`가 남으면 다음 Run 시작 시 먼저 복구한다. 복구 경로는 Canonical Project와 해당 Transaction의 백업 디렉터리 내부로 제한한다.
 
-Codex Gate Transaction도 이 Overlay와 Write-ahead Commit을 재사용한다. 차이는 Provider 응답 대신 Codex가 Workspace를 편집한다는 점뿐이다. Commit 대상에는 Gate 출력과 Project State뿐 아니라 누적 `process_trace.jsonl`도 포함되므로 세 결과는 함께 반영되거나 함께 복구된다.
+Codex Gate Transaction도 이 Overlay와 Write-ahead Commit을 재사용한다. 차이는 Provider 응답 대신 Codex가 현재 LLM Task의 허용 출력만 Workspace에 작성한다는 점이다. 같은 Gate의 CORE와 LLM 의존 순서는 Workspace 안에서 진행되며 중간 Canonical Commit은 없다. Commit 대상에는 Gate 출력과 Project State뿐 아니라 Task별 입력 Hash·변경 경로를 담은 누적 `process_trace.jsonl`도 포함되므로 세 결과는 함께 반영되거나 함께 복구된다.
 
 Project별 Exclusive Lock은 동시에 하나의 Writer만 허용하며, 종료된 Process의 PID가 남긴 Lock만 Inode 재확인 후 회수한다. Provider 호출 전에 캡처한 Canonical 입력 Hash를 Commit 직전에 다시 계산하므로 실행 중 사용자나 다른 Process가 입력을 바꾸면 Commit하지 않는다.
 

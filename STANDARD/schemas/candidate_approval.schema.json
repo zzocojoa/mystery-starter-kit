@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/candidate-approval-1.0.0.json",
+  "$id": "https://example.local/schemas/candidate-approval-1.0-1.1.json",
   "title": "Runtime-owned Candidate Approval",
   "type": "object",
   "additionalProperties": false,
@@ -19,7 +19,7 @@
   "properties": {
     "$schema": {"type": "string"},
     "schema_family": {"const": "candidate-approval"},
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"enum": ["1.0.0", "1.1.0"]},
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "selected_candidate_id": {"$ref": "#/$defs/candidateId"},
     "recommended_candidate_id": {"$ref": "#/$defs/candidateId"},
@@ -29,6 +29,9 @@
     "input_hashes": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": {
+        "^candidate_event_brief_var_[0-9]{2,}$": {"$ref": "#/$defs/hash"}
+      },
       "required": [
         "variation_candidates",
         "novelty_precheck",
@@ -41,7 +44,8 @@
         "production_config": {"$ref": "#/$defs/hash"},
         "novelty_precheck": {"$ref": "#/$defs/hash"},
         "candidate_eligibility": {"$ref": "#/$defs/hash"},
-        "candidate_evaluation": {"$ref": "#/$defs/hash"}
+        "candidate_evaluation": {"$ref": "#/$defs/hash"},
+        "candidate_event_briefs": {"$ref": "#/$defs/hash"}
       }
     },
     "approved_at": {"type": "string", "format": "date-time"},
@@ -58,6 +62,17 @@
     "human_approval_record_hash": {"$ref": "#/$defs/hash"}
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {"schema_version": {"const": "1.1.0"}},
+        "required": ["schema_version"]
+      },
+      "then": {
+        "properties": {
+          "input_hashes": {"required": ["candidate_event_briefs"]}
+        }
+      }
+    },
     {
       "if": {
         "properties": {

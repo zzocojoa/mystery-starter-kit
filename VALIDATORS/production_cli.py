@@ -19,9 +19,9 @@ from RUNTIME.transactions import (
     commit_gate_transaction,
     release_project_lock,
 )
-from VALIDATORS.candidate_approval import build_candidate_approval
+from VALIDATORS.candidate_approval import approval_input_hashes, build_candidate_approval
 from VALIDATORS.candidate_eligibility import (
-    build_candidate_eligibility,
+    build_candidate_eligibility_bound,
     validate_candidate_eligibility,
 )
 from VALIDATORS.candidate_evaluation import document_sha256, validate_candidate_evaluation
@@ -38,6 +38,7 @@ from VALIDATORS.compatibility import (
     evaluate_channel_binding,
     make_project_compatibility_report,
 )
+from VALIDATORS.crime_event import explicit_crime_policy
 from VALIDATORS.dependency import (
     artifact_hash,
     dependency_artifacts,
@@ -87,7 +88,7 @@ from VALIDATORS.library_store import (
     sync_novelty_revision,
 )
 from VALIDATORS.models import ProjectCompatibilityReport, ProjectState, ValidationIssue
-from VALIDATORS.novelty import evaluate_variation_precheck
+from VALIDATORS.novelty import evaluate_variation_precheck_bound
 from VALIDATORS.pipeline import load_selected_project_artifacts
 from VALIDATORS.reference_validation import sanitize_reference_profile
 from VALIDATORS.scaffold import create_project_scaffold
@@ -217,6 +218,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     task_open_parser.add_argument("project_path", type=Path)
     task_open_parser.add_argument("gate_id")
+    task_open_parser.add_argument("--reference-source", type=Path)
 
     task_status_parser = subparsers.add_parser(
         "task-status",
@@ -226,7 +228,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     task_submit_parser = subparsers.add_parser(
         "task-submit",
-        help="현재 Gate Workspace를 검증하고 원자 Commit합니다.",
+        help="현재 작성 Task를 제출하고 Gate 완료 시에만 원자 Commit합니다.",
     )
     task_submit_parser.add_argument("project_path", type=Path)
     task_submit_parser.add_argument("gate_id")
@@ -1231,9 +1233,26 @@ def run_candidate_eligibility(args: argparse.Namespace) -> int:
     )
     channel, _manifest, _path = resolve_project_channel(ROOT, config, None)
     variations = load_json_object(args.project_path / "00_PROJECT" / "variation_candidates.json")
+    event_brief_path = args.project_path / "00_PROJECT" / "candidate_event_briefs.json"
+    candidate_event_briefs = (
+        load_json_object(event_brief_path)
+        if explicit_crime_policy(channel) is not None and event_brief_path.is_file()
+        else None
+    )
+    if explicit_crime_policy(channel) is not None and candidate_event_briefs is None:
+        raise GateTransactionError(
+            "CANDIDATE_EVENT_BRIEFS_REQUIRED",
+            "Explicit Crime Candidate 적격성에는 Event Brief가 필요합니다.",
+            {"path": str(event_brief_path)},
+        )
     novelty = load_json_object(args.project_path / "08_QA" / "novelty_precheck.json")
-    eligibility = build_candidate_eligibility(
-        config, project_constraints, channel, variations, novelty
+    eligibility = build_candidate_eligibility_bound(
+        config,
+        project_constraints,
+        channel,
+        variations,
+        candidate_event_briefs,
+        novelty,
     )
     output_path = args.project_path / "08_QA" / "candidate_eligibility.json"
     write_json_object(output_path, eligibility)
@@ -1276,6 +1295,18 @@ def run_approve(args: argparse.Namespace) -> int:
     )
     path = args.project_path / "00_PROJECT" / "variation_candidates.json"
     document = load_json_object(path)
+    event_brief_path = args.project_path / "00_PROJECT" / "candidate_event_briefs.json"
+    candidate_event_briefs = (
+        load_json_object(event_brief_path)
+        if explicit_crime_policy(channel) is not None and event_brief_path.is_file()
+        else None
+    )
+    if explicit_crime_policy(channel) is not None and candidate_event_briefs is None:
+        raise GateTransactionError(
+            "CANDIDATE_EVENT_BRIEFS_REQUIRED",
+            "Explicit Crime Candidate 승인에는 Event Brief가 필요합니다.",
+            {"path": str(event_brief_path)},
+        )
     evaluation_path = args.project_path / "00_PROJECT" / "candidate_evaluation.json"
     evaluation = load_json_object(evaluation_path)
     evaluations = evaluation.get("evaluations")
@@ -1306,24 +1337,21 @@ def run_approve(args: argparse.Namespace) -> int:
     state_path = args.project_path / "00_PROJECT" / "project_state.json"
     log_path = args.project_path / "00_PROJECT" / "change_log.jsonl"
     current_state = load_project_state(args.project_path)
-    approval_source_paths = (
-        args.project_path / "00_PROJECT" / "production_config.json",
-        channel_path,
-        path,
-        evaluation_path,
-        novelty_path,
-        eligibility_path,
-        state_path,
-        log_path,
-    )
+    approval_documents: dict[Path, Mapping[str, object]] = {
+        args.project_path / "00_PROJECT" / "production_config.json": production_config,
+        channel_path: channel,
+        path: document,
+        evaluation_path: evaluation,
+        novelty_path: novelty_precheck,
+        eligibility_path: candidate_eligibility,
+        state_path: current_state,
+    }
+    if candidate_event_briefs is not None:
+        approval_documents[event_brief_path] = candidate_event_briefs
+    approval_source_paths = (*approval_documents, log_path)
     approval_document_hashes = {
-        approval_source_paths[0]: document_sha256(production_config),
-        approval_source_paths[1]: document_sha256(channel),
-        approval_source_paths[2]: document_sha256(document),
-        approval_source_paths[3]: document_sha256(evaluation),
-        approval_source_paths[4]: document_sha256(novelty_precheck),
-        approval_source_paths[5]: document_sha256(candidate_eligibility),
-        approval_source_paths[6]: document_sha256(current_state),
+        source_path: document_sha256(source_document)
+        for source_path, source_document in approval_documents.items()
     }
     approval_source_hashes = canonical_file_hashes(approval_source_paths)
     eligibility_schema_errors = collect_schema_errors(
@@ -1353,6 +1381,7 @@ def run_approve(args: argparse.Namespace) -> int:
         load_json_object(args.project_path / "00_PROJECT" / "project_constraints.json"),
         channel,
         document,
+        candidate_event_briefs,
         novelty_precheck,
         candidate_eligibility,
     )
@@ -1365,6 +1394,7 @@ def run_approve(args: argparse.Namespace) -> int:
         )
     evaluation_issues = validate_candidate_evaluation(
         document,
+        candidate_event_briefs,
         evaluation,
         novelty_precheck,
         candidate_eligibility,
@@ -1441,14 +1471,14 @@ def run_approve(args: argparse.Namespace) -> int:
             decision="APPROVED",
             actor=str(args.actor),
             reason=str(args.reason),
-            bound_input_hashes={
-                "production_config": document_sha256(production_config),
-                "channel_dna": document_sha256(channel),
-                "variation_candidates": document_sha256(document),
-                "novelty_precheck": document_sha256(novelty_precheck),
-                "candidate_eligibility": document_sha256(candidate_eligibility),
-                "candidate_evaluation": document_sha256(evaluation),
-            },
+            bound_input_hashes=approval_input_hashes(
+                production_config,
+                document,
+                candidate_event_briefs,
+                novelty_precheck,
+                candidate_eligibility,
+                evaluation,
+            ),
             created_at=changed_at,
         )
         if human_decision
@@ -1464,6 +1494,7 @@ def run_approve(args: argparse.Namespace) -> int:
         changed_at,
         production_config,
         document,
+        candidate_event_briefs,
         novelty_precheck,
         candidate_eligibility,
         evaluation,
@@ -1524,7 +1555,7 @@ def run_approve(args: argparse.Namespace) -> int:
     try:
         current_document_hashes = {
             source_path: document_sha256(load_json_object(source_path))
-            for source_path in approval_source_paths[:-1]
+            for source_path in approval_documents
         }
         if (
             canonical_file_hashes(approval_source_paths) != approval_source_hashes
@@ -1587,8 +1618,15 @@ def run_reference_profile(args: argparse.Namespace) -> int:
 def run_precheck(args: argparse.Namespace) -> int:
     """전체 Variation의 Story History Novelty Precheck를 실행한다."""
     candidates = load_json_object(args.project_path / "00_PROJECT" / "variation_candidates.json")
-    report = evaluate_variation_precheck(
+    report = evaluate_variation_precheck_bound(
         candidates,
+        (
+            load_json_object(
+                args.project_path / "00_PROJECT" / "candidate_event_briefs.json"
+            )
+            if (args.project_path / "00_PROJECT" / "candidate_event_briefs.json").is_file()
+            else None
+        ),
         load_story_history(ROOT / "STORY_LIBRARY" / "novelty_index.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
     )
@@ -1654,7 +1692,13 @@ def run_register(args: argparse.Namespace) -> int:
 def run_task_open(args: argparse.Namespace) -> int:
     """현재 Gate의 Codex Task Workspace를 연다."""
     gate_index(args.gate_id)
-    record = task_open(ROOT, args.project_path, args.gate_id, utc_now())
+    record = task_open(
+        ROOT,
+        args.project_path,
+        args.gate_id,
+        utc_now(),
+        args.reference_source if isinstance(args.reference_source, Path) else None,
+    )
     print(json.dumps(record, ensure_ascii=False, indent=2))
     return 0
 

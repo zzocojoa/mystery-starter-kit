@@ -3,6 +3,10 @@
 from collections.abc import Mapping
 
 from VALIDATORS.candidate_evaluation import document_sha256
+from VALIDATORS.candidate_event_briefs import (
+    candidate_event_brief_hashes,
+    canonical_json_hash,
+)
 from VALIDATORS.crime_event import (
     explicit_crime_policy,
     validate_candidate_crime_event,
@@ -75,16 +79,31 @@ def eligibility_input_hashes(
     project_constraints: Mapping[str, object],
     channel: Mapping[str, object],
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     novelty_precheck: Mapping[str, object],
 ) -> dict[str, str]:
     """적격성 판정 입력의 정규 Hash를 반환한다."""
-    return {
+    hashes = {
         "production_config": document_sha256(production_config),
         "project_constraints": document_sha256(project_constraints),
         "channel_dna": document_sha256(channel),
         "variation_candidates": variation_precheck_source_hash(variations),
         "novelty_precheck": document_sha256(novelty_precheck),
     }
+    if explicit_crime_policy(channel) is not None:
+        if candidate_event_briefs is None:
+            hashes["candidate_event_briefs"] = document_sha256({})
+        else:
+            hashes["candidate_event_briefs"] = canonical_json_hash(candidate_event_briefs)
+            hashes.update(
+                {
+                    f"candidate_event_brief_{candidate_id.lower().replace('-', '_')}": value
+                    for candidate_id, value in candidate_event_brief_hashes(
+                        candidate_event_briefs
+                    ).items()
+                }
+            )
+    return hashes
 
 
 def novelty_result_map(document: Mapping[str, object]) -> dict[str, str]:
@@ -427,6 +446,25 @@ def build_candidate_eligibility(
     variations: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
 ) -> dict[str, object]:
+    """Brief가 없는 Legacy Candidate 적격성 Artifact를 생성한다."""
+    return build_candidate_eligibility_bound(
+        production_config,
+        project_constraints,
+        channel,
+        variations,
+        None,
+        novelty_precheck,
+    )
+
+
+def build_candidate_eligibility_bound(
+    production_config: Mapping[str, object],
+    project_constraints: Mapping[str, object],
+    channel: Mapping[str, object],
+    variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
+    novelty_precheck: Mapping[str, object],
+) -> dict[str, object]:
     """현재 입력에서 결정론적 Candidate 적격성 Artifact를 생성한다."""
     raw_candidates = variations.get("candidates")
     candidates = (
@@ -463,13 +501,16 @@ def build_candidate_eligibility(
     return {
         "$schema": "../../../STANDARD/schemas/candidate_eligibility.schema.json",
         "schema_family": "candidate-eligibility",
-        "schema_version": "1.0.0",
+        "schema_version": (
+            "1.1.0" if explicit_crime_policy(channel) is not None else "1.0.0"
+        ),
         "project_id": project_id,
         "input_hashes": eligibility_input_hashes(
             production_config,
             project_constraints,
             channel,
             variations,
+            candidate_event_briefs,
             novelty_precheck,
         ),
         "result": "PASS" if eligible_ids else "FAIL",
@@ -483,15 +524,17 @@ def validate_candidate_eligibility(
     project_constraints: Mapping[str, object],
     channel: Mapping[str, object],
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     novelty_precheck: Mapping[str, object],
     eligibility: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """저장된 적격성 Artifact가 Core 재계산 결과와 같은지 검증한다."""
-    expected = build_candidate_eligibility(
+    expected = build_candidate_eligibility_bound(
         production_config,
         project_constraints,
         channel,
         variations,
+        candidate_event_briefs,
         novelty_precheck,
     )
     if dict(eligibility) == expected:

@@ -5,12 +5,12 @@ from pathlib import Path
 from typing import cast
 
 from RUNTIME.errors import RuntimeErrorCode, RuntimeExecutionError
-from RUNTIME.event_store import load_run, utc_now
+from RUNTIME.event_store import utc_now
 from RUNTIME.gate_control import validation_report_through
 from RUNTIME.human_inputs import current_evidence_input, evidence_artifact_outputs
 from RUNTIME.models import RuntimeApproval
 from VALIDATORS.candidate_approval import build_candidate_approval
-from VALIDATORS.candidate_eligibility import build_candidate_eligibility
+from VALIDATORS.candidate_eligibility import build_candidate_eligibility_bound
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.candidate_event_briefs import build_bound_crime_event_contract
 from VALIDATORS.channel_policy_v2 import (
@@ -39,7 +39,7 @@ from VALIDATORS.library import novelty_history
 from VALIDATORS.novelty import (
     build_story_fingerprint,
     evaluate_novelty,
-    evaluate_variation_precheck,
+    evaluate_variation_precheck_bound,
 )
 from VALIDATORS.pipeline import ArtifactContent, load_existing_project_artifacts
 from VALIDATORS.production_footprint import (
@@ -433,6 +433,7 @@ def variation_output(
 
 def approved_variation_output(
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     candidate_evaluation: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
@@ -440,6 +441,7 @@ def approved_variation_output(
     """검증된 평가가 추천한 Candidate 하나를 승인한다."""
     issues = validate_candidate_evaluation(
         variations,
+        candidate_event_briefs,
         candidate_evaluation,
         novelty_precheck,
         candidate_eligibility,
@@ -700,8 +702,13 @@ def core_task_outputs(
         }
     if task_id == "novelty.variation_precheck":
         return {
-            "novelty_precheck": evaluate_variation_precheck(
+            "novelty_precheck": evaluate_variation_precheck_bound(
                 mapping_artifact(artifacts, "variation_candidates"),
+                (
+                    mapping_artifact(artifacts, "candidate_event_briefs")
+                    if "candidate_event_briefs" in artifacts
+                    else None
+                ),
                 story_history(repository_root),
                 load_json_object(repository_root / "STANDARD" / "novelty_thresholds.json"),
             )
@@ -713,11 +720,16 @@ def core_task_outputs(
             None,
         )
         return {
-            "candidate_eligibility": build_candidate_eligibility(
+            "candidate_eligibility": build_candidate_eligibility_bound(
                 production_config,
                 mapping_artifact(artifacts, "project_constraints"),
                 channel,
                 mapping_artifact(artifacts, "variation_candidates"),
+                (
+                    mapping_artifact(artifacts, "candidate_event_briefs")
+                    if explicit_crime_policy(channel) is not None
+                    else None
+                ),
                 mapping_artifact(artifacts, "novelty_precheck"),
             )
         }
@@ -728,6 +740,11 @@ def core_task_outputs(
         eligibility = mapping_artifact(artifacts, "candidate_eligibility")
         approved, _candidate_id = approved_variation_output(
             variations,
+            (
+                mapping_artifact(artifacts, "candidate_event_briefs")
+                if "candidate_event_briefs" in artifacts
+                else None
+            ),
             evaluation,
             novelty,
             eligibility,
@@ -779,6 +796,11 @@ def core_task_outputs(
                 approved_at,
                 production_config,
                 variations,
+                (
+                    mapping_artifact(artifacts, "candidate_event_briefs")
+                    if "candidate_event_briefs" in artifacts
+                    else None
+                ),
                 novelty,
                 mapping_artifact(artifacts, "candidate_eligibility"),
                 evaluation,
@@ -822,19 +844,12 @@ def core_task_outputs(
         "reference.build_source_disclosure",
         "reference.build_clinical_labels",
     }:
-        run = load_run(project_path, run_id)
-        evidence_state = run["tasks"].get("reference.intake_evidence")
-        evidence_hashes = (
-            evidence_state["input_hashes"]
-            if evidence_state is not None and evidence_state["input_hashes"]
-            else input_hashes
-        )
         bundle = evidence_outputs(
             project_id,
             production_config.get("source_truth_classification"),
             project_path,
             run_id,
-            evidence_hashes,
+            input_hashes,
         )
         selected_outputs = {
             "reference.intake_evidence": (

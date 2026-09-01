@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from project_factory import write_candidate_event_briefs
+
 from RUNTIME.providers.fake import fake_candidate_evaluation
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.production_cli import run_cli
@@ -15,6 +17,7 @@ def test_readme_candidate_command_order_executes(tmp_path: Path) -> None:
     commands = (
         "mystery-kit compat",
         "mystery-kit variations",
+        "candidate_event_briefs.json",
         "mystery-kit precheck",
         "mystery-kit candidate-eligibility",
         "candidate_evaluation.json",
@@ -40,13 +43,15 @@ def test_readme_candidate_command_order_executes(tmp_path: Path) -> None:
     assert run_cli(
         ["variations", str(project_path), "--seed", "README smoke", "--count", "5"]
     ) == 0
+    write_candidate_event_briefs(project_path)
     assert run_cli(["precheck", str(project_path)]) == 0
     assert run_cli(["candidate-eligibility", str(project_path)]) == 0
     variations = load_json_object(project_path / "00_PROJECT/variation_candidates.json")
     novelty = load_json_object(project_path / "08_QA/novelty_precheck.json")
     eligibility = load_json_object(project_path / "08_QA/candidate_eligibility.json")
+    briefs = load_json_object(project_path / "00_PROJECT/candidate_event_briefs.json")
     evaluation = fake_candidate_evaluation(
-        "PRJ-990", variations, novelty, eligibility
+        "PRJ-990", variations, briefs, novelty, eligibility
     )
     write_json_object(
         project_path / "00_PROJECT/candidate_evaluation.json",

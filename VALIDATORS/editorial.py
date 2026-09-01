@@ -685,7 +685,7 @@ def validate_editorial_crime_assessments(
     """CORE 근거를 실제 의미 충족으로 승격하는 Editorial 평가를 검사한다."""
     if explicit_crime_policy(channel) is None:
         return []
-    expected = required_semantic_subjects(contract)
+    expected = required_semantic_subjects(channel, contract)
     assessments = mapping_records(review, "semantic_assessments")
     observed = [(str(item.get("category")), str(item.get("subject_id"))) for item in assessments]
     missing = sorted(expected - set(observed))

@@ -14,6 +14,7 @@ from VALIDATORS.candidate_event_briefs import (
 )
 from VALIDATORS.candidate_projection import validate_approved_candidate_projection
 from VALIDATORS.crime_event import (
+    explicit_crime_policy,
     required_semantic_subjects,
     validate_crime_event_traceability,
     validate_crime_role_bindings,
@@ -21,6 +22,7 @@ from VALIDATORS.crime_event import (
     validate_script_crime_realization,
     validate_truth_basis,
 )
+from VALIDATORS.crime_functions import DEFAULT_DEVELOPMENT_FUNCTIONS
 from VALIDATORS.editorial import (
     explicit_crime_runtime_evidence_issues,
     make_editorial_evidence,
@@ -100,11 +102,15 @@ def event_contract() -> dict[str, object]:
         "harm_ids": ["HARM-01"],
         "development_functions": [
             {
-                "development_function_id": "CDEV-001",
-                "function_type": "VIOLENCE_OR_THREAT",
-                "summary": "폭력 행위가 피해자의 선택을 바꾼다.",
+                "development_function_id": f"CDEV-{index:03d}",
+                "function_type": function_type,
+                "summary": f"{function_type} 기능을 인물의 선택과 결과 변화로 구현한다.",
                 "required": True,
             }
+            for index, function_type in enumerate(
+                DEFAULT_DEVELOPMENT_FUNCTIONS["RELATIONAL_VIOLENCE"],
+                1,
+            )
         ],
         "reveal_targets": [
             {
@@ -298,11 +304,15 @@ def event_brief(candidate_id: str, causal_index: int) -> dict[str, object]:
         "central_pursuit_question": "어떤 증거가 범죄 선택과 책임 주체를 확인하는가?",
         "development_functions": [
             {
-                "development_function_id": "CDEV-001",
-                "function_type": "VIOLENCE_OR_THREAT",
-                "summary": "폭력과 피해 결과를 인과적으로 구현한다.",
+                "development_function_id": f"CDEV-{index:03d}",
+                "function_type": function_type,
+                "summary": f"{function_type} 기능을 인물의 선택과 결과 변화로 구현한다.",
                 "required": True,
             }
+            for index, function_type in enumerate(
+                DEFAULT_DEVELOPMENT_FUNCTIONS["RELATIONAL_VIOLENCE"],
+                1,
+            )
         ],
         "reveal_targets": [
             {
@@ -340,9 +350,65 @@ def test_candidate_event_causal_collision_and_distinct_pass() -> None:
     collided = [event_brief(f"VAR-{index:02d}", 0) for index in range(1, 6)]
     distinct = [event_brief(f"VAR-{index:02d}", index - 1) for index in range(1, 6)]
     assert "CANDIDATE_EVENT_CAUSAL_COLLISION" in issue_codes(
-        validate_candidate_event_briefs(variations, {"briefs": collided})
+        validate_candidate_event_briefs(
+            variations,
+            {"briefs": collided},
+            explicit_crime_policy(CHANNEL),
+        )
     )
-    assert validate_candidate_event_briefs(variations, {"briefs": distinct}) == []
+    assert (
+        validate_candidate_event_briefs(
+            variations,
+            {"briefs": distinct},
+            explicit_crime_policy(CHANNEL),
+        )
+        == []
+    )
+
+
+def test_required_false_and_ambiguous_function_declarations_are_rejected() -> None:
+    """LLM이 필수 기능을 완화하거나 중복 선언해 검증을 우회할 수 없다."""
+    variations = {
+        "candidates": [{"candidate_id": "VAR-01", "selection": selection()}],
+        "approved_candidate_id": "VAR-01",
+    }
+    weakened = event_brief("VAR-01", 0)
+    weakened_functions = weakened["development_functions"]
+    assert isinstance(weakened_functions, list)
+    weakened_functions[0]["required"] = False
+    assert "CRIME_DEVELOPMENT_FUNCTION_REQUIRED_WEAKENED" in issue_codes(
+        validate_candidate_event_briefs(
+            variations,
+            {"briefs": [weakened]},
+            explicit_crime_policy(CHANNEL),
+        )
+    )
+
+    duplicated_id = event_brief("VAR-01", 0)
+    duplicated_id_functions = duplicated_id["development_functions"]
+    assert isinstance(duplicated_id_functions, list)
+    duplicated_id_functions[1]["development_function_id"] = "CDEV-001"
+    assert "CRIME_DEVELOPMENT_FUNCTION_ID_DUPLICATED" in issue_codes(
+        validate_candidate_event_briefs(
+            variations,
+            {"briefs": [duplicated_id]},
+            explicit_crime_policy(CHANNEL),
+        )
+    )
+
+    ambiguous = event_brief("VAR-01", 0)
+    ambiguous_functions = ambiguous["development_functions"]
+    assert isinstance(ambiguous_functions, list)
+    ambiguous_functions[1]["function_type"] = ambiguous_functions[0]["function_type"]
+    codes = issue_codes(
+        validate_candidate_event_briefs(
+            variations,
+            {"briefs": [ambiguous]},
+            explicit_crime_policy(CHANNEL),
+        )
+    )
+    assert "CRIME_DEVELOPMENT_FUNCTION_AMBIGUOUS" in codes
+    assert "CRIME_DEVELOPMENT_FUNCTION_MISSING" in codes
 
 
 def test_original_fiction_requires_concrete_motive_and_resolution() -> None:
@@ -595,6 +661,13 @@ def development_bundle(
     """Development Function의 Scene·Layer·Script 검증 묶음을 만든다."""
     contract = event_contract()
     contract["reveal_targets"] = []
+    function_ids = [
+        f"CDEV-{index:03d}"
+        for index, _function_type in enumerate(
+            DEFAULT_DEVELOPMENT_FUNCTIONS["RELATIONAL_VIOLENCE"],
+            1,
+        )
+    ]
     mode_to_segment = {"DRAMA": "SEG-001", "NARRATION": "SEG-002", "PANEL_REACTION": "SEG-003"}
     target_segment = mode_to_segment[realization_mode]
     realization: dict[str, object] = {
@@ -608,7 +681,7 @@ def development_bundle(
         "choice_or_emotion_change": "피해자가 도주를 선택한다.",
         "result_change": "상해와 장기 불안이 남는다.",
         "planned_segment_ids": [target_segment],
-        "development_function_ids": ["CDEV-001"] if include_scene_function else [],
+        "development_function_ids": list(function_ids) if include_scene_function else [],
         "expected_excerpt_anchor": "실제 범죄 행동 문구",
     }
     scene_cards: dict[str, object] = {
@@ -625,7 +698,9 @@ def development_bundle(
             "segment_type": "DRAMA",
             "scene_id": "SCN-01",
             "crime_development_function_ids": (
-                ["CDEV-001"] if realization_mode == "DRAMA" and include_scene_function else []
+                list(function_ids)
+                if realization_mode == "DRAMA" and include_scene_function
+                else []
             ),
             "referenced_reveal_target_ids": [],
             "revealed_reveal_target_ids": [],
@@ -638,7 +713,9 @@ def development_bundle(
             "narrator_character_id": "CHAR-02",
             "narration_function": "FEAR",
             "crime_development_function_ids": (
-                ["CDEV-001"] if realization_mode == "NARRATION" and include_scene_function else []
+                list(function_ids)
+                if realization_mode == "NARRATION" and include_scene_function
+                else []
             ),
             "referenced_reveal_target_ids": [],
             "revealed_reveal_target_ids": [],
@@ -650,7 +727,7 @@ def development_bundle(
             "scene_id": "SCN-01",
             "reaction_segment_id": "RSEG-001",
             "crime_development_function_ids": (
-                ["CDEV-001"]
+                list(function_ids)
                 if realization_mode == "PANEL_REACTION" and include_scene_function
                 else []
             ),
@@ -674,7 +751,7 @@ def development_bundle(
     viewer: dict[str, object] = {"reveals": []}
     trace = (
         "<!-- CRIME_TRACE\nEVENT=EVENT-01\nACTION=ASSAULT\nHARM=HARM-01\n"
-        "DEV=CDEV-001\n-->\n"
+        f"DEV={','.join(function_ids)}\n-->\n"
         "퇴로를 막고 비선정적 폭력을 가했다. "
         "피해자는 치료가 필요한 상해를 입었다. "
         "피해자는 업무 공간에 돌아가지 못했다."
@@ -727,6 +804,46 @@ def test_development_function_coverage_matrix() -> None:
 
     valid = development_bundle("DRAMA", True, True)
     assert validate_script_crime_realization(CHANNEL, *valid) == []
+
+
+def test_policy_required_function_and_unknown_references_cannot_be_evaded() -> None:
+    """required 값과 무관하게 정책 필수 ID를 추적하고 미선언 참조를 거부한다."""
+    weakened = development_bundle("DRAMA", True, True)
+    contract, cards, presentation, reactions, viewer, script = weakened
+    functions = contract["development_functions"]
+    assert isinstance(functions, list)
+    functions[0]["required"] = False
+    realization = cards["scenes"][0]["crime_realization"][0]  # type: ignore[index]
+    realization["development_function_ids"].remove("CDEV-001")
+    presentation["segments"][0]["crime_development_function_ids"].remove(  # type: ignore[index]
+        "CDEV-001"
+    )
+    script = script.replace(
+        "DEV=CDEV-001,CDEV-002,CDEV-003,CDEV-004",
+        "DEV=CDEV-002,CDEV-003,CDEV-004",
+    )
+    codes = issue_codes(
+        validate_script_crime_realization(
+            CHANNEL,
+            contract,
+            cards,
+            presentation,
+            reactions,
+            viewer,
+            script,
+        )
+    )
+    assert "CRIME_DEVELOPMENT_FUNCTION_UNMAPPED" in codes
+    assert "CRIME_DEVELOPMENT_FUNCTION_SCRIPT_MISSING" in codes
+
+    unknown = development_bundle("DRAMA", True, True)
+    unknown_script = unknown[-1].replace(
+        "DEV=CDEV-001,CDEV-002,CDEV-003,CDEV-004",
+        "DEV=CDEV-001,CDEV-002,CDEV-003,CDEV-004,CDEV-999",
+    )
+    assert "CRIME_DEVELOPMENT_FUNCTION_REFERENCE_UNKNOWN" in issue_codes(
+        validate_script_crime_realization(CHANNEL, *unknown[:-1], unknown_script)
+    )
 
 
 def panel_reactions(with_exchange: bool) -> dict[str, object]:
@@ -841,7 +958,7 @@ def semantic_review(
     """한 Reveal Target의 조기 공개 판정을 선택한 Editorial Review를 만든다."""
     assessments: list[dict[str, object]] = []
     for index, (category, subject_id) in enumerate(
-        sorted(required_semantic_subjects(contract)),
+        sorted(required_semantic_subjects(CHANNEL, contract)),
         1,
     ):
         status = (

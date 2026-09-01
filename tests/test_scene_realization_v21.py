@@ -19,6 +19,7 @@ from VALIDATORS.editorial import (
 )
 from VALIDATORS.io import load_json_object
 from VALIDATORS.models import ValidationIssue
+from VALIDATORS.schema_validation import collect_schema_errors
 
 ROOT = Path(__file__).resolve().parents[1]
 CHANNEL = load_json_object(ROOT / "CHANNELS/mystery_main/versions/2.1.0/channel_dna.json")
@@ -368,6 +369,138 @@ def test_implied_violence_reaches_needs_review_not_core_pass() -> None:
     )
 
 
+def test_paraphrased_action_and_later_harm_can_use_separate_scenes() -> None:
+    """계약 원문을 복사하지 않은 행동과 후반 피해 장면을 독립 근거로 연결한다."""
+    contract = crime_contract()
+    cards = scene_cards()
+    raw_scenes = cards["scenes"]
+    assert isinstance(raw_scenes, list)
+    action_realization = raw_scenes[1]["crime_realization"][0]
+    action_realization["development_function_ids"] = ["CDEV-001", "CDEV-002"]
+    raw_scenes.append(
+        {
+            "scene_id": "SCN-03",
+            "order": 3,
+            "beat_id": "BEAT-03",
+            "estimated_seconds": 30,
+            "clue_ids": [],
+            "knowledge_claims": [],
+            "crime_realization": [
+                {
+                    "event_id": "EVENT-01",
+                    "harm_ids": ["HARM-01"],
+                    "actor_ids": ["CHAR-01"],
+                    "victim_ids": ["CHAR-02"],
+                    "realization_mode": "AFTERMATH_CAUSAL",
+                    "action_evidence": "앞선 위협의 결과가 남아 있다.",
+                    "dialogue_or_behavior_evidence": "피해자가 문 앞에서 발걸음을 멈춘다.",
+                    "choice_or_emotion_change": "혼자 귀가하지 않기로 한다.",
+                    "result_change": "일상 동선과 안전감이 달라졌다.",
+                    "planned_segment_ids": ["SEG-006"],
+                    "development_function_ids": ["CDEV-003", "CDEV-004"],
+                    "expected_excerpt_anchor": "후일의 생활 변화",
+                }
+            ],
+        }
+    )
+    plan = presentation_plan()
+    raw_segments = plan["segments"]
+    assert isinstance(raw_segments, list)
+    raw_segments[4]["crime_development_function_ids"] = ["CDEV-001", "CDEV-002"]
+    raw_segments[5].update(
+        {
+            "segment_type": "DRAMA",
+            "scene_id": "SCN-03",
+            "source_artifact": "drama_script",
+            "crime_development_function_ids": ["CDEV-003", "CDEV-004"],
+        }
+    )
+    raw_segments[5].pop("reaction_segment_id", None)
+    script = final_script()
+    script = script.replace(
+        "HARM=HARM-01\nDEV=CDEV-001,CDEV-002,CDEV-003,CDEV-004",
+        "DEV=CDEV-001,CDEV-002",
+    ).replace(
+        "행위자가 퇴로를 막고 비선정적 폭력을 가했다. "
+        "피해자는 치료가 필요한 상해를 입었다. "
+        "피해자는 일상 공간에 돌아가지 못하는 불안을 겪었다.",
+        "문이 닫히자 그는 출구 앞을 가로막았다. 손목을 뿌리치는 소리 뒤로 "
+        "피해자는 비상계단 쪽으로 몸을 돌렸다.",
+    )
+    script = script.replace(
+        "<!-- SEGMENT:SEG-006 TYPE:PANEL_REACTION SCENE:SCN-02 DURATION:30 -->\n"
+        "패널은 범인, 동기, 방식과 피해 결과를 공개된 근거로 정리한다.",
+        "<!-- SEGMENT:SEG-006 TYPE:DRAMA SCENE:SCN-03 DURATION:30 -->\n"
+        "<!-- CRIME_TRACE\nEVENT=EVENT-01\nHARM=HARM-01\n"
+        "DEV=CDEV-003,CDEV-004\n-->\n"
+        "며칠 뒤에도 피해자는 익숙한 현관 앞에서 멈춰 섰다. 결국 귀가 길과 "
+        "근무 시간을 바꾸고 동료에게 동행을 부탁했다.",
+    )
+
+    for field in (
+        "non_actionable_method_summary",
+        "immediate_harm",
+        "lasting_harm",
+    ):
+        summary = contract[field]
+        assert isinstance(summary, str)
+        assert summary not in script
+    assert (
+        validate_script_crime_realization(
+            CHANNEL,
+            contract,
+            cards,
+            plan,
+            reaction_segments(),
+            viewer_timeline(),
+            script,
+        )
+        == []
+    )
+    report = build_crime_script_realization_report(
+        "PRJ-901",
+        CHANNEL,
+        contract,
+        cards,
+        plan,
+        reaction_segments(),
+        viewer_timeline(),
+        script,
+    )
+    evidence_links = report["evidence_links"]
+    assert isinstance(evidence_links, list)
+    assert {link["segment_id"] for link in evidence_links} == {"SEG-005", "SEG-006"}
+    assert {link["evidence_type"] for link in evidence_links} == {
+        "BEHAVIOR_OR_CHOICE",
+        "HARM_AFTERMATH",
+    }
+    schema = load_json_object(
+        ROOT / "STANDARD/schemas/script_realization_report.schema.json"
+    )
+    assert collect_schema_errors(report, schema, "script_realization_report") == []
+
+
+def test_marker_without_visible_excerpt_is_rejected() -> None:
+    """기계 Marker만 있고 실제 방송 발췌가 없으면 구조 검증에서 차단한다."""
+    script = final_script().replace(
+        "행위자가 퇴로를 막고 비선정적 폭력을 가했다. "
+        "피해자는 치료가 필요한 상해를 입었다. "
+        "피해자는 일상 공간에 돌아가지 못하는 불안을 겪었다.",
+        "",
+    )
+    assert "SCRIPT_CRIME_ACTION_UNREALIZED" in issue_codes(
+        validate_script_crime_realization(
+            CHANNEL,
+            crime_contract(),
+            scene_cards(),
+            presentation_plan(),
+            reaction_segments(),
+            viewer_timeline(),
+            script,
+        )
+    )
+
+
 def test_murder_fatality_does_not_require_survival_or_recovery() -> None:
     """사망 피해 사건은 생존·신고·용서·회복 결말 없이 계약을 통과한다."""
     event = event_outline("MURDER")
@@ -408,7 +541,7 @@ def test_editorial_evidence_is_separate_from_core_report() -> None:
     )
     assessments = []
     for index, (category, subject_id) in enumerate(
-        sorted(required_semantic_subjects(contract)),
+        sorted(required_semantic_subjects(CHANNEL, contract)),
         1,
     ):
         status = "NOT_DISCLOSED" if category == "PREMATURE_DISCLOSURE_SCAN" else "EVIDENCED"

@@ -20,7 +20,7 @@ from VALIDATORS.candidate_evaluation import (
     candidate_evaluation_input_hashes,
 )
 from VALIDATORS.candidate_event_briefs import canonical_json_hash
-from VALIDATORS.crime_event import DEFAULT_DEVELOPMENT_FUNCTIONS, development_families
+from VALIDATORS.crime_functions import DEFAULT_DEVELOPMENT_FUNCTIONS, development_families
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
     make_editorial_evidence,
@@ -1038,11 +1038,56 @@ def fake_editorial_review(
                 "notes": "후반 공개가 앞선 단서와 모순되지 않음",
             },
         ]
-        for index, target in enumerate(target_records, 5):
+        development_functions = mapping_values(crime_event.get("development_functions"))
+        semantic_subjects = [
+            (
+                "DEVELOPMENT_FUNCTION",
+                str(item.get("development_function_id")),
+                "필수 범죄 전개 기능이 실제 Drama 발췌에서 확인됨",
+            )
+            for item in development_functions
+            if isinstance(item.get("development_function_id"), str)
+        ]
+        core_action_type = crime_event.get("core_action_type")
+        if isinstance(core_action_type, str):
+            semantic_subjects.append(
+                (
+                    "CRIME_ACTION",
+                    core_action_type,
+                    "범죄 행동이 실제 Drama 발췌에서 확인됨",
+                )
+            )
+        semantic_subjects.extend(
+            (
+                "HARM_RESULT",
+                harm_id,
+                "범죄 피해 결과가 실제 Drama 발췌에서 확인됨",
+            )
+            for harm_id in string_values(crime_event.get("harm_ids"))
+        )
+        for category, subject_id, notes in semantic_subjects:
+            semantic_assessments.append(
+                {
+                    "assessment_id": f"ASSESS-{len(semantic_assessments) + 1:02d}",
+                    "category": category,
+                    "subject_id": subject_id,
+                    "status": "EVIDENCED",
+                    "evidence": [
+                        make_editorial_evidence(
+                            artifacts,
+                            "final_script",
+                            "SEGMENT_ID",
+                            "SEG-005",
+                        )
+                    ],
+                    "notes": notes,
+                }
+            )
+        for target in target_records:
             target_id = target.get("reveal_target_id")
             semantic_assessments.append(
                 {
-                    "assessment_id": f"ASSESS-{index:02d}",
+                    "assessment_id": f"ASSESS-{len(semantic_assessments) + 1:02d}",
                     "category": "REVEAL_TIMING",
                     "subject_id": str(target_id),
                     "status": "EVIDENCED",
@@ -1051,17 +1096,17 @@ def fake_editorial_review(
                             artifacts,
                             "final_script",
                             "SEGMENT_ID",
-                            "SEG-005" if index < 7 else "SEG-006",
+                            "SEG-005" if len(semantic_assessments) < 13 else "SEG-006",
                         )
                     ],
                     "notes": "계획된 후반 Segment에서 공개됨",
                 }
             )
-        for index, target in enumerate(target_records, 9):
+        for target in target_records:
             target_id = target.get("reveal_target_id")
             semantic_assessments.append(
                 {
-                    "assessment_id": f"ASSESS-{index:02d}",
+                    "assessment_id": f"ASSESS-{len(semantic_assessments) + 1:02d}",
                     "category": "PREMATURE_DISCLOSURE_SCAN",
                     "subject_id": str(target_id),
                     "status": "NOT_DISCLOSED",
@@ -1588,6 +1633,7 @@ def fake_candidate_event_briefs(
 def fake_candidate_evaluation(
     project_id: str,
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
 ) -> dict[str, object]:
@@ -1678,6 +1724,7 @@ def fake_candidate_evaluation(
             record["decision_reason"] = "추천 후보보다 가중 점수가 낮거나 Novelty가 실패했습니다."
     input_hashes = candidate_evaluation_input_hashes(
         variations,
+        candidate_event_briefs,
         novelty_precheck,
         candidate_eligibility,
     )
@@ -2160,6 +2207,7 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
         variations = context_artifact(request, "variation_candidates")
         novelty_precheck = context_artifact(request, "novelty_precheck")
         candidate_eligibility = context_artifact(request, "candidate_eligibility")
+        candidate_event_briefs = context_artifact(request, "candidate_event_briefs")
         if variations is None or novelty_precheck is None or candidate_eligibility is None:
             raise RuntimeExecutionError(
                 "RUNTIME_CONFIGURATION_ERROR",
@@ -2177,6 +2225,7 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "content": fake_candidate_evaluation(
                     project_id,
                     variations,
+                    candidate_event_briefs,
                     novelty_precheck,
                     candidate_eligibility,
                 ),

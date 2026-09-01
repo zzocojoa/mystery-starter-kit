@@ -63,7 +63,7 @@ def candidate_inputs() -> tuple[dict[str, object], ...]:
         config, project_constraints("PRJ-910"), channel, variations, precheck
     )
     evaluation = fake_candidate_evaluation(
-        "PRJ-910", variations, precheck, eligibility
+        "PRJ-910", variations, None, precheck, eligibility
     )
     return config, channel, variations, precheck, eligibility, evaluation
 
@@ -82,10 +82,10 @@ def test_candidate_documents_pass_schema_and_semantics() -> None:
         "candidate_evaluation",
     ) == []
     assert validate_candidate_eligibility(
-        config, project_constraints("PRJ-910"), channel, variations, precheck, eligibility
+        config, project_constraints("PRJ-910"), channel, variations, None, precheck, eligibility
     ) == []
     assert validate_candidate_evaluation(
-        variations, evaluation, precheck, eligibility
+        variations, None, evaluation, precheck, eligibility
     ) == []
 
 
@@ -108,7 +108,7 @@ def test_tampered_eligibility_fails_core_recalculation() -> None:
     eligibility = deepcopy(original)
     eligibility["eligible_candidate_ids"] = []
     assert validate_candidate_eligibility(
-        config, project_constraints("PRJ-910"), channel, variations, precheck, eligibility
+        config, project_constraints("PRJ-910"), channel, variations, None, precheck, eligibility
     )[0]["code"] == "CANDIDATE_ELIGIBILITY_MISMATCH"
 
 
@@ -288,16 +288,16 @@ def test_approval_is_separate_and_hash_bound() -> None:
     approved = approve_variation_candidate(variations, selected)
     approval = build_candidate_approval(
         "PRJ-910", selected, selected, "SYSTEM", "자동 승인",
-        "2025-01-01T00:00:00Z", config, approved, precheck, eligibility, evaluation,
+        "2025-01-01T00:00:00Z", config, approved, None, precheck, eligibility, evaluation,
         "AUTO_CONTINUE", None,
     )
     assert validate_candidate_approval(
-        config, approved, precheck, eligibility, evaluation, approval
+        config, approved, None, precheck, eligibility, evaluation, approval
     ) == []
     changed = deepcopy(evaluation)
     changed["recommended_candidate_id"] = "VAR-99"
     assert validate_candidate_approval(
-        config, approved, precheck, eligibility, changed, approval
+        config, approved, None, precheck, eligibility, changed, approval
     )
 
 
@@ -335,6 +335,7 @@ def test_human_override_preserves_runtime_approval_provenance() -> None:
         runtime_approval["created_at"],
         config,
         approved,
+        None,
         precheck,
         eligibility,
         evaluation,
@@ -347,7 +348,7 @@ def test_human_override_preserves_runtime_approval_provenance() -> None:
     approval = build_candidate_approval(
         "PRJ-910", selected, recommended, runtime_approval["actor"],
         runtime_approval["reason"], runtime_approval["created_at"], config,
-        approved, precheck, eligibility, evaluation, "HUMAN_REVIEW", runtime_approval,
+        approved, None, precheck, eligibility, evaluation, "HUMAN_REVIEW", runtime_approval,
     )
 
     assert approval["approval_type"] == "HUMAN_OVERRIDE"
@@ -357,6 +358,7 @@ def test_human_override_preserves_runtime_approval_provenance() -> None:
     assert validate_candidate_approval(
         config,
         approved,
+        None,
         precheck,
         eligibility,
         evaluation,
@@ -366,7 +368,7 @@ def test_human_override_preserves_runtime_approval_provenance() -> None:
     stale = deepcopy(approval)
     stale["human_approval_record_hash"] = "0" * 64
     issues = validate_candidate_approval(
-        config, approved, precheck, eligibility, evaluation, stale
+        config, approved, None, precheck, eligibility, evaluation, stale
     )
     problems = issues[0]["context"]["problems"]
     assert isinstance(problems, list)

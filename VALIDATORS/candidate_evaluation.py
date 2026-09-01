@@ -4,6 +4,10 @@ import hashlib
 import json
 from collections.abc import Mapping
 
+from VALIDATORS.candidate_event_briefs import (
+    candidate_event_brief_hashes,
+    canonical_json_hash,
+)
 from VALIDATORS.models import ValidationIssue
 from VALIDATORS.novelty import variation_precheck_source_hash
 
@@ -62,15 +66,27 @@ def document_sha256(document: Mapping[str, object]) -> str:
 
 def candidate_evaluation_input_hashes(
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
 ) -> dict[str, str]:
     """권한 판정과 분리된 Soft 평가 입력 Hash를 계산한다."""
-    return {
+    hashes = {
         "variation_candidates": variation_precheck_source_hash(variations),
         "novelty_precheck": document_sha256(novelty_precheck),
         "candidate_eligibility": document_sha256(candidate_eligibility),
     }
+    if candidate_event_briefs is not None:
+        hashes["candidate_event_briefs"] = canonical_json_hash(candidate_event_briefs)
+        hashes.update(
+            {
+                f"candidate_event_brief_{candidate_id.lower().replace('-', '_')}": value
+                for candidate_id, value in candidate_event_brief_hashes(
+                    candidate_event_briefs
+                ).items()
+            }
+        )
+    return hashes
 
 
 def candidate_ids(document: Mapping[str, object]) -> set[str]:
@@ -241,6 +257,7 @@ def validate_weighted_scores(
 
 def validate_input_hashes(
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     evaluation: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
@@ -248,6 +265,7 @@ def validate_input_hashes(
     """Soft 평가가 현재 Core 입력에 결속되었는지 검증한다."""
     expected_hashes = candidate_evaluation_input_hashes(
         variations,
+        candidate_event_briefs,
         novelty_precheck,
         candidate_eligibility,
     )
@@ -357,6 +375,7 @@ def validate_recommendation(
 
 def validate_candidate_evaluation(
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     evaluation: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
@@ -368,6 +387,7 @@ def validate_candidate_evaluation(
         *validate_weighted_scores(variations, evaluation, records),
         *validate_input_hashes(
             variations,
+            candidate_event_briefs,
             evaluation,
             novelty_precheck,
             candidate_eligibility,

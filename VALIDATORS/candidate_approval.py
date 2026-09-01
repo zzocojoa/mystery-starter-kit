@@ -5,12 +5,17 @@ from copy import deepcopy
 
 from RUNTIME.models import RuntimeApproval
 from VALIDATORS.candidate_evaluation import document_sha256
+from VALIDATORS.candidate_event_briefs import (
+    candidate_event_brief_hashes,
+    canonical_json_hash,
+)
 from VALIDATORS.models import ValidationIssue
 
 
 def approval_input_hashes(
     production_config: Mapping[str, object],
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
     candidate_evaluation: Mapping[str, object],
@@ -23,13 +28,24 @@ def approval_input_hashes(
         for candidate in candidates:
             if isinstance(candidate, dict):
                 candidate["selection_status"] = "PENDING"
-    return {
+    hashes = {
         "production_config": document_sha256(production_config),
         "variation_candidates": document_sha256(variation_input),
         "novelty_precheck": document_sha256(novelty_precheck),
         "candidate_eligibility": document_sha256(candidate_eligibility),
         "candidate_evaluation": document_sha256(candidate_evaluation),
     }
+    if candidate_event_briefs is not None:
+        hashes["candidate_event_briefs"] = canonical_json_hash(candidate_event_briefs)
+        hashes.update(
+            {
+                f"candidate_event_brief_{candidate_id.lower().replace('-', '_')}": value
+                for candidate_id, value in candidate_event_brief_hashes(
+                    candidate_event_briefs
+                ).items()
+            }
+        )
+    return hashes
 
 
 def build_candidate_approval(
@@ -41,6 +57,7 @@ def build_candidate_approval(
     approved_at: str,
     production_config: Mapping[str, object],
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
     candidate_evaluation: Mapping[str, object],
@@ -58,7 +75,7 @@ def build_candidate_approval(
     document: dict[str, object] = {
         "$schema": "../../../STANDARD/schemas/candidate_approval.schema.json",
         "schema_family": "candidate-approval",
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0" if candidate_event_briefs is not None else "1.0.0",
         "project_id": project_id,
         "selected_candidate_id": selected_candidate_id,
         "recommended_candidate_id": recommended_candidate_id,
@@ -68,6 +85,7 @@ def build_candidate_approval(
         "input_hashes": approval_input_hashes(
             production_config,
             variations,
+            candidate_event_briefs,
             novelty_precheck,
             candidate_eligibility,
             candidate_evaluation,
@@ -92,6 +110,7 @@ def build_candidate_approval(
 def validate_candidate_approval(
     production_config: Mapping[str, object],
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
     candidate_evaluation: Mapping[str, object],
@@ -104,6 +123,7 @@ def validate_candidate_approval(
     expected_hashes = approval_input_hashes(
         production_config,
         variations,
+        candidate_event_briefs,
         novelty_precheck,
         candidate_eligibility,
         candidate_evaluation,
@@ -146,8 +166,14 @@ def validate_candidate_approval(
             if candidate_approval.get("approved_at") != candidate_approval.get("created_at"):
                 problems.append("HUMAN_APPROVAL_TIMESTAMP_MISMATCH")
             bound = candidate_approval.get("bound_input_hashes")
+            runtime_bound_hashes = {
+                name: value
+                for name, value in expected_hashes.items()
+                if not name.startswith("candidate_event_brief_var_")
+            }
             if not isinstance(bound, Mapping) or any(
-                bound.get(name) != value for name, value in expected_hashes.items()
+                bound.get(name) != value
+                for name, value in runtime_bound_hashes.items()
             ):
                 problems.append("HUMAN_APPROVAL_INPUT_HASH_MISMATCH")
             reconstructed = {

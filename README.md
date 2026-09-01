@@ -37,17 +37,20 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 현재 Gate Validator를 통과한 뒤 Task를 제출하고 Process Trace를 확인하라.
 ```
 
-각 Gate는 다음 Transaction으로 실행한다. `task-open`이 출력한 `workspace`에서 허용 파일만 수정한 뒤 같은 Gate로 제출한다.
+각 Gate는 하나의 Transaction으로 실행한다. `task-open`은 의존 순서의 CORE Task를 먼저 실행하고, 처음 만나는 LLM Task 하나의 `allowed_reads`와 `allowed_writes`만 연다. 출력된 `workspace`에서 현재 허용 파일만 수정한 뒤 같은 Gate로 제출한다.
 
 ```bash
 .venv/bin/mystery-kit task-open PROJECTS/PRJ-002 GATE-05
 .venv/bin/mystery-kit task-status PROJECTS/PRJ-002
-# 출력된 Staging Workspace의 allowed_writes만 Codex가 편집한다.
+# 출력된 Staging Workspace의 현재 allowed_writes만 Codex가 편집한다.
+.venv/bin/mystery-kit task-submit PROJECTS/PRJ-002 GATE-05
+# 응답이 AWAITING_LLM이면 새 current_task_id의 allowed_writes만 작성하고 다시 제출한다.
+.venv/bin/mystery-kit task-status PROJECTS/PRJ-002
 .venv/bin/mystery-kit task-submit PROJECTS/PRJ-002 GATE-05
 .venv/bin/mystery-kit task-return PROJECTS/PRJ-002 script_writer --actor critic --reason "대본 수정 필요"
 ```
 
-제출은 현재 Gate, writes Allowlist, Artifact Owner, Future Gate 수정, 입력 Hash Drift, Schema와 현재 Gate Validator를 검사한다. 다음 Task를 열기 전에도 이미 통과한 Canonical Artifact를 Project State Hash와 대조한다. PASS일 때만 Artifact·Project State·`00_PROJECT/process_trace.jsonl`을 기존 Write-ahead Transaction으로 함께 Commit한다. 작업을 폐기하려면 `task-abort`를 사용한다. Critic Issue는 `task-return`으로 Owner Agent Gate에 반환하며, 새 `process_revision`의 Trace만 재작업 적합성에 사용한다. `AUTO_CONTINUE`는 PASS 뒤 다음 Gate Task를 사용자 재확인 없이 열 수 있다는 뜻이며 여러 Gate를 한꺼번에 작성한다는 뜻이 아니다.
+각 제출은 현재 Task의 writes Allowlist, Artifact Owner, Future Gate 수정, 입력 Hash Drift와 Schema를 검사한다. 통과하면 같은 Workspace에서 후속 CORE를 실행하고, 다음 LLM Task가 있으면 Canonical 중간 Commit 없이 새 `current_task_id`와 최소 권한을 반환한다. Gate의 모든 Task와 Gate Validator가 PASS한 경우에만 Artifact·Project State·`00_PROJECT/process_trace.jsonl`을 기존 Write-ahead Transaction으로 함께 Commit한다. 다음 Gate를 열기 전에는 이미 통과한 Canonical Artifact를 Project State Hash와 대조한다. 작업을 폐기하려면 `task-abort`를 사용한다. Critic Issue는 `task-return`으로 Owner Agent Gate에 반환하며, 새 `process_revision`의 Trace만 재작업 적합성에 사용한다. `AUTO_CONTINUE`는 정상 Task 통과 뒤 의존 가능한 CORE 또는 다음 LLM Task로 진행할 수 있다는 뜻이며 여러 Gate를 한꺼번에 작성한다는 뜻이 아니다.
 
 ### 3. 감사, Editorial 승인과 등록
 
@@ -116,13 +119,15 @@ Codex App이 필요에 따라 호출할 수 있는 결정론적 제작 보조 �
 .venv/bin/mystery-kit variations PROJECTS/PRJ-002 \
   --seed "공장 교대 중 사라진 작업자" \
   --count 5
+# EXPLICIT_CRIME_EVENT_POLICY가 활성화되면 Codex가 후보별
+# 00_PROJECT/candidate_event_briefs.json을 먼저 작성한다.
 .venv/bin/mystery-kit precheck PROJECTS/PRJ-002
 .venv/bin/mystery-kit candidate-eligibility PROJECTS/PRJ-002
 # Codex가 00_PROJECT/candidate_evaluation.json의 Soft 평가 근거를 작성한다.
 .venv/bin/mystery-kit approve PROJECTS/PRJ-002 VAR-03
 ```
 
-후보 생성과 Soft 점수·근거는 Variation Designer/Codex의 후보 데이터다. `candidate_eligibility.json`의 Hard Filter·Novelty 적격성 및 `candidate_approval.json`의 최종 승인 권한은 Runtime Core가 소유한다. 추천 후보가 아닌 적격 후보를 승인할 때만 `approve ... --override --actor ... --reason ...`을 명시한다.
+후보 생성과 Soft 점수·근거는 Variation Designer/Codex의 후보 데이터다. Explicit Crime 경로의 Candidate Event Brief는 Novelty, 적격성, 평가와 승인 Hash에 결속되므로 Brief 변경 뒤에는 해당 단계를 다시 실행해야 한다. `candidate_eligibility.json`의 Hard Filter·Novelty 적격성 및 `candidate_approval.json`의 최종 승인 권한은 Runtime Core가 소유한다. 추천 후보가 아닌 적격 후보를 승인할 때만 `approve ... --override --actor ... --reason ...`을 명시한다.
 
 Reference 기반 Project는 후보 생성 전에 원문 JSON을 Project 밖에 보관하고 정제 Profile만 만든다.
 

@@ -16,7 +16,7 @@
 | Runtime Task Catalog | Task ID | `schema_version` | 실제 호출의 최소 읽기·쓰기·Gate·Retry 권한 |
 | Provider Interface | `provider_id` | `interface_version` | SDK 비종속 Capability와 Request/Response Wire 경계 |
 | Runtime Run/Event | `run_id` | `schema_version` | 재개 가능한 상태와 Append-only 감사 기록 |
-| Gate Transaction | `transaction_id` | `schema_version` | Codex Task의 Gate·권한·Workspace·Hash Snapshot |
+| Gate Transaction | `transaction_id` | `schema_version` | Codex Gate의 현재 Task·완료 Task·최소 권한·Workspace·Task별 Hash Snapshot |
 | Process Trace | `trace_id` | `schema_version` | Gate별 Task·Agent·변경·검증·Commit 증거 |
 
 Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json`은 `capabilities` 객체에 Required 목록을 중복하지 않고 개별 Capability 형상만 검증한다.
@@ -48,7 +48,7 @@ Required Capability 이름은 Contract만 소유한다. `channel_dna.schema.json
 | `agent_manifest.schema.json` | 10개 Agent 실행 계약 |
 | `dependency_graph.schema.json` | Artifact DAG |
 | `project_state.schema.json` | 상태와 Hash 기반 무효화 |
-| `gate_transaction.schema.json` | Codex Gate Task 권한과 실행 상태 |
+| `gate_transaction.schema.json` | Codex Gate의 순차 Task 권한과 CORE·LLM 실행 상태 |
 | `process_trace.schema.json` | Gate별 Process Conformance 증거 |
 | `editorial_review.schema.json` | 최종 방송·서사·제작 적합성 Critic 판정 |
 | `validation_report.schema.json` | 14 Gate 통합 결과 |

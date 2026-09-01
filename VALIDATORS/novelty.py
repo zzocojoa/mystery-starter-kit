@@ -7,6 +7,10 @@ from difflib import SequenceMatcher
 from hashlib import sha256
 from typing import cast
 
+from VALIDATORS.candidate_event_briefs import (
+    candidate_event_brief_hashes,
+    canonical_json_hash,
+)
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.models import ValidationIssue
 
@@ -584,6 +588,21 @@ def evaluate_variation_precheck(
     history: Sequence[Mapping[str, object]],
     thresholds: Mapping[str, object],
 ) -> dict[str, object]:
+    """Brief가 없는 Legacy Variation Novelty Precheck를 실행한다."""
+    return evaluate_variation_precheck_bound(
+        candidates_document,
+        None,
+        history,
+        thresholds,
+    )
+
+
+def evaluate_variation_precheck_bound(
+    candidates_document: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
+    history: Sequence[Mapping[str, object]],
+    thresholds: Mapping[str, object],
+) -> dict[str, object]:
     """모든 Variation을 Story History와 비교해 평가 전 중복을 차단한다."""
     candidates = candidates_document.get("candidates")
     if not isinstance(candidates, list) or not all(
@@ -673,12 +692,20 @@ def evaluate_variation_precheck(
                 {"candidate_count": len(candidate_results)},
             )
         )
-    return {
+    document: dict[str, object] = {
         "schema_family": "novelty-precheck",
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0" if candidate_event_briefs is not None else "1.1.0",
         "project_id": candidates_document.get("project_id", ""),
         "source_hash": variation_precheck_source_hash(candidates_document),
         "result": "PASS" if passed_count > 0 else "FAIL",
         "candidate_results": candidate_results,
         "issues": issues,
     }
+    if candidate_event_briefs is not None:
+        document["candidate_event_briefs_hash"] = canonical_json_hash(
+            candidate_event_briefs
+        )
+        document["candidate_event_brief_hashes"] = candidate_event_brief_hashes(
+            candidate_event_briefs
+        )
+    return document

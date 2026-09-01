@@ -7,6 +7,7 @@ from copy import deepcopy
 from difflib import SequenceMatcher
 from hashlib import sha256
 
+from VALIDATORS.crime_functions import development_function_issues
 from VALIDATORS.models import ValidationIssue
 
 PLACEHOLDER_PATTERNS: tuple[re.Pattern[str], ...] = (
@@ -57,6 +58,17 @@ def canonical_json_hash(value: object) -> str:
         separators=(",", ":"),
     ).encode("utf-8")
     return sha256(encoded).hexdigest()
+
+
+def candidate_event_brief_hashes(
+    document: Mapping[str, object],
+) -> dict[str, str]:
+    """Candidate ID별 Event Brief 정규 Hash를 반환한다."""
+    return {
+        str(brief["candidate_id"]): canonical_json_hash(brief)
+        for brief in mapping_records(document, "briefs")
+        if isinstance(brief.get("candidate_id"), str)
+    }
 
 
 def brief_issue(
@@ -281,6 +293,7 @@ def fiction_resolution_issues(brief: Mapping[str, object]) -> list[ValidationIss
 def validate_candidate_event_briefs(
     variations: Mapping[str, object],
     document: Mapping[str, object],
+    explicit_crime_policy: Mapping[str, object] | None,
 ) -> list[ValidationIssue]:
     """구조 후보와 Event Brief의 전단사·Hash·구체성·Cardinality를 검증한다."""
     candidates = mapping_records(variations, "candidates")
@@ -348,6 +361,14 @@ def validate_candidate_event_briefs(
         issues.extend(cardinality_issues(brief))
         issues.extend(placeholder_issues(brief))
         issues.extend(fiction_resolution_issues(brief))
+        if explicit_crime_policy is not None:
+            issues.extend(
+                development_function_issues(
+                    explicit_crime_policy,
+                    brief,
+                    "00_PROJECT/candidate_event_briefs.json",
+                )
+            )
     issues.extend(causal_collision_issues(briefs))
     return issues
 

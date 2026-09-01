@@ -28,6 +28,9 @@
     "input_hashes": {
       "type": "object",
       "additionalProperties": false,
+      "patternProperties": {
+        "^candidate_event_brief_var_[0-9]{2,}$": {"$ref": "#/$defs/hash"}
+      },
       "required": [
         "variation_candidates",
         "novelty_precheck",
@@ -36,7 +39,8 @@
       "properties": {
         "variation_candidates": {"$ref": "#/$defs/hash"},
         "novelty_precheck": {"$ref": "#/$defs/hash"},
-        "candidate_eligibility": {"$ref": "#/$defs/hash"}
+        "candidate_eligibility": {"$ref": "#/$defs/hash"},
+        "candidate_event_briefs": {"$ref": "#/$defs/hash"}
       }
     },
     "novelty_report_hash": {"$ref": "#/$defs/hash"},
@@ -75,6 +79,9 @@
       },
       "then": {
         "properties": {
+          "input_hashes": {
+            "required": ["candidate_event_briefs"]
+          },
           "weights": {"$ref": "#/$defs/eventDimensions"},
           "evaluations": {
             "items": {"$ref": "#/$defs/eventEvaluation"}

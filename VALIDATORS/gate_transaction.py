@@ -37,7 +37,10 @@ from RUNTIME.transactions import (
     release_project_lock,
     write_artifact,
 )
+from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_event_briefs import validate_candidate_event_briefs
 from VALIDATORS.channel_registry import resolve_project_channel
+from VALIDATORS.crime_event import explicit_crime_policy
 from VALIDATORS.dependency import (
     artifact_hash,
     artifact_required_for_project,
@@ -61,7 +64,7 @@ from VALIDATORS.state_machine import (
 )
 
 PROCESS_TRACE_PATH = "00_PROJECT/process_trace.jsonl"
-VALIDATOR_VERSION = "1.0.0"
+VALIDATOR_VERSION = "1.1.0"
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -511,6 +514,7 @@ def task_open_unlocked(
     project_path: Path,
     gate_id: str,
     started_at: str,
+    reference_source: Path | None,
 ) -> dict[str, object]:
     """Project Lock 안에서 격리 Workspace와 권한 Snapshot을 생성한다."""
     validate_runtime_contracts(repository_root)
@@ -524,6 +528,8 @@ def task_open_unlocked(
     )
     active = open_task_record(repository_root, project_path)
     if active is not None:
+        if active["gate_id"] == gate_id:
+            return active
         raise GateTransactionError(
             "GATE_TRANSACTION_ALREADY_OPEN",
             "기존 Gate Transaction을 먼저 제출하거나 중단해야 합니다.",
@@ -567,10 +573,9 @@ def task_open_unlocked(
             "Project State와 Canonical Artifact Hash가 일치하지 않습니다.",
             {"artifacts": drift},
         )
-    allowed_reads = string_union(tasks, "reads")
+    gate_reads = string_union(tasks, "reads")
     gate_writes = string_union(tasks, "writes")
-    allowed_writes = string_union(tasks_for_executor(tasks, "LLM"), "writes")
-    external_reads = sorted(set(allowed_reads) - set(gate_writes))
+    external_reads = sorted(set(gate_reads) - set(gate_writes))
     input_hashes = capture_artifact_hashes(
         project_path,
         external_reads,
@@ -587,19 +592,25 @@ def task_open_unlocked(
     )
     record: dict[str, object] = {
         "schema_family": "gate-transaction",
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "transaction_id": transaction_id,
         "project_id": state["project_id"],
         "gate_id": gate_id,
         "process_revision": state["readiness"]["process_revision"],
         "task_ids": list(tasks),
+        "current_task_id": None,
+        "completed_task_ids": [],
+        "task_statuses": {task_id: "PENDING" for task_id in tasks},
+        "task_input_hashes": {},
+        "task_changed_paths": {},
+        "gate_phase": "RUNNING_CORE",
         "agent_ids": sorted({task["agent_id"] for task in tasks.values()}),
-        "allowed_reads": allowed_reads,
-        "allowed_writes": allowed_writes,
+        "allowed_reads": [],
+        "allowed_writes": [],
         "input_hashes": input_hashes,
         "canonical_hashes": project_file_hashes(project_path),
         "workspace_hashes": project_file_hashes(workspace),
-        "forbidden_paths": forbidden_paths(dependency_graph, allowed_writes),
+        "forbidden_paths": forbidden_paths(dependency_graph, []),
         "workspace": str(workspace),
         "status": "OPEN",
         "changed_paths": [],
@@ -609,7 +620,15 @@ def task_open_unlocked(
     }
     validate_task_record(repository_root, record, transaction_id)
     write_json_object(task_record_path(project_path, transaction_id), record)
-    return record
+    return advance_gate_tasks(
+        repository_root,
+        project_path,
+        workspace,
+        tasks,
+        record,
+        dependency_graph,
+        reference_source,
+    )
 
 
 def task_open(
@@ -617,6 +636,7 @@ def task_open(
     project_path: Path,
     gate_id: str,
     started_at: str,
+    reference_source: Path | None,
 ) -> dict[str, object]:
     """단일 Writer Lock으로 현재 Gate의 Codex Task를 연다."""
     lock_owner = f"CODEX-OPEN-{uuid4().hex[:16].upper()}"
@@ -627,6 +647,7 @@ def task_open(
             project_path,
             gate_id,
             started_at,
+            reference_source,
         )
     finally:
         release_project_lock(lock_path, lock_owner)
@@ -810,51 +831,250 @@ def read_workspace_outputs(
     return outputs
 
 
-def generate_core_outputs(
+def task_available_reads(
+    workspace: Path,
+    task: RuntimeTask,
+    dependency_graph: Mapping[str, object],
+) -> list[str]:
+    """현재 Workspace에 존재하는 필수·선택 Task 입력을 반환한다."""
+    existing = load_existing_project_artifacts(workspace, dependency_graph)
+    optional_reads = [
+        artifact_name
+        for artifact_name in task.get("optional_reads", [])
+        if artifact_name in existing
+    ]
+    return sorted(set(task["reads"]) | set(optional_reads))
+
+
+def task_artifact_hashes(
+    workspace: Path,
+    task: RuntimeTask,
+    dependency_graph: Mapping[str, object],
+) -> dict[str, str]:
+    """현재 Task가 실제로 읽는 Workspace Artifact Hash를 계산한다."""
+    return capture_artifact_hashes(
+        workspace,
+        task_available_reads(workspace, task, dependency_graph),
+        dependency_graph,
+    )
+
+
+def generate_core_task_output(
+    repository_root: Path,
+    project_path: Path,
+    workspace: Path,
+    task_id: str,
+    task: RuntimeTask,
+    dependency_graph: Mapping[str, object],
+    reference_source: Path | None,
+    transaction_id: str,
+    input_hashes: Mapping[str, str],
+) -> dict[str, str]:
+    """단일 CORE Task를 실행해 검증된 출력을 Workspace에 기록한다."""
+    definitions = dependency_artifacts(dependency_graph)
+    contracts = load_artifact_contracts(repository_root)
+    overlay = load_existing_project_artifacts(workspace, dependency_graph)
+    generated_paths: dict[str, str] = {}
+    generated = core_task_outputs(
+        task_id,
+        repository_root,
+        project_path,
+        overlay,
+        dependency_graph,
+        reference_source,
+        None,
+        transaction_id,
+        input_hashes,
+    )
+    validate_core_outputs(
+        repository_root,
+        task_id,
+        task,
+        generated,
+        contracts,
+    )
+    for artifact_name, content in generated.items():
+        definition = definitions.get(artifact_name)
+        relative_path = None if definition is None else definition.get("path")
+        if not isinstance(relative_path, str):
+            raise ConfigurationError(
+                f"CORE Artifact path 문자열이 필요합니다: artifact={artifact_name}"
+            )
+        write_artifact(workspace / relative_path, content)
+        generated_paths[relative_path] = artifact_name
+    return generated_paths
+
+
+def validate_llm_task_outputs(
+    repository_root: Path,
+    workspace: Path,
+    task_id: str,
+    dependency_graph: Mapping[str, object],
+) -> None:
+    """중간 LLM Task에서 현재까지 가능한 의미·Hash 검증을 수행한다."""
+    artifacts = load_existing_project_artifacts(workspace, dependency_graph)
+    production_config = load_json_object(
+        workspace / "00_PROJECT" / "production_config.json"
+    )
+    channel, _manifest, _channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        None,
+    )
+    issues: list[Mapping[str, object]] = []
+    if task_id == "variation.elaborate_crime_events":
+        variations = artifacts.get("variation_candidates")
+        briefs = artifacts.get("candidate_event_briefs")
+        if isinstance(variations, Mapping) and isinstance(briefs, Mapping):
+            issues.extend(
+                validate_candidate_event_briefs(
+                    variations,
+                    briefs,
+                    explicit_crime_policy(channel),
+                )
+            )
+    if task_id == "variation.evaluate":
+        variations = artifacts.get("variation_candidates")
+        briefs = artifacts.get("candidate_event_briefs")
+        evaluation = artifacts.get("candidate_evaluation")
+        novelty = artifacts.get("novelty_precheck")
+        eligibility = artifacts.get("candidate_eligibility")
+        if all(
+            isinstance(value, Mapping)
+            for value in (variations, evaluation, novelty, eligibility)
+        ):
+            issues.extend(
+                validate_candidate_evaluation(
+                    cast(Mapping[str, object], variations),
+                    briefs if isinstance(briefs, Mapping) else None,
+                    cast(Mapping[str, object], evaluation),
+                    cast(Mapping[str, object], novelty),
+                    cast(Mapping[str, object], eligibility),
+                )
+            )
+    if issues:
+        first = issues[0]
+        raise GateTransactionError(
+            str(first.get("code", "GATE_REJECTED")),
+            str(first.get("message", "LLM Task 출력 검증에 실패했습니다.")),
+            dict(cast(Mapping[str, object], first.get("context", {}))),
+        )
+
+
+def advance_gate_tasks(
     repository_root: Path,
     project_path: Path,
     workspace: Path,
     tasks: Mapping[str, RuntimeTask],
-    outputs: dict[str, object],
+    record: Mapping[str, object],
     dependency_graph: Mapping[str, object],
     reference_source: Path | None,
-) -> dict[str, str]:
-    """CORE Task를 계약 순서로 실행하고 검증된 출력을 Workspace에 기록한다."""
-    definitions = dependency_artifacts(dependency_graph)
-    contracts = load_artifact_contracts(repository_root)
-    generated_paths: dict[str, str] = {}
+) -> dict[str, object]:
+    """실행 가능한 CORE를 순서대로 수행하고 첫 LLM Task에서 멈춘다."""
+    updated = deepcopy(dict(record))
+    completed = list(cast(list[str], updated["completed_task_ids"]))
+    completed_set = set(completed)
+    statuses = dict(cast(Mapping[str, str], updated["task_statuses"]))
+    task_hashes = dict(
+        cast(Mapping[str, Mapping[str, str]], updated["task_input_hashes"])
+    )
+    task_changes = dict(cast(Mapping[str, list[str]], updated["task_changed_paths"]))
+    transaction_id = cast(str, updated["transaction_id"])
     for task_id, task in tasks.items():
-        if task["executor"] != "CORE":
+        if task_id in completed_set:
             continue
-        generated = core_task_outputs(
-            task_id,
-            repository_root,
-            project_path,
-            outputs,
-            dependency_graph,
-            reference_source,
-            None,
-            "CODEX-MANUAL",
-            {"manual_context": artifact_hash(task_id.encode("utf-8"))},
-        )
-        validate_core_outputs(
-            repository_root,
-            task_id,
-            task,
-            generated,
-            contracts,
-        )
-        for artifact_name, content in generated.items():
-            definition = definitions.get(artifact_name)
-            relative_path = None if definition is None else definition.get("path")
-            if not isinstance(relative_path, str):
-                raise ConfigurationError(
-                    f"CORE Artifact path 문자열이 필요합니다: artifact={artifact_name}"
+        internal_dependencies = {
+            dependency
+            for dependency in task["depends_on_tasks"]
+            if dependency in tasks
+        }
+        if not internal_dependencies.issubset(completed_set):
+            continue
+        current_hashes = task_artifact_hashes(workspace, task, dependency_graph)
+        task_hashes[task_id] = current_hashes
+        if task["executor"] == "LLM":
+            statuses[task_id] = "AWAITING_LLM"
+            updated.update(
+                {
+                    "current_task_id": task_id,
+                    "completed_task_ids": completed,
+                    "task_statuses": statuses,
+                    "task_input_hashes": task_hashes,
+                    "task_changed_paths": task_changes,
+                    "gate_phase": "AWAITING_LLM",
+                    "allowed_reads": task_available_reads(
+                        workspace,
+                        task,
+                        dependency_graph,
+                    ),
+                    "allowed_writes": sorted(task["writes"]),
+                    "forbidden_paths": forbidden_paths(
+                        dependency_graph,
+                        task["writes"],
+                    ),
+                    "workspace_hashes": project_file_hashes(workspace),
+                }
+            )
+            validate_task_record(repository_root, updated, transaction_id)
+            write_json_object(task_record_path(project_path, transaction_id), updated)
+            return updated
+        statuses[task_id] = "RUNNING_CORE"
+        updated["current_task_id"] = task_id
+        updated["gate_phase"] = "RUNNING_CORE"
+        try:
+            generated_paths = generate_core_task_output(
+                repository_root,
+                project_path,
+                workspace,
+                task_id,
+                task,
+                dependency_graph,
+                reference_source,
+                transaction_id,
+                current_hashes,
+            )
+        except RuntimeExecutionError as error:
+            if error.code == "HUMAN_INPUT_REQUIRED":
+                statuses[task_id] = "WAITING_HUMAN"
+                updated.update(
+                    {
+                        "task_statuses": statuses,
+                        "task_input_hashes": task_hashes,
+                        "gate_phase": "WAITING_HUMAN",
+                        "allowed_reads": task_available_reads(
+                            workspace,
+                            task,
+                            dependency_graph,
+                        ),
+                        "allowed_writes": [],
+                        "forbidden_paths": forbidden_paths(dependency_graph, []),
+                        "workspace_hashes": project_file_hashes(workspace),
+                    }
                 )
-            write_artifact(workspace / relative_path, content)
-            outputs[artifact_name] = content
-            generated_paths[relative_path] = artifact_name
-    return generated_paths
+                validate_task_record(repository_root, updated, transaction_id)
+                write_json_object(task_record_path(project_path, transaction_id), updated)
+            raise
+        statuses[task_id] = "COMPLETED"
+        completed.append(task_id)
+        completed_set.add(task_id)
+        task_changes[task_id] = sorted(generated_paths)
+    updated.update(
+        {
+            "current_task_id": None,
+            "completed_task_ids": completed,
+            "task_statuses": statuses,
+            "task_input_hashes": task_hashes,
+            "task_changed_paths": task_changes,
+            "gate_phase": "READY_TO_COMMIT",
+            "allowed_reads": [],
+            "allowed_writes": [],
+            "forbidden_paths": forbidden_paths(dependency_graph, []),
+            "workspace_hashes": project_file_hashes(workspace),
+        }
+    )
+    validate_task_record(repository_root, updated, transaction_id)
+    write_json_object(task_record_path(project_path, transaction_id), updated)
+    return updated
 
 
 def trace_records(
@@ -952,14 +1172,16 @@ def build_gate_traces(
     completed_at: str,
 ) -> list[dict[str, object]]:
     """Gate Bundle의 각 Runtime Task에 대한 Process Trace를 만든다."""
-    input_hashes = cast(Mapping[str, str], record["input_hashes"])
+    task_input_hashes = cast(
+        Mapping[str, Mapping[str, str]],
+        record.get("task_input_hashes", {}),
+    )
+    task_changed_paths = cast(
+        Mapping[str, list[str]],
+        record.get("task_changed_paths", {}),
+    )
     traces: list[dict[str, object]] = []
     for task_id, task in tasks.items():
-        task_changes = sorted(
-            path
-            for path, artifact_name in changed_artifacts.items()
-            if artifact_name in task["writes"]
-        )
         traces.append(
             {
                 "trace_id": f"TRACE-{uuid4().hex[:16].upper()}",
@@ -968,12 +1190,17 @@ def build_gate_traces(
                 "agent_id": task["agent_id"],
                 "gate_id": record["gate_id"],
                 "process_revision": record["process_revision"],
-                "input_hashes": {
-                    artifact_name: input_hashes[artifact_name]
-                    for artifact_name in task["reads"]
-                    if artifact_name in input_hashes
-                },
-                "changed_paths": task_changes,
+                "input_hashes": dict(task_input_hashes.get(task_id, {})),
+                "changed_paths": sorted(
+                    task_changed_paths.get(
+                        task_id,
+                        [
+                            path
+                            for path, artifact_name in changed_artifacts.items()
+                            if artifact_name in task["writes"]
+                        ],
+                    )
+                ),
                 "validator_version": VALIDATOR_VERSION,
                 "gate_result": "PASS",
                 "commit_sha": commit_sha,
@@ -1145,16 +1372,112 @@ def task_submit(
         gate_tasks = tasks_for_gate(repository_root, project_path, gate_id)
         verify_canonical_snapshot(active, project_path, dependency_graph, catalog)
         workspace = Path(cast(str, active["workspace"]))
-        baseline_hashes = cast(Mapping[str, str], active["workspace_hashes"])
-        changed_paths = changed_file_paths(
-            baseline_hashes,
+        gate_phase = active.get("gate_phase")
+        if gate_phase == "WAITING_HUMAN":
+            raise GateTransactionError(
+                "HUMAN_INPUT_REQUIRED",
+                "현재 CORE Task는 검증된 Human Input을 기다리고 있습니다.",
+                {"task_id": active.get("current_task_id")},
+            )
+        if gate_phase == "AWAITING_LLM":
+            current_task_id = active.get("current_task_id")
+            if not isinstance(current_task_id, str) or current_task_id not in gate_tasks:
+                raise GateTransactionError(
+                    "GATE_TRANSACTION_RECORD_INVALID",
+                    "현재 작성 대상 Task ID가 올바르지 않습니다.",
+                    {"current_task_id": current_task_id},
+                )
+            current_task = gate_tasks[current_task_id]
+            baseline_hashes = cast(Mapping[str, str], active["workspace_hashes"])
+            task_changed_paths = changed_file_paths(
+                baseline_hashes,
+                project_file_hashes(workspace),
+            )
+            classify_changed_paths(
+                task_changed_paths,
+                gate_id,
+                cast(list[str], active["allowed_writes"]),
+                {current_task_id: current_task},
+                catalog,
+                dependency_graph,
+            )
+            read_workspace_outputs(
+                repository_root,
+                workspace,
+                current_task["writes"],
+                {current_task_id: current_task},
+                dependency_graph,
+            )
+            validate_llm_task_outputs(
+                repository_root,
+                workspace,
+                current_task_id,
+                dependency_graph,
+            )
+            progressed = deepcopy(active)
+            completed_task_ids = list(
+                cast(list[str], progressed["completed_task_ids"])
+            )
+            completed_task_ids.append(current_task_id)
+            statuses = dict(cast(Mapping[str, str], progressed["task_statuses"]))
+            statuses[current_task_id] = "COMPLETED"
+            changed_by_task = dict(
+                cast(Mapping[str, list[str]], progressed["task_changed_paths"])
+            )
+            changed_by_task[current_task_id] = task_changed_paths
+            progressed.update(
+                {
+                    "completed_task_ids": completed_task_ids,
+                    "task_statuses": statuses,
+                    "task_changed_paths": changed_by_task,
+                    "current_task_id": None,
+                    "gate_phase": "RUNNING_CORE",
+                    "allowed_reads": [],
+                    "allowed_writes": [],
+                    "forbidden_paths": forbidden_paths(dependency_graph, []),
+                    "workspace_hashes": project_file_hashes(workspace),
+                }
+            )
+            active = advance_gate_tasks(
+                repository_root,
+                project_path,
+                workspace,
+                gate_tasks,
+                progressed,
+                dependency_graph,
+                reference_source,
+            )
+            if active.get("gate_phase") == "AWAITING_LLM":
+                return active
+        if active.get("gate_phase") != "READY_TO_COMMIT":
+            raise GateTransactionError(
+                "GATE_TRANSACTION_RECORD_INVALID",
+                "Gate Transaction이 Commit 가능한 단계가 아닙니다.",
+                {"gate_phase": active.get("gate_phase")},
+            )
+        unexpected_changes = changed_file_paths(
+            cast(Mapping[str, str], active["workspace_hashes"]),
             project_file_hashes(workspace),
         )
-        allowed_writes = cast(list[str], active["allowed_writes"])
-        changed_artifacts = classify_changed_paths(
+        if unexpected_changes:
+            classify_changed_paths(
+                unexpected_changes,
+                gate_id,
+                [],
+                gate_tasks,
+                catalog,
+                dependency_graph,
+            )
+        canonical_hashes = cast(Mapping[str, str], active["canonical_hashes"])
+        changed_paths = changed_file_paths(
+            canonical_hashes,
+            project_file_hashes(workspace),
+        )
+        gate_writes = string_union(gate_tasks, "writes")
+        classify_changed_paths(
             changed_paths,
             gate_id,
-            allowed_writes,
+            gate_writes,
             gate_tasks,
             catalog,
             dependency_graph,
@@ -1162,20 +1485,9 @@ def task_submit(
         outputs = read_workspace_outputs(
             repository_root,
             workspace,
-            allowed_writes,
+            gate_writes,
             gate_tasks,
             dependency_graph,
-        )
-        changed_artifacts.update(
-            generate_core_outputs(
-                repository_root,
-                project_path,
-                workspace,
-                gate_tasks,
-                outputs,
-                dependency_graph,
-                reference_source,
-            )
         )
         validate_gate_overlay(
             repository_root,
@@ -1217,7 +1529,7 @@ def task_submit(
         traces = build_gate_traces(
             active,
             gate_tasks,
-            changed_artifacts,
+            {},
             commit_sha,
             completed_at,
         )
@@ -1264,6 +1576,7 @@ def task_submit(
         )
         committed = deepcopy(active)
         committed["status"] = "COMMITTED"
+        committed["gate_phase"] = "COMMITTED"
         committed["changed_paths"] = changed_paths
         committed["commit_sha"] = commit_sha
         committed["completed_at"] = completed_at
@@ -1311,6 +1624,8 @@ def task_abort_unlocked(
         )
     aborted = deepcopy(active)
     aborted["status"] = "ABORTED"
+    if aborted.get("schema_version") == "1.1.0":
+        aborted["gate_phase"] = "ABORTED"
     aborted["completed_at"] = completed_at
     validate_task_record(
         repository_root,

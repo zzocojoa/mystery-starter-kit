@@ -30,7 +30,7 @@
       "const": "gate-transaction"
     },
     "schema_version": {
-      "const": "1.0.0"
+      "enum": ["1.0.0", "1.1.0"]
     },
     "transaction_id": {
       "type": "string",
@@ -56,6 +56,36 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "current_task_id": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "completed_task_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "task_statuses": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": ["PENDING", "RUNNING_CORE", "AWAITING_LLM", "WAITING_HUMAN", "COMPLETED"]
+      }
+    },
+    "task_input_hashes": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/hashMap"}
+    },
+    "task_changed_paths": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "uniqueItems": true,
+        "items": {"type": "string", "minLength": 1}
+      }
+    },
+    "gate_phase": {
+      "enum": ["RUNNING_CORE", "AWAITING_LLM", "WAITING_HUMAN", "READY_TO_COMMIT", "COMMITTED", "ABORTED"]
     },
     "agent_ids": {
       "type": "array",
@@ -117,6 +147,24 @@
       "format": "date-time"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"schema_version": {"const": "1.1.0"}},
+        "required": ["schema_version"]
+      },
+      "then": {
+        "required": [
+          "current_task_id",
+          "completed_task_ids",
+          "task_statuses",
+          "task_input_hashes",
+          "task_changed_paths",
+          "gate_phase"
+        ]
+      }
+    }
+  ],
   "$defs": {
     "artifactNames": {
       "type": "array",

@@ -23,6 +23,7 @@ from VALIDATORS.channel_policy_v2 import (
 from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.crime_event import (
+    explicit_crime_policy,
     validate_channel_crime_evidence,
     validate_crime_event_contract,
     validate_crime_event_traceability,
@@ -213,7 +214,11 @@ def validate_gate(
                 "00_PROJECT/candidate_event_briefs.json",
             ),
             *(
-                validate_candidate_event_briefs(variations, event_briefs)
+                validate_candidate_event_briefs(
+                    variations,
+                    event_briefs,
+                    explicit_crime_policy(channel),
+                )
                 if "candidate_event_briefs" in artifacts
                 else []
             ),
@@ -239,6 +244,7 @@ def validate_gate(
             ),
             *validate_candidate_evaluation(
                 variations,
+                event_briefs if "candidate_event_briefs" in artifacts else None,
                 candidate_evaluation,
                 precheck,
                 eligibility,
@@ -248,18 +254,24 @@ def validate_gate(
                 project_constraints,
                 channel,
                 variations,
+                event_briefs if "candidate_event_briefs" in artifacts else None,
                 precheck,
                 eligibility,
             ),
             *validate_candidate_approval(
                 production_config,
                 variations,
+                event_briefs if "candidate_event_briefs" in artifacts else None,
                 precheck,
                 eligibility,
                 candidate_evaluation,
                 approval,
             ),
-            *validate_variation_precheck(variations, precheck),
+            *validate_variation_precheck(
+                variations,
+                event_briefs if "candidate_event_briefs" in artifacts else None,
+                precheck,
+            ),
             *variation_runtime_binding_issues(
                 production_config,
                 variations,

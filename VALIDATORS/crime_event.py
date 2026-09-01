@@ -14,6 +14,10 @@ from VALIDATORS.candidate_event_briefs import (
 from VALIDATORS.candidate_event_briefs import (
     canonical_json_hash as candidate_json_hash,
 )
+from VALIDATORS.crime_functions import (
+    development_function_issues,
+    required_development_function_map,
+)
 from VALIDATORS.models import ValidationIssue
 from VALIDATORS.presentation_validation import (
     canonical_mode,
@@ -43,7 +47,6 @@ CRIME_ACTIONS = frozenset(
         "HOME_INVASION",
     }
 )
-RELATIONSHIP_CRIMES = frozenset({"DATING_VIOLENCE", "DOMESTIC_VIOLENCE"})
 ACTION_HARM_REQUIREMENTS: Mapping[str, frozenset[str]] = {
     "MURDER": frozenset({"FATALITY"}),
     "KIDNAPPING": frozenset({"LIBERTY_DEPRIVATION", "COMPOUND_HARM"}),
@@ -52,32 +55,6 @@ ACTION_HARM_REQUIREMENTS: Mapping[str, frozenset[str]] = {
     "STALKING": frozenset({"SAFETY_COLLAPSE", "THREAT_OR_TRAUMA", "COMPOUND_HARM"}),
     "HOME_INVASION": frozenset(
         {"SAFETY_COLLAPSE", "THREAT_OR_TRAUMA", "BODILY_INJURY", "COMPOUND_HARM"}
-    ),
-}
-DEFAULT_DEVELOPMENT_FUNCTIONS: Mapping[str, tuple[str, ...]] = {
-    "MURDER": (
-        "HARM_OR_DANGER_RECOGNITION",
-        "INVOLVEMENT_OR_SUSPICION",
-        "MOTIVE_AND_RESPONSIBILITY",
-        "EVENT_RECONSTRUCTION",
-    ),
-    "LIBERTY_CRIME": (
-        "LIBERTY_DEPRIVATION",
-        "THREAT_AND_CHOICE_CONSTRAINT",
-        "RESPONSE_OR_DISCOVERY",
-        "HARM_OUTCOME",
-    ),
-    "RELATIONAL_VIOLENCE": (
-        "VIOLENCE_OR_THREAT",
-        "RELATIONSHIP_AND_POWER",
-        "RESPONSE_BARRIER",
-        "VIOLENCE_OUTCOME",
-    ),
-    "ACCESS_CRIME": (
-        "REPEATED_ACCESS_OR_INTRUSION",
-        "SAFETY_COLLAPSE",
-        "SAFETY_RESPONSE",
-        "OFFENDER_RESPONSIBILITY",
     ),
 }
 REQUIRED_REVEAL_TYPES = frozenset({"CULPRIT", "MOTIVE", "METHOD", "HARM_RESULT"})
@@ -173,43 +150,6 @@ def crime_issue(
     )
 
 
-def development_families(primary_crime: object, action_type: object) -> set[str]:
-    """중첩 가능한 범죄 분류를 서사 기능 Family 집합으로 변환한다."""
-    families: set[str] = set()
-    if primary_crime == "MURDER" or action_type == "MURDER":
-        families.add("MURDER")
-    if primary_crime in {"KIDNAPPING", "CONFINEMENT"} or action_type in {
-        "KIDNAPPING",
-        "CONFINEMENT",
-    }:
-        families.add("LIBERTY_CRIME")
-    if primary_crime in {"ASSAULT", *RELATIONSHIP_CRIMES} or action_type == "ASSAULT":
-        families.add("RELATIONAL_VIOLENCE")
-    if primary_crime in {"STALKING", "HOME_INVASION"} or action_type in {
-        "STALKING",
-        "HOME_INVASION",
-    }:
-        families.add("ACCESS_CRIME")
-    return families
-
-
-def policy_development_functions(
-    policy: Mapping[str, object],
-    primary_crime: object,
-    action_type: object,
-) -> set[str]:
-    """범죄 유형에 필요한 비순차 서사 기능을 반환한다."""
-    definitions = policy.get("development_functions_by_family")
-    required: set[str] = set()
-    for family in development_families(primary_crime, action_type):
-        values = definitions.get(family) if isinstance(definitions, Mapping) else None
-        if isinstance(values, list) and all(isinstance(item, str) for item in values):
-            required.update(cast(list[str], values))
-        else:
-            required.update(DEFAULT_DEVELOPMENT_FUNCTIONS[family])
-    return required
-
-
 def event_semantic_shape_issues(
     policy: Mapping[str, object],
     event: Mapping[str, object],
@@ -222,11 +162,6 @@ def event_semantic_shape_issues(
     harms = set(string_values(event, "harm_classifications"))
     actors = set(string_values(event, "actor_ids"))
     victims = set(string_values(event, "victim_ids"))
-    functions = set(string_values(event, "development_functions")) | {
-        cast(str, function.get("function_type"))
-        for function in mapping_records(event, "development_functions")
-        if isinstance(function.get("function_type"), str)
-    }
     reveal_types = {
         target.get("target_type")
         for target in mapping_records(event, "reveal_targets")
@@ -298,16 +233,7 @@ def event_semantic_shape_issues(
                 {"centrality": event.get("centrality")},
             )
         )
-    required_functions = policy_development_functions(policy, primary, action_type)
-    if not required_functions.issubset(functions):
-        issues.append(
-            crime_issue(
-                "CRIME_DEVELOPMENT_FUNCTION_MISSING",
-                "범죄 유형별 서사 기능이 누락되었습니다. 기능의 순서는 강제하지 않습니다.",
-                artifact,
-                {"missing_functions": sorted(required_functions - functions)},
-            )
-        )
+    issues.extend(development_function_issues(policy, event, artifact))
     required_reveals = set(string_values(policy, "required_reveal_targets"))
     required_reveals = required_reveals or set(REQUIRED_REVEAL_TYPES)
     if not required_reveals.issubset(reveal_types):
@@ -1077,14 +1003,15 @@ def crime_scene_records(
     ]
 
 
-def required_development_function_ids(contract: Mapping[str, object]) -> set[str]:
-    """사건 계약에서 필수 Development Function ID를 반환한다."""
-    return {
-        cast(str, function.get("development_function_id"))
-        for function in mapping_records(contract, "development_functions")
-        if function.get("required") is True
-        and isinstance(function.get("development_function_id"), str)
-    }
+def required_development_function_ids(
+    channel: Mapping[str, object],
+    contract: Mapping[str, object],
+) -> set[str]:
+    """Channel Policy에서 계산한 필수 Development Function ID를 반환한다."""
+    policy = explicit_crime_policy(channel)
+    if policy is None:
+        return set()
+    return set(required_development_function_map(policy, contract))
 
 
 def validate_scene_crime_realization(
@@ -1120,7 +1047,12 @@ def validate_scene_crime_realization(
         for segment in presentation_segments(presentation_plan)
         if isinstance(segment.get("segment_id"), str)
     }
-    required_function_ids = required_development_function_ids(contract)
+    required_function_ids = required_development_function_ids(channel, contract)
+    declared_function_ids = {
+        cast(str, function.get("development_function_id"))
+        for function in mapping_records(contract, "development_functions")
+        if isinstance(function.get("development_function_id"), str)
+    }
     mapped_function_ids: set[str] = set()
     for scene, realization in records:
         scene_id = scene.get("scene_id")
@@ -1142,6 +1074,7 @@ def validate_scene_crime_realization(
         segment_ids = string_values(realization, "planned_segment_ids")
         function_ids = set(string_values(realization, "development_function_ids"))
         mapped_function_ids.update(function_ids)
+        unknown_function_ids = sorted(function_ids - declared_function_ids)
         invalid_segments = [
             segment_id
             for segment_id in segment_ids
@@ -1158,6 +1091,7 @@ def validate_scene_crime_realization(
             or empty_fields
             or not segment_ids
             or invalid_segments
+            or unknown_function_ids
         ):
             issues.append(
                 crime_issue(
@@ -1170,6 +1104,7 @@ def validate_scene_crime_realization(
                         "event_id": event_id,
                         "empty_fields": empty_fields,
                         "invalid_segment_ids": invalid_segments,
+                        "unknown_development_function_ids": unknown_function_ids,
                     },
                 )
             )
@@ -1221,51 +1156,96 @@ def segment_has_crime_action(
     segment: Mapping[str, object],
     contract: Mapping[str, object],
 ) -> bool:
-    """추적 정보와 실제 방송 문구가 사건·행위·피해를 함께 보존하는지 판정한다."""
+    """실제 방송 발췌와 사건·행위 추적 정보의 연결을 판정한다."""
     body = segment.get("body")
     event_id = contract.get("event_id")
     action_type = contract.get("core_action_type")
-    harm_ids = set(string_values(contract, "harm_ids"))
     if not isinstance(body, str) or not isinstance(event_id, str):
         return False
     visible_body = CRIME_TRACE_BLOCK.sub(" ", body)
-    required_visible_summaries = (
-        contract.get("non_actionable_method_summary"),
-        contract.get("immediate_harm"),
-        contract.get("lasting_harm"),
-    )
-    if not all(
-        isinstance(summary, str) and summary.strip() in visible_body
-        for summary in required_visible_summaries
-    ):
+    if not visible_body.strip():
         return False
-    for block in CRIME_TRACE_BLOCK.finditer(body):
-        fields = {
-            key: {item.strip() for item in value.split(",") if item.strip()}
-            for key, value in CRIME_TRACE_FIELD.findall(block.group("body"))
-        }
+    for fields in segment_trace_blocks(segment):
         if (
             event_id in fields.get("EVENT", set())
             and action_type in fields.get("ACTION", set())
-            and bool(harm_ids.intersection(fields.get("HARM", set())))
         ):
             return True
     return False
 
 
-def segment_development_function_ids(segment: Mapping[str, object]) -> set[str]:
-    """Segment HTML 추적 정보에서 Development Function ID를 읽는다."""
+def segment_trace_blocks(
+    segment: Mapping[str, object],
+) -> list[dict[str, set[str]]]:
+    """Segment의 범죄 추적 Block을 구조화된 필드 집합으로 반환한다."""
     body = segment.get("body")
     if not isinstance(body, str):
-        return set()
-    function_ids: set[str] = set()
-    for block in CRIME_TRACE_BLOCK.finditer(body):
-        fields = {
+        return []
+    return [
+        {
             key: {item.strip() for item in value.split(",") if item.strip()}
             for key, value in CRIME_TRACE_FIELD.findall(block.group("body"))
         }
+        for block in CRIME_TRACE_BLOCK.finditer(body)
+    ]
+
+
+def segment_development_function_ids(segment: Mapping[str, object]) -> set[str]:
+    """Segment HTML 추적 정보에서 Development Function ID를 읽는다."""
+    function_ids: set[str] = set()
+    for fields in segment_trace_blocks(segment):
         function_ids.update(fields.get("DEV", set()))
     return function_ids
+
+
+def segment_harm_ids(segment: Mapping[str, object]) -> set[str]:
+    """Segment HTML 추적 정보에서 Harm ID를 읽는다."""
+    harms: set[str] = set()
+    for fields in segment_trace_blocks(segment):
+        harms.update(fields.get("HARM", set()))
+    return harms
+
+
+def segment_has_crime_evidence(
+    segment: Mapping[str, object],
+    contract: Mapping[str, object],
+) -> bool:
+    """실제 문구가 있는 Segment에 사건의 행동·피해·기능 연결이 있는지 판정한다."""
+    body = segment.get("body")
+    event_id = contract.get("event_id")
+    action_type = contract.get("core_action_type")
+    harm_ids = set(string_values(contract, "harm_ids"))
+    declared_function_ids = {
+        cast(str, function.get("development_function_id"))
+        for function in mapping_records(contract, "development_functions")
+        if isinstance(function.get("development_function_id"), str)
+    }
+    if not isinstance(body, str) or not isinstance(event_id, str):
+        return False
+    if not CRIME_TRACE_BLOCK.sub(" ", body).strip():
+        return False
+    return any(
+        event_id in fields.get("EVENT", set())
+        and (
+            action_type in fields.get("ACTION", set())
+            or bool(harm_ids.intersection(fields.get("HARM", set())))
+            or bool(declared_function_ids.intersection(fields.get("DEV", set())))
+        )
+        for fields in segment_trace_blocks(segment)
+    )
+
+
+def realization_evidence_type(
+    realization_mode: object,
+    has_action: bool,
+    has_harm: bool,
+) -> str:
+    """Scene 실현 방식을 구조적 Evidence Type으로 변환한다."""
+    if realization_mode == "DIRECT_ACTION":
+        return "ACTION"
+    if realization_mode == "AFTERMATH_CAUSAL" or (has_harm and not has_action):
+        return "HARM_AFTERMATH"
+    return "BEHAVIOR_OR_CHOICE"
 
 
 def crime_script_bindings(
@@ -1275,6 +1255,7 @@ def crime_script_bindings(
 ) -> list[dict[str, object]]:
     """Scene 계획을 실제 Final Script의 범죄 행동 Segment와 결합한다."""
     segments = script_segments_by_id(final_script)
+    script_hash = sha256(final_script.encode("utf-8")).hexdigest()
     bindings: list[dict[str, object]] = []
     for scene, realization in crime_scene_records(scene_cards):
         if realization.get("event_id") != contract.get("event_id"):
@@ -1285,14 +1266,33 @@ def crime_script_bindings(
                 segment is None
                 or segment.get("scene_id") != scene.get("scene_id")
                 or canonical_mode(segment.get("segment_type")) != "DRAMA"
-                or not segment_has_crime_action(segment, contract)
+                or not segment_has_crime_evidence(segment, contract)
             ):
                 continue
+            linked_harm_ids = sorted(
+                set(string_values(realization, "harm_ids"))
+                & segment_harm_ids(segment)
+            )
+            has_action = segment_has_crime_action(segment, contract)
             bindings.append(
                 {
+                    "crime_event_id": contract.get("event_id"),
                     "scene_id": scene.get("scene_id"),
                     "segment_id": segment_id,
+                    "selector_type": "SEGMENT_ID",
+                    "selector_id": segment_id,
                     "excerpt_hash": canonical_json_hash(segment),
+                    "source_script_hash": script_hash,
+                    "evidence_type": realization_evidence_type(
+                        realization.get("realization_mode"),
+                        has_action,
+                        bool(linked_harm_ids),
+                    ),
+                    "development_function_ids": sorted(
+                        set(string_values(realization, "development_function_ids"))
+                        & segment_development_function_ids(segment)
+                    ),
+                    "harm_ids": linked_harm_ids,
                     "realization_mode": realization.get("realization_mode"),
                 }
             )
@@ -1527,18 +1527,61 @@ def validate_script_crime_realization(
         *narration_content_issues(final_script),
     ]
     bindings = crime_script_bindings(contract, scene_cards, final_script)
-    if not bindings:
+    parsed_segments = script_segments_by_id(final_script)
+    action_bindings = [
+        binding
+        for binding in bindings
+        if isinstance(binding.get("segment_id"), str)
+        and (
+            segment := parsed_segments.get(cast(str, binding["segment_id"]))
+        ) is not None
+        and segment_has_crime_action(segment, contract)
+    ]
+    linked_harm_ids = {
+        harm_id
+        for binding in bindings
+        for harm_id in string_values(binding, "harm_ids")
+    }
+    missing_harm_ids = sorted(
+        set(string_values(contract, "harm_ids")) - linked_harm_ids
+    )
+    if not action_bindings or missing_harm_ids:
         issues.append(
             crime_issue(
                 "SCRIPT_CRIME_ACTION_UNREALIZED",
-                "Scene ID나 범죄 장르 태그만으로는 충분하지 않으며 실제 "
-                "Drama Segment에 사건·행위·피해 인과가 필요합니다.",
+                "Scene ID나 범죄 장르 태그만으로는 충분하지 않으며 실제 Drama "
+                "발췌들이 사건 행동과 피해 결과를 구조적으로 연결해야 합니다.",
                 "07_SCRIPT/final_script.md",
-                {"event_id": contract.get("event_id")},
+                {
+                    "event_id": contract.get("event_id"),
+                    "action_evidence_missing": not action_bindings,
+                    "missing_harm_ids": missing_harm_ids,
+                },
             )
         )
-    parsed_segments = script_segments_by_id(final_script)
-    required_function_ids = required_development_function_ids(contract)
+    required_function_ids = required_development_function_ids(channel, contract)
+    declared_function_ids = {
+        cast(str, function.get("development_function_id"))
+        for function in mapping_records(contract, "development_functions")
+        if isinstance(function.get("development_function_id"), str)
+    }
+    unknown_script_function_ids = sorted(
+        {
+            function_id
+            for segment in parsed_segments.values()
+            for function_id in segment_development_function_ids(segment)
+            if function_id not in declared_function_ids
+        }
+    )
+    if unknown_script_function_ids:
+        issues.append(
+            crime_issue(
+                "CRIME_DEVELOPMENT_FUNCTION_REFERENCE_UNKNOWN",
+                "Script가 사건 계약에 없는 Development Function ID를 참조합니다.",
+                "07_SCRIPT/final_script.md",
+                {"development_function_ids": unknown_script_function_ids},
+            )
+        )
     for function_id in sorted(required_function_ids):
         realized_modes = {
             mode
@@ -1547,10 +1590,8 @@ def validate_script_crime_realization(
             if function_id in segment_development_function_ids(segment)
         }
         drama_realized = any(
-            canonical_mode(segment.get("segment_type")) == "DRAMA"
-            and function_id in segment_development_function_ids(segment)
-            and segment_has_crime_action(segment, contract)
-            for segment in parsed_segments.values()
+            function_id in string_values(binding, "development_function_ids")
+            for binding in bindings
         )
         if drama_realized:
             continue
@@ -1593,6 +1634,8 @@ def build_crime_script_realization_report(
             "applicable": False,
             "result": "NOT_APPLICABLE",
             "event_results": [],
+            "function_results": [],
+            "evidence_links": [],
             "reveal_results": [],
             "layer_results": [],
             "issues": [],
@@ -1607,8 +1650,26 @@ def build_crime_script_realization_report(
         final_script,
     )
     bindings = crime_script_bindings(contract, scene_cards, final_script)
-    first_binding = bindings[0] if bindings else {}
-    event_status = "NEEDS_REVIEW" if bindings else "MISSING"
+    parsed_script_segments = script_segments_by_id(final_script)
+    action_bindings = [
+        binding
+        for binding in bindings
+        if isinstance(binding.get("segment_id"), str)
+        and (
+            segment := parsed_script_segments.get(cast(str, binding["segment_id"]))
+        ) is not None
+        and segment_has_crime_action(segment, contract)
+    ]
+    linked_harm_ids = {
+        harm_id
+        for binding in bindings
+        for harm_id in string_values(binding, "harm_ids")
+    }
+    event_complete = bool(action_bindings) and set(
+        string_values(contract, "harm_ids")
+    ).issubset(linked_harm_ids)
+    first_binding = action_bindings[0] if action_bindings else {}
+    event_status = "NEEDS_REVIEW" if event_complete else "MISSING"
     event_results = [
         {
             "event_id": contract.get("event_id"),
@@ -1620,6 +1681,39 @@ def build_crime_script_realization_report(
             "excerpt_hash": first_binding.get("excerpt_hash"),
             "realization_mode": first_binding.get("realization_mode"),
         }
+    ]
+    function_results = []
+    required_function_map = (
+        required_development_function_map(
+            cast(Mapping[str, object], explicit_crime_policy(channel)),
+            contract,
+        )
+        if explicit_crime_policy(channel) is not None
+        else {}
+    )
+    for function_id, function_type in sorted(required_function_map.items()):
+        function_bindings = [
+            binding
+            for binding in bindings
+            if function_id in string_values(binding, "development_function_ids")
+        ]
+        function_results.append(
+            {
+                "development_function_id": function_id,
+                "function_type": function_type,
+                "status": "NEEDS_REVIEW" if function_bindings else "MISSING",
+                "evidence_link_ids": [
+                    f"CRIME-EVIDENCE-{bindings.index(binding) + 1:03d}"
+                    for binding in function_bindings
+                ],
+            }
+        )
+    evidence_links = [
+        {
+            "evidence_link_id": f"CRIME-EVIDENCE-{index:03d}",
+            **binding,
+        }
+        for index, binding in enumerate(bindings, 1)
     ]
     segments = presentation_segments(presentation_plan)
     parsed_segments = script_segments_by_id(final_script)
@@ -1689,6 +1783,8 @@ def build_crime_script_realization_report(
         },
         "result": "MISSING" if issues else "NEEDS_REVIEW",
         "event_results": event_results,
+        "function_results": function_results,
+        "evidence_links": evidence_links,
         "reveal_results": reveal_results,
         "layer_results": layer_results,
         "issues": issues,
@@ -1737,7 +1833,12 @@ def validate_crime_script_realization_report(
         return list(raw_issues) if isinstance(raw_issues, list) else []
     if any(
         result.get("status") != "NEEDS_REVIEW"
-        for field in ("event_results", "reveal_results", "layer_results")
+        for field in (
+            "event_results",
+            "function_results",
+            "reveal_results",
+            "layer_results",
+        )
         for result in mapping_records(expected, field)
     ):
         return [
@@ -1802,6 +1903,7 @@ def validate_channel_crime_evidence(
 
 
 def required_semantic_subjects(
+    channel: Mapping[str, object],
     contract: Mapping[str, object],
 ) -> set[tuple[str, str]]:
     """Editorial Critic이 실제 발췌로 판단해야 할 대상 집합을 반환한다."""
@@ -1811,6 +1913,17 @@ def required_semantic_subjects(
         ("PANEL_FUNCTION", "PANEL_REACTION"),
         ("CLUE_AND_EVIDENCE_COHERENCE", "FINAL_REVEAL_EVIDENCE"),
     }
+    subjects.update(
+        ("DEVELOPMENT_FUNCTION", function_id)
+        for function_id in required_development_function_ids(channel, contract)
+    )
+    action_type = contract.get("core_action_type")
+    if isinstance(action_type, str):
+        subjects.add(("CRIME_ACTION", action_type))
+    subjects.update(
+        ("HARM_RESULT", harm_id)
+        for harm_id in string_values(contract, "harm_ids")
+    )
     subjects.update(
         ("REVEAL_TIMING", cast(str, target.get("reveal_target_id")))
         for target in mapping_records(contract, "reveal_targets")

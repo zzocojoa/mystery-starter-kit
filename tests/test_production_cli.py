@@ -5,13 +5,19 @@ from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
-from project_factory import make_complete_project_artifacts
+from project_factory import make_complete_project_artifacts, write_candidate_event_briefs
 
 from RUNTIME.providers.fake import fake_candidate_evaluation
-from VALIDATORS.candidate_eligibility import build_candidate_eligibility
+from VALIDATORS.candidate_approval import validate_candidate_approval
+from VALIDATORS.candidate_eligibility import (
+    build_candidate_eligibility,
+    build_candidate_eligibility_bound,
+    validate_candidate_eligibility,
+)
+from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.channel_registry import resolve_project_channel
 from VALIDATORS.io import load_json_object, write_json_object
-from VALIDATORS.pipeline import ArtifactContent
+from VALIDATORS.pipeline import ArtifactContent, validate_variation_precheck
 from VALIDATORS.production_cli import ROOT, run_cli
 from VALIDATORS.schema_validation import collect_schema_errors
 
@@ -29,12 +35,29 @@ def write_candidate_evaluation(project_path: Path) -> str:
         project_path / "00_PROJECT" / "project_constraints.json"
     )
     channel, _manifest, _path = resolve_project_channel(ROOT, config, None)
-    eligibility = build_candidate_eligibility(
-        config, constraints, channel, variations, precheck
+    brief_path = project_path / "00_PROJECT" / "candidate_event_briefs.json"
+    briefs = load_json_object(brief_path) if brief_path.is_file() else None
+    eligibility = (
+        build_candidate_eligibility_bound(
+            config,
+            constraints,
+            channel,
+            variations,
+            briefs,
+            precheck,
+        )
+        if briefs is not None
+        else build_candidate_eligibility(
+            config,
+            constraints,
+            channel,
+            variations,
+            precheck,
+        )
     )
     write_json_object(project_path / "08_QA" / "candidate_eligibility.json", eligibility)
     evaluation = fake_candidate_evaluation(
-        project_id, variations, precheck, eligibility
+        project_id, variations, briefs, precheck, eligibility
     )
     write_json_object(
         project_path / "00_PROJECT" / "candidate_evaluation.json",
@@ -73,6 +96,7 @@ def prepare_candidate_approval_project(
             "5",
         ]
     ) == 0
+    write_candidate_event_briefs(project_path)
     assert run_cli(["precheck", str(project_path)]) == 0
     return project_path, write_candidate_evaluation(project_path)
 
@@ -412,6 +436,7 @@ def test_variation_precheck_evaluation_and_approval_form_gate_one(
             "5",
         ]
     ) == 0
+    write_candidate_event_briefs(project_path)
     assert run_cli(["precheck", str(project_path)]) == 0
     recommended = write_candidate_evaluation(project_path)
     assert run_cli(["approve", str(project_path), recommended]) == 0
@@ -483,6 +508,65 @@ def test_approve_rejects_stale_candidate_evaluation(tmp_path: Path) -> None:
     write_json_object(path, evaluation)
 
     assert run_cli(["approve", str(project_path), recommended]) == 2
+
+
+def test_brief_mutation_invalidates_precheck_evaluation_and_approval(
+    tmp_path: Path,
+) -> None:
+    """승인 뒤 사건 Brief 변경은 모든 후속 Hash 결속을 무효화한다."""
+    project_path, recommended = prepare_candidate_approval_project(tmp_path, "PRJ-927")
+    assert run_cli(["approve", str(project_path), recommended]) == 0
+    config = load_json_object(project_path / "00_PROJECT/production_config.json")
+    constraints = load_json_object(project_path / "00_PROJECT/project_constraints.json")
+    variations = load_json_object(project_path / "00_PROJECT/variation_candidates.json")
+    briefs = load_json_object(project_path / "00_PROJECT/candidate_event_briefs.json")
+    precheck = load_json_object(project_path / "08_QA/novelty_precheck.json")
+    eligibility = load_json_object(project_path / "08_QA/candidate_eligibility.json")
+    evaluation = load_json_object(project_path / "00_PROJECT/candidate_evaluation.json")
+    approval = load_json_object(project_path / "00_PROJECT/candidate_approval.json")
+    channel, _manifest, _path = resolve_project_channel(ROOT, config, None)
+    raw_briefs = briefs["briefs"]
+    assert isinstance(raw_briefs, list)
+    first_brief = raw_briefs[0]
+    assert isinstance(first_brief, dict)
+    first_brief["motive_summary"] = "승인 뒤 바뀐 보복 동기와 책임 경로"
+
+    assert {
+        issue["code"]
+        for issue in validate_variation_precheck(variations, briefs, precheck)
+    } == {"STALE_CANDIDATE_EVENT_BRIEF_NOVELTY_PRECHECK"}
+    assert validate_candidate_eligibility(
+        config,
+        constraints,
+        channel,
+        variations,
+        briefs,
+        precheck,
+        eligibility,
+    )[0]["code"] == "CANDIDATE_ELIGIBILITY_MISMATCH"
+    assert "CANDIDATE_EVALUATION_STALE" in {
+        issue["code"]
+        for issue in validate_candidate_evaluation(
+            variations,
+            briefs,
+            evaluation,
+            precheck,
+            eligibility,
+        )
+    }
+    approval_issues = validate_candidate_approval(
+        config,
+        variations,
+        briefs,
+        precheck,
+        eligibility,
+        evaluation,
+        approval,
+    )
+    assert approval_issues[0]["code"] == "CANDIDATE_APPROVAL_INVALID"
+    problems = approval_issues[0]["context"]["problems"]
+    assert isinstance(problems, list)
+    assert "APPROVAL_STALE" in problems
 
 
 def test_nonrecommended_candidate_requires_explicit_override(tmp_path: Path) -> None:

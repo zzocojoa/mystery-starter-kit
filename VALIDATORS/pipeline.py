@@ -10,6 +10,8 @@ from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.candidate_event_briefs import (
     approved_event_brief,
+    candidate_event_brief_hashes,
+    canonical_json_hash,
     validate_candidate_event_briefs,
     validate_candidate_event_case_projection,
 )
@@ -27,6 +29,7 @@ from VALIDATORS.channel_validation import validate_channel_consistency
 from VALIDATORS.compatibility import channel_dna_sha256, parse_semantic_version
 from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.crime_event import (
+    explicit_crime_policy,
     validate_channel_crime_evidence,
     validate_crime_event_contract,
     validate_crime_event_traceability,
@@ -581,6 +584,7 @@ def validate_variation_gate(
 
 def validate_variation_precheck(
     candidates_document: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     precheck_document: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """Novelty Precheck가 전체 후보와 현재 승인 후보를 PASS했는지 검사한다."""
@@ -594,6 +598,20 @@ def validate_variation_precheck(
             make_pipeline_issue(
                 "STALE_VARIATION_NOVELTY_PRECHECK",
                 "Novelty Precheck가 현재 승인 후보에서 생성되지 않았습니다.",
+                "08_QA/novelty_precheck.json",
+                {},
+            )
+        )
+    if candidate_event_briefs is not None and (
+        precheck_document.get("candidate_event_briefs_hash")
+        != canonical_json_hash(candidate_event_briefs)
+        or precheck_document.get("candidate_event_brief_hashes")
+        != candidate_event_brief_hashes(candidate_event_briefs)
+    ):
+        issues.append(
+            make_pipeline_issue(
+                "STALE_CANDIDATE_EVENT_BRIEF_NOVELTY_PRECHECK",
+                "Novelty Precheck가 현재 Candidate Event Brief에서 생성되지 않았습니다.",
                 "08_QA/novelty_precheck.json",
                 {},
             )
@@ -937,6 +955,7 @@ def run_production_validation(
             validate_candidate_event_briefs(
                 variation_candidates,
                 candidate_event_briefs,
+                explicit_crime_policy(channel),
             )
             if "candidate_event_briefs" in artifacts
             else []
@@ -963,6 +982,7 @@ def run_production_validation(
         ),
         *validate_candidate_evaluation(
             variation_candidates,
+            candidate_event_briefs if "candidate_event_briefs" in artifacts else None,
             candidate_evaluation,
             novelty_precheck,
             candidate_eligibility,
@@ -972,18 +992,24 @@ def run_production_validation(
             project_constraints,
             channel,
             variation_candidates,
+            candidate_event_briefs if "candidate_event_briefs" in artifacts else None,
             novelty_precheck,
             candidate_eligibility,
         ),
         *validate_candidate_approval(
             production_config,
             variation_candidates,
+            candidate_event_briefs if "candidate_event_briefs" in artifacts else None,
             novelty_precheck,
             candidate_eligibility,
             candidate_evaluation,
             candidate_approval,
         ),
-        *validate_variation_precheck(variation_candidates, novelty_precheck),
+        *validate_variation_precheck(
+            variation_candidates,
+            candidate_event_briefs if "candidate_event_briefs" in artifacts else None,
+            novelty_precheck,
+        ),
         *variation_runtime_binding_issues(
             production_config,
             variation_candidates,
