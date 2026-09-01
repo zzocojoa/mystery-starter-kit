@@ -6,6 +6,14 @@ from collections.abc import Mapping
 from hashlib import sha256
 from typing import cast
 
+from VALIDATORS.candidate_event_briefs import (
+    FIELD_EVIDENCE_KEYS,
+    approved_event_brief,
+    cardinality_issues,
+)
+from VALIDATORS.candidate_event_briefs import (
+    canonical_json_hash as candidate_json_hash,
+)
 from VALIDATORS.models import ValidationIssue
 from VALIDATORS.presentation_validation import (
     canonical_mode,
@@ -75,16 +83,24 @@ DEFAULT_DEVELOPMENT_FUNCTIONS: Mapping[str, tuple[str, ...]] = {
 REQUIRED_REVEAL_TYPES = frozenset({"CULPRIT", "MOTIVE", "METHOD", "HARM_RESULT"})
 SUBJECTIVE_NARRATION_FUNCTIONS = frozenset(
     {
-        "CHARACTER_ANCHOR",
         "SUBJECTIVE_EXPERIENCE",
         "EMOTIONAL_CONTINUITY",
         "MEMORY",
         "MISUNDERSTANDING",
+        "SELF_DOUBT",
+        "FEAR",
         "TIME_COMPRESSION",
+        "RETROSPECTIVE_REFLECTION",
     }
 )
 FORBIDDEN_NARRATION_FUNCTIONS = frozenset(
-    {"CLUE_EXPLANATION", "EVIDENCE_ANALYSIS", "SOLUTION_EXPOSITION", "ANSWER_DIRECTIVE"}
+    {
+        "CLUE_EXPLANATION",
+        "EVIDENCE_WEIGHTING",
+        "SOLUTION_EXPOSITION",
+        "ANSWER_DIRECTIVE",
+        "UNPLANNED_PREMATURE_REVEAL",
+    }
 )
 PANEL_PURSUIT_FUNCTIONS = frozenset(
     {
@@ -96,10 +112,9 @@ PANEL_PURSUIT_FUNCTIONS = frozenset(
         "BELIEF_CORRECTION",
     }
 )
-CRIME_EVENT_TAG = re.compile(r"\[CRIME_EVENT:(EVENT-[0-9]{2,})\]")
-CRIME_ACTION_TAG = re.compile(r"\[CRIME_ACTION:([A-Z][A-Z0-9_]*)\]")
-HARM_TAG = re.compile(r"\[HARM:(HARM-[0-9]{2,})\]")
-CAUSE_TAG = re.compile(r"\[CAUSES:(EVENT-[0-9]{2,})>(HARM-[0-9]{2,})\]")
+CRIME_TRACE_BLOCK = re.compile(r"<!--\s*CRIME_TRACE(?P<body>.*?)-->", re.DOTALL)
+CRIME_TRACE_FIELD = re.compile(r"(?m)^\s*(EVENT|ACTION|HARM|DEV)\s*=\s*([^\n]+?)\s*$")
+SCRIPT_WORD = re.compile(r"[0-9A-Za-z가-힣]+")
 
 
 def mapping_records(document: Mapping[str, object], field: str) -> list[Mapping[str, object]]:
@@ -207,7 +222,11 @@ def event_semantic_shape_issues(
     harms = set(string_values(event, "harm_classifications"))
     actors = set(string_values(event, "actor_ids"))
     victims = set(string_values(event, "victim_ids"))
-    functions = set(string_values(event, "development_functions"))
+    functions = set(string_values(event, "development_functions")) | {
+        cast(str, function.get("function_type"))
+        for function in mapping_records(event, "development_functions")
+        if isinstance(function.get("function_type"), str)
+    }
     reveal_types = {
         target.get("target_type")
         for target in mapping_records(event, "reveal_targets")
@@ -321,6 +340,8 @@ def validate_candidate_crime_event(
     if policy is None:
         return []
     event = candidate.get("crime_event")
+    if candidate.get("variation_engine_version") == "2.1.0" and event is None:
+        return []
     if not isinstance(event, Mapping):
         return [
             crime_issue(
@@ -357,7 +378,7 @@ def validate_truth_basis(
     contract: Mapping[str, object],
     facts: Mapping[str, object],
 ) -> list[ValidationIssue]:
-    """실화 사건의 범행·피해·동기 정보가 Evidence Lock을 우회하지 않는지 검사한다."""
+    """핵심 범죄 필드별 Evidence Classification과 Claim 결속을 검사한다."""
     source_truth = production_config.get("source_truth_classification")
     truth_basis = contract.get("truth_basis")
     if not isinstance(truth_basis, Mapping):
@@ -382,41 +403,155 @@ def validate_truth_basis(
                 },
             )
         )
-    fact_records = mapping_records(facts, "facts")
-    factual_ids = {
-        fact.get("fact_id")
-        for fact in fact_records
-        if fact.get("classification") == "FACT" and isinstance(fact.get("fact_id"), str)
+    field_evidence = truth_basis.get("field_evidence")
+    if not isinstance(field_evidence, Mapping):
+        source_fact_ids = set(string_values(truth_basis, "source_fact_ids"))
+        if "status" in truth_basis:
+            factual_ids = {
+                fact.get("fact_id")
+                for fact in mapping_records(facts, "facts")
+                if fact.get("classification") == "FACT" and isinstance(fact.get("fact_id"), str)
+            }
+            if source_truth == "ORIGINAL_FICTION":
+                if truth_basis.get("status") != "ORIGINAL_FICTION" or source_fact_ids:
+                    issues.append(
+                        crime_issue(
+                            "FICTION_CRIME_TRUTH_BASIS_INVALID",
+                            "창작 사건은 실화 Evidence Lock을 주장할 수 없습니다.",
+                            "01_CASE/crime_event_contract.json",
+                            {"status": truth_basis.get("status")},
+                        )
+                    )
+                return issues
+            if (
+                truth_basis.get("status") == "EVIDENCE_LOCKED"
+                and source_fact_ids
+                and source_fact_ids.issubset(factual_ids)
+            ):
+                return issues
+        return [
+            *issues,
+            crime_issue(
+                "CRIME_FIELD_EVIDENCE_MISSING",
+                "범인·동기·방식·피해 결과별 Evidence가 필요합니다.",
+                "01_CASE/crime_event_contract.json",
+                {"missing_fields": list(FIELD_EVIDENCE_KEYS)},
+            ),
+        ]
+    fact_records = {
+        cast(str, fact.get("fact_id")): fact
+        for fact in mapping_records(facts, "facts")
+        if isinstance(fact.get("fact_id"), str)
     }
-    source_fact_ids = set(string_values(truth_basis, "source_fact_ids"))
-    if source_truth == "ORIGINAL_FICTION":
-        if truth_basis.get("status") != "ORIGINAL_FICTION" or source_fact_ids:
+    for field in FIELD_EVIDENCE_KEYS:
+        evidence = field_evidence.get(field)
+        if not isinstance(evidence, Mapping):
             issues.append(
                 crime_issue(
-                    "FICTION_CRIME_TRUTH_BASIS_INVALID",
-                    "창작 사건은 실화 Evidence Lock을 주장할 수 없습니다.",
+                    "CRIME_FIELD_EVIDENCE_MISSING",
+                    "핵심 범죄 필드의 Evidence 항목이 없습니다.",
                     "01_CASE/crime_event_contract.json",
-                    {"status": truth_basis.get("status")},
+                    {"field": field},
                 )
             )
-        return issues
-    if (
-        truth_basis.get("status") != "EVIDENCE_LOCKED"
-        or not source_fact_ids
-        or not source_fact_ids.issubset(factual_ids)
-    ):
-        issues.append(
-            crime_issue(
-                "TRUE_CRIME_EVENT_NOT_EVIDENCE_LOCKED",
-                "실화 사건의 범행·피해·동기 계약은 검증된 FACT 범위에 결속되어야 합니다.",
-                "01_CASE/crime_event_contract.json",
-                {
-                    "status": truth_basis.get("status"),
-                    "source_fact_ids": sorted(source_fact_ids),
-                    "verified_fact_ids": sorted(cast(set[str], factual_ids)),
-                },
+            continue
+        classification = evidence.get("classification")
+        claim_ids = set(string_values(evidence, "claim_ids"))
+        if source_truth == "ORIGINAL_FICTION":
+            if classification != "ORIGINAL_FICTION" or claim_ids:
+                issues.append(
+                    crime_issue(
+                        "FICTION_CRIME_TRUTH_BASIS_INVALID",
+                        "Original Fiction은 Source Claim 없이 "
+                        "ORIGINAL_FICTION으로 분류해야 합니다.",
+                        "01_CASE/crime_event_contract.json",
+                        {"field": field, "classification": classification},
+                    )
+                )
+            continue
+        if classification == "FACT":
+            unsupported = sorted(
+                claim_id
+                for claim_id in claim_ids
+                if fact_records.get(claim_id, {}).get("classification") != "FACT"
             )
-        )
+            if not claim_ids or unsupported:
+                issues.append(
+                    crime_issue(
+                        "CRIME_FIELD_FACT_UNSUPPORTED",
+                        "FACT 분류에는 검증된 FACT Claim이 필요합니다.",
+                        "01_CASE/crime_event_contract.json",
+                        {
+                            "field": field,
+                            "claim_ids": sorted(claim_ids),
+                            "unsupported": unsupported,
+                        },
+                    )
+                )
+        elif classification == "INFERENCE":
+            ungrounded = sorted(
+                claim_id
+                for claim_id in claim_ids
+                if not isinstance(fact_records.get(claim_id), Mapping)
+                or not string_values(fact_records[claim_id], "basis_fact_ids")
+            )
+            if not claim_ids or ungrounded:
+                issues.append(
+                    crime_issue(
+                        "CRIME_FIELD_INFERENCE_UNGROUNDED",
+                        "INFERENCE 분류에는 Basis FACT가 필요합니다.",
+                        "01_CASE/crime_event_contract.json",
+                        {"field": field, "claim_ids": sorted(claim_ids), "ungrounded": ungrounded},
+                    )
+                )
+        elif classification == "DRAMATIZATION":
+            promoted = sorted(
+                claim_id
+                for claim_id in claim_ids
+                if fact_records.get(claim_id, {}).get("presented_as_fact") is True
+            )
+            if promoted:
+                issues.append(
+                    crime_issue(
+                        "CRIME_DRAMATIZATION_PRESENTED_AS_FACT",
+                        "DRAMATIZATION은 사실처럼 제시할 수 없습니다.",
+                        "01_CASE/crime_event_contract.json",
+                        {"field": field, "claim_ids": promoted},
+                    )
+                )
+        elif classification == "UNKNOWN":
+            if claim_ids:
+                issues.append(
+                    crime_issue(
+                        "CRIME_UNKNOWN_PROMOTED_TO_FACT",
+                        "UNKNOWN 필드에 근거 Claim을 붙여 확정 사실처럼 승격할 수 없습니다.",
+                        "01_CASE/crime_event_contract.json",
+                        {"field": field, "claim_ids": sorted(claim_ids)},
+                    )
+                )
+            if field == "MOTIVE":
+                motive_summary = contract.get("motive_summary")
+                honest_unknown = isinstance(motive_summary, str) and any(
+                    token in motive_summary for token in ("확인되지", "공개되지", "알 수 없")
+                )
+                if not honest_unknown:
+                    issues.append(
+                        crime_issue(
+                            "CRIME_UNKNOWN_PROMOTED_TO_FACT",
+                            "확인되지 않은 실화 동기는 UNKNOWN 상태를 정직하게 밝혀야 합니다.",
+                            "01_CASE/crime_event_contract.json",
+                            {"field": field, "motive_summary": motive_summary},
+                        )
+                    )
+        else:
+            issues.append(
+                crime_issue(
+                    "CRIME_FIELD_EVIDENCE_MISSING",
+                    "실화 핵심 필드의 Evidence Classification이 올바르지 않습니다.",
+                    "01_CASE/crime_event_contract.json",
+                    {"field": field, "classification": classification},
+                )
+            )
     return issues
 
 
@@ -426,18 +561,24 @@ def validate_crime_event_contract(
     variations: Mapping[str, object],
     contract: Mapping[str, object],
     facts: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None = None,
 ) -> list[ValidationIssue]:
-    """승인 Candidate와 Case 사건 계약의 중심 범죄·Truth Lock을 검증한다."""
+    """승인 Event Brief와 최종 역할 결속 계약의 내용·Hash·Evidence를 검증한다."""
     policy = explicit_crime_policy(channel)
     if policy is None:
         return []
     candidate = approved_candidate(variations)
     event = candidate.get("crime_event") if isinstance(candidate, Mapping) else None
-    if not isinstance(candidate, Mapping) or not isinstance(event, Mapping):
+    brief = (
+        approved_event_brief(variations, candidate_event_briefs)
+        if candidate_event_briefs is not None
+        else None
+    )
+    if not isinstance(candidate, Mapping) or (not isinstance(event, Mapping) and brief is None):
         return [
             crime_issue(
                 "APPROVED_CRIME_EVENT_MISSING",
-                "승인 Candidate의 사건 개요를 찾을 수 없습니다.",
+                "승인 Candidate의 Event Brief를 찾을 수 없습니다.",
                 "01_CASE/crime_event_contract.json",
                 {},
             )
@@ -447,6 +588,123 @@ def validate_crime_event_contract(
         contract,
         "01_CASE/crime_event_contract.json",
     )
+    if brief is not None:
+        selection = candidate.get("selection")
+        if not isinstance(selection, Mapping):
+            return [
+                crime_issue(
+                    "CRIME_EVENT_CONTRACT_PROJECTION_MISMATCH",
+                    "승인 Candidate Selection이 없습니다.",
+                    "01_CASE/crime_event_contract.json",
+                    {},
+                )
+            ]
+        brief_fields = (
+            "primary_crime",
+            "core_action_type",
+            "responsible_agent_structure",
+            "victim_structure",
+            "offender_role_slots",
+            "victim_role_slots",
+            "relationship_context",
+            "target_selection_reason",
+            "initiating_context",
+            "trigger_event",
+            "motive_category",
+            "motive_summary",
+            "non_actionable_method_summary",
+            "immediate_harm",
+            "lasting_harm",
+            "concealment_or_denial",
+            "discovery_path",
+            "responsibility_path",
+            "central_pursuit_question",
+            "development_functions",
+            "reveal_targets",
+            "truth_basis",
+        )
+        mismatches = {
+            field: {"expected": brief.get(field), "actual": contract.get(field)}
+            for field in brief_fields
+            if contract.get(field) != brief.get(field)
+        }
+        expected_id = candidate.get("candidate_id")
+        if (
+            contract.get("approved_candidate_id") != expected_id
+            or contract.get("candidate_selection_sha256") != candidate_json_hash(selection)
+            or contract.get("candidate_event_brief_sha256") != candidate_json_hash(brief)
+            or mismatches
+        ):
+            issues.append(
+                crime_issue(
+                    "CRIME_EVENT_CONTRACT_PROJECTION_MISMATCH",
+                    "최종 사건 계약이 승인 Candidate Event Brief와 다릅니다.",
+                    "01_CASE/crime_event_contract.json",
+                    {
+                        "expected_candidate_id": expected_id,
+                        "actual_candidate_id": contract.get("approved_candidate_id"),
+                        "mismatches": mismatches,
+                    },
+                )
+            )
+        issues.extend(cardinality_issues(contract))
+        actors = string_values(contract, "actor_ids")
+        victims = string_values(contract, "victim_ids")
+        offender_slots = string_values(brief, "offender_role_slots")
+        victim_slots = string_values(brief, "victim_role_slots")
+        bindings = mapping_records(contract, "role_bindings")
+        binding_slots = [binding.get("role_slot") for binding in bindings]
+        missing_slots = sorted(
+            set(offender_slots + victim_slots) - {str(slot) for slot in binding_slots}
+        )
+        duplicated_slots = sorted(
+            {str(slot) for slot in binding_slots if binding_slots.count(slot) > 1}
+        )
+        offender_bound_ids = [
+            binding.get("character_id")
+            for binding in bindings
+            if binding.get("role_slot") in offender_slots
+        ]
+        victim_bound_ids = [
+            binding.get("character_id")
+            for binding in bindings
+            if binding.get("role_slot") in victim_slots
+        ]
+        if missing_slots:
+            issues.append(
+                crime_issue(
+                    "CRIME_ROLE_BINDING_MISSING",
+                    "필수 Crime Role Slot Binding이 없습니다.",
+                    "01_CASE/crime_event_contract.json",
+                    {"role_slots": missing_slots},
+                )
+            )
+        if duplicated_slots:
+            issues.append(
+                crime_issue(
+                    "CRIME_ROLE_BINDING_DUPLICATED",
+                    "Crime Role Slot 또는 Character Binding이 중복됐습니다.",
+                    "01_CASE/crime_event_contract.json",
+                    {"role_slots": duplicated_slots},
+                )
+            )
+        if actors != offender_bound_ids or victims != victim_bound_ids:
+            issues.append(
+                crime_issue(
+                    "CRIME_CHARACTER_TRACE_MISMATCH",
+                    "actor_ids와 victim_ids가 명시적 Role Binding과 다릅니다.",
+                    "01_CASE/crime_event_contract.json",
+                    {
+                        "actor_ids": actors,
+                        "offender_binding_ids": offender_bound_ids,
+                        "victim_ids": victims,
+                        "victim_binding_ids": victim_bound_ids,
+                    },
+                )
+            )
+        issues.extend(validate_truth_basis(production_config, contract, facts))
+        return issues
+    assert isinstance(event, Mapping)
     bound_fields = (
         "event_id",
         "primary_crime",
@@ -494,6 +752,320 @@ def validate_crime_event_contract(
     return issues
 
 
+def validate_crime_role_bindings(
+    contract: Mapping[str, object],
+    characters: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """최종 Role Binding이 실제 Character의 선언된 Slot과 일치하는지 검사한다."""
+    if not isinstance(contract.get("responsible_agent_structure"), str):
+        return []
+    character_records = {
+        cast(str, character.get("character_id")): character
+        for character in mapping_records(characters, "characters")
+        if isinstance(character.get("character_id"), str)
+    }
+    bindings = mapping_records(contract, "role_bindings")
+    issues = cardinality_issues(contract)
+    actor_ids = string_values(contract, "actor_ids")
+    victim_ids = string_values(contract, "victim_ids")
+    offender_slots = string_values(contract, "offender_role_slots")
+    victim_slots = string_values(contract, "victim_role_slots")
+    if len(actor_ids) != len(offender_slots) or len(set(actor_ids)) != len(offender_slots):
+        issues.append(
+            crime_issue(
+                "OFFENDER_CARDINALITY_MISMATCH",
+                "각 가해자 Role Slot은 서로 다른 actor_id에 결속해야 합니다.",
+                "01_CASE/crime_event_contract.json",
+                {
+                    "role_slot_count": len(offender_slots),
+                    "actor_count": len(actor_ids),
+                    "distinct_actor_count": len(set(actor_ids)),
+                },
+            )
+        )
+    if len(victim_ids) != len(victim_slots) or len(set(victim_ids)) != len(victim_slots):
+        issues.append(
+            crime_issue(
+                "VICTIM_CARDINALITY_MISMATCH",
+                "각 피해자 Role Slot은 서로 다른 victim_id에 결속해야 합니다.",
+                "01_CASE/crime_event_contract.json",
+                {
+                    "role_slot_count": len(victim_slots),
+                    "victim_count": len(victim_ids),
+                    "distinct_victim_count": len(set(victim_ids)),
+                },
+            )
+        )
+    participant_ids = set(actor_ids + victim_ids)
+    binding_character_ids = {
+        str(binding.get("character_id"))
+        for binding in bindings
+        if isinstance(binding.get("character_id"), str)
+    }
+    missing_characters = sorted((participant_ids | binding_character_ids) - set(character_records))
+    if missing_characters:
+        issues.append(
+            crime_issue(
+                "CRIME_ROLE_CHARACTER_NOT_FOUND",
+                "Crime Role Binding의 Character ID가 존재하지 않습니다.",
+                "01_CASE/crime_event_contract.json",
+                {"character_ids": missing_characters},
+            )
+        )
+    mismatched_bindings = [
+        {
+            "role_slot": binding.get("role_slot"),
+            "character_id": binding.get("character_id"),
+        }
+        for binding in bindings
+        if isinstance(binding.get("character_id"), str)
+        and binding.get("character_id") in character_records
+        and binding.get("role_slot")
+        not in string_values(
+            character_records[cast(str, binding.get("character_id"))],
+            "crime_role_slots",
+        )
+    ]
+    if mismatched_bindings:
+        issues.append(
+            crime_issue(
+                "CRIME_CHARACTER_TRACE_MISMATCH",
+                "Crime Role Binding과 Character의 선언된 Role Slot이 다릅니다.",
+                "02_CHARACTER/characters.json",
+                {"bindings": mismatched_bindings},
+            )
+        )
+    return issues
+
+
+def crime_case_trace_issues(
+    contract: Mapping[str, object],
+    case_input: Mapping[str, object],
+    facts: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """최종 사건 계약이 Case와 네 종류 Crime Fact에 투영됐는지 검사한다."""
+    expected_case = {
+        "primary_crime": contract.get("primary_crime"),
+        "responsible_actor_ids": string_values(contract, "actor_ids"),
+        "victim_ids": string_values(contract, "victim_ids"),
+        "motive_summary": contract.get("motive_summary"),
+        "crime_method_summary": contract.get("non_actionable_method_summary"),
+        "harm_result": (f"{contract.get('immediate_harm')} / {contract.get('lasting_harm')}"),
+        "final_case_truth": contract.get("responsibility_path"),
+    }
+    mismatches = {
+        field: {"expected": expected, "actual": case_input.get(field)}
+        for field, expected in expected_case.items()
+        if case_input.get(field) != expected
+    }
+    issues: list[ValidationIssue] = []
+    if mismatches:
+        issues.append(
+            crime_issue(
+                "CRIME_CASE_TRACE_MISMATCH",
+                "Case Input의 범죄 핵심 필드가 최종 사건 계약과 다릅니다.",
+                "01_CASE/case_input.json",
+                {"mismatches": mismatches},
+            )
+        )
+    required_fact_types = {
+        "CRIME_ACTION",
+        "HARM_RESULT",
+        "MOTIVE_STATUS",
+        "RESPONSIBILITY",
+    }
+    actual_fact_types = {
+        cast(str, fact.get("crime_fact_type"))
+        for fact in mapping_records(facts, "facts")
+        if isinstance(fact.get("crime_fact_type"), str)
+    }
+    actual_fact_types.update(
+        fact_type
+        for fact in mapping_records(facts, "facts")
+        for fact_type in string_values(fact, "crime_fact_types")
+    )
+    known_fact_ids = {
+        str(fact.get("fact_id"))
+        for fact in mapping_records(facts, "facts")
+        if isinstance(fact.get("fact_id"), str)
+    }
+    actual_fact_types.update(
+        str(trace.get("crime_fact_type"))
+        for trace in mapping_records(facts, "crime_fact_trace")
+        if isinstance(trace.get("crime_fact_type"), str)
+        and bool(string_values(trace, "fact_ids"))
+        and set(string_values(trace, "fact_ids")).issubset(known_fact_ids)
+    )
+    missing_fact_types = sorted(required_fact_types - actual_fact_types)
+    if missing_fact_types:
+        issues.append(
+            crime_issue(
+                "CRIME_FACT_TRACE_MISMATCH",
+                "범죄 행위·피해·동기 상태·책임 주체 Fact가 모두 필요합니다.",
+                "01_CASE/facts.json",
+                {"missing_crime_fact_types": missing_fact_types},
+            )
+        )
+    return issues
+
+
+def reachable_node(
+    start_ids: set[str],
+    target_ids: set[str],
+    edges: set[tuple[str, str]],
+) -> bool:
+    """유향 Causal Graph에서 목표 Node까지 경로가 존재하는지 판정한다."""
+    pending = list(start_ids)
+    visited = set(start_ids)
+    while pending:
+        current = pending.pop()
+        if current in target_ids:
+            return True
+        next_ids = {target for source, target in edges if source == current} - visited
+        visited.update(next_ids)
+        pending.extend(next_ids)
+    return False
+
+
+def validate_crime_event_traceability(
+    contract: Mapping[str, object],
+    characters: Mapping[str, object],
+    case_input: Mapping[str, object],
+    facts: Mapping[str, object],
+    actual_timeline: Mapping[str, object],
+    causal_graph: Mapping[str, object],
+    viewer_timeline: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """승인 사건을 Character부터 Viewer Reveal까지 교차 검증한다."""
+    if not isinstance(contract.get("event_id"), str):
+        return []
+    issues = [
+        *validate_crime_role_bindings(contract, characters),
+        *crime_case_trace_issues(contract, case_input, facts),
+    ]
+    event_id = contract.get("event_id")
+    actor_ids = set(string_values(contract, "actor_ids"))
+    victim_ids = set(string_values(contract, "victim_ids"))
+    harm_ids = set(string_values(contract, "harm_ids"))
+    timeline_events = mapping_records(actual_timeline, "events")
+    crime_events = [
+        event
+        for event in timeline_events
+        if event.get("crime_event_id") == event_id and event.get("event_type") == "CRIME_EVENT"
+    ]
+    harm_events = [
+        event
+        for event in timeline_events
+        if event.get("crime_event_id") == event_id and event.get("event_type") == "HARM_RESULT"
+    ]
+    crime_event_valid = any(
+        set(string_values(event, "actor_ids")) == actor_ids
+        and set(string_values(event, "victim_ids")) == victim_ids
+        and harm_ids.issubset(set(string_values(event, "harm_ids")))
+        for event in crime_events
+    )
+    harm_event_valid = any(
+        set(string_values(event, "actor_ids")) == actor_ids
+        and set(string_values(event, "victim_ids")) == victim_ids
+        and harm_ids.issubset(set(string_values(event, "harm_ids")))
+        for event in harm_events
+    )
+    if not crime_event_valid or not harm_event_valid:
+        issues.append(
+            crime_issue(
+                "CRIME_TIMELINE_TRACE_MISMATCH",
+                "Actual Timeline에 결속된 범죄 Event와 피해 결과 Event가 필요합니다.",
+                "03_TIMELINE/actual_timeline.json",
+                {
+                    "crime_event_found": crime_event_valid,
+                    "harm_event_found": harm_event_valid,
+                    "crime_event_id": event_id,
+                },
+            )
+        )
+    nodes = mapping_records(causal_graph, "nodes")
+    trace_nodes = [node for node in nodes if node.get("crime_event_id") == event_id]
+    node_ids_by_type: dict[str, set[str]] = {}
+    for node in trace_nodes:
+        node_id = node.get("node_id")
+        node_type = node.get("type")
+        if isinstance(node_id, str) and isinstance(node_type, str):
+            node_ids_by_type.setdefault(node_type, set()).add(node_id)
+    edges = {
+        (cast(str, edge.get("from")), cast(str, edge.get("to")))
+        for edge in mapping_records(causal_graph, "edges")
+        if isinstance(edge.get("from"), str) and isinstance(edge.get("to"), str)
+    }
+    crime_node_valid = any(
+        node.get("type") == "CRIME_EVENT"
+        and set(string_values(node, "actor_ids")) == actor_ids
+        and set(string_values(node, "victim_ids")) == victim_ids
+        and harm_ids.issubset(set(string_values(node, "harm_ids")))
+        for node in trace_nodes
+    )
+    harm_node_valid = any(
+        node.get("type") == "HARM_RESULT"
+        and harm_ids.issubset(set(string_values(node, "harm_ids")))
+        for node in trace_nodes
+    )
+    core_path_valid = reachable_node(
+        node_ids_by_type.get("MOTIVE_OR_TRIGGER", set()),
+        node_ids_by_type.get("CRIME_EVENT", set()),
+        edges,
+    ) and reachable_node(
+        node_ids_by_type.get("CRIME_EVENT", set()),
+        node_ids_by_type.get("HARM_RESULT", set()),
+        edges,
+    )
+    responsibility_path_valid = reachable_node(
+        node_ids_by_type.get("CONCEALMENT_OR_DENIAL", set()),
+        node_ids_by_type.get("DISCOVERY_PATH", set()),
+        edges,
+    ) and reachable_node(
+        node_ids_by_type.get("DISCOVERY_PATH", set()),
+        node_ids_by_type.get("RESPONSIBILITY_CONFIRMATION", set()),
+        edges,
+    )
+    if (
+        not core_path_valid
+        or not responsibility_path_valid
+        or not crime_node_valid
+        or not harm_node_valid
+    ):
+        issues.append(
+            crime_issue(
+                "CRIME_CAUSAL_TRACE_MISMATCH",
+                "Causal Graph에 동기/촉발→범죄→피해와 은폐→발견→책임 경로가 필요합니다.",
+                "04_MYSTERY/causal_graph.json",
+                {
+                    "core_path_valid": core_path_valid,
+                    "responsibility_path_valid": responsibility_path_valid,
+                    "crime_node_valid": crime_node_valid,
+                    "harm_node_valid": harm_node_valid,
+                },
+            )
+        )
+    expected_targets = [
+        (target.get("reveal_target_id"), target.get("target_type"))
+        for target in mapping_records(contract, "reveal_targets")
+    ]
+    actual_targets = [
+        (reveal.get("reveal_target_id"), reveal.get("target_type"))
+        for reveal in mapping_records(viewer_timeline, "reveals")
+        if isinstance(reveal.get("reveal_target_id"), str)
+    ]
+    if actual_targets != expected_targets:
+        issues.append(
+            crime_issue(
+                "CRIME_REVEAL_TRACE_MISMATCH",
+                "Viewer Timeline이 사건 계약의 Reveal Target과 공개 순서를 보존하지 않았습니다.",
+                "03_TIMELINE/viewer_timeline.json",
+                {"expected": expected_targets, "actual": actual_targets},
+            )
+        )
+    return issues
+
+
 def crime_scene_records(
     scene_cards: Mapping[str, object],
 ) -> list[tuple[Mapping[str, object], Mapping[str, object]]]:
@@ -503,6 +1075,16 @@ def crime_scene_records(
         for scene in mapping_records(scene_cards, "scenes")
         for realization in mapping_records(scene, "crime_realization")
     ]
+
+
+def required_development_function_ids(contract: Mapping[str, object]) -> set[str]:
+    """사건 계약에서 필수 Development Function ID를 반환한다."""
+    return {
+        cast(str, function.get("development_function_id"))
+        for function in mapping_records(contract, "development_functions")
+        if function.get("required") is True
+        and isinstance(function.get("development_function_id"), str)
+    }
 
 
 def validate_scene_crime_realization(
@@ -538,6 +1120,8 @@ def validate_scene_crime_realization(
         for segment in presentation_segments(presentation_plan)
         if isinstance(segment.get("segment_id"), str)
     }
+    required_function_ids = required_development_function_ids(contract)
+    mapped_function_ids: set[str] = set()
     for scene, realization in records:
         scene_id = scene.get("scene_id")
         realization_harms = set(string_values(realization, "harm_ids"))
@@ -556,6 +1140,8 @@ def validate_scene_crime_realization(
             or not cast(str, realization.get(field)).strip()
         ]
         segment_ids = string_values(realization, "planned_segment_ids")
+        function_ids = set(string_values(realization, "development_function_ids"))
+        mapped_function_ids.update(function_ids)
         invalid_segments = [
             segment_id
             for segment_id in segment_ids
@@ -587,6 +1173,39 @@ def validate_scene_crime_realization(
                     },
                 )
             )
+    unmapped_functions = sorted(required_function_ids - mapped_function_ids)
+    if unmapped_functions:
+        issues.append(
+            crime_issue(
+                "CRIME_DEVELOPMENT_FUNCTION_UNMAPPED",
+                "필수 Development Function이 어떤 Scene에도 연결되지 않았습니다.",
+                "06_SCENE/scene_cards.json",
+                {"development_function_ids": unmapped_functions},
+            )
+        )
+    for function_id in sorted(required_function_ids):
+        segment_modes = {
+            mode
+            for segment in planned_segments.values()
+            if isinstance((mode := canonical_mode(segment.get("segment_type"))), str)
+            if function_id in string_values(segment, "crime_development_function_ids")
+        }
+        if "DRAMA" in segment_modes:
+            continue
+        if segment_modes == {"NARRATION"}:
+            code = "CRIME_FUNCTION_NARRATION_ONLY"
+        elif segment_modes == {"PANEL_REACTION"}:
+            code = "CRIME_FUNCTION_PANEL_ONLY"
+        else:
+            code = "CRIME_DEVELOPMENT_FUNCTION_NOT_DRAMATIZED"
+        issues.append(
+            crime_issue(
+                code,
+                "필수 Development Function은 최소 한 개의 Drama Segment에 배치해야 합니다.",
+                "06_SCENE/presentation_plan.json",
+                {"development_function_id": function_id, "segment_modes": sorted(segment_modes)},
+            )
+        )
     return issues
 
 
@@ -602,26 +1221,51 @@ def segment_has_crime_action(
     segment: Mapping[str, object],
     contract: Mapping[str, object],
 ) -> bool:
-    """Segment 본문이 사건·행위·피해·인과 Marker를 함께 보존하는지 판정한다."""
+    """추적 정보와 실제 방송 문구가 사건·행위·피해를 함께 보존하는지 판정한다."""
     body = segment.get("body")
     event_id = contract.get("event_id")
     action_type = contract.get("core_action_type")
     harm_ids = set(string_values(contract, "harm_ids"))
     if not isinstance(body, str) or not isinstance(event_id, str):
         return False
-    tagged_events = set(CRIME_EVENT_TAG.findall(body))
-    tagged_actions = set(CRIME_ACTION_TAG.findall(body))
-    tagged_harms = set(HARM_TAG.findall(body))
-    causal_pairs = set(CAUSE_TAG.findall(body))
-    return (
-        event_id in tagged_events
-        and action_type in tagged_actions
-        and bool(harm_ids.intersection(tagged_harms))
-        and any(
-            causal_event == event_id and causal_harm in harm_ids
-            for causal_event, causal_harm in causal_pairs
-        )
+    visible_body = CRIME_TRACE_BLOCK.sub(" ", body)
+    required_visible_summaries = (
+        contract.get("non_actionable_method_summary"),
+        contract.get("immediate_harm"),
+        contract.get("lasting_harm"),
     )
+    if not all(
+        isinstance(summary, str) and summary.strip() in visible_body
+        for summary in required_visible_summaries
+    ):
+        return False
+    for block in CRIME_TRACE_BLOCK.finditer(body):
+        fields = {
+            key: {item.strip() for item in value.split(",") if item.strip()}
+            for key, value in CRIME_TRACE_FIELD.findall(block.group("body"))
+        }
+        if (
+            event_id in fields.get("EVENT", set())
+            and action_type in fields.get("ACTION", set())
+            and bool(harm_ids.intersection(fields.get("HARM", set())))
+        ):
+            return True
+    return False
+
+
+def segment_development_function_ids(segment: Mapping[str, object]) -> set[str]:
+    """Segment HTML 추적 정보에서 Development Function ID를 읽는다."""
+    body = segment.get("body")
+    if not isinstance(body, str):
+        return set()
+    function_ids: set[str] = set()
+    for block in CRIME_TRACE_BLOCK.finditer(body):
+        fields = {
+            key: {item.strip() for item in value.split(",") if item.strip()}
+            for key, value in CRIME_TRACE_FIELD.findall(block.group("body"))
+        }
+        function_ids.update(fields.get("DEV", set()))
+    return function_ids
 
 
 def crime_script_bindings(
@@ -804,6 +1448,61 @@ def layer_function_issues(
     return issues
 
 
+def script_meaning_tokens(segment: Mapping[str, object]) -> set[str]:
+    """기계 추적 정보를 제거한 Segment 방송 문구의 의미 Token을 반환한다."""
+    body = segment.get("body")
+    if not isinstance(body, str):
+        return set()
+    visible = CRIME_TRACE_BLOCK.sub(" ", body)
+    visible = re.sub(r"\[[A-Z][A-Z0-9_:-]*\]", " ", visible)
+    return {token.casefold() for token in SCRIPT_WORD.findall(visible) if len(token) > 1}
+
+
+def narration_content_issues(final_script: str) -> list[ValidationIssue]:
+    """실제 Narration 문구가 Drama나 Panel 정보를 그대로 반복하는지 검사한다."""
+    segments = script_segments_by_id(final_script)
+    narration_segments = [
+        segment
+        for segment in segments.values()
+        if canonical_mode(segment.get("segment_type")) == "NARRATION"
+    ]
+    comparison_segments = [
+        segment
+        for segment in segments.values()
+        if canonical_mode(segment.get("segment_type")) in {"DRAMA", "PANEL_REACTION"}
+    ]
+    issues: list[ValidationIssue] = []
+    for narration in narration_segments:
+        narration_tokens = script_meaning_tokens(narration)
+        if len(narration_tokens) < 4:
+            continue
+        for comparison in comparison_segments:
+            comparison_tokens = script_meaning_tokens(comparison)
+            overlap = narration_tokens.intersection(comparison_tokens)
+            duplication_ratio = len(overlap) / len(narration_tokens)
+            if len(overlap) < 4 or duplication_ratio < 0.65:
+                continue
+            comparison_mode = canonical_mode(comparison.get("segment_type"))
+            code = (
+                "NARRATION_PANEL_DUPLICATION"
+                if comparison_mode == "PANEL_REACTION"
+                else "NARRATION_VISIBLE_INFORMATION_DUPLICATION"
+            )
+            issues.append(
+                crime_issue(
+                    code,
+                    "Narration은 이미 보이거나 Panel이 말한 정보를 반복하지 않아야 합니다.",
+                    "07_SCRIPT/final_script.md",
+                    {
+                        "narration_segment_id": narration.get("segment_id"),
+                        "comparison_segment_id": comparison.get("segment_id"),
+                        "duplication_ratio": round(duplication_ratio, 4),
+                    },
+                )
+            )
+    return issues
+
+
 def validate_script_crime_realization(
     channel: Mapping[str, object],
     contract: Mapping[str, object],
@@ -825,6 +1524,7 @@ def validate_script_crime_realization(
         ),
         *reveal_timing_issues(contract, presentation_plan, viewer_timeline),
         *layer_function_issues(presentation_plan, reaction_segments),
+        *narration_content_issues(final_script),
     ]
     bindings = crime_script_bindings(contract, scene_cards, final_script)
     if not bindings:
@@ -835,6 +1535,40 @@ def validate_script_crime_realization(
                 "Drama Segment에 사건·행위·피해 인과가 필요합니다.",
                 "07_SCRIPT/final_script.md",
                 {"event_id": contract.get("event_id")},
+            )
+        )
+    parsed_segments = script_segments_by_id(final_script)
+    required_function_ids = required_development_function_ids(contract)
+    for function_id in sorted(required_function_ids):
+        realized_modes = {
+            mode
+            for segment in parsed_segments.values()
+            if isinstance((mode := canonical_mode(segment.get("segment_type"))), str)
+            if function_id in segment_development_function_ids(segment)
+        }
+        drama_realized = any(
+            canonical_mode(segment.get("segment_type")) == "DRAMA"
+            and function_id in segment_development_function_ids(segment)
+            and segment_has_crime_action(segment, contract)
+            for segment in parsed_segments.values()
+        )
+        if drama_realized:
+            continue
+        if realized_modes == {"NARRATION"}:
+            code = "CRIME_FUNCTION_NARRATION_ONLY"
+        elif realized_modes == {"PANEL_REACTION"}:
+            code = "CRIME_FUNCTION_PANEL_ONLY"
+        else:
+            code = "CRIME_DEVELOPMENT_FUNCTION_SCRIPT_MISSING"
+        issues.append(
+            crime_issue(
+                code,
+                "필수 Development Function의 실제 Drama Script 발췌가 없습니다.",
+                "07_SCRIPT/final_script.md",
+                {
+                    "development_function_id": function_id,
+                    "realized_modes": sorted(realized_modes),
+                },
             )
         )
     return issues
@@ -1079,6 +1813,11 @@ def required_semantic_subjects(
     }
     subjects.update(
         ("REVEAL_TIMING", cast(str, target.get("reveal_target_id")))
+        for target in mapping_records(contract, "reveal_targets")
+        if isinstance(target.get("reveal_target_id"), str)
+    )
+    subjects.update(
+        ("PREMATURE_DISCLOSURE_SCAN", cast(str, target.get("reveal_target_id")))
         for target in mapping_records(contract, "reveal_targets")
         if isinstance(target.get("reveal_target_id"), str)
     )

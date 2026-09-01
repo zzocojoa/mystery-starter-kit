@@ -5,6 +5,15 @@ from collections.abc import Mapping
 from VALIDATORS.compatibility import parse_semantic_version
 from VALIDATORS.models import ValidationIssue
 
+TARGET_CAPABILITIES: Mapping[str, str] = {
+    "crime_event_contract": "EXPLICIT_CRIME_EVENT_POLICY",
+    "crime_psychology": "CRIME_PSYCHOLOGY_POLICY",
+    "psychological_arc": "CRIME_PSYCHOLOGY_POLICY",
+    "source_disclosure": "SOURCE_DISCLOSURE_POLICY",
+    "clinical_labels": "CLINICAL_LABEL_POLICY",
+    "expert_segments": "EXPERT_ANALYSIS_POLICY",
+}
+
 
 def projection_issue(
     code: str,
@@ -117,6 +126,18 @@ def final_production_limit_issues(
     return issues
 
 
+def engine_projection_definition(
+    definition: Mapping[str, object],
+    engine_version: object,
+) -> Mapping[str, object]:
+    """Engine Version에 명시된 Projection Override를 적용한다."""
+    overrides = definition.get("engine_overrides")
+    if not isinstance(engine_version, str) or not isinstance(overrides, Mapping):
+        return definition
+    override = overrides.get(engine_version)
+    return override if isinstance(override, Mapping) else definition
+
+
 def validate_projection_contract_coverage(
     catalog: Mapping[str, object],
     contract: Mapping[str, object],
@@ -149,6 +170,7 @@ def validate_approved_candidate_projection(
     variations: Mapping[str, object],
     contract: Mapping[str, object],
     artifacts: Mapping[str, object],
+    channel: Mapping[str, object] | None = None,
 ) -> list[ValidationIssue]:
     """승인 Selection이 현재 Gate까지 생성된 대상 Artifact에 유지되는지 검증한다."""
     selection = approved_selection(variations)
@@ -162,6 +184,7 @@ def validate_approved_candidate_projection(
             )
         ]
     issues: list[ValidationIssue] = []
+    strict_missing = "final_script" in artifacts or "editorial_review" in artifacts
     for field, expected in selection.items():
         definition = dimensions.get(field)
         if not isinstance(field, str) or not isinstance(definition, Mapping):
@@ -173,8 +196,9 @@ def validate_approved_candidate_projection(
                 )
             )
             continue
-        classification = definition.get("classification")
         engine_version = production_config.get("variation_engine_version")
+        active_definition = engine_projection_definition(definition, engine_version)
+        classification = active_definition.get("classification")
         if (
             field == "genre"
             and isinstance(engine_version, str)
@@ -195,7 +219,7 @@ def validate_approved_candidate_projection(
             continue
         if classification != "PROJECTED":
             continue
-        targets = definition.get("targets")
+        targets = active_definition.get("targets")
         if not isinstance(targets, list):
             issues.append(
                 projection_issue(
@@ -210,7 +234,42 @@ def validate_approved_candidate_projection(
                 continue
             artifact_name = target.get("artifact")
             json_path = target.get("json_path")
-            if not isinstance(artifact_name, str) or artifact_name not in artifacts:
+            if not isinstance(artifact_name, str):
+                continue
+            if artifact_name not in artifacts:
+                capability_id = TARGET_CAPABILITIES.get(artifact_name)
+                capabilities = channel.get("capabilities") if channel is not None else None
+                capability = (
+                    capabilities.get(capability_id)
+                    if isinstance(capabilities, Mapping) and capability_id is not None
+                    else None
+                )
+                if (
+                    channel is not None
+                    and capability_id is not None
+                    and (
+                        not isinstance(capability, Mapping) or capability.get("enabled") is not True
+                    )
+                ):
+                    issues.append(
+                        projection_issue(
+                            "CANDIDATE_PROJECTION_TARGET_INACTIVE",
+                            "PROJECTED Dimension이 비활성 Capability Artifact를 대상으로 합니다.",
+                            {
+                                "dimension": field,
+                                "artifact": artifact_name,
+                                "capability": capability_id,
+                            },
+                        )
+                    )
+                elif strict_missing:
+                    issues.append(
+                        projection_issue(
+                            "CANDIDATE_PROJECTION_TARGET_MISSING",
+                            "PROJECTED Dimension의 필수 Target Artifact가 없습니다.",
+                            {"dimension": field, "artifact": artifact_name},
+                        )
+                    )
                 continue
             artifact = artifacts[artifact_name]
             if not isinstance(artifact, Mapping) or not isinstance(json_path, str):

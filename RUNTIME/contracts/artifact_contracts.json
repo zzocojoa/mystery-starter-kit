@@ -12,6 +12,7 @@
     "verified_event_ledger": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/verifiedEventLedger", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "source_truth_contract": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/sourceTruthContract", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "variation_candidates": {"media_type": "application/json", "schema": "STANDARD/schemas/variation_candidates.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
+    "candidate_event_briefs": {"media_type": "application/json", "schema": "STANDARD/schemas/candidate_event_briefs.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 1048576},
     "candidate_evaluation": {"media_type": "application/json", "schema": "STANDARD/schemas/candidate_evaluation.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "candidate_approval": {"media_type": "application/json", "schema": "STANDARD/schemas/candidate_approval.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},
     "novelty_precheck": {"media_type": "application/json", "schema": "STANDARD/schemas/novelty_precheck.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},

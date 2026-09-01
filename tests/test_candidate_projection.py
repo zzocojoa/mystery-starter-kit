@@ -65,6 +65,24 @@ def test_approved_trusted_domain_change_fails() -> None:
     assert "APPROVED_CANDIDATE_PROJECTION_MISMATCH" in {issue["code"] for issue in issues}
 
 
+def test_responsible_agent_projection_uses_engine_specific_target() -> None:
+    """2.0은 Crime Psychology를, 2.1은 Crime Event Contract를 Target으로 사용한다."""
+    legacy_issues = validate_approved_candidate_projection(
+        v2_config(),
+        approved_variation({"responsible_agent_structure": "SINGLE_AGENT"}),
+        projection_contract(),
+        {"crime_psychology": {"responsible_agent_structure": "SINGLE_AGENT"}},
+    )
+    explicit_issues = validate_approved_candidate_projection(
+        {"variation_engine_version": "2.1.0", "genre": "CRIME_EVENT_THRILLER"},
+        approved_variation({"responsible_agent_structure": "DUAL_AGENTS"}),
+        projection_contract(),
+        {"crime_event_contract": {"responsible_agent_structure": "DUAL_AGENTS"}},
+    )
+    assert legacy_issues == []
+    assert explicit_issues == []
+
+
 def test_approved_final_proof_change_fails() -> None:
     """승인 Candidate의 Final Proof Mechanism을 Clue가 바꾸면 실패한다."""
     issues = validate_approved_candidate_projection(

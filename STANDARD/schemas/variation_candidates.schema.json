@@ -64,16 +64,7 @@
           "crime_event": {"$ref": "#/$defs/crimeEventOutline"},
           "signature": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
           "selection_status": {"enum": ["PENDING", "APPROVED", "REJECTED"]}
-        },
-        "allOf": [
-          {
-            "if": {
-              "properties": {"variation_engine_version": {"const": "2.1.0"}},
-              "required": ["variation_engine_version"]
-            },
-            "then": {"required": ["crime_event"]}
-          }
-        ]
+        }
       }
     },
     "batch_trace": {

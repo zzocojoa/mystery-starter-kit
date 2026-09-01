@@ -15,9 +15,9 @@ Script와 모든 구조 Artifact 사이의 ID, Timeline, Knowledge, Clue, Runtim
 
 ERROR가 0건이어야 하며 핵심 단서는 Introduced/Revealed/Resolved 상태를 가져야 한다. 범인이 있는 구조는 Motive/Means/Opportunity가 일치하고 핵심 반전은 Surprise/Logic/Retrospective Meaning을 만족해야 한다.
 
-Channel Content Version 2.0 이상에서는 범죄·약탈적 위협, 신뢰 영역 배신, 통제 과정, 피해자 행위 주체성, 책임 귀속, 위험 신호 회수, Source Label, Expert Claim-Evidence, 임상 용어 분류를 활성 Channel Capability에 따라 검사한다. 1.1.0 Project에는 이 검사를 소급 적용하지 않는다.
+각 검사는 Channel Version이 아니라 대응 Capability가 활성화된 경우에만 수행한다. 범죄 심리, 구체 사건, Source Label, Expert Claim-Evidence와 임상 용어 검사를 서로 암묵적으로 묶지 않는다.
 
-Channel 2.1에서는 `continuity.realization` Task가 Final Script의 실제 Drama Segment와 사건·행동·피해 인과 Marker, Reveal 배치를 다시 계산해 `script_realization_report.json`을 작성한다. CORE는 근거를 `NEEDS_REVIEW` 또는 `MISSING`으로만 표시하고 의미 충족을 PASS로 선언하지 않는다. Editorial Review는 사건 실현, 주관적 Narration, Panel 추적, Reveal Timing, 단서·증거 정합성을 실제 발췌로 각각 `EVIDENCED` 판정한다. 이 검사는 새 Capability가 없는 기존 Project에 소급 적용하지 않는다.
+`EXPLICIT_CRIME_EVENT_POLICY`가 활성화되면 `continuity.realization` Task가 Final Script의 실제 Drama Segment와 비가시 사건·행동·피해·Development Function 추적 정보, Reveal 배치를 다시 계산해 `script_realization_report.json`을 작성한다. CORE는 근거를 `NEEDS_REVIEW` 또는 `MISSING`으로만 표시하고 의미 충족을 PASS로 선언하지 않는다. Editorial Review는 사건 실현, 주관적 Narration, Panel 추적, Reveal Timing, 조기 공개 Scan, 단서·증거 정합성을 실제 발췌로 판정한다.
 
 ## 금지
 

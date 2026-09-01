@@ -151,6 +151,12 @@ def profile_matches_selection(
     profile: Mapping[str, object],
 ) -> bool:
     """정책 Profile이 명시 Dimension을 그대로 보존하는지 판정한다."""
+    if "primary_crime" in selection:
+        return all(
+            profile.get(field) == selection.get(field)
+            for field in PROFILE_SELECTION_FIELDS
+            if field in selection
+        ) and profile.get("incident_type") == selection.get("primary_crime")
     return all(
         isinstance(selection.get(field), str) and profile.get(field) == selection.get(field)
         for field in PROFILE_SELECTION_FIELDS

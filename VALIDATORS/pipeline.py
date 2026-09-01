@@ -8,6 +8,11 @@ from typing import cast
 from VALIDATORS.candidate_approval import validate_candidate_approval
 from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_event_briefs import (
+    approved_event_brief,
+    validate_candidate_event_briefs,
+    validate_candidate_event_case_projection,
+)
 from VALIDATORS.candidate_projection import (
     validate_approved_candidate_projection,
     validate_final_story_constraints,
@@ -24,9 +29,12 @@ from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.crime_event import (
     validate_channel_crime_evidence,
     validate_crime_event_contract,
+    validate_crime_event_traceability,
+    validate_crime_role_bindings,
     validate_crime_script_realization_report,
     validate_scene_crime_realization,
     validate_script_crime_realization,
+    validate_truth_basis,
 )
 from VALIDATORS.dependency import (
     artifact_required_for_project,
@@ -808,6 +816,11 @@ def run_production_validation(
     project_constraints = artifact_document(artifacts, "project_constraints")
     reference_profile = artifact_document(artifacts, "reference_profile")
     variation_candidates = artifact_document(artifacts, "variation_candidates")
+    candidate_event_briefs = optional_artifact_document(
+        artifacts,
+        "candidate_event_briefs",
+    )
+    candidate_event_brief_schema = presentation_schemas.get("candidate_event_briefs")
     candidate_eligibility = artifact_document(artifacts, "candidate_eligibility")
     candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
     candidate_approval = artifact_document(artifacts, "candidate_approval")
@@ -904,6 +917,30 @@ def run_production_validation(
     ]
     gate_01 = [
         *validate_variation_gate(variation_candidates, channel),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("candidate_event_briefs",),
+        ),
+        *(
+            optional_schema_issues(
+                artifacts,
+                "candidate_event_briefs",
+                candidate_event_brief_schema,
+                "00_PROJECT/candidate_event_briefs.json",
+            )
+            if candidate_event_brief_schema is not None
+            else []
+        ),
+        *(
+            validate_candidate_event_briefs(
+                variation_candidates,
+                candidate_event_briefs,
+            )
+            if "candidate_event_briefs" in artifacts
+            else []
+        ),
         *schema_issues(
             candidate_eligibility,
             presentation_schemas["candidate_eligibility"],
@@ -967,6 +1004,7 @@ def run_production_validation(
             variation_candidates,
             presentation_schemas["candidate_projection_contract"],
             {"story_dna": story_document},
+            channel,
         ),
     ]
     if source_truth_requires_evidence(production_config.get("source_truth_classification")):
@@ -985,24 +1023,26 @@ def run_production_validation(
             "01_CASE/case_input.json",
         ),
         *nonempty_list_issues(facts, "facts", "01_CASE/facts.json"),
-        *required_channel_artifact_issues(
-            artifacts,
-            production_config,
-            channel,
-            ("crime_event_contract",),
-        ),
-        *optional_schema_issues(
-            artifacts,
-            "crime_event_contract",
-            presentation_schemas["crime_event_contract"],
-            "01_CASE/crime_event_contract.json",
-        ),
-        *validate_crime_event_contract(
-            channel,
-            production_config,
+        *validate_candidate_event_case_projection(
             variation_candidates,
-            crime_event_contract,
+            candidate_event_briefs,
+            case_input,
             facts,
+        ),
+        *(
+            validate_truth_basis(
+                production_config,
+                approved_brief,
+                facts,
+            )
+            if (
+                approved_brief := approved_event_brief(
+                    variation_candidates,
+                    candidate_event_briefs,
+                )
+            )
+            is not None
+            else []
         ),
         *required_channel_artifact_issues(
             artifacts,
@@ -1075,6 +1115,7 @@ def run_production_validation(
                     else {}
                 ),
             },
+            channel,
         )
     )
     gate_04 = [
@@ -1089,6 +1130,27 @@ def run_production_validation(
             "knowledge_events",
             "02_CHARACTER/knowledge_matrix.json",
         ),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("crime_event_contract",),
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "crime_event_contract",
+            presentation_schemas["crime_event_contract"],
+            "01_CASE/crime_event_contract.json",
+        ),
+        *validate_crime_event_contract(
+            channel,
+            production_config,
+            variation_candidates,
+            crime_event_contract,
+            facts,
+            candidate_event_briefs,
+        ),
+        *validate_crime_role_bindings(crime_event_contract, characters),
     ]
     if source_truth_requires_evidence(production_config.get("source_truth_classification")):
         gate_04.extend(source_truth_bundle_issues)
@@ -1132,6 +1194,15 @@ def run_production_validation(
         *nonempty_list_issues(causal_graph, "nodes", "04_MYSTERY/causal_graph.json"),
         *nonempty_list_issues(causal_graph, "edges", "04_MYSTERY/causal_graph.json"),
         *validate_causal_graph(causal_graph),
+        *validate_crime_event_traceability(
+            crime_event_contract,
+            characters,
+            case_input,
+            facts,
+            actual_timeline,
+            causal_graph,
+            viewer_timeline,
+        ),
         *validate_approved_candidate_projection(
             production_config,
             variation_candidates,
@@ -1146,6 +1217,7 @@ def run_production_validation(
                     else {}
                 ),
             },
+            channel,
         ),
     ]
     if source_truth_requires_evidence(production_config.get("source_truth_classification")):
@@ -1387,6 +1459,20 @@ def run_production_validation(
         )
     )
     gate_12.extend(
+        validate_panel_design_realization(
+            channel,
+            reaction_segments,
+            presentation_plan,
+        )
+    )
+    gate_12.extend(
+        validate_panel_script_density(
+            channel,
+            reaction_segments,
+            panel_reaction_script,
+        )
+    )
+    gate_12.extend(
         validate_channel_realization_evidence(
             channel,
             psychological_arc,
@@ -1407,6 +1493,7 @@ def run_production_validation(
             variation_candidates,
             presentation_schemas["candidate_projection_contract"],
             artifacts,
+            channel,
         )
     )
     gate_12.extend(

@@ -15,9 +15,9 @@ Narration은 관점, 감정, 기억, 해석, 시간 압축, 반전 보강에만 
 
 `script.write_layers`는 세 기본 Layer와 조건부 Expert Layer를 별도 파일로 작성하고 `script.integrate`는 Presentation Plan의 모든 Segment를 Machine-readable Marker로 정확히 한 번 통합한다. Expert 발화를 Panel Reaction 파일에 넣지 않는다. Final Script는 Scene Treatment가 아니라 실제 방송 순서의 Broadcast Master다.
 
-Pinned Channel v2 정책에서는 Audience-facing Source Label을 정확히 표시하고 피해자 비난 표현을 사용하지 않는다. 임상 용어와 `EXPERT_ANALYSIS` 발화는 Story DNA의 분류 및 Claim-Evidence 경계를 넘지 않는다.
+`SOURCE_DISCLOSURE_POLICY`가 활성화되면 Audience-facing Source Label을 정확히 표시하고 피해자 비난 표현을 사용하지 않는다. `CLINICAL_LABEL_POLICY`와 `EXPERT_ANALYSIS_POLICY`가 활성화되면 임상 용어와 전문가 발화는 Story DNA의 분류 및 Claim-Evidence 경계를 넘지 않는다.
 
-Channel 2.1에서는 연결된 Drama Segment 본문에 `[CRIME_EVENT:EVENT-...]`, `[CRIME_ACTION:...]`, `[HARM:HARM-...]`, `[CAUSES:EVENT-...>HARM-...]`를 보존한다. 묘사는 비선정적이며 범행 방식은 실행 불가능한 고수준 요약에 머문다. Narration은 내부 인물의 감정·오해·기억을 대신 분석하지 않고, Panel은 공개된 정보만으로 반응·추적한다. Script Writer는 `script_realization_report.json`을 작성하거나 의미 충족을 선언할 권한이 없다.
+`EXPLICIT_CRIME_EVENT_POLICY`가 활성화되면 연결된 Drama Segment에 사건·행위·피해·Development Function을 HTML `CRIME_TRACE` Comment로 보존한다. 추적 정보는 방송 대사에 노출하지 않는다. 묘사는 비선정적이며 범행 방식은 실행 불가능한 고수준 요약에 머문다. Narration은 내부 인물의 감정·오해·기억을 전달하고, Panel은 공개된 정보만으로 반응·추적한다. Script Writer는 `script_realization_report.json`을 작성하거나 의미 충족을 선언할 권한이 없다.
 
 ## 금지
 

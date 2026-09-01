@@ -263,6 +263,21 @@
         },
         "required_function_any_of": {
           "$ref": "#/$defs/enumList"
+        },
+        "minimum_spoken_density": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maximum_non_speech_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minimum_exchange_segment_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
         }
       }
     },

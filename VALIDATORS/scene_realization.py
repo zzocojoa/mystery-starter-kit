@@ -1,4 +1,4 @@
-"""Channel DNA 2.1의 범죄 심리 장면 실현 계약 검증."""
+"""Capability 기반 장면·Layer 실현 계약을 검증한다."""
 
 import json
 import re
@@ -47,10 +47,25 @@ HYPOTHESIS_FUNCTIONS = frozenset(
     }
 )
 SUBJECTIVE_NARRATION_FUNCTIONS = frozenset(
-    {"CHARACTER_ANCHOR", "SUBJECTIVE_EXPERIENCE", "EMOTIONAL_CONTINUITY"}
+    {
+        "SUBJECTIVE_EXPERIENCE",
+        "EMOTIONAL_CONTINUITY",
+        "MEMORY",
+        "MISUNDERSTANDING",
+        "SELF_DOUBT",
+        "FEAR",
+        "TIME_COMPRESSION",
+        "RETROSPECTIVE_REFLECTION",
+    }
 )
 ANALYSIS_NARRATION_FUNCTIONS = frozenset(
-    {"CLUE_EXPLANATION", "EVIDENCE_ANALYSIS", "SOLUTION_EXPOSITION"}
+    {
+        "CLUE_EXPLANATION",
+        "EVIDENCE_WEIGHTING",
+        "SOLUTION_EXPOSITION",
+        "ANSWER_DIRECTIVE",
+        "UNPLANNED_PREMATURE_REVEAL",
+    }
 )
 STAGE_TAG = re.compile(r"\[PSY_STAGE:(PSTAGE-[0-9]{3,})\]")
 TRACE_TAG = re.compile(r"\[PSY_TRACE:([A-Z][A-Z0-9_]*-[0-9]{2,})\]")
@@ -172,6 +187,18 @@ def realization_policy(channel: Mapping[str, object]) -> Mapping[str, object] | 
     if not isinstance(capabilities, Mapping):
         return None
     policy = capabilities.get("SCENE_REALIZATION_POLICY")
+    if not isinstance(policy, Mapping) or policy.get("enabled") is not True:
+        return None
+    return policy
+
+
+def capability_policy(
+    channel: Mapping[str, object],
+    capability_id: str,
+) -> Mapping[str, object] | None:
+    """활성화된 Channel Capability 정책 객체를 반환한다."""
+    capabilities = channel.get("capabilities")
+    policy = capabilities.get(capability_id) if isinstance(capabilities, Mapping) else None
     if not isinstance(policy, Mapping) or policy.get("enabled") is not True:
         return None
     return policy
@@ -368,13 +395,9 @@ def psychology_drama_ratios(
         if stage.get("stage_type") == "HARM_OR_CRIME"
     }
     drama = [
-        segment
-        for segment in segments
-        if canonical_mode(segment.get("segment_type")) == "DRAMA"
+        segment for segment in segments if canonical_mode(segment.get("segment_type")) == "DRAMA"
     ]
-    total_duration = sum(
-        number_value(segment.get("duration_sec")) or 0.0 for segment in drama
-    )
+    total_duration = sum(number_value(segment.get("duration_sec")) or 0.0 for segment in drama)
     psychology_duration = sum(
         number_value(segment.get("duration_sec")) or 0.0
         for segment in drama
@@ -401,11 +424,7 @@ def psychology_drama_ratios(
     )
     return (
         psychology_duration / total_duration if total_duration > 0 else 0.0,
-        (
-            pre_harm_psychology_duration / pre_harm_duration
-            if pre_harm_duration > 0
-            else 0.0
-        ),
+        (pre_harm_psychology_duration / pre_harm_duration if pre_harm_duration > 0 else 0.0),
     )
 
 
@@ -841,7 +860,10 @@ def validate_narration_realization(
     presentation_plan: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """Narration의 주관성, 분석 지배, 선행 공개와 중복을 검증한다."""
-    if realization_policy(channel) is None:
+    if (
+        capability_policy(channel, "NARRATION_POLICY") is None
+        or capability_policy(channel, "EXPLICIT_CRIME_EVENT_POLICY") is None
+    ):
         return []
     segments = presentation_segments(presentation_plan)
     narration = [
@@ -861,16 +883,24 @@ def validate_narration_realization(
         if item.get("narration_function") in ANALYSIS_NARRATION_FUNCTIONS
     )
     issues: list[ValidationIssue] = []
-    functions = {item.get("narration_function") for item in narration}
     subjective_ratio = subjective_duration / total_duration if total_duration > 0 else 0.0
     analysis_ratio = analysis_duration / total_duration if total_duration > 0 else 1.0
-    if "CHARACTER_ANCHOR" not in functions or subjective_ratio < 0.70:
+    invalid_segments = [
+        segment.get("segment_id")
+        for segment in narration
+        if segment.get("narration_function") not in SUBJECTIVE_NARRATION_FUNCTIONS
+        or not isinstance(segment.get("narrator_character_id"), str)
+    ]
+    if not narration or invalid_segments or subjective_ratio < 1.0:
         issues.append(
             make_realization_issue(
                 "SUBJECTIVE_NARRATION_MISSING",
-                "Narration에는 CHARACTER_ANCHOR와 0.70 이상의 주관적 체험 비율이 필요합니다.",
+                "Narration은 허용된 주관적 기능과 내부 인물 Anchor를 가져야 합니다.",
                 "06_SCENE/presentation_plan.json",
-                {"subjective_duration_ratio": subjective_ratio},
+                {
+                    "subjective_duration_ratio": subjective_ratio,
+                    "invalid_segment_ids": invalid_segments,
+                },
             )
         )
     if analysis_ratio > 0.15:
@@ -957,9 +987,7 @@ def panel_spoken_density(
     headers = list(PANEL_HEADER.finditer(panel_reaction_script))
     for index, header in enumerate(headers):
         section_end = (
-            headers[index + 1].start()
-            if index + 1 < len(headers)
-            else len(panel_reaction_script)
+            headers[index + 1].start() if index + 1 < len(headers) else len(panel_reaction_script)
         )
         sections.setdefault(header.group("reaction_id"), []).append(
             panel_reaction_script[header.end() : section_end]
@@ -975,15 +1003,21 @@ def panel_spoken_density(
 
 def valid_exchange_turns(turns: Sequence[Mapping[str, object]]) -> int:
     """앞선 발화에 실제로 응답하는 Turn 수를 계산한다."""
-    seen: set[str] = set()
+    speakers_by_turn: dict[str, str] = {}
     exchanges = 0
     for turn in turns:
         turn_id = turn.get("turn_id")
+        panelist_id = turn.get("panelist_id")
         responds_to = turn.get("responds_to_turn_id")
-        if isinstance(responds_to, str) and responds_to in seen:
+        if (
+            isinstance(responds_to, str)
+            and isinstance(panelist_id, str)
+            and responds_to in speakers_by_turn
+            and speakers_by_turn[responds_to] != panelist_id
+        ):
             exchanges += 1
-        if isinstance(turn_id, str):
-            seen.add(turn_id)
+        if isinstance(turn_id, str) and isinstance(panelist_id, str):
+            speakers_by_turn[turn_id] = panelist_id
     return exchanges
 
 
@@ -993,31 +1027,26 @@ def validate_panel_design_realization(
     presentation_plan: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """Panel의 정서 기능과 실제 대화 교환 설계를 검증한다."""
-    if realization_policy(channel) is None:
+    policy = capability_policy(channel, "REACTION_POLICY")
+    if policy is None or number_value(policy.get("minimum_exchange_segment_ratio")) is None:
         return []
     reactions = mapping_items(reaction_segments, "reaction_segments")
     turns = [turn for reaction in reactions for turn in mapping_items(reaction, "turns")]
-    functions = {
-        function
-        for turn in turns
-        if isinstance((function := turn.get("function")), str)
-    }
+    functions = {function for turn in turns if isinstance((function := turn.get("function")), str)}
     issues: list[ValidationIssue] = []
-    missing_functions = sorted(REQUIRED_PANEL_FUNCTIONS - functions)
-    hypothesis_ratio = (
-        sum(turn.get("function") in HYPOTHESIS_FUNCTIONS for turn in turns) / len(turns)
-        if turns
-        else 1.0
-    )
-    if missing_functions or hypothesis_ratio > 0.35:
+    required_functions = set(string_items(policy, "required_functions"))
+    required_any = set(string_items(policy, "required_function_any_of"))
+    missing_functions = sorted(required_functions - functions)
+    any_function_missing = bool(required_any) and not functions.intersection(required_any)
+    if missing_functions or any_function_missing:
         issues.append(
             make_realization_issue(
-                "PANEL_ANALYSIS_DOMINANCE",
-                "Panel은 추론 요약보다 정서 반응, 위험 인지와 피해자 맥락화를 우선해야 합니다.",
+                "PANEL_CRIME_PURSUIT_FUNCTION_MISSING",
+                "Panel은 필수 감정 반응과 사건·용의자 추적 기능을 수행해야 합니다.",
                 "06_SCENE/reaction_segments.json",
                 {
                     "missing_functions": missing_functions,
-                    "hypothesis_turn_ratio": hypothesis_ratio,
+                    "required_any_of_satisfied": not any_function_missing,
                 },
             )
         )
@@ -1025,13 +1054,18 @@ def validate_panel_design_realization(
         valid_exchange_turns(mapping_items(reaction, "turns")) > 0 for reaction in reactions
     )
     exchange_ratio = exchange_segments / len(reactions) if reactions else 0.0
-    if exchange_ratio < 0.50:
+    minimum_exchange_ratio = number_value(policy.get("minimum_exchange_segment_ratio"))
+    minimum_exchange_ratio = minimum_exchange_ratio if minimum_exchange_ratio is not None else 0.5
+    if exchange_ratio < minimum_exchange_ratio:
         issues.append(
             make_realization_issue(
-                "PANEL_EXCHANGE_MISSING",
-                "Panel Segment의 절반 이상은 responds_to_turn_id로 실제 대화를 구성해야 합니다.",
+                "PANEL_EXCHANGE_RATIO_LOW",
+                "Panel Segment의 실제 상호 응답 비율이 Channel 기준보다 낮습니다.",
                 "06_SCENE/reaction_segments.json",
-                {"exchange_segment_ratio": exchange_ratio},
+                {
+                    "exchange_segment_ratio": exchange_ratio,
+                    "minimum": minimum_exchange_ratio,
+                },
             )
         )
     if repeated_mechanical_cycle(presentation_plan):
@@ -1052,22 +1086,25 @@ def validate_panel_script_density(
     panel_reaction_script: str,
 ) -> list[ValidationIssue]:
     """Panel Script의 실제 발화 밀도와 비발화 비율을 검증한다."""
-    if realization_policy(channel) is None:
+    policy = capability_policy(channel, "REACTION_POLICY")
+    if policy is None or number_value(policy.get("minimum_spoken_density")) is None:
         return []
     reactions = mapping_items(reaction_segments, "reaction_segments")
+    minimum_density = number_value(policy.get("minimum_spoken_density"))
+    minimum_density = minimum_density if minimum_density is not None else 0.4
     low_density = [
         reaction.get("reaction_segment_id")
         for reaction in reactions
-        if panel_spoken_density(reaction, panel_reaction_script) < 0.40
+        if panel_spoken_density(reaction, panel_reaction_script) < minimum_density
     ]
     if not low_density:
         return []
     return [
         make_realization_issue(
             "PANEL_SPOKEN_DENSITY_LOW",
-            "Panel Segment의 실제 발화 밀도는 0.40 이상이어야 합니다.",
+            "Panel Segment의 실제 발화 밀도가 Channel 기준보다 낮습니다.",
             "07_SCRIPT/panel_reaction_script.md",
-            {"reaction_segment_ids": low_density},
+            {"reaction_segment_ids": low_density, "minimum": minimum_density},
         )
     ]
 

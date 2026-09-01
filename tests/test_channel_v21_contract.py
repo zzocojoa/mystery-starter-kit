@@ -82,13 +82,13 @@ def test_v21_preserves_exact_identity_and_disables_rigid_psychology() -> None:
     assert explicit_policy["require_survival"] is False
 
 
-def test_v21_generates_event_before_story_dimensions() -> None:
-    """후보는 여덟 핵심 범죄 중 하나와 실제 행위·피해를 먼저 생성한다."""
+def test_v21_generates_locked_structure_before_event_brief() -> None:
+    """후보는 사건 문구가 아니라 잠긴 범죄 구조를 먼저 생성한다."""
     channel, resolved = runtime()
     catalog = resolved["catalog"]  # type: ignore[index]
     dimensions = catalog["dimensions"]
     assert isinstance(dimensions, dict)
-    assert tuple(dimensions)[:9] == EVENT_DIMENSION_ORDER
+    assert tuple(dimensions)[: len(EVENT_DIMENSION_ORDER)] == EVENT_DIMENSION_ORDER
     document = generate_candidates(
         "PRJ-901",
         "explicit-crime-event-first",
@@ -102,14 +102,16 @@ def test_v21_generates_event_before_story_dimensions() -> None:
         channel["capabilities"]["EXPLICIT_CRIME_EVENT_POLICY"]["core_crimes"]  # type: ignore[index]
     )
     assert {
-        candidate["crime_event"]["primary_crime"]
+        candidate["selection"]["primary_crime"]
         for candidate in candidates
-        if isinstance(candidate, dict)
+        if isinstance(candidate, dict) and isinstance(candidate.get("selection"), dict)
     }.issubset(core_crimes)
     assert all(
         isinstance(candidate, dict)
-        and candidate["crime_event"]["core_action_type"]
-        and candidate["crime_event"]["harm_classifications"]
+        and "crime_event" not in candidate
+        and isinstance(candidate.get("selection"), dict)
+        and candidate["selection"]["core_action_type"]
+        and candidate["selection"]["harm_classification"]
         for candidate in candidates
     )
 

@@ -6,11 +6,11 @@
   "supported_channel_content_versions": {"min_inclusive": "2.1.0", "max_exclusive": "3.0.0"},
   "supported_catalog_versions": {"min_inclusive": "2.1.0", "max_exclusive": "3.0.0"},
   "required_capabilities": ["EXPLICIT_CRIME_EVENT_POLICY"],
-  "dimension_order": "CAUSAL_CRIME_EVENT_THEN_STORY_VARIATION",
+  "dimension_order": "STRUCTURAL_CRIME_DIMENSIONS_THEN_STORY_VARIATION",
   "seed_material": "{story_seed}:batch:{batch_nonce}",
-  "batch_pipeline": ["GENERATE_EXPLICIT_CRIME_EVENT", "BIND_ACTION_RELATIONSHIP_HARM", "GENERATE_STORY_VARIATION", "NOVELTY_PRECHECK", "CORE_ELIGIBILITY", "ELIGIBLE_POOL_MERGE"],
-  "deduplication": ["EVENT_SIGNATURE", "INTERNAL_SELECTION_SIMILARITY", "NOVELTY_HARD_CONSTRAINT"],
-  "canonical_id_assignment": "AFTER_ELIGIBLE_POOL_FINALIZATION",
-  "signature_payload": "SELECTION_POLICY_PROFILE_AND_CRIME_EVENT_CANONICAL_JSON",
+  "batch_pipeline": ["GENERATE_CRIME_STRUCTURE", "NORMALIZE_ACTION_RELATIONSHIP_HARM", "GENERATE_STORY_VARIATION", "LLM_EVENT_ELABORATION", "EVENT_BRIEF_VALIDATION", "NOVELTY_PRECHECK", "CORE_ELIGIBILITY"],
+  "deduplication": ["STRUCTURAL_SIGNATURE", "EVENT_CAUSAL_COLLISION", "INTERNAL_SELECTION_SIMILARITY", "NOVELTY_HARD_CONSTRAINT"],
+  "canonical_id_assignment": "AFTER_STRUCTURAL_GENERATION",
+  "signature_payload": "SELECTION_AND_DERIVED_POLICY_PROFILE_CANONICAL_JSON",
   "signature_digest": "SHA-256"
 }

@@ -12,6 +12,7 @@ from RUNTIME.models import RuntimeApproval
 from VALIDATORS.candidate_approval import build_candidate_approval
 from VALIDATORS.candidate_eligibility import build_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_event_briefs import build_bound_crime_event_contract
 from VALIDATORS.channel_policy_v2 import (
     build_channel_policy_inputs,
     validate_channel_policy_v2,
@@ -193,6 +194,9 @@ def runtime_validation_inputs(
             ),
             "candidate_approval": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "candidate_approval.schema.json"
+            ),
+            "candidate_event_briefs": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "candidate_event_briefs.schema.json"
             ),
             "novelty_precheck": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "novelty_precheck.schema.json"
@@ -782,6 +786,36 @@ def core_task_outputs(
                 runtime_approval,
             ),
         }
+    if task_id == "story.bind_crime_event":
+        raw_source_truth_contract = artifacts.get("source_truth_contract")
+        source_truth_contract = (
+            raw_source_truth_contract if isinstance(raw_source_truth_contract, Mapping) else {}
+        )
+        contract, issues = build_bound_crime_event_contract(
+            project_id,
+            mapping_artifact(artifacts, "variation_candidates"),
+            mapping_artifact(artifacts, "candidate_event_briefs"),
+            mapping_artifact(artifacts, "case_input"),
+            mapping_artifact(artifacts, "facts"),
+            mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "relationships"),
+            source_truth_contract,
+        )
+        if issues or contract is None:
+            first_issue = issues[0]
+            raise RuntimeExecutionError(
+                "GATE_REJECTED",
+                False,
+                "TASK",
+                first_issue["message"],
+                task_id,
+                "crime_event_contract",
+                {
+                    "validation_code": first_issue["code"],
+                    **first_issue["context"],
+                },
+            )
+        return {"crime_event_contract": contract}
     if task_id in {
         "reference.intake_evidence",
         "reference.initialize_fiction_evidence",

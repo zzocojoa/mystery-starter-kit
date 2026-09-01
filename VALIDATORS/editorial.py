@@ -12,7 +12,7 @@ from VALIDATORS.crime_event import explicit_crime_policy, required_semantic_subj
 from VALIDATORS.exceptions import ConfigurationError, StateTransitionError
 from VALIDATORS.models import ProjectState, ValidationIssue
 from VALIDATORS.presentation_validation import parse_script_segments, presentation_segments
-from VALIDATORS.scene_realization import realization_policy
+from VALIDATORS.scene_realization import capability_policy, realization_policy
 
 EDITORIAL_CHECKS = (
     "broadcast_format",
@@ -302,6 +302,13 @@ def mapping_records(document: Mapping[str, object], key: str) -> list[Mapping[st
     return [item for item in value if isinstance(item, Mapping)]
 
 
+def string_values(value: object) -> list[str]:
+    """문자열 배열 값만 반환한다."""
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str)]
+
+
 def numeric_value(value: object) -> float | None:
     """Boolean을 제외한 유한한 0 이상 시간값을 실수로 정규화한다."""
     if (
@@ -535,6 +542,11 @@ def explicit_crime_runtime_evidence_issues(
                 {},
             )
         ]
+    reaction_policy = capability_policy(channel, "REACTION_POLICY") or {}
+    minimum_density = numeric_value(reaction_policy.get("minimum_spoken_density"))
+    minimum_density = minimum_density if minimum_density is not None else 0.4
+    maximum_non_speech = numeric_value(reaction_policy.get("maximum_non_speech_ratio"))
+    maximum_non_speech = maximum_non_speech if maximum_non_speech is not None else 0.6
     assumptions = evidence.get("estimation_assumptions")
     issues: list[ValidationIssue] = []
     if (
@@ -552,6 +564,13 @@ def explicit_crime_runtime_evidence_issues(
         )
     for record in mapping_records(evidence, "panel_segments"):
         segment_id = record.get("segment_id")
+        planned_duration = numeric_value(record.get("planned_duration_sec"))
+        method = evidence.get("method")
+        spoken_duration = numeric_value(
+            record.get("measured_duration_sec")
+            if method in {"TABLE_READ", "RECORDED_AUDIO"}
+            else record.get("estimated_spoken_duration_sec")
+        )
         action_total = 0.0
         non_speaking_total = 0.0
         invalid_elements: list[int] = []
@@ -608,6 +627,52 @@ def explicit_crime_runtime_evidence_issues(
                     },
                 )
             )
+        if planned_duration is not None and planned_duration > 0 and spoken_duration is not None:
+            spoken_density = spoken_duration / planned_duration
+            if spoken_density < minimum_density:
+                issues.append(
+                    make_editorial_issue(
+                        "PANEL_SPOKEN_DENSITY_LOW",
+                        "Panel 실측 또는 예상 발화 밀도가 Channel 기준보다 낮습니다.",
+                        {
+                            "segment_id": segment_id,
+                            "spoken_density": spoken_density,
+                            "minimum": minimum_density,
+                        },
+                    )
+                )
+        if planned_duration is not None and planned_duration > 0:
+            non_speech_ratio = non_speaking_total / planned_duration
+            if non_speech_ratio > maximum_non_speech:
+                issues.append(
+                    make_editorial_issue(
+                        "PANEL_NON_SPEECH_RATIO_HIGH",
+                        "Panel의 Graphic·침묵·Hold 비율이 Channel 상한을 초과했습니다.",
+                        {
+                            "segment_id": segment_id,
+                            "non_speech_ratio": non_speech_ratio,
+                            "maximum": maximum_non_speech,
+                        },
+                    )
+                )
+            filler_duration = sum(
+                duration
+                for element in mapping_records(record, "non_speech_elements")
+                if element.get("element_type") in {"GRAPHIC", "REACTION_HOLD", "REPLAY"}
+                and (duration := numeric_value(element.get("duration_sec"))) is not None
+            )
+            if filler_duration / planned_duration > maximum_non_speech:
+                issues.append(
+                    make_editorial_issue(
+                        "PANEL_FILLER_TIME_EXCESSIVE",
+                        "Graphic·Hold·Replay로 Panel 시간을 인위적으로 채울 수 없습니다.",
+                        {
+                            "segment_id": segment_id,
+                            "filler_ratio": filler_duration / planned_duration,
+                            "maximum": maximum_non_speech,
+                        },
+                    )
+                )
     return issues
 
 
@@ -638,9 +703,13 @@ def validate_editorial_crime_assessments(
         subject = (str(assessment.get("category")), str(assessment.get("subject_id")))
         evidence = assessment.get("evidence")
         notes = assessment.get("notes")
+        is_disclosure_scan = subject[0] == "PREMATURE_DISCLOSURE_SCAN"
+        acceptable_statuses = (
+            {"NOT_DISCLOSED", "INTENTIONAL_PREREVEAL"} if is_disclosure_scan else {"EVIDENCED"}
+        )
         if (
             subject not in expected
-            or assessment.get("status") != "EVIDENCED"
+            or assessment.get("status") not in acceptable_statuses
             or not isinstance(evidence, list)
             or not evidence
             or not isinstance(notes, str)
@@ -648,13 +717,50 @@ def validate_editorial_crime_assessments(
         ):
             issues.append(
                 make_editorial_issue(
-                    "CRIME_SEMANTIC_ASSESSMENT_NOT_EVIDENCED",
-                    "각 의미 평가는 실제 발췌 근거와 EVIDENCED 판정이 필요합니다.",
+                    (
+                        "PREMATURE_DISCLOSURE_SCAN_FAILED"
+                        if is_disclosure_scan
+                        else "CRIME_SEMANTIC_ASSESSMENT_NOT_EVIDENCED"
+                    ),
+                    "각 의미 평가는 허용된 판정과 실제 발췌 근거가 필요합니다.",
                     {"subject": subject, "status": assessment.get("status")},
                 )
             )
             continue
         issues.extend(editorial_evidence_issues(evidence, reviewed_artifacts, ":".join(subject)))
+        if is_disclosure_scan and assessment.get("status") == "INTENTIONAL_PREREVEAL":
+            presentation = reviewed_artifacts.get("presentation_plan")
+            viewer = reviewed_artifacts.get("viewer_timeline")
+            evidence_segment_ids = {
+                str(item.get("selector_id"))
+                for item in evidence
+                if isinstance(item, Mapping)
+                and item.get("artifact") == "final_script"
+                and item.get("selector_type") == "SEGMENT_ID"
+            }
+            planned_segment_ids = {
+                str(segment.get("segment_id"))
+                for segment in (
+                    presentation_segments(presentation) if isinstance(presentation, Mapping) else []
+                )
+                if subject[1] in set(string_values(segment.get("intentional_prereveal_ids")))
+            }
+            viewer_recorded = any(
+                reveal.get("reveal_target_id") == subject[1]
+                and reveal.get("intentional_prereveal") is True
+                for reveal in (
+                    mapping_records(viewer, "reveals") if isinstance(viewer, Mapping) else []
+                )
+            )
+            if not evidence_segment_ids.intersection(planned_segment_ids) or not viewer_recorded:
+                issues.append(
+                    make_editorial_issue(
+                        "PREMATURE_DISCLOSURE_SCAN_FAILED",
+                        "Intentional Prereveal은 Presentation과 Viewer Timeline에 "
+                        "모두 계획돼야 합니다.",
+                        {"reveal_target_id": subject[1]},
+                    )
+                )
     return issues
 
 

@@ -17,9 +17,9 @@ Scene ID와 Beat/Clue 참조가 유효하고, 시작·종료 감정, 갈등, 새
 
 Pinned Channel v2 정책이 요구하면 `EXPERT_ANALYSIS` Segment를 배치하고 `expert_segments.json`에 역할·기능·Credentials·Claim·Evidence·Confidence·Limitations를 보존한다. 일반 Panel 의견을 전문가 Claim으로 승격하지 않는다.
 
-Channel 2.1에서는 Scene Card의 `crime_realization[]`을 Crime Event Contract에 결속한다. 각 항목은 Event·Harm·Actor·Victim ID, 실제 행동 근거, 대화·행동 반응, 선택·감정 변화, 결과 변화와 예정 Drama Segment를 포함한다. Presentation Plan은 범인·동기·방식·피해 결과 Reveal Target을 후반 Segment에 정확히 한 번 배치한다. Narration은 내부 인물의 주관 기능을, Panel은 감정 반응과 용의자 추적 기능을 명시한다.
+`EXPLICIT_CRIME_EVENT_POLICY`가 활성화되면 Scene Card의 `crime_realization[]`을 Crime Event Contract에 결속한다. 각 항목은 Event·Harm·Actor·Victim ID, Development Function ID, 실제 행동 근거, 대화·행동 반응, 선택·감정 변화, 결과 변화와 예정 Drama Segment를 포함한다. Presentation Plan은 필수 Development Function을 Drama Segment에 연결하고 범인·동기·방식·피해 결과 Reveal Target을 후반 Segment에 정확히 한 번 배치한다.
 
-Narration Segment에는 기능과 참조 Fact/Clue를 명시하고 CHARACTER_ANCHOR 중심으로 설계한다. Panel은 정서 반응, 위험 신호 인지, 피해자 맥락화, 믿음 수정을 우선하며 `responds_to_turn_id`로 실제 발화 교환을 설계한다.
+`NARRATION_POLICY`가 활성화되면 Narration Segment에 허용된 주관 기능, 내부 인물 Anchor와 참조 Fact/Clue를 명시한다. `REACTION_POLICY`가 활성화되면 Panel은 실제 발화 밀도와 비발화 상한을 지키고 `responds_to_turn_id`로 둘 이상의 Panelist가 상호 응답하게 설계한다.
 
 ## 금지
 

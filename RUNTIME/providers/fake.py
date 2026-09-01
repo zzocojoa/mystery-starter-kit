@@ -19,7 +19,8 @@ from VALIDATORS.candidate_evaluation import (
     SCORE_FIELDS,
     candidate_evaluation_input_hashes,
 )
-from VALIDATORS.crime_event import canonical_json_hash
+from VALIDATORS.candidate_event_briefs import canonical_json_hash
+from VALIDATORS.crime_event import DEFAULT_DEVELOPMENT_FUNCTIONS, development_families
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
     make_editorial_evidence,
@@ -40,6 +41,45 @@ PresentationDefinition: TypeAlias = tuple[
     str,
     list[str],
 ]
+
+
+def mapping_values(value: object) -> list[Mapping[str, object]]:
+    """객체 배열 값만 반환한다."""
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, Mapping)]
+
+
+def string_values(value: object) -> list[str]:
+    """문자열 배열 값만 반환한다."""
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str)]
+
+
+def panel_fixture_line(core: str, focus: str, segment_duration_sec: float) -> str:
+    """발화 밀도 계약을 만족하는 사건 추적용 Panel 발화를 만든다."""
+    if segment_duration_sec < 30.0:
+        return core
+    return (
+        f"{core} 지금 확인된 {focus}만 기준으로 보면 한 장면의 인상만으로 "
+        "책임을 단정할 수 없습니다. 피해자가 처한 위험과 선택의 제약을 먼저 살피고, "
+        "공개된 기록과 행동이 서로 맞는지 확인해야 합니다. 다른 패널의 해석과 "
+        "충돌하는 지점도 짚어야 하고, 새 단서가 나오면 기존 가설을 고쳐야 합니다. "
+        "그래야 감정 반응과 용의자 추적이 함께 진행되고, 아직 공개되지 않은 범인과 "
+        "동기와 방식과 피해 결과를 앞당겨 말하지 않을 수 있습니다."
+    )
+
+
+def panel_script_line(
+    panelist_id: str,
+    core: str,
+    focus: str,
+    segment_duration_sec: float,
+) -> str:
+    """Panel Script의 실제 화자 발화 한 줄을 만든다."""
+    spoken_line = panel_fixture_line(core, focus, segment_duration_sec)
+    return f"[{panelist_id}] “{spoken_line}”"
 
 
 def approved_selection(metadata: Mapping[str, str]) -> dict[str, str]:
@@ -218,6 +258,15 @@ def fake_crime_presentation_plan(
         for item in reveal_records
         if isinstance(item, Mapping) and isinstance(item.get("reveal_target_id"), str)
     ]
+    development_functions = crime_event.get("development_functions")
+    function_records = development_functions if isinstance(development_functions, list) else []
+    function_ids = [
+        str(item["development_function_id"])
+        for item in function_records
+        if isinstance(item, Mapping)
+        and isinstance(item.get("development_function_id"), str)
+        and item.get("required") is True
+    ]
     for raw_segment in raw_segments:
         if not isinstance(raw_segment, dict):
             continue
@@ -229,6 +278,7 @@ def fake_crime_presentation_plan(
             raw_segment["narration_function"] = "EMOTIONAL_CONTINUITY"
         if raw_segment.get("segment_id") == "SEG-005":
             raw_segment["revealed_reveal_target_ids"] = target_ids[:2]
+            raw_segment["crime_development_function_ids"] = function_ids
         if raw_segment.get("segment_id") == "SEG-006":
             raw_segment["revealed_reveal_target_ids"] = target_ids[2:]
     plan["schema_version"] = "2.1.0"
@@ -313,7 +363,11 @@ def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, obj
                         "turn_id": "TURN-001-01",
                         "panelist_id": "PANEL-01",
                         "function": "HYPOTHESIS_GENERATION",
-                        "spoken_line": "7분의 공백이 이탈의 증거인지부터 확인해야 합니다.",
+                        "spoken_line": panel_fixture_line(
+                            "7분의 공백이 이탈의 증거인지부터 확인해야 합니다.",
+                            "기계 로그의 시간 공백",
+                            reaction_duration,
+                        ),
                         "evidence_ids": ["CLUE-01"],
                         "known_fact_ids": ["FACT-01"],
                         "tone": "SUSPICIOUS",
@@ -322,7 +376,12 @@ def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, obj
                         "turn_id": "TURN-001-02",
                         "panelist_id": "PANEL-03",
                         "function": "CONTRADICTION_DETECTION",
-                        "spoken_line": "공백을 사람의 선택으로만 보기엔 빠른 것 같아요.",
+                        "responds_to_turn_id": "TURN-001-01",
+                        "spoken_line": panel_fixture_line(
+                            "공백을 사람의 선택으로만 보기엔 빠른 것 같아요.",
+                            "자발적 이탈이라는 첫 가설",
+                            reaction_duration,
+                        ),
                         "evidence_ids": ["CLUE-01"],
                         "known_fact_ids": ["FACT-01"],
                         "tone": "CHALLENGING",
@@ -344,7 +403,11 @@ def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, obj
                         "turn_id": "TURN-002-01",
                         "panelist_id": "PANEL-03",
                         "function": "CONTRADICTION_DETECTION",
-                        "spoken_line": "이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.",
+                        "spoken_line": panel_fixture_line(
+                            "이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.",
+                            "센서 작동 상태",
+                            reaction_duration,
+                        ),
                         "evidence_ids": ["CLUE-01"],
                         "known_fact_ids": ["FACT-01"],
                         "tone": "ANALYTICAL",
@@ -353,7 +416,12 @@ def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, obj
                         "turn_id": "TURN-002-02",
                         "panelist_id": "PANEL-02",
                         "function": "EMOTIONAL_REACTION",
-                        "spoken_line": "그렇다면 공백 안에 남은 사람을 먼저 찾아야 해요.",
+                        "responds_to_turn_id": "TURN-002-01",
+                        "spoken_line": panel_fixture_line(
+                            "그렇다면 공백 안에 남은 사람을 먼저 찾아야 해요.",
+                            "피해자의 안전과 위치",
+                            reaction_duration,
+                        ),
                         "evidence_ids": ["CLUE-01"],
                         "known_fact_ids": ["FACT-01"],
                         "tone": "CONCERNED",
@@ -375,7 +443,11 @@ def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, obj
                         "turn_id": "TURN-003-01",
                         "panelist_id": "PANEL-01",
                         "function": "HYPOTHESIS_REVISION",
-                        "spoken_line": "안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.",
+                        "spoken_line": panel_fixture_line(
+                            "안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.",
+                            "점검 모드 기록",
+                            reaction_duration,
+                        ),
                         "evidence_ids": ["CLUE-01", "CLUE-02"],
                         "known_fact_ids": ["FACT-01", "FACT-02"],
                         "tone": "RECONSIDERING",
@@ -384,7 +456,12 @@ def fake_reaction_segments(project_id: str, total_seconds: int) -> dict[str, obj
                         "turn_id": "TURN-003-02",
                         "panelist_id": "PANEL-02",
                         "function": "TENSION_RELEASE",
-                        "spoken_line": "이제야 사람을 잘못 탓하던 시간을 되돌릴 수 있겠네요.",
+                        "responds_to_turn_id": "TURN-003-01",
+                        "spoken_line": panel_fixture_line(
+                            "이제야 사람을 잘못 탓하던 시간을 되돌릴 수 있겠네요.",
+                            "수정된 가설과 피해자 맥락",
+                            reaction_duration,
+                        ),
                         "evidence_ids": ["CLUE-01", "CLUE-02"],
                         "known_fact_ids": ["FACT-01", "FACT-02"],
                         "tone": "RELIEVED",
@@ -443,8 +520,19 @@ def fake_script_layers(
                     "SCN-01",
                     reaction_duration,
                     "[RSEG-001] [PANEL-01] [HYPOTHESIS_GENERATION]\n"
-                    "[PANEL-01] “7분의 공백이 이탈의 증거인지부터 확인해야 합니다.”\n"
-                    "[PANEL-03] “공백을 사람의 선택으로만 보기엔 빠른 것 같아요.”",
+                    + panel_script_line(
+                        "PANEL-01",
+                        "7분의 공백이 이탈의 증거인지부터 확인해야 합니다.",
+                        "기계 로그의 시간 공백",
+                        reaction_duration,
+                    )
+                    + "\n"
+                    + panel_script_line(
+                        "PANEL-03",
+                        "공백을 사람의 선택으로만 보기엔 빠른 것 같아요.",
+                        "자발적 이탈이라는 첫 가설",
+                        reaction_duration,
+                    ),
                 ),
                 broadcast_marker(
                     "SEG-004",
@@ -452,8 +540,19 @@ def fake_script_layers(
                     "SCN-01",
                     reaction_duration,
                     "[RSEG-002] [PANEL-03] [CONTRADICTION_DETECTION]\n"
-                    "[PANEL-03] “이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.”\n"
-                    "[PANEL-02] “그렇다면 공백 안에 남은 사람을 먼저 찾아야 해요.”",
+                    + panel_script_line(
+                        "PANEL-03",
+                        "이동 기록이 아니라 센서 자체가 멈춘 것일 수도 있죠.",
+                        "센서 작동 상태",
+                        reaction_duration,
+                    )
+                    + "\n"
+                    + panel_script_line(
+                        "PANEL-02",
+                        "그렇다면 공백 안에 남은 사람을 먼저 찾아야 해요.",
+                        "피해자의 안전과 위치",
+                        reaction_duration,
+                    ),
                 ),
                 broadcast_marker(
                     "SEG-006",
@@ -461,8 +560,19 @@ def fake_script_layers(
                     "SCN-02",
                     reaction_duration,
                     "[RSEG-003] [PANEL-01] [HYPOTHESIS_REVISION]\n"
-                    "[PANEL-01] “안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.”\n"
-                    "[PANEL-02] “이제야 사람을 잘못 탓하던 시간을 되돌릴 수 있겠네요.”",
+                    + panel_script_line(
+                        "PANEL-01",
+                        "안전 센서가 점검 모드였다면 공백은 이탈 증거가 아닙니다.",
+                        "점검 모드 기록",
+                        reaction_duration,
+                    )
+                    + "\n"
+                    + panel_script_line(
+                        "PANEL-02",
+                        "이제야 사람을 잘못 탓하던 시간을 되돌릴 수 있겠네요.",
+                        "수정된 가설과 피해자 맥락",
+                        reaction_duration,
+                    ),
                 ),
             )
         ),
@@ -493,13 +603,32 @@ def fake_crime_script_layers(
     audience_label_text: str | None,
     crime_event: Mapping[str, object],
 ) -> dict[str, str]:
-    """범죄 행동과 피해 인과 Marker를 Drama Layer에 삽입한다."""
+    """범죄 행동·피해·서사 기능의 비가시 추적 정보를 Drama에 삽입한다."""
     layers = fake_script_layers(total_seconds, audience_label_text)
     event_id = crime_event.get("event_id")
     action_type = crime_event.get("core_action_type")
     harm_ids = crime_event.get("harm_ids")
     harm_id = harm_ids[0] if isinstance(harm_ids, list) and harm_ids else None
-    if not all(isinstance(value, str) for value in (event_id, action_type, harm_id)):
+    method_summary = crime_event.get("non_actionable_method_summary")
+    immediate_harm = crime_event.get("immediate_harm")
+    lasting_harm = crime_event.get("lasting_harm")
+    development_functions = crime_event.get("development_functions")
+    function_ids = [
+        str(item["development_function_id"])
+        for item in mapping_values(development_functions)
+        if isinstance(item.get("development_function_id"), str) and item.get("required") is True
+    ]
+    if not all(
+        isinstance(value, str)
+        for value in (
+            event_id,
+            action_type,
+            harm_id,
+            method_summary,
+            immediate_harm,
+            lasting_harm,
+        )
+    ):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
             False,
@@ -510,12 +639,20 @@ def fake_crime_script_layers(
             {},
         )
     marker = (
-        f"[CRIME_EVENT:{event_id}] [CRIME_ACTION:{action_type}] "
-        f"[HARM:{harm_id}] [CAUSES:{event_id}>{harm_id}] "
+        "<!-- CRIME_TRACE\n"
+        f"EVENT={event_id}\n"
+        f"ACTION={action_type}\n"
+        f"HARM={harm_id}\n"
+        f"DEV={','.join(function_ids)}\n"
+        "-->\n"
+    )
+    realization = (
+        f"사건 기록은 {method_summary}을 보여 준다. "
+        f"그 결과 {immediate_harm}이 발생했고, {lasting_harm}으로 이어졌다.\n"
     )
     layers["drama_script"] = layers["drama_script"].replace(
         "[FACT:FACT-02]",
-        marker + "[FACT:FACT-02]",
+        marker + realization + "[FACT:FACT-02]",
         1,
     )
     return layers
@@ -920,6 +1057,28 @@ def fake_editorial_review(
                     "notes": "계획된 후반 Segment에서 공개됨",
                 }
             )
+        for index, target in enumerate(target_records, 9):
+            target_id = target.get("reveal_target_id")
+            semantic_assessments.append(
+                {
+                    "assessment_id": f"ASSESS-{index:02d}",
+                    "category": "PREMATURE_DISCLOSURE_SCAN",
+                    "subject_id": str(target_id),
+                    "status": "NOT_DISCLOSED",
+                    "evidence": [
+                        make_editorial_evidence(
+                            artifacts,
+                            "final_script",
+                            "SEGMENT_ID",
+                            "SEG-003",
+                        )
+                    ],
+                    "notes": (
+                        "예정 공개 전 DRAMA·NARRATION·PANEL·NEWS·DOCUMENT·INTERVIEW "
+                        "Layer에서 정답 누설이 없음을 검토함"
+                    ),
+                }
+            )
         review["semantic_assessments"] = semantic_assessments
     return review
 
@@ -950,6 +1109,15 @@ def story_document(
                 if key not in {"project_id", "mode", "$schema"}
             }
         }
+    raw_responsible_structure = selection.get("responsible_agent_structure")
+    responsible_structure = (
+        raw_responsible_structure if isinstance(raw_responsible_structure, str) else ""
+    )
+    derived_culprit_structure = {
+        "SINGLE_AGENT": "SINGLE",
+        "DUAL_AGENTS": "DUAL",
+        "COMPLICIT_GROUP": "MULTIPLE",
+    }.get(responsible_structure, "SINGLE")
     return {
         "$schema": "../../../STANDARD/schemas/story_dna.schema.json",
         "schema_family": "story-dna",
@@ -964,18 +1132,21 @@ def story_document(
             "perspective": selection["perspective"],
             "narrator_reliability": "RELIABLE",
             "timeline_style": selection["timeline_style"],
-            "incident_type": selection["incident_type"],
+            "incident_type": selection.get("incident_type", selection.get("primary_crime")),
             "setting": selection["setting"],
             "setting_logic": ["ACCESS_LOG", "MACHINE_LOG", "SHIFT_CHANGE"],
-            "culprit_structure": selection["culprit_structure"],
+            "culprit_structure": selection.get(
+                "culprit_structure",
+                derived_culprit_structure,
+            ),
             "causal_truth": (
-                "차단된 안전 센서와 교대 기록 오류가 결합되어 실종처럼 보이는 사고가 발생했다."
+                "가해자의 의도적 범죄 행위가 피해와 은폐를 낳았고 기록이 책임을 드러냈다."
             ),
             "primary_twist": selection["primary_twist"],
             "secondary_twists": ["TW-10_CAUSALITY"],
             "information_mechanism": [selection.get("information_mechanism", "MACHINE_LOG")],
             "clue_mechanism": [selection.get("clue_mechanism", "TIMESTAMP")],
-            "motive_class": "NO_INTENT",
+            "motive_class": selection.get("motive_category", "UNKNOWN"),
             "emotional_engine": "GUILT",
             "relationship_engine": {
                 "primary": selection["relationship_engine"],
@@ -996,7 +1167,7 @@ def story_document(
             "audience_experience": {
                 "initial_belief": "누군가 실종을 은폐했다.",
                 "midpoint_shift": "주인공의 기억과 기계 기록이 서로 충돌한다.",
-                "final_reframe": "범죄처럼 보인 사건은 연쇄적인 안전 실패의 결과였다.",
+                "final_reframe": "흩어진 기록은 사고가 아니라 의도적 범죄와 책임 주체를 가리켰다.",
             },
             "reveal_mode": selection.get("reveal_mode", "TIMELINE_RECONSTRUCTION"),
             "ending_type": "BITTERSWEET",
@@ -1165,6 +1336,255 @@ def fake_scene_production_metadata(request: LLMRequest) -> list[dict[str, object
     ]
 
 
+def role_slots(prefix: str, count: int) -> list[str]:
+    """요청 수만큼 Canonical Crime Role Slot을 만든다."""
+    return [f"{prefix}-{index:02d}" for index in range(1, count + 1)]
+
+
+def approved_brief_from_request(request: LLMRequest) -> Mapping[str, object] | None:
+    """현재 승인 Candidate의 Event Brief를 Context에서 찾는다."""
+    variations = context_artifact(request, "variation_candidates")
+    briefs_document = context_artifact(request, "candidate_event_briefs")
+    approved_id = variations.get("approved_candidate_id") if variations is not None else None
+    raw_briefs = briefs_document.get("briefs") if briefs_document is not None else None
+    if not isinstance(raw_briefs, list):
+        return None
+    return next(
+        (
+            brief
+            for brief in raw_briefs
+            if isinstance(brief, Mapping) and brief.get("candidate_id") == approved_id
+        ),
+        None,
+    )
+
+
+def planned_character_bindings(brief: Mapping[str, object]) -> dict[str, str]:
+    """Role Slot마다 안정적인 Character ID를 배정한다."""
+    offender_slots = brief.get("offender_role_slots")
+    victim_slots = brief.get("victim_role_slots")
+    protagonist_slot = brief.get("protagonist_role_slot")
+    participant_slots = [
+        slot
+        for slot in [
+            *(offender_slots if isinstance(offender_slots, list) else []),
+            *(victim_slots if isinstance(victim_slots, list) else []),
+        ]
+        if isinstance(slot, str)
+    ]
+    unique_slots = list(dict.fromkeys(participant_slots))
+    bindings = {slot: f"CHAR-{index:02d}" for index, slot in enumerate(unique_slots, 1)}
+    if isinstance(protagonist_slot, str):
+        bound_victim = (
+            bindings.get(str(victim_slots[0]))
+            if isinstance(victim_slots, list) and victim_slots
+            else None
+        )
+        protagonist_character = (
+            bound_victim
+            if isinstance(bound_victim, str)
+            else next(iter(bindings.values()), "CHAR-01")
+        )
+        bindings[protagonist_slot] = protagonist_character
+    return bindings
+
+
+def fake_candidate_event_briefs(
+    request: LLMRequest,
+    project_id: str,
+    source_truth: str,
+) -> dict[str, object]:
+    """구조 후보마다 서로 다른 구체적 사건 Brief를 만든다."""
+    variations = context_artifact(request, "variation_candidates")
+    candidates = variations.get("candidates") if variations is not None else None
+    if not isinstance(candidates, list):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Event Brief 생성용 Candidate 배열이 없습니다.",
+            "variation.elaborate_crime_events",
+            "variation_candidates",
+            {},
+        )
+    fact_ledger = context_artifact(request, "verified_fact_ledger")
+    raw_facts = fact_ledger.get("facts") if fact_ledger is not None else None
+    fact_ids = [
+        str(fact["fact_id"])
+        for fact in mapping_values(raw_facts)
+        if isinstance(fact.get("fact_id"), str)
+    ]
+    factual_claim_ids = fact_ids[:1]
+    contexts = (
+        (
+            "피해자가 혼자 마감 근무를 한다는 반복된 관찰",
+            "피해자가 더 이상의 사적 접근을 거절한 순간",
+            "폐점 직전 출입구에서 퇴로를 막고 비선정적 폭력을 가함",
+            "치료가 필요한 상해와 즉각적인 안전 상실",
+            "업무 공간 복귀를 두려워하는 지속적 불안",
+            "우발적 충돌이었다고 주장하며 접근 기록을 부인함",
+            "동료의 목격과 출입 기록이 피해 진술을 뒷받침함",
+            "서로 독립적인 목격과 기록이 책임 주체를 특정함",
+        ),
+        (
+            "피해자의 귀가 시간이 일정하다는 생활 정보의 악용",
+            "피해자가 관계 종료 의사를 분명히 전달한 날",
+            "귀가 동선에서 반복 접근한 뒤 이동 자유를 제한함",
+            "도움을 요청할 수 없는 시간 동안의 자유 박탈",
+            "혼자 이동하기 어려워진 안전감 붕괴",
+            "연락이 자발적이었다고 주장하며 강제성을 부정함",
+            "예약된 약속 불참과 주변인의 시간 기록이 공백을 드러냄",
+            "시간대별 증언이 합쳐져 계획된 접근과 책임을 확인함",
+        ),
+        (
+            "공동 주거의 출입 권한과 가족 일정을 알고 있던 점",
+            "경제 문제를 둘러싼 공개적인 책임 요구",
+            "허락 없이 주거 공간에 들어와 위협으로 통제권을 행사함",
+            "거주 공간의 안전 상실과 방어 중 입은 상처",
+            "집에 머무르지 못하고 임시 거처를 전전하는 피해",
+            "가족 간 오해였다고 축소하며 침입 사실을 부인함",
+            "이웃의 신고 시각과 훼손된 출입 흔적이 침입을 확인함",
+            "출입 권한 기록과 현장 증언이 행위자의 공동 책임을 입증함",
+        ),
+        (
+            "업무 평가권을 이용해 피해자를 외부와 단절시킬 수 있던 위치",
+            "피해자가 부당한 지시를 공식적으로 문제 삼은 직후",
+            "밀폐된 업무 공간에 남겨 두어 외부 이동을 막음",
+            "장시간 이동 자유 박탈과 공포 반응",
+            "권한자와 단둘이 있는 상황을 회피하게 된 직업적 손실",
+            "보안 절차였다고 둘러대며 피해자의 판단을 공격함",
+            "예약된 통화의 중단과 동료의 수색이 장소를 특정함",
+            "지시 기록과 현장 상태가 의도적 감금 책임을 연결함",
+        ),
+        (
+            "공개 행사에서 피해자의 이동과 연락 상대를 반복 관찰한 정보",
+            "피해자가 접근 금지 요구를 주변에 알린 직후",
+            "여러 장소에서 기다리며 접근을 반복해 일상 동선을 위축시킴",
+            "즉각적인 신변 위협과 대피 필요",
+            "직장과 주거지를 바꾸게 된 장기적 생활 손실",
+            "우연한 만남이 반복됐다고 주장하며 추적 의도를 부인함",
+            "서로 다른 장소의 목격 기록이 반복 접근의 연속성을 드러냄",
+            "독립된 기록의 시간 순서가 지속적 추적 책임을 확정함",
+        ),
+    )
+    briefs: list[dict[str, object]] = []
+    for index, candidate in enumerate(candidates):
+        if not isinstance(candidate, Mapping):
+            continue
+        candidate_id = candidate.get("candidate_id")
+        selection = candidate.get("selection")
+        if not isinstance(candidate_id, str) or not isinstance(selection, Mapping):
+            continue
+        offender_structure = selection.get("responsible_agent_structure")
+        victim_structure = selection.get("victim_structure")
+        offender_count = (
+            1
+            if offender_structure == "SINGLE_AGENT"
+            else 2
+            if offender_structure == "DUAL_AGENTS"
+            else 3
+        )
+        victim_count = 1 if victim_structure == "SINGLE_VICTIM" else 2
+        offender_slots = role_slots("OFFENDER", offender_count)
+        victim_slots = role_slots("VICTIM", victim_count)
+        protagonist_slot = "PROTAGONIST-01"
+        primary = selection.get("primary_crime")
+        action = selection.get("core_action_type")
+        functions = sorted(
+            {
+                function
+                for family in development_families(primary, action)
+                for function in DEFAULT_DEVELOPMENT_FUNCTIONS[family]
+            }
+        )
+        causal = contexts[index % len(contexts)]
+        classification = "ORIGINAL_FICTION" if source_truth == "ORIGINAL_FICTION" else "FACT"
+        claim_ids = [] if classification == "ORIGINAL_FICTION" else factual_claim_ids
+        field_evidence = {
+            field: {"classification": classification, "claim_ids": claim_ids}
+            for field in (
+                "PRIMARY_CRIME",
+                "CULPRIT",
+                "MOTIVE",
+                "METHOD",
+                "HARM_RESULT",
+                "LEGAL_OUTCOME",
+            )
+        }
+        motive_summary = (
+            "확인된 동기는 공개되지 않았다."
+            if source_truth != "ORIGINAL_FICTION" and not factual_claim_ids
+            else f"{selection.get('motive_category')} 욕구가 거절 이후 보복 선택으로 이어졌다."
+        )
+        reveal_summaries = {
+            "CULPRIT": causal[7],
+            "MOTIVE": motive_summary,
+            "METHOD": causal[2],
+            "HARM_RESULT": f"{causal[3]} 이후 {causal[4]}",
+        }
+        briefs.append(
+            {
+                "candidate_id": candidate_id,
+                "candidate_selection_sha256": canonical_json_hash(selection),
+                "primary_crime": primary,
+                "core_action_type": action,
+                "responsible_agent_structure": offender_structure,
+                "victim_structure": victim_structure,
+                "offender_role_slots": offender_slots,
+                "victim_role_slots": victim_slots,
+                "protagonist_role_slot": protagonist_slot,
+                "relationship_context": selection.get("relationship_context"),
+                "target_selection_reason": causal[0],
+                "initiating_context": f"{causal[0]}이 사건 발생 전 접근 조건을 만들었다.",
+                "trigger_event": causal[1],
+                "motive_category": selection.get("motive_category"),
+                "motive_summary": motive_summary,
+                "non_actionable_method_summary": causal[2],
+                "immediate_harm": causal[3],
+                "lasting_harm": causal[4],
+                "concealment_or_denial": causal[5],
+                "discovery_path": causal[6],
+                "responsibility_path": causal[7],
+                "central_pursuit_question": (
+                    "반복 접근과 피해를 선택한 책임 주체를 어떤 증거가 확인하는가?"
+                ),
+                "development_functions": [
+                    {
+                        "development_function_id": f"CDEV-{function_index:03d}",
+                        "function_type": function,
+                        "summary": f"{function} 기능을 인물의 선택과 결과 변화로 구현한다.",
+                        "required": True,
+                    }
+                    for function_index, function in enumerate(functions, 1)
+                ],
+                "reveal_targets": [
+                    {
+                        "reveal_target_id": f"REVEAL-TARGET-{target_index:02d}",
+                        "target_type": target_type,
+                        "summary": reveal_summaries[target_type],
+                        "planned_phase": "LATE",
+                        "planned_segment_id": None,
+                    }
+                    for target_index, target_type in enumerate(
+                        ("CULPRIT", "MOTIVE", "METHOD", "HARM_RESULT"),
+                        1,
+                    )
+                ],
+                "truth_basis": {
+                    "source_truth_classification": source_truth,
+                    "field_evidence": field_evidence,
+                },
+            }
+        )
+    return {
+        "$schema": "../../../STANDARD/schemas/candidate_event_briefs.schema.json",
+        "schema_family": "candidate-event-briefs",
+        "schema_version": "1.0.0",
+        "project_id": project_id,
+        "briefs": briefs,
+    }
+
+
 def fake_candidate_evaluation(
     project_id: str,
     variations: Mapping[str, object],
@@ -1292,68 +1712,6 @@ def true_story_case_dimensions(request: LLMRequest) -> dict[str, object]:
     return result
 
 
-def fake_crime_event_contract(
-    request: LLMRequest,
-    project_id: str,
-    source_truth: str,
-) -> dict[str, object]:
-    """승인 Candidate의 사건 개요를 Case 계약으로 그대로 결속한다."""
-    variations = context_artifact(request, "variation_candidates")
-    facts = context_artifact(request, "facts")
-    candidates = variations.get("candidates") if variations is not None else None
-    candidate_records = candidates if isinstance(candidates, list) else []
-    approved_id = variations.get("approved_candidate_id") if variations is not None else None
-    candidate = next(
-        (
-            item
-            for item in candidate_records
-            if isinstance(item, Mapping) and item.get("candidate_id") == approved_id
-        ),
-        None,
-    )
-    event = candidate.get("crime_event") if isinstance(candidate, Mapping) else None
-    if not isinstance(approved_id, str) or not isinstance(event, Mapping):
-        raise RuntimeExecutionError(
-            "RUNTIME_CONFIGURATION_ERROR",
-            False,
-            "TASK",
-            "승인 Candidate의 사건 개요가 없습니다.",
-            "story.define_crime_event",
-            "variation_candidates",
-            {},
-        )
-    fact_records = facts.get("facts") if facts is not None else None
-    normalized_fact_records = fact_records if isinstance(fact_records, list) else []
-    source_fact_ids = [
-        str(item["fact_id"])
-        for item in normalized_fact_records
-        if isinstance(item, Mapping)
-        and item.get("classification") == "FACT"
-        and isinstance(item.get("fact_id"), str)
-    ]
-    event_fields = {
-        key: deepcopy(value)
-        for key, value in event.items()
-        if key not in {"centrality", "truth_status"}
-    }
-    return {
-        "schema_family": "crime-event-contract",
-        "schema_version": "1.0.0",
-        "project_id": project_id,
-        "approved_candidate_id": approved_id,
-        "candidate_event_sha256": canonical_json_hash(event),
-        **event_fields,
-        "truth_basis": {
-            "source_truth_classification": source_truth,
-            "status": (
-                "ORIGINAL_FICTION" if source_truth == "ORIGINAL_FICTION" else "EVIDENCE_LOCKED"
-            ),
-            "source_fact_ids": ([] if source_truth == "ORIGINAL_FICTION" else source_fact_ids),
-            "unknown_fields": [],
-        },
-    }
-
-
 def true_story_character_outputs(
     request: LLMRequest,
     project_id: str,
@@ -1373,6 +1731,11 @@ def true_story_character_outputs(
             {},
         )
     characters: list[dict[str, object]] = []
+    event_brief = approved_brief_from_request(request)
+    offender_slots = event_brief.get("offender_role_slots") if event_brief is not None else []
+    victim_slots = event_brief.get("victim_role_slots") if event_brief is not None else []
+    offender_index = 0
+    victim_index = 0
     subject_to_character: dict[str, str] = {}
     knowledge_events: list[dict[str, object]] = []
     for index, raw_subject in enumerate(raw_subjects, 1):
@@ -1392,6 +1755,26 @@ def true_story_character_outputs(
             "role": cast(str, source_role),
             "source_subject_id": source_subject_id_text,
         }
+        normalized_role = cast(str, source_role).upper()
+        crime_role_slots: list[str] = []
+        if (
+            "OFFENDER" in normalized_role
+            and isinstance(offender_slots, list)
+            and offender_index < len(offender_slots)
+            and isinstance(offender_slots[offender_index], str)
+        ):
+            crime_role_slots.append(cast(str, offender_slots[offender_index]))
+            offender_index += 1
+        if (
+            "VICTIM" in normalized_role
+            and isinstance(victim_slots, list)
+            and victim_index < len(victim_slots)
+            and isinstance(victim_slots[victim_index], str)
+        ):
+            crime_role_slots.append(cast(str, victim_slots[victim_index]))
+            victim_index += 1
+        if crime_role_slots:
+            character["crime_role_slots"] = crime_role_slots
         if fake_production_footprint_enabled(request):
             character["production_role"] = "MAJOR"
         characters.append(character)
@@ -1406,6 +1789,22 @@ def true_story_character_outputs(
                             "learned_scene_order": min(fact_order, 2),
                         }
                     )
+    if event_brief is not None:
+        protagonist_slot = event_brief.get("protagonist_role_slot")
+        first_victim_slot = (
+            victim_slots[0]
+            if isinstance(victim_slots, list) and victim_slots and isinstance(victim_slots[0], str)
+            else None
+        )
+        for character in characters:
+            raw_slots = character.get("crime_role_slots")
+            if (
+                isinstance(protagonist_slot, str)
+                and isinstance(raw_slots, list)
+                and first_victim_slot in raw_slots
+            ):
+                raw_slots.append(protagonist_slot)
+                break
     raw_relationships = (
         truth_contract.get("verified_relationships") if truth_contract is not None else None
     )
@@ -1540,6 +1939,195 @@ def true_story_timeline_and_causal_graph(
     return {"project_id": project_id, "events": timeline_events}, causal_graph
 
 
+def crime_trace_artifacts(
+    project_id: str,
+    contract: Mapping[str, object],
+    facts: Mapping[str, object],
+    base_timeline: Mapping[str, object] | None,
+    base_causal_graph: Mapping[str, object] | None,
+) -> tuple[dict[str, object], dict[str, object], dict[str, object]]:
+    """최종 사건 계약을 Timeline·Causal Graph·Viewer Reveal로 투영한다."""
+    raw_base_events = base_timeline.get("events") if base_timeline is not None else None
+    base_events = [deepcopy(dict(event)) for event in mapping_values(raw_base_events)]
+    start_minute = max(
+        (
+            int(end_minute)
+            for event in base_events
+            if isinstance((end_minute := event.get("end_minute")), int | float)
+        ),
+        default=0,
+    )
+    event_id = str(contract.get("event_id"))
+    actor_ids = string_values(contract.get("actor_ids"))
+    victim_ids = string_values(contract.get("victim_ids"))
+    harm_ids = string_values(contract.get("harm_ids"))
+    trace_events: list[dict[str, object]] = [
+        {
+            "event_id": f"EVT-{len(base_events) + 1:02d}",
+            "crime_event_id": event_id,
+            "actor_ids": actor_ids,
+            "victim_ids": victim_ids,
+            "harm_ids": [],
+            "event_type": "MOTIVE_OR_TRIGGER",
+            "start_minute": start_minute,
+            "end_minute": start_minute + 3,
+            "location_id": "PRIMARY_LOCATION",
+            "participant_ids": sorted(set(actor_ids + victim_ids)),
+            "description": str(contract.get("trigger_event")),
+        },
+        {
+            "event_id": f"EVT-{len(base_events) + 2:02d}",
+            "crime_event_id": event_id,
+            "actor_ids": actor_ids,
+            "victim_ids": victim_ids,
+            "harm_ids": harm_ids,
+            "event_type": "CRIME_EVENT",
+            "start_minute": start_minute + 3,
+            "end_minute": start_minute + 7,
+            "location_id": "PRIMARY_LOCATION",
+            "participant_ids": sorted(set(actor_ids + victim_ids)),
+            "description": str(contract.get("non_actionable_method_summary")),
+        },
+        {
+            "event_id": f"EVT-{len(base_events) + 3:02d}",
+            "crime_event_id": event_id,
+            "actor_ids": actor_ids,
+            "victim_ids": victim_ids,
+            "harm_ids": harm_ids,
+            "event_type": "HARM_RESULT",
+            "start_minute": start_minute + 7,
+            "end_minute": start_minute + 10,
+            "location_id": "PRIMARY_LOCATION",
+            "participant_ids": victim_ids,
+            "description": (f"{contract.get('immediate_harm')} / {contract.get('lasting_harm')}"),
+        },
+    ]
+    raw_facts = facts.get("facts")
+    fact_ids = [
+        str(fact.get("fact_id"))
+        for fact in mapping_values(raw_facts)
+        if isinstance(fact.get("fact_id"), str)
+    ]
+    if not fact_ids:
+        fact_ids = ["FACT-01"]
+    reveal_targets = mapping_values(contract.get("reveal_targets"))
+    viewer: dict[str, object] = {
+        "project_id": project_id,
+        "reveals": [
+            {
+                "reveal_id": "REV-01",
+                "scene_id": "SCN-01",
+                "fact_id": fact_ids[0],
+                "information": "첫 장면에서 관찰 가능한 사건 단서",
+                "effect": "초기 가설을 형성한다.",
+            },
+            {
+                "reveal_id": "REV-02",
+                "scene_id": "SCN-02",
+                "fact_id": fact_ids[min(1, len(fact_ids) - 1)],
+                "information": "두 번째 장면에서 확인되는 사건 단서",
+                "effect": "초기 가설을 수정한다.",
+            },
+            *[
+                {
+                    "reveal_id": f"REV-{index + 2:02d}",
+                    "scene_id": "SCN-02",
+                    "fact_id": fact_ids[(index - 1) % len(fact_ids)],
+                    "reveal_target_id": target.get("reveal_target_id"),
+                    "target_type": target.get("target_type"),
+                    "intentional_prereveal": False,
+                    "information": target.get("summary"),
+                    "effect": "후반 공개가 사건의 책임과 결과를 확정한다.",
+                }
+                for index, target in enumerate(reveal_targets, 1)
+            ],
+        ],
+    }
+    raw_base_nodes = base_causal_graph.get("nodes") if base_causal_graph is not None else None
+    raw_base_edges = base_causal_graph.get("edges") if base_causal_graph is not None else None
+    base_nodes = [deepcopy(dict(node)) for node in mapping_values(raw_base_nodes)]
+    base_edges = [deepcopy(dict(edge)) for edge in mapping_values(raw_base_edges)]
+    if not any(node.get("type") == "ROOT_CAUSE" for node in base_nodes):
+        base_nodes.insert(0, {"node_id": "ROOT-01", "type": "ROOT_CAUSE"})
+    if not any(node.get("type") == "RESOLUTION" for node in base_nodes):
+        base_nodes.append({"node_id": "RESOLUTION-01", "type": "RESOLUTION"})
+    root_id = str(next(node["node_id"] for node in base_nodes if node.get("type") == "ROOT_CAUSE"))
+    resolution_id = str(
+        next(node["node_id"] for node in base_nodes if node.get("type") == "RESOLUTION")
+    )
+    trace_nodes: list[dict[str, object]] = [
+        {
+            "node_id": "MOTIVE-01",
+            "type": "MOTIVE_OR_TRIGGER",
+            "crime_event_id": event_id,
+        },
+        {
+            "node_id": "CRIME-01",
+            "type": "CRIME_EVENT",
+            "crime_event_id": event_id,
+            "actor_ids": actor_ids,
+            "victim_ids": victim_ids,
+            "harm_ids": harm_ids,
+        },
+        {
+            "node_id": "HARM-01",
+            "type": "HARM_RESULT",
+            "crime_event_id": event_id,
+            "harm_ids": harm_ids,
+        },
+        {
+            "node_id": "DENIAL-01",
+            "type": "CONCEALMENT_OR_DENIAL",
+            "crime_event_id": event_id,
+        },
+        {
+            "node_id": "DISCOVERY-01",
+            "type": "DISCOVERY_PATH",
+            "crime_event_id": event_id,
+        },
+        {
+            "node_id": "RESPONSIBILITY-01",
+            "type": "RESPONSIBILITY_CONFIRMATION",
+            "crime_event_id": event_id,
+        },
+    ]
+    trace_edges: list[dict[str, object]] = [
+        {"from": root_id, "to": "MOTIVE-01"},
+        {"from": "MOTIVE-01", "to": "CRIME-01"},
+        {"from": "CRIME-01", "to": "HARM-01"},
+        {"from": "HARM-01", "to": "DENIAL-01"},
+        {"from": "DENIAL-01", "to": "DISCOVERY-01"},
+        {"from": "DISCOVERY-01", "to": "RESPONSIBILITY-01"},
+        {"from": "RESPONSIBILITY-01", "to": resolution_id},
+    ]
+    causal: dict[str, object] = {
+        "project_id": project_id,
+        "nodes": [*base_nodes, *trace_nodes],
+        "edges": [*base_edges, *trace_edges],
+        "fingerprint": (
+            deepcopy(base_causal_graph.get("fingerprint"))
+            if base_causal_graph is not None
+            else {
+                "root_cause": "OFFENDER_CHOICE",
+                "mechanism": "INTERPERSONAL_CRIME",
+                "concealment": "DENIAL_OR_CONCEALMENT",
+                "discovery_path": "CORROBORATED_DISCOVERY",
+                "resolution": "RESPONSIBILITY_CONFIRMED",
+            }
+        ),
+        "semantic_normalization": (
+            deepcopy(base_causal_graph.get("semantic_normalization"))
+            if base_causal_graph is not None
+            else {
+                "normalized_roles": ["OFFENDER", "VICTIM", "PROTAGONIST"],
+                "character_function_chain": ["THREAT", "HARM", "DISCOVERY"],
+                "audience_hypothesis_transitions": ["SUSPICION", "PROOF", "RESPONSIBILITY"],
+            }
+        ),
+    }
+    return {"project_id": project_id, "events": [*base_events, *trace_events]}, viewer, causal
+
+
 def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, object]]:
     """Task ID를 검증 가능한 Agent Artifact Fixture에 대응한다."""
     metadata = request.metadata
@@ -1560,6 +2148,14 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             None,
             {},
         )
+    if task_id == "variation.elaborate_crime_events":
+        return [
+            {
+                "artifact_name": "candidate_event_briefs",
+                "media_type": "application/json",
+                "content": fake_candidate_event_briefs(request, project_id, source_truth),
+            }
+        ]
     if task_id == "variation.evaluate":
         variations = context_artifact(request, "variation_candidates")
         novelty_precheck = context_artifact(request, "novelty_precheck")
@@ -1601,6 +2197,10 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
         ]
     if task_id == "story.define_case":
         selected = approved_selection(metadata)
+        event_brief = approved_brief_from_request(request)
+        planned_bindings = (
+            planned_character_bindings(event_brief) if event_brief is not None else {}
+        )
         verified_case_fields: dict[str, object] = {}
         if source_truth in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}:
             ledger = context_artifact(request, "verified_fact_ledger")
@@ -1615,13 +2215,34 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     "verified_fact_ledger",
                     {},
                 )
-            facts = [dict(fact) for fact in ledger_facts if isinstance(fact, Mapping)]
+            crime_fact_types = ("CRIME_ACTION", "HARM_RESULT", "MOTIVE_STATUS", "RESPONSIBILITY")
+            ledger_fact_records = mapping_values(ledger_facts)
+            facts = [dict(fact) for fact in ledger_fact_records]
             verified_case_fields = true_story_case_dimensions(request)
         else:
             statements = (
-                "기계 로그에 7분 공백이 있다.",
-                "안전 센서는 점검 모드였다.",
+                (
+                    str(event_brief.get("non_actionable_method_summary"))
+                    if event_brief is not None
+                    else "반복 접근 뒤 비선정적 범죄 행위가 발생했다."
+                ),
+                (
+                    str(event_brief.get("immediate_harm"))
+                    if event_brief is not None
+                    else "피해자는 즉각적인 안전 상실을 겪었다."
+                ),
+                (
+                    str(event_brief.get("motive_summary"))
+                    if event_brief is not None
+                    else "행위자의 보복 동기가 사건을 촉발했다."
+                ),
+                (
+                    str(event_brief.get("responsibility_path"))
+                    if event_brief is not None
+                    else "독립된 기록이 책임 주체를 확인했다."
+                ),
             )
+            crime_fact_types = ("CRIME_ACTION", "HARM_RESULT", "MOTIVE_STATUS", "RESPONSIBILITY")
             facts = [
                 {
                     "fact_id": f"FACT-{index:02d}",
@@ -1633,9 +2254,21 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     "source_ids": [],
                     "basis_fact_ids": [],
                     "presented_as_fact": False,
+                    "crime_fact_type": crime_fact_types[index - 1],
+                    "crime_fact_types": [crime_fact_types[index - 1]],
                 }
                 for index, statement in enumerate(statements, 1)
             ]
+        trace_fact_ids = [
+            str(fact.get("fact_id")) for fact in facts if isinstance(fact.get("fact_id"), str)
+        ]
+        crime_fact_trace = [
+            {
+                "crime_fact_type": crime_fact_type,
+                "fact_ids": [trace_fact_ids[index % len(trace_fact_ids)]],
+            }
+            for index, crime_fact_type in enumerate(crime_fact_types)
+        ]
         return [
             {
                 "artifact_name": "case_input",
@@ -1650,11 +2283,25 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                         if source_truth == "INSPIRED_BY_TRUE_EVENTS"
                         else "FICTION"
                     ),
-                    "central_mystery": "작업자는 언제 통제 구역을 벗어났는가?",
-                    "final_truth": "작업자는 정지한 이송 설비의 점검 공간에 갇혔다.",
-                    "causal_truth": "센서 차단과 교대 기록 오류가 구조 지연을 만들었다.",
+                    "central_mystery": (
+                        event_brief.get("central_pursuit_question")
+                        if event_brief is not None
+                        else "작업자는 언제 통제 구역을 벗어났는가?"
+                    ),
+                    "final_truth": (
+                        event_brief.get("responsibility_path")
+                        if event_brief is not None
+                        else "작업자는 정지한 이송 설비의 점검 공간에 갇혔다."
+                    ),
+                    "causal_truth": (
+                        f"{event_brief.get('trigger_event')} 이후 "
+                        f"{event_brief.get('non_actionable_method_summary')}"
+                        if event_brief is not None
+                        else "센서 차단과 교대 기록 오류가 구조 지연을 만들었다."
+                    ),
                     "incident_type": verified_case_fields.get(
-                        "incident_type", selected["incident_type"]
+                        "incident_type",
+                        selected.get("primary_crime", selected.get("incident_type")),
                     ),
                     "setting": verified_case_fields.get("setting", selected["setting"]),
                     **{
@@ -1662,8 +2309,35 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                         for key, value in verified_case_fields.items()
                         if key not in {"incident_type", "setting"}
                     },
-                    "culprit": None,
-                    "culprit_motive": None,
+                    "primary_crime": event_brief.get("primary_crime") if event_brief else None,
+                    "responsible_actor_ids": [
+                        planned_bindings[slot]
+                        for slot in string_values(event_brief.get("offender_role_slots"))
+                        if slot in planned_bindings
+                    ]
+                    if event_brief
+                    else [],
+                    "victim_ids": [
+                        planned_bindings[slot]
+                        for slot in string_values(event_brief.get("victim_role_slots"))
+                        if slot in planned_bindings
+                    ]
+                    if event_brief
+                    else [],
+                    "motive_summary": event_brief.get("motive_summary") if event_brief else None,
+                    "crime_method_summary": (
+                        event_brief.get("non_actionable_method_summary") if event_brief else None
+                    ),
+                    "harm_result": (
+                        f"{event_brief.get('immediate_harm')} / {event_brief.get('lasting_harm')}"
+                        if event_brief
+                        else None
+                    ),
+                    "final_case_truth": (
+                        event_brief.get("responsibility_path") if event_brief else None
+                    ),
+                    "culprit": ("ROLE_BOUND_AFTER_CHARACTER_DESIGN" if event_brief else None),
+                    "culprit_motive": (event_brief.get("motive_summary") if event_brief else None),
                     "restrictions": [],
                 },
             },
@@ -1673,6 +2347,7 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "content": {
                     "project_id": project_id,
                     "facts": facts,
+                    "crime_fact_trace": crime_fact_trace,
                 },
             },
         ]
@@ -1754,18 +2429,6 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 },
             }
         ]
-    if task_id == "story.define_crime_event":
-        return [
-            {
-                "artifact_name": "crime_event_contract",
-                "media_type": "application/json",
-                "content": fake_crime_event_contract(
-                    request,
-                    project_id,
-                    source_truth,
-                ),
-            }
-        ]
     if task_id == "character.design":
         if source_truth in {"VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"}:
             characters, relationships, knowledge = true_story_character_outputs(
@@ -1789,14 +2452,46 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     "content": knowledge,
                 },
             ]
-        default_characters: list[dict[str, object]] = [
-            {"character_id": "CHAR-01", "name": "지안", "role": "SUSPECT"},
-            {"character_id": "CHAR-02", "name": "태호", "role": "MISSING_COWORKER"},
-        ]
+        event_brief = approved_brief_from_request(request)
+        if event_brief is None:
+            default_characters: list[dict[str, object]] = [
+                {"character_id": "CHAR-01", "name": "지안", "role": "SUSPECT"},
+                {"character_id": "CHAR-02", "name": "태호", "role": "MISSING_COWORKER"},
+            ]
+        else:
+            bindings = planned_character_bindings(event_brief)
+            slots_by_character: dict[str, list[str]] = {}
+            for role_slot, character_id in bindings.items():
+                slots_by_character.setdefault(character_id, []).append(role_slot)
+            default_characters = [
+                {
+                    "character_id": character_id,
+                    "name": f"인물 {index}",
+                    "role": role_slots_for_character[0].partition("-")[0],
+                    "crime_role_slots": role_slots_for_character,
+                }
+                for index, (character_id, role_slots_for_character) in enumerate(
+                    sorted(slots_by_character.items()),
+                    1,
+                )
+            ]
         if fake_production_footprint_enabled(request):
             default_characters = [
                 {**character, "production_role": "MAJOR"} for character in default_characters
             ]
+        offender_slots = event_brief.get("offender_role_slots") if event_brief is not None else None
+        victim_slots = event_brief.get("victim_role_slots") if event_brief is not None else None
+        bindings = planned_character_bindings(event_brief) if event_brief is not None else {}
+        relationship_from = (
+            bindings.get(str(offender_slots[0]))
+            if isinstance(offender_slots, list) and offender_slots
+            else None
+        )
+        relationship_to = (
+            bindings.get(str(victim_slots[0]))
+            if isinstance(victim_slots, list) and victim_slots
+            else None
+        )
         return [
             {
                 "artifact_name": "characters",
@@ -1814,9 +2509,13 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     "relationships": [
                         {
                             "relationship_id": "REL-01",
-                            "from": "CHAR-01",
-                            "to": "CHAR-02",
-                            "engine": "TRUST_TO_RESPONSIBILITY",
+                            "from": relationship_from or str(default_characters[0]["character_id"]),
+                            "to": relationship_to or str(default_characters[-1]["character_id"]),
+                            "engine": (
+                                str(event_brief.get("relationship_context"))
+                                if event_brief is not None
+                                else "TRUST_TO_RESPONSIBILITY"
+                            ),
                         }
                     ],
                 },
@@ -1827,8 +2526,16 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "content": {
                     "project_id": project_id,
                     "knowledge_events": [
-                        {"character_id": "CHAR-01", "fact_id": "FACT-01", "learned_scene_order": 1},
-                        {"character_id": "CHAR-01", "fact_id": "FACT-02", "learned_scene_order": 2},
+                        {
+                            "character_id": str(default_characters[0]["character_id"]),
+                            "fact_id": "FACT-01",
+                            "learned_scene_order": 1,
+                        },
+                        {
+                            "character_id": str(default_characters[0]["character_id"]),
+                            "fact_id": "FACT-02",
+                            "learned_scene_order": 2,
+                        },
                     ],
                 },
             },
@@ -1842,11 +2549,26 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 request,
                 project_id,
             )
+        crime_event = context_artifact(request, "crime_event_contract")
+        fact_document = context_artifact(request, "facts")
+        trace_timeline: dict[str, object] | None = None
+        trace_viewer: dict[str, object] | None = None
+        trace_causal: dict[str, object] | None = None
+        if crime_event is not None and fact_document is not None:
+            trace_timeline, trace_viewer, trace_causal = crime_trace_artifacts(
+                project_id,
+                crime_event,
+                fact_document,
+                truth_timeline,
+                truth_causal_graph,
+            )
         return [
             {
                 "artifact_name": "actual_timeline",
                 "media_type": "application/json",
-                "content": truth_timeline
+                "content": trace_timeline
+                if trace_timeline is not None
+                else truth_timeline
                 if truth_timeline is not None
                 else {
                     "project_id": project_id,
@@ -1871,7 +2593,9 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             {
                 "artifact_name": "viewer_timeline",
                 "media_type": "application/json",
-                "content": {
+                "content": trace_viewer
+                if trace_viewer is not None
+                else {
                     "project_id": project_id,
                     "reveals": [
                         {
@@ -1965,7 +2689,9 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             {
                 "artifact_name": "causal_graph",
                 "media_type": "application/json",
-                "content": truth_causal_graph
+                "content": trace_causal
+                if trace_causal is not None
+                else truth_causal_graph
                 if truth_causal_graph is not None
                 else {
                     "project_id": project_id,
@@ -2065,13 +2791,19 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     "harm_ids": deepcopy(crime_event.get("harm_ids")),
                     "actor_ids": deepcopy(crime_event.get("actor_ids")),
                     "victim_ids": deepcopy(crime_event.get("victim_ids")),
+                    "development_function_ids": [
+                        str(function["development_function_id"])
+                        for function in mapping_values(crime_event.get("development_functions"))
+                        if isinstance(function.get("development_function_id"), str)
+                        and function.get("required") is True
+                    ],
                     "realization_mode": realization_mode,
                     "action_evidence": "행위자의 구체 행동이 피해 발생의 직접 원인으로 보인다.",
                     "dialogue_or_behavior_evidence": "피해자가 위험을 인지하고 즉시 반응한다.",
                     "choice_or_emotion_change": "피해자의 판단이 안전 확보 행동으로 바뀐다.",
                     "result_change": "사건 전후의 신체·자유·안전 상태가 달라진다.",
                     "planned_segment_ids": ["SEG-005"],
-                    "expected_excerpt_anchor": "CRIME_EVENT Marker와 피해 인과",
+                    "expected_excerpt_anchor": "CRIME_TRACE 비가시 추적 정보와 피해 인과",
                 }
             ]
         if fake_production_footprint_enabled(request):

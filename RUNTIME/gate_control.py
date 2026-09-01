@@ -5,6 +5,11 @@ from collections.abc import Mapping, Sequence
 from VALIDATORS.candidate_approval import validate_candidate_approval
 from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_event_briefs import (
+    approved_event_brief,
+    validate_candidate_event_briefs,
+    validate_candidate_event_case_projection,
+)
 from VALIDATORS.candidate_projection import (
     validate_approved_candidate_projection,
     validate_final_story_constraints,
@@ -20,9 +25,12 @@ from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.crime_event import (
     validate_channel_crime_evidence,
     validate_crime_event_contract,
+    validate_crime_event_traceability,
+    validate_crime_role_bindings,
     validate_crime_script_realization_report,
     validate_scene_crime_realization,
     validate_script_crime_realization,
+    validate_truth_basis,
 )
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
@@ -189,8 +197,26 @@ def validate_gate(
         candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
         approval = artifact_document(artifacts, "candidate_approval")
         precheck = artifact_document(artifacts, "novelty_precheck")
+        event_briefs = optional_artifact_document(artifacts, "candidate_event_briefs")
         issues = [
             *validate_variation_gate(variations, channel),
+            *required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("candidate_event_briefs",),
+            ),
+            *optional_schema_issues(
+                artifacts,
+                "candidate_event_briefs",
+                presentation_schemas["candidate_event_briefs"],
+                "00_PROJECT/candidate_event_briefs.json",
+            ),
+            *(
+                validate_candidate_event_briefs(variations, event_briefs)
+                if "candidate_event_briefs" in artifacts
+                else []
+            ),
             *schema_issues(
                 eligibility,
                 presentation_schemas["candidate_eligibility"],
@@ -261,6 +287,7 @@ def validate_gate(
                 variations,
                 presentation_schemas["candidate_projection_contract"],
                 {"story_dna": story},
+                channel,
             ),
             *(
                 validate_truth_dimensions(
@@ -281,10 +308,9 @@ def validate_gate(
     sources = artifact_document(artifacts, "sources")
     claims = artifact_document(artifacts, "claim_evidence")
     if gate_id == "GATE-03":
-        crime_event_contract = optional_artifact_document(
-            artifacts,
-            "crime_event_contract",
-        )
+        variations = artifact_document(artifacts, "variation_candidates")
+        event_briefs = optional_artifact_document(artifacts, "candidate_event_briefs")
+        approved_brief = approved_event_brief(variations, event_briefs)
         issues = [
             *nonempty_string_issues(
                 case_input,
@@ -292,25 +318,6 @@ def validate_gate(
                 "01_CASE/case_input.json",
             ),
             *nonempty_list_issues(facts, "facts", "01_CASE/facts.json"),
-            *required_channel_artifact_issues(
-                artifacts,
-                production_config,
-                channel,
-                ("crime_event_contract",),
-            ),
-            *optional_schema_issues(
-                artifacts,
-                "crime_event_contract",
-                presentation_schemas["crime_event_contract"],
-                "01_CASE/crime_event_contract.json",
-            ),
-            *validate_crime_event_contract(
-                channel,
-                production_config,
-                artifact_document(artifacts, "variation_candidates"),
-                crime_event_contract,
-                facts,
-            ),
             *optional_schema_issues(
                 artifacts,
                 "crime_psychology",
@@ -328,6 +335,17 @@ def validate_gate(
                 "clinical_labels",
                 presentation_schemas["clinical_labels"],
                 "01_CASE/clinical_labels.json",
+            ),
+            *validate_candidate_event_case_projection(
+                variations,
+                event_briefs,
+                case_input,
+                facts,
+            ),
+            *(
+                validate_truth_basis(production_config, approved_brief, facts)
+                if approved_brief is not None
+                else []
             ),
         ]
         source_truth = production_config.get("source_truth_classification")
@@ -361,16 +379,12 @@ def validate_gate(
                     "story_dna": story,
                     "case_input": case_input,
                     **(
-                        {"crime_event_contract": artifacts["crime_event_contract"]}
-                        if "crime_event_contract" in artifacts
-                        else {}
-                    ),
-                    **(
                         {"crime_psychology": artifacts["crime_psychology"]}
                         if "crime_psychology" in artifacts
                         else {}
                     ),
                 },
+                channel,
             )
         )
         return issues
@@ -385,6 +399,30 @@ def validate_gate(
             ),
             *nonempty_list_issues(
                 knowledge, "knowledge_events", "02_CHARACTER/knowledge_matrix.json"
+            ),
+            *required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("crime_event_contract",),
+            ),
+            *optional_schema_issues(
+                artifacts,
+                "crime_event_contract",
+                presentation_schemas["crime_event_contract"],
+                "01_CASE/crime_event_contract.json",
+            ),
+            *validate_crime_event_contract(
+                channel,
+                production_config,
+                artifact_document(artifacts, "variation_candidates"),
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                facts,
+                optional_artifact_document(artifacts, "candidate_event_briefs"),
+            ),
+            *validate_crime_role_bindings(
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                characters,
             ),
         ]
         if source_truth_requires_evidence(production_config.get("source_truth_classification")):
@@ -424,6 +462,15 @@ def validate_gate(
             *nonempty_list_issues(causal, "nodes", "04_MYSTERY/causal_graph.json"),
             *nonempty_list_issues(causal, "edges", "04_MYSTERY/causal_graph.json"),
             *validate_causal_graph(causal),
+            *validate_crime_event_traceability(
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                characters,
+                case_input,
+                facts,
+                actual,
+                causal,
+                viewer,
+            ),
             *validate_approved_candidate_projection(
                 production_config,
                 artifact_document(artifacts, "variation_candidates"),
@@ -438,6 +485,7 @@ def validate_gate(
                         else {}
                     ),
                 },
+                channel,
             ),
         ]
         if source_truth_requires_evidence(production_config.get("source_truth_classification")):
@@ -707,11 +755,22 @@ def validate_gate(
                 channel,
                 build_channel_policy_inputs(artifacts),
             ),
+            *validate_panel_design_realization(
+                channel,
+                reaction_segments,
+                presentation,
+            ),
+            *validate_panel_script_density(
+                channel,
+                reaction_segments,
+                artifact_text(artifacts, "panel_reaction_script"),
+            ),
             *validate_approved_candidate_projection(
                 production_config,
                 artifact_document(artifacts, "variation_candidates"),
                 presentation_schemas["candidate_projection_contract"],
                 artifacts,
+                channel,
             ),
             *validate_final_story_constraints(
                 artifact_document(artifacts, "project_constraints"),

@@ -63,29 +63,35 @@
       "depends_on": ["production_config", "project_constraints", "reference_profile", "source_case_brief", "source_truth_contract"],
       "owner_agent": "variation_designer"
     },
+    "candidate_event_briefs": {
+      "path": "00_PROJECT/candidate_event_briefs.json",
+      "depends_on": ["production_config", "variation_candidates", "source_truth_contract", "verified_fact_ledger"],
+      "owner_agent": "variation_designer",
+      "required_when": {"capability_enabled": "EXPLICIT_CRIME_EVENT_POLICY"}
+    },
     "candidate_evaluation": {
       "path": "00_PROJECT/candidate_evaluation.json",
-      "depends_on": ["production_config", "variation_candidates", "novelty_precheck", "candidate_eligibility"],
+      "depends_on": ["production_config", "variation_candidates", "candidate_event_briefs", "novelty_precheck", "candidate_eligibility"],
       "owner_agent": "variation_designer"
     },
     "candidate_approval": {
       "path": "00_PROJECT/candidate_approval.json",
-      "depends_on": ["variation_candidates", "novelty_precheck", "candidate_eligibility", "candidate_evaluation"],
+      "depends_on": ["variation_candidates", "candidate_event_briefs", "novelty_precheck", "candidate_eligibility", "candidate_evaluation"],
       "owner_agent": "orchestrator"
     },
     "novelty_precheck": {
       "path": "08_QA/novelty_precheck.json",
-      "depends_on": ["variation_candidates"],
+      "depends_on": ["variation_candidates", "candidate_event_briefs"],
       "owner_agent": "novelty_auditor"
     },
     "candidate_eligibility": {
       "path": "08_QA/candidate_eligibility.json",
-      "depends_on": ["production_config", "project_constraints", "compatibility_report", "variation_candidates", "novelty_precheck"],
+      "depends_on": ["production_config", "project_constraints", "compatibility_report", "variation_candidates", "candidate_event_briefs", "novelty_precheck"],
       "owner_agent": "orchestrator"
     },
     "story_dna": {
       "path": "00_PROJECT/story_dna.json",
-      "depends_on": ["reference_profile", "verified_fact_ledger", "source_truth_contract", "variation_candidates", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "novelty_precheck"],
+      "depends_on": ["reference_profile", "verified_fact_ledger", "source_truth_contract", "variation_candidates", "candidate_event_briefs", "candidate_evaluation", "candidate_eligibility", "candidate_approval", "novelty_precheck"],
       "owner_agent": "story_architect"
     },
     "story_fingerprint": {
@@ -95,7 +101,7 @@
     },
     "case_input": {
       "path": "01_CASE/case_input.json",
-      "depends_on": ["story_dna", "source_truth_contract"],
+      "depends_on": ["story_dna", "variation_candidates", "candidate_event_briefs", "source_truth_contract"],
       "owner_agent": "story_architect"
     },
     "facts": {
@@ -105,7 +111,7 @@
     },
     "crime_event_contract": {
       "path": "01_CASE/crime_event_contract.json",
-      "depends_on": ["production_config", "variation_candidates", "candidate_approval", "story_dna", "case_input", "facts", "source_truth_contract"],
+      "depends_on": ["production_config", "variation_candidates", "candidate_event_briefs", "candidate_approval", "story_dna", "case_input", "facts", "characters", "relationships", "source_truth_contract"],
       "owner_agent": "story_architect",
       "required_when": {"capability_enabled": "EXPLICIT_CRIME_EVENT_POLICY"}
     },
@@ -113,7 +119,7 @@
       "path": "01_CASE/crime_psychology.json",
       "depends_on": ["case_input", "facts", "story_dna"],
       "owner_agent": "story_architect",
-      "required_when": {"all": [{"channel_version_at_least": "2.0.0"}, {"capability_enabled": "CRIME_PSYCHOLOGY_POLICY"}]}
+      "required_when": {"capability_enabled": "CRIME_PSYCHOLOGY_POLICY"}
     },
     "sources": {
       "path": "01_CASE/sources.json",
@@ -139,7 +145,7 @@
     },
     "characters": {
       "path": "02_CHARACTER/characters.json",
-      "depends_on": ["case_input", "story_dna", "source_subjects", "source_truth_contract"],
+      "depends_on": ["case_input", "story_dna", "variation_candidates", "candidate_event_briefs", "source_subjects", "source_truth_contract"],
       "owner_agent": "character_designer"
     },
     "relationships": {
@@ -154,12 +160,12 @@
     },
     "actual_timeline": {
       "path": "03_TIMELINE/actual_timeline.json",
-      "depends_on": ["case_input", "characters", "verified_event_ledger", "source_truth_contract"],
+      "depends_on": ["case_input", "crime_event_contract", "characters", "verified_event_ledger", "source_truth_contract"],
       "owner_agent": "mystery_designer"
     },
     "viewer_timeline": {
       "path": "03_TIMELINE/viewer_timeline.json",
-      "depends_on": ["actual_timeline", "knowledge_matrix"],
+      "depends_on": ["actual_timeline", "crime_event_contract", "knowledge_matrix"],
       "owner_agent": "mystery_designer"
     },
     "audience_belief": {
@@ -179,7 +185,7 @@
     },
     "causal_graph": {
       "path": "04_MYSTERY/causal_graph.json",
-      "depends_on": ["actual_timeline", "facts"],
+      "depends_on": ["actual_timeline", "crime_event_contract", "facts"],
       "owner_agent": "mystery_designer"
     },
     "beat_sheet": {

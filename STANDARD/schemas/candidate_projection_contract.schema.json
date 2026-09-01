@@ -26,6 +26,32 @@
           "type": "array",
           "minItems": 1,
           "items": {"$ref": "#/$defs/target"}
+        },
+        "engine_overrides": {
+          "type": "object",
+          "propertyNames": {"pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+          "additionalProperties": {"$ref": "#/$defs/override"}
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"classification": {"const": "PROJECTED"}}},
+          "then": {"required": ["targets"]},
+          "else": {"required": ["reason"], "not": {"required": ["targets"]}}
+        }
+      ]
+    },
+    "override": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification"],
+      "properties": {
+        "classification": {"enum": ["PROJECTED", "ADVISORY", "NON_PROJECTABLE"]},
+        "reason": {"type": "string", "minLength": 1},
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/target"}
         }
       },
       "allOf": [

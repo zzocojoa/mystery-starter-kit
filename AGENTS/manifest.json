@@ -14,6 +14,7 @@
         "project_constraints",
         "reference_profile",
         "variation_candidates",
+        "candidate_event_briefs",
         "candidate_evaluation",
         "candidate_eligibility",
         "candidate_approval",
@@ -107,14 +108,17 @@
         "project_constraints",
         "source_case_brief",
         "source_truth_contract",
+        "verified_fact_ledger",
         "reference_profile",
         "variation_candidates",
+        "candidate_event_briefs",
         "novelty_precheck",
         "candidate_eligibility",
         "candidate_evaluation"
       ],
       "writes": [
         "variation_candidates",
+        "candidate_event_briefs",
         "candidate_evaluation"
       ],
       "gates": [
@@ -137,6 +141,7 @@
         "source_truth_contract",
         "reference_profile",
         "variation_candidates",
+        "candidate_event_briefs",
         "candidate_evaluation",
         "candidate_eligibility",
         "candidate_approval",
@@ -145,6 +150,7 @@
         "facts",
         "crime_event_contract",
         "characters",
+        "relationships",
         "viewer_timeline",
         "clue_matrix",
         "crime_psychology",
@@ -164,6 +170,7 @@
       "gates": [
         "GATE-02",
         "GATE-03",
+        "GATE-04",
         "GATE-06"
       ],
       "requires_agents": [
@@ -179,7 +186,8 @@
         "case_input",
         "story_dna",
         "facts",
-        "crime_event_contract",
+        "candidate_event_briefs",
+        "variation_candidates",
         "source_subjects",
         "source_truth_contract",
         "project_constraints"
@@ -372,6 +380,7 @@
       "stage": 9,
       "reads": [
         "variation_candidates",
+        "candidate_event_briefs",
         "candidate_evaluation",
         "story_dna",
         "story_fingerprint",

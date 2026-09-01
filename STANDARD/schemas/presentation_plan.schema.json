@@ -151,6 +151,11 @@
           "uniqueItems": true,
           "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
         },
+        "crime_development_function_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^CDEV-[0-9]{3,}$"}
+        },
         "narration_function": {
           "type": "string",
           "pattern": "^[A-Z][A-Z0-9_]*$"

@@ -64,7 +64,18 @@ def event_outline(primary_crime: str = "ASSAULT") -> dict[str, object]:
         "protagonist_goal": "SURVIVE_OR_ESCAPE",
         "protagonist_risk": "PHYSICAL_HARM",
         "depiction_mode": "IMPLIED",
-        "development_functions": functions,
+        "non_actionable_method_summary": "행위자가 퇴로를 막고 비선정적 폭력을 가했다.",
+        "immediate_harm": "피해자는 치료가 필요한 상해를 입었다.",
+        "lasting_harm": "피해자는 일상 공간에 돌아가지 못하는 불안을 겪었다.",
+        "development_functions": [
+            {
+                "development_function_id": f"CDEV-{index:03d}",
+                "function_type": function,
+                "summary": f"{function} 기능을 행동과 결과로 구현한다.",
+                "required": True,
+            }
+            for index, function in enumerate(functions, 1)
+        ],
         "reveal_targets": [
             {
                 "reveal_target_id": f"REVEAL-TARGET-{index:02d}",
@@ -138,6 +149,12 @@ def presentation_plan() -> dict[str, object]:
             segment["narrator_character_id"] = "CHAR-02"
             segment["narration_function"] = "EMOTIONAL_CONTINUITY"
         if index == 5:
+            segment["crime_development_function_ids"] = [
+                "CDEV-001",
+                "CDEV-002",
+                "CDEV-003",
+                "CDEV-004",
+            ]
             segment["revealed_reveal_target_ids"] = [
                 "REVEAL-TARGET-01",
                 "REVEAL-TARGET-02",
@@ -189,6 +206,12 @@ def scene_cards() -> dict[str, object]:
                         "choice_or_emotion_change": "도주를 선택한다.",
                         "result_change": "신체 피해가 확인된다.",
                         "planned_segment_ids": ["SEG-005"],
+                        "development_function_ids": [
+                            "CDEV-001",
+                            "CDEV-002",
+                            "CDEV-003",
+                            "CDEV-004",
+                        ],
                         "expected_excerpt_anchor": "CRIME_EVENT Marker",
                     }
                 ],
@@ -227,8 +250,11 @@ def final_script() -> str:
         2: "패널은 위험에 놀라고 용의자의 동선을 수정한다.",
         3: "나는 그때 그 발소리를 우연이라고 믿었다.",
         4: "패널은 앞선 판단을 다시 검토한다.",
-        5: "[CRIME_EVENT:EVENT-01] [CRIME_ACTION:ASSAULT] [HARM:HARM-01] "
-        "[CAUSES:EVENT-01>HARM-01] 화면 밖 충격 뒤 피해자의 상처와 도주가 이어진다.",
+        5: "<!-- CRIME_TRACE\nEVENT=EVENT-01\nACTION=ASSAULT\nHARM=HARM-01\n"
+        "DEV=CDEV-001,CDEV-002,CDEV-003,CDEV-004\n-->\n"
+        "행위자가 퇴로를 막고 비선정적 폭력을 가했다. "
+        "피해자는 치료가 필요한 상해를 입었다. "
+        "피해자는 일상 공간에 돌아가지 못하는 불안을 겪었다.",
         6: "패널은 범인, 동기, 방식과 피해 결과를 공개된 근거로 정리한다.",
     }
     kinds = ("DRAMA", "PANEL_REACTION", "NARRATION", "PANEL_REACTION", "DRAMA", "PANEL_REACTION")
@@ -251,7 +277,7 @@ def test_murder_label_with_theft_action_is_rejected() -> None:
 
 def test_scene_id_without_crime_action_is_rejected() -> None:
     """Scene ID와 장르 문구만 있고 사건 Marker·인과가 없으면 실패한다."""
-    script = final_script().replace("[CRIME_EVENT:EVENT-01]", "범죄 스릴러")
+    script = final_script().replace("EVENT=EVENT-01", "범죄 스릴러")
     codes = issue_codes(
         validate_script_crime_realization(
             CHANNEL,
@@ -365,8 +391,8 @@ def test_catalog_keeps_kidnapping_confinement_and_lodging() -> None:
     """파일럿 금지였던 납치·감금·숙박 장소를 사건 Catalog에서 허용한다."""
     catalog = load_json_object(ROOT / "STANDARD/variation_catalogs/2.1.0.json")
     dimensions = catalog["dimensions"]
-    assert "KIDNAPPING" in dimensions["incident_type"]  # type: ignore[index]
-    assert "CONFINEMENT" in dimensions["incident_type"]  # type: ignore[index]
+    assert "KIDNAPPING" in dimensions["primary_crime"]  # type: ignore[index]
+    assert "CONFINEMENT" in dimensions["primary_crime"]  # type: ignore[index]
     assert "LODGING" in dimensions["setting"]  # type: ignore[index]
 
 
@@ -385,12 +411,13 @@ def test_editorial_evidence_is_separate_from_core_report() -> None:
         sorted(required_semantic_subjects(contract)),
         1,
     ):
+        status = "NOT_DISCLOSED" if category == "PREMATURE_DISCLOSURE_SCAN" else "EVIDENCED"
         assessments.append(
             {
                 "assessment_id": f"ASSESS-{index:02d}",
                 "category": category,
                 "subject_id": subject_id,
-                "status": "EVIDENCED",
+                "status": status,
                 "evidence": [
                     make_editorial_evidence(
                         artifacts,

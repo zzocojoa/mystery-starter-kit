@@ -63,7 +63,10 @@
       "target_ratio": {"min": 0.1, "max": 0.3},
       "functions": ["EMOTIONAL_REACTION", "ANOMALY_DETECTION", "HYPOTHESIS_GENERATION", "SUSPECT_DISCUSSION", "HYPOTHESIS_REVISION", "CONTRADICTION_DETECTION", "MORAL_REACTION", "TENSION_RELEASE", "EXPECTATION_BUILDING", "RISK_SIGNAL_RECOGNITION", "VICTIM_CONTEXTUALIZATION", "BELIEF_CORRECTION"],
       "required_functions": ["EMOTIONAL_REACTION"],
-      "required_function_any_of": ["ANOMALY_DETECTION", "SUSPECT_DISCUSSION", "HYPOTHESIS_REVISION", "BELIEF_CORRECTION"]
+      "required_function_any_of": ["ANOMALY_DETECTION", "SUSPECT_DISCUSSION", "HYPOTHESIS_REVISION", "BELIEF_CORRECTION"],
+      "minimum_spoken_density": 0.4,
+      "maximum_non_speech_ratio": 0.6,
+      "minimum_exchange_segment_ratio": 0.5
     },
     "RETENTION_POLICY": {
       "mode": "CASE_REENACTMENT_AND_PURSUIT",
