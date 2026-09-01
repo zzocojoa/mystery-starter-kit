@@ -1,8 +1,10 @@
 # Mystery Starter Kit
 
-- Package: `1.5.0`
+- Package: `1.6.1`
 - Production Standard: `1.3.3`
-- Active Channel Content: `2.0.0`
+- Active Channel Content: `2.1.0`
+- Reenactment Output Profile: `REENACTMENT_CHARACTER_SCRIPT 1.0.0`
+- Runtime Interface: `1.0.0`
 
 [![CI](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml)
 
@@ -55,6 +57,21 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 새 Scaffold는 `script_source_mode: SCREENPLAY_UNITS`와 `REENACTMENT_CHARACTER_SCRIPT 1.0.0` Output Profile을 고정한다. GATE-08에서 Codex가 작성하는 유일한 새 창작 출력은 `screenplay_units.json`이다. 제출 뒤 CORE가 Layer Script, Broadcast Master와 `reenactment_character_script.md`를 만들고, GATE-09가 현재 입력 Hash에 결속된 `reenactment_export_report.json`을 계산한다. GATE-13은 이 Report가 오류 없는 `NEEDS_REVIEW`일 때만 동일 bytes를 Production 경로로 전달한다. `script_source_mode` 필드가 없는 기존 Project는 `LEGACY_MARKDOWN` Task 순서와 Artifact를 그대로 사용한다.
 
 재연극 목표시간이 필요하면 `target_reenactment_minutes`와 `reenactment_runtime_tolerance_ratio`를 함께 설정한다. 이 값은 방송 전체의 `target_runtime_minutes`와 별도이며 방송 목표를 넘을 수 없다. CORE는 Output Profile이 포함한 Unit이 결속된 Drama·Narration Segment만 합산하고 Panel 등 제외 Segment를 Report에 따로 기록한다. Editorial evidence는 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO`를 구분하며, Unit·Profile·Presentation 입력이 바뀌면 기존 측정 Hash를 거부한다.
+
+#### Workflow 선택, Migration과 Rollback
+
+신규 `init` Project는 Screenplay Unit 경로를 사용한다. 기존 Project는 `script_source_mode` 필드가 없으면 자동 변경 없이 `LEGACY_MARKDOWN`으로 남는다. Channel Pin만 이전할 때는 Story를 수정하지 않는 전용 명령을 사용하고, 실행 뒤 Compatibility와 영향받은 Gate를 다시 검증한다.
+
+```bash
+PYTHONPATH=. .venv/bin/mystery-kit migrate-channel-pin PROJECTS/PRJ-002 \
+  --channel-content-version 2.1.0
+PYTHONPATH=. .venv/bin/mystery-kit compat PROJECTS/PRJ-002
+PYTHONPATH=. .venv/bin/mystery-kit validate PROJECTS/PRJ-002
+```
+
+Legacy Project를 Screenplay Unit 경로로 일괄 변환하거나 진행 중 Project를 자동 Rollback하는 CLI는 제공하지 않는다. 전환은 별도 변경 승인 아래 `production_config`의 mode와 Output Profile Pin을 함께 바꾸고, State Transition·Script 이후 downstream Artifact를 새 Process Revision에서 재생성해야 한다. Rollback도 `LEGACY_MARKDOWN`을 명시한 새 Revision에서 같은 범위를 재생성하는 방식이며, 이전 Canonical Artifact와 Trace를 삭제하거나 다른 Version 계약을 암묵적으로 합치지 않는다. 가장 안전한 신규 도입 경로는 새 Scaffold다.
+
+완성 예시는 [PRJ-005](PROJECTS/PRJ-005/)다. 이 Original Fiction Pilot은 GATE-00~13과 기술적 Editorial Review를 통과했지만 `WORD_COUNT_ESTIMATE`만 보유하므로 상태가 `EDITORIAL_REVIEW_REQUIRED`이며 Production Ready 예제가 아니다.
 
 ### 3. 감사, Editorial 승인과 등록
 
@@ -165,7 +182,7 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 - `STANDARD/`: v1.3.3 표준, Contract, Policy, Catalog, Dependency Graph, JSON Schema
 - `CHANNELS/`: 활성/사용 가능 Content Version Registry와 독립 Version Channel DNA
 - `AGENTS/`: 10개 Agent Prompt와 계약 Manifest
-- `TEMPLATES/PROJECT/`: 신규 Project용 Channel 2.0, Variation Engine/Catalog 2.0 `00_PROJECT`~`09_PRODUCTION` Scaffold. 최종 Production Footprint 검증을 기본 활성화한다.
+- `TEMPLATES/PROJECT/`: 신규 Project용 Channel 2.1, Variation Engine/Catalog 2.1, Screenplay Unit `00_PROJECT`~`09_PRODUCTION` Scaffold. 최종 Production Footprint 검증을 기본 활성화한다.
 - `VALIDATORS/`: CLI, 상태 머신, Pipeline과 QA Engine
 - `RUNTIME/`: Provider 독립 실행 엔진, 계약, Schema, Adapter, 보안 경계
 - `RUNTIME_ADAPTERS/`: [선택적 In-process·Sidecar Provider 확장 Interface 가이드](RUNTIME_ADAPTERS/README.md)

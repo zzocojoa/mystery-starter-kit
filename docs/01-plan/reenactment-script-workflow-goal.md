@@ -39,9 +39,9 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 - [x] Phase 6 — Runtime Task, Agent, Gate, dependency 통합
 - [x] Phase 7 — 재연극 runtime 계획·측정 분리
 - [x] Phase 8 — 네 Source-style feature fixture와 Full Original Pilot
-- [ ] Phase 9 — 최종 문서·수용 증거·Stacked PR
+- [x] Phase 9 — 최종 문서·수용 증거·Stacked PR
 
-현재 Phase: `8`
+현재 Phase: `9`
 
 ## Architecture 결정
 
@@ -116,8 +116,8 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 | 5 | `codex/reenactment-runtime-v1` | `659f9e5e403a5bdc25bd2749d1d8b668245e98ed` | 완료 |
 | 6 | `codex/reenactment-runtime-v1` | `60e6cbef639f8d108f96be5b76524091f08c9fd6` | 완료 |
 | 7 | `codex/reenactment-runtime-v1` | `f79779b747a8ae5103159657ad9bcf997328156d` | 완료 |
-| 8 | `codex/reenactment-pilot-v1` | `test: add source-style reenactment workflow pilots` | 현재 Commit 예정 |
-| 9 | `codex/reenactment-pilot-v1` | `docs: finalize reenactment workflow acceptance evidence` | 대기 |
+| 8 | `codex/reenactment-pilot-v1` | `1dc769c` | 완료 |
+| 9 | `codex/reenactment-pilot-v1` | `docs: finalize reenactment workflow acceptance evidence` | 현재 Commit 예정 |
 
 ## Backward Compatibility 전략
 
@@ -224,4 +224,60 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 
 ## Final Acceptance Evidence
 
-Phase 9에서 요구사항별 명령, SHA, PR, Pilot Artifact 경로와 결과를 기록한다. Human Editorial Approval, `production-finalize`, `register`, PR Merge는 의도적으로 수행하지 않는다.
+### Version과 Workflow 선택
+
+- Package `1.6.1`, Production Standard `1.3.3`, 활성 Channel Content `2.1.0`, Reenactment Output Profile `REENACTMENT_CHARACTER_SCRIPT 1.0.0`, Runtime Interface `1.0.0`을 서로 독립 Version으로 문서화했다.
+- 신규 Scaffold는 `SCREENPLAY_UNITS`와 Profile Pin을 사용한다. 필드가 없는 기존 Project는 `LEGACY_MARKDOWN`으로 남으며 자동 Migration하지 않는다.
+- Channel Pin 전용 Migration은 `migrate-channel-pin`을 사용한다. Script mode 전환·Rollback은 명시적 변경 승인과 새 Process Revision에서 downstream 재생성을 요구하며 Canonical Artifact나 Trace를 삭제하지 않는다.
+- Runtime은 ASR·전사를 제공하지 않는다. `WORD_COUNT_ESTIMATE`는 측정이 아니며 창작 품질은 Editorial과 Human 판단 대상으로 남는다.
+
+### Stacked PR
+
+| 역할 | PR | Base | 상태 |
+|---|---|---|---|
+| Foundation | [#24](https://github.com/zzocojoa/mystery-starter-kit/pull/24) | `main` | OPEN, 미병합 |
+| Contracts | [#25](https://github.com/zzocojoa/mystery-starter-kit/pull/25) | `codex/channel-explicit-crime-alignment` | OPEN, 미병합 |
+| Runtime | [#26](https://github.com/zzocojoa/mystery-starter-kit/pull/26) | `codex/reenactment-contracts-v1` | OPEN, 미병합 |
+| Pilot | [#27](https://github.com/zzocojoa/mystery-starter-kit/pull/27) | `codex/reenactment-runtime-v1` | OPEN, 미병합 |
+
+각 PR 본문은 목적·범위, 영향 파일/계약, 하위 호환성, 검증 증거, 알려진 한계, 의도적 제외와 선행 Stack 의존성을 분리한다.
+
+### Pilot Artifact
+
+- Canonical Unit: `PROJECTS/PRJ-005/07_SCRIPT/screenplay_units.json`
+- Broadcast Master: `PROJECTS/PRJ-005/07_SCRIPT/final_script.md`
+- Canonical 재연본: `PROJECTS/PRJ-005/07_SCRIPT/reenactment_character_script.md`
+- Export 무결성·Runtime Report: `PROJECTS/PRJ-005/08_QA/reenactment_export_report.json`
+- 기술적 Editorial 근거: `PROJECTS/PRJ-005/08_QA/editorial_review.json`
+- Production 재연 사본: `PROJECTS/PRJ-005/09_PRODUCTION/reenactment_character_script.md`
+- Project State: GATE-13, `EDITORIAL_REVIEW_REQUIRED`, `ARTIFACT_COMPLETE`, `CONTRACT_VALIDATED`, `PROCESS_CONFORMANT`, Editorial 미승인
+
+### 검증 명령과 결과
+
+```bash
+PYTHONPATH=. .venv/bin/mystery-kit validate PROJECTS/PRJ-005
+PYTHONPATH=. .venv/bin/mystery-kit audit PROJECTS/PRJ-005
+cmp -s PROJECTS/PRJ-005/07_SCRIPT/reenactment_character_script.md \
+  PROJECTS/PRJ-005/09_PRODUCTION/reenactment_character_script.md
+.venv/bin/python -m ruff check .
+.venv/bin/python -m mypy VALIDATORS RUNTIME RUNTIME_ADAPTERS tests
+.venv/bin/python -m pytest -q
+.venv/bin/python -m build
+.venv/bin/python -m pip_audit
+.venv/bin/mystery-runtime doctor
+.venv/bin/python -m VALIDATORS.version_immutability --base-ref origin/main
+```
+
+- Project validate/audit: GATE-00~13 PASS, Issue 0, Process Trace 68개, State 불변
+- Render integrity: Canonical/Production 재연본 byte-identical, Panel은 Broadcast에만 존재
+- Ruff PASS, strict mypy PASS(140 source files), pytest PASS(384 tests)
+- Package `1.6.1` sdist/wheel build PASS
+- Dependency audit: 알려진 취약점 없음; PyPI에 없는 로컬 Package만 제외
+- Runtime Doctor와 Registered Version Immutability PASS
+
+### 의도적으로 미수행
+
+- Human `editorial-approve` 미수행
+- CLI `production-finalize`와 Production Ready 전이 미수행
+- `register` 미수행; 공용 Novelty Index 항목 0개
+- PR #23, #24, #25, #26, #27 Merge 또는 Close 미수행

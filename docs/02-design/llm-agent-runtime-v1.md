@@ -55,6 +55,41 @@ Runtime 시작 시 JSON Schema뿐 아니라 Task가 Agent Manifest 권한을 넓
 
 기존 Production Config에 `script_source_mode`가 없으면 `LEGACY_MARKDOWN`으로 평가해 `script.write_layers → script.integrate`를 유지한다. 두 경로는 Task Condition으로 상호 배타적이며 같은 Gate 안의 LLM→CORE 전환도 하나의 Staging Overlay에 남아 Gate PASS 전에는 Canonical 중간 Artifact를 Commit하지 않는다.
 
+```text
+GATE-06  LLM  character_state_transitions
+   ↓
+GATE-07  LLM/CORE  scene_cards → production_footprint
+   ↓
+GATE-08  LLM  screenplay_units
+                ↓ CORE
+          drama / narration / broadcast master / reenactment script
+   ↓
+GATE-09  CORE  reenactment_export_report (NEEDS_REVIEW)
+   ↓
+GATE-12  CORE  full validation
+   ↓
+GATE-13  LLM production package → CORE manifest/copy → LLM editorial review
+                → CORE gate-final validation
+   ↓
+EDITORIAL_REVIEW_REQUIRED
+   └─ Human only: editorial-approve → production-finalize CLI → register
+```
+
+`GATE-13` Task Catalog의 `production.finalize`는 Validation Report와 도착 상태를 확정하는 CORE Gate Task다. Human 승인 뒤 `PRODUCTION_READY`로 전이하는 `mystery-kit production-finalize` CLI와 이름이 비슷하지만 권한과 상태 전이가 다르다.
+
+| Artifact | 소유자 | 생성 시점 |
+|---|---|---|
+| `character_state_transitions` | Story Architect LLM | GATE-06 |
+| `screenplay_units` | Script Writer LLM | GATE-08 |
+| Layer Script, Broadcast Master, 재연 Script | CORE Renderer | GATE-08 |
+| `reenactment_export_report` | CORE Validator | GATE-09 |
+| Production 문서 | Orchestrator LLM | GATE-13 |
+| Production Manifest, 재연 Production copy | CORE | GATE-13 |
+| `editorial_review` | Continuity Critic LLM | GATE-13 |
+| Editorial Approval | Human Actor | GATE-13 이후 |
+
+Runtime은 ASR이나 음성 전사를 제공하지 않는다. `WORD_COUNT_ESTIMATE`는 계획 검토에만 쓰며, 실제 Production Finalize에는 별도 Table Read 또는 Recorded Audio 측정이 필요하다. 결정론적 Renderer와 Validator가 무결성을 증명해도 대사 자연스러움, 인물 목소리, 반전 설득력과 피해자 존엄성은 Editorial 및 Human 검토 대상이다.
+
 ## 실행과 원자성
 
 한 Gate의 Task 출력은 메모리에서 결합한 뒤 Canonical Project를 복제한 Staging Overlay에 기록한다. 기존 Gate Validator가 Overlay 전체를 통과시킨 경우에만 Transaction Record를 `PREPARED`로 남기고 Artifact와 Project State를 교체한다. 중간 교체가 실패하면 모든 백업을 복구해 `ROLLED_BACK`으로 기록한다. Process가 Commit 도중 종료돼 `PREPARED`가 남으면 다음 Run 시작 시 먼저 복구한다. 복구 경로는 Canonical Project와 해당 Transaction의 백업 디렉터리 내부로 제한한다.
