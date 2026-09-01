@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/reenactment-output-profile-registry-1.0.0.json",
+  "title": "Reenactment Output Profile Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_family", "schema_version", "profiles"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "reenactment-output-profile-registry"},
+    "schema_version": {"const": "1.0.0"},
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^[A-Z][A-Z0-9_]*$"},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["versions"],
+        "properties": {
+          "versions": {
+            "type": "object",
+            "minProperties": 1,
+            "propertyNames": {
+              "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+            },
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "sha256"],
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "pattern": "^CHANNELS/mystery_main/output_profiles/[a-z0-9-]+/[0-9]+\\.[0-9]+\\.[0-9]+\\.json$"
+                },
+                "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

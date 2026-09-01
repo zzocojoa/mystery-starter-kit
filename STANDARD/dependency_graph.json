@@ -257,15 +257,33 @@
       "owner_agent": "script_writer",
       "required_when": {"all": [{"capability_enabled": "EXPERT_ANALYSIS_POLICY"}, {"source_truth_in": ["VERIFIED_TRUE_CASE", "INSPIRED_BY_TRUE_EVENTS"]}, {"artifact_status": ["expert_segments", "PLANNED"]}]}
     },
+    "screenplay_units": {
+      "path": "07_SCRIPT/screenplay_units.json",
+      "depends_on": ["production_config", "crime_event_contract", "characters", "knowledge_matrix", "actual_timeline", "viewer_timeline", "clue_matrix", "scene_cards", "presentation_plan"],
+      "owner_agent": "script_writer",
+      "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
+    },
     "draft_script": {
       "path": "07_SCRIPT/draft_v01.md",
-      "depends_on": ["drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "presentation_plan", "source_disclosure"],
+      "depends_on": ["screenplay_units", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "presentation_plan", "source_disclosure"],
       "owner_agent": "script_writer"
     },
     "final_script": {
       "path": "07_SCRIPT/final_script.md",
       "depends_on": ["draft_script", "presentation_plan"],
       "owner_agent": "script_writer"
+    },
+    "reenactment_character_script": {
+      "path": "07_SCRIPT/reenactment_character_script.md",
+      "depends_on": ["production_config", "screenplay_units", "characters"],
+      "owner_agent": "script_writer",
+      "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
+    },
+    "reenactment_export_report": {
+      "path": "08_QA/reenactment_export_report.json",
+      "depends_on": ["production_config", "screenplay_units", "reenactment_character_script", "characters", "crime_event_contract", "clue_matrix"],
+      "owner_agent": "continuity_critic",
+      "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
     },
     "script_realization_report": {
       "path": "08_QA/script_realization_report.json",
@@ -295,7 +313,7 @@
     },
     "validation_report": {
       "path": "08_QA/validation_report.json",
-      "depends_on": ["continuity_report", "novelty_report", "reference_collision_report", "channel_consistency_report"],
+      "depends_on": ["continuity_report", "novelty_report", "reference_collision_report", "channel_consistency_report", "reenactment_export_report"],
       "owner_agent": "orchestrator"
     },
     "shooting_script": {
@@ -335,9 +353,15 @@
       "depends_on": ["shooting_script", "presentation_plan", "retention_plan", "production_panel_reaction_script", "production_expert_analysis_script"],
       "owner_agent": "orchestrator"
     },
+    "production_reenactment_character_script": {
+      "path": "09_PRODUCTION/reenactment_character_script.md",
+      "depends_on": ["reenactment_character_script", "reenactment_export_report", "validation_report"],
+      "owner_agent": "orchestrator",
+      "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
+    },
     "editorial_review": {
       "path": "08_QA/editorial_review.json",
-      "depends_on": ["crime_event_contract", "scene_cards", "final_script", "viewer_timeline", "audience_belief", "reaction_segments", "expert_segments", "presentation_plan", "panel_reaction_script", "expert_analysis_script", "script_realization_report", "shooting_script", "production_manifest", "narration", "production_panel_reaction_script", "production_expert_analysis_script", "subtitle_script", "edit_script"],
+      "depends_on": ["crime_event_contract", "scene_cards", "final_script", "screenplay_units", "reenactment_character_script", "reenactment_export_report", "viewer_timeline", "audience_belief", "reaction_segments", "expert_segments", "presentation_plan", "panel_reaction_script", "expert_analysis_script", "script_realization_report", "shooting_script", "production_manifest", "narration", "production_panel_reaction_script", "production_expert_analysis_script", "subtitle_script", "edit_script", "production_reenactment_character_script"],
       "owner_agent": "continuity_critic"
     }
   }

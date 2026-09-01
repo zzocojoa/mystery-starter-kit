@@ -58,6 +58,9 @@
         "expert_analysis_script",
         "draft_script",
         "final_script",
+        "screenplay_units",
+        "reenactment_character_script",
+        "reenactment_export_report",
         "script_realization_report",
         "continuity_report",
         "novelty_report",
@@ -71,6 +74,7 @@
         "production_expert_analysis_script",
         "subtitle_script",
         "edit_script",
+        "production_reenactment_character_script",
         "editorial_review"
       ],
       "writes": [
@@ -88,7 +92,8 @@
         "production_panel_reaction_script",
         "production_expert_analysis_script",
         "subtitle_script",
-        "edit_script"
+        "edit_script",
+        "production_reenactment_character_script"
       ],
       "gates": [
         "GATE-00",
@@ -281,6 +286,9 @@
       "prompt_file": "script_writer.md",
       "stage": 7,
       "reads": [
+        "production_config",
+        "characters",
+        "actual_timeline",
         "psychological_arc",
         "crime_event_contract",
         "scene_cards",
@@ -300,12 +308,14 @@
         "expert_analysis_script"
       ],
       "writes": [
+        "screenplay_units",
         "drama_script",
         "narration_script",
         "panel_reaction_script",
         "expert_analysis_script",
         "draft_script",
-        "final_script"
+        "final_script",
+        "reenactment_character_script"
       ],
       "gates": [
         "GATE-08"
@@ -330,6 +340,9 @@
         "source_disclosure",
         "clinical_labels",
         "final_script",
+        "screenplay_units",
+        "reenactment_character_script",
+        "reenactment_export_report",
         "script_realization_report",
         "actual_timeline",
         "viewer_timeline",
@@ -356,10 +369,12 @@
         "production_panel_reaction_script",
         "production_expert_analysis_script",
         "subtitle_script",
-        "edit_script"
+        "edit_script",
+        "production_reenactment_character_script"
       ],
       "writes": [
         "script_realization_report",
+        "reenactment_export_report",
         "continuity_report",
         "channel_consistency_report",
         "editorial_review"

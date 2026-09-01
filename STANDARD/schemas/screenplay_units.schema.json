@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/screenplay-units-1.0.0.json",
+  "title": "Screenplay Units",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "title",
+    "source_truth_classification",
+    "scenes"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "screenplay-units"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "title": {"$ref": "#/$defs/nonBlankText"},
+    "source_truth_classification": {
+      "enum": [
+        "ORIGINAL_FICTION",
+        "VERIFIED_TRUE_CASE",
+        "INSPIRED_BY_TRUE_EVENTS"
+      ]
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/scene"}
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_-]*$"
+    },
+    "nonBlankText": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "identifierList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/identifier"}
+    },
+    "soundCue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sound_cue_id", "order", "description"],
+      "properties": {
+        "sound_cue_id": {"$ref": "#/$defs/identifier"},
+        "order": {"type": "integer", "minimum": 1},
+        "description": {"$ref": "#/$defs/nonBlankText"}
+      }
+    },
+    "sceneContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "location_description",
+        "time_description",
+        "previous_scene_id",
+        "background_music_description",
+        "sound_cues",
+        "opening_character_state",
+        "opening_emotional_state",
+        "action_summary",
+        "audience_information_gain"
+      ],
+      "properties": {
+        "location_description": {"$ref": "#/$defs/nonBlankText"},
+        "time_description": {"$ref": "#/$defs/nonBlankText"},
+        "previous_scene_id": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string", "pattern": "^SCN-[A-Z0-9_-]+$"}
+          ]
+        },
+        "background_music_description": {"$ref": "#/$defs/nonBlankText"},
+        "sound_cues": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/soundCue"}
+        },
+        "opening_character_state": {"$ref": "#/$defs/nonBlankText"},
+        "opening_emotional_state": {"$ref": "#/$defs/nonBlankText"},
+        "action_summary": {"$ref": "#/$defs/nonBlankText"},
+        "audience_information_gain": {"$ref": "#/$defs/nonBlankText"},
+        "retrospective_meaning": {"$ref": "#/$defs/nonBlankText"}
+      }
+    },
+    "references": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fact_ids",
+        "clue_ids",
+        "crime_event_ids",
+        "harm_ids",
+        "development_function_ids",
+        "reveal_target_ids"
+      ],
+      "properties": {
+        "fact_ids": {"$ref": "#/$defs/identifierList"},
+        "clue_ids": {"$ref": "#/$defs/identifierList"},
+        "crime_event_ids": {"$ref": "#/$defs/identifierList"},
+        "harm_ids": {"$ref": "#/$defs/identifierList"},
+        "development_function_ids": {"$ref": "#/$defs/identifierList"},
+        "reveal_target_ids": {"$ref": "#/$defs/identifierList"}
+      }
+    },
+    "delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instruction"],
+      "properties": {
+        "instruction": {"$ref": "#/$defs/nonBlankText"},
+        "pace": {"enum": ["SLOW", "NORMAL", "FAST", "BROKEN"]},
+        "volume": {"enum": ["WHISPER", "LOW", "NORMAL", "LOUD"]}
+      }
+    },
+    "unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "order", "type", "text", "segment_id", "references"],
+      "properties": {
+        "unit_id": {"type": "string", "pattern": "^UNIT-[A-Z0-9_-]+$"},
+        "order": {"type": "integer", "minimum": 1},
+        "type": {
+          "enum": [
+            "ACTION",
+            "SOUND",
+            "DIALOGUE",
+            "NARRATION",
+            "INNER_MONOLOGUE",
+            "HALLUCINATION",
+            "MESSAGE",
+            "CHAT",
+            "NOTE",
+            "RECORDING",
+            "SCREEN_TEXT"
+          ]
+        },
+        "text": {"$ref": "#/$defs/nonBlankText"},
+        "segment_id": {"type": "string", "pattern": "^SEG-[A-Z0-9_-]+$"},
+        "speaker_id": {"type": "string", "pattern": "^CHAR-[A-Z0-9_-]+$"},
+        "delivery": {"$ref": "#/$defs/delivery"},
+        "references": {"$ref": "#/$defs/references"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "DIALOGUE",
+                  "NARRATION",
+                  "INNER_MONOLOGUE",
+                  "HALLUCINATION",
+                  "MESSAGE",
+                  "CHAT",
+                  "NOTE",
+                  "RECORDING"
+                ]
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {"required": ["speaker_id"]},
+          "else": {
+            "not": {
+              "anyOf": [
+                {"required": ["speaker_id"]},
+                {"required": ["delivery"]}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scene_id",
+        "order",
+        "title",
+        "time_layer",
+        "location_id",
+        "segment_ids",
+        "context",
+        "units"
+      ],
+      "properties": {
+        "scene_id": {"type": "string", "pattern": "^SCN-[A-Z0-9_-]+$"},
+        "order": {"type": "integer", "minimum": 1},
+        "title": {"$ref": "#/$defs/nonBlankText"},
+        "time_layer": {
+          "enum": [
+            "PRESENT",
+            "COLD_OPEN",
+            "FLASHBACK",
+            "RECONSTRUCTION",
+            "DREAM_OR_HALLUCINATION"
+          ]
+        },
+        "location_id": {"type": "string", "pattern": "^LOC-[A-Z0-9_-]+$"},
+        "segment_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^SEG-[A-Z0-9_-]+$"}
+        },
+        "reconstruction_of_scene_id": {
+          "type": "string",
+          "pattern": "^SCN-[A-Z0-9_-]+$"
+        },
+        "context": {"$ref": "#/$defs/sceneContext"},
+        "units": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/unit"}
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"time_layer": {"const": "RECONSTRUCTION"}},
+            "required": ["time_layer"]
+          },
+          "then": {"required": ["reconstruction_of_scene_id"]},
+          "else": {"not": {"required": ["reconstruction_of_scene_id"]}}
+        }
+      ]
+    }
+  }
+}

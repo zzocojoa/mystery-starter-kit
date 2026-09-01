@@ -28,6 +28,15 @@
     "variation_engine_version": {"$ref": "#/$defs/semanticVersion"},
     "variation_catalog_version": {"$ref": "#/$defs/semanticVersion"},
     "approval_policy": {"enum": ["AUTO_CONTINUE", "HUMAN_REVIEW"]},
+    "script_source_mode": {
+      "enum": ["LEGACY_MARKDOWN", "SCREENPLAY_UNITS"],
+      "default": "LEGACY_MARKDOWN"
+    },
+    "reenactment_output_profile_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "reenactment_output_profile_version": {"$ref": "#/$defs/semanticVersion"},
     "story_source_mode": {
       "enum": ["ORIGINAL", "USER_CASE", "REFERENCE_INSPIRED", "TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"]
     },
@@ -99,6 +108,28 @@
       "then": {
         "properties": {
           "source_truth_classification": {"const": "INSPIRED_BY_TRUE_EVENTS"}
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["script_source_mode"],
+        "properties": {
+          "script_source_mode": {"const": "SCREENPLAY_UNITS"}
+        }
+      },
+      "then": {
+        "required": [
+          "reenactment_output_profile_id",
+          "reenactment_output_profile_version"
+        ]
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {"required": ["reenactment_output_profile_id"]},
+            {"required": ["reenactment_output_profile_version"]}
+          ]
         }
       }
     }

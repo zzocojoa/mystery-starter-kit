@@ -74,6 +74,16 @@ def requirement_matches(
         if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
             raise ConfigurationError("story_source_mode_in은 문자열 배열이어야 합니다.")
         return production_config.get("story_source_mode") in value
+    if operator == "config_equals":
+        if (
+            not isinstance(value, list)
+            or len(value) != 2
+            or not isinstance(value[0], str)
+        ):
+            raise ConfigurationError("config_equals는 [field, value]여야 합니다.")
+        field: str = value[0]
+        expected: object = value[1]
+        return production_config.get(field) == expected
     if operator == "channel_version_at_least":
         version = production_config.get("channel_content_version")
         if not isinstance(value, str) or not isinstance(version, str):

@@ -32,7 +32,7 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 
 - [x] Phase 0 — Foundation, baseline, 영향 설계
 - [x] Phase 1 — Versioned multi-harm event model
-- [ ] Phase 2 — Screenplay Units와 Output Profile 계약
+- [x] Phase 2 — Screenplay Units와 Output Profile 계약
 - [ ] Phase 3 — Clue recontextualization과 flexible state transition
 - [ ] Phase 4 — Deterministic CORE renderer
 - [ ] Phase 5 — Export integrity와 semantic binding
@@ -41,7 +41,7 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 - [ ] Phase 8 — 네 Source-style feature fixture와 Full Original Pilot
 - [ ] Phase 9 — 최종 문서·수용 증거·Stacked PR
 
-현재 Phase: `1`
+현재 Phase: `2`
 
 ## Architecture 결정
 
@@ -109,8 +109,8 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 | Phase | Branch | Commit | 상태 |
 |---|---|---|---|
 | 0 | `codex/reenactment-contracts-v1` | `0992c920b9fd69b80f112d9fa95f4522feeb3fd3` | 완료 |
-| 1 | `codex/reenactment-contracts-v1` | `feat: add versioned multi-harm crime contracts` | 현재 Commit 예정 |
-| 2 | `codex/reenactment-contracts-v1` | `feat: add screenplay units and reenactment output profile contracts` | 대기 |
+| 1 | `codex/reenactment-contracts-v1` | `5b42991569a5edaa8534c7cb68376127fa8374c6` | 완료 |
+| 2 | `codex/reenactment-contracts-v1` | `feat: add screenplay units and reenactment output profile contracts` | 현재 Commit 예정 |
 | 3 | `codex/reenactment-contracts-v1` | `feat: model clue recontextualization and flexible state transitions` | 대기 |
 | 4–7 | `codex/reenactment-runtime-v1` | Phase별 Commit | 대기 |
 | 8–9 | `codex/reenactment-pilot-v1` | Phase별 Commit | 대기 |
@@ -127,7 +127,7 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 
 ## 현재 Risk와 Deferred 항목
 
-- Runtime condition DSL은 현재 capability/source/artifact 조건 중심이므로 config equality 조건을 Versioned schema와 함께 확장해야 한다.
+- Runtime condition DSL에 `config_equals`를 추가했으며 Phase 6에서 새 Task와 Gate requiredness가 같은 Predicate를 사용하도록 결속해야 한다.
 - 기존 Broadcast marker parser와 새 Unit-derived evidence가 공존해야 하므로 mode별 단일 진입점을 명확히 분리해야 한다.
 - Package metadata에 Standard version `1.3.3`이 보이는 기존 build metadata 경로를 조사해 사용자 문서에서 Package `1.6.1`과 혼동되지 않게 해야 한다.
 - Cross-Python byte determinism은 CI matrix 결과를 최종 증거로 사용한다.
@@ -142,6 +142,17 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 - Timeline과 Causal Graph는 여러 결과 Event/Node에 나뉜 Harm의 합집합 coverage를 검증한다. Scene과 Script도 모든 Contract Harm의 누락을 차단한다.
 - Targeted regression: Explicit Crime, Scene Realization, Candidate Evaluation, Pipeline, Runtime Engine 묶음 PASS.
 - Targeted Ruff와 strict mypy: PASS.
+
+## Phase 2 수용 증거
+
+- `screenplay-units` `1.0.0`은 Scene Context, 열한 Unit 유형, exact text, speaker/delivery와 Fact·Clue·Crime Event·Harm·Development Function·Reveal Target 참조를 구조화한다.
+- spoken/character-authored Unit은 `speaker_id`를 요구하고 Action·Sound·Screen Text는 speaker와 delivery를 금지한다. Scene·Unit·Sound Cue order와 ID, Segment 연결, 이전 Scene과 선행 Reconstruction 참조는 별도 의미 Validator가 검사한다.
+- `REENACTMENT_CHARACTER_SCRIPT@1.0.0` Profile은 필수 제목·Cast 표·Scene Context·지문/음향/화자·특수 Unit 표시·포함/제외 Layer와 Unit·내부 Marker 제거·Original Fiction 불명확 Marker 금지를 고정한다.
+- Profile Registry는 파일 SHA-256을 검증하고 Config Pin이 없거나 미등록 Version이면 fallback 없이 실패한다. 등록된 동일 Version의 Entry와 파일 변경은 Version Immutability 검사 대상이다.
+- Production Config에 새 선택 필드를 추가했다. 필드가 없는 기존 Project는 `LEGACY_MARKDOWN`으로 해석되고, `SCREENPLAY_UNITS`는 Profile ID와 Version을 함께 요구한다.
+- `screenplay_units`, canonical 재연극 Script, Export Report, Production copy를 Artifact Contract·Dependency Graph·Agent 최대 권한에 등록했다. 모든 새 Artifact는 새 mode에서만 필수이며 Unit 변경은 Broadcast·Export·Report·Production·Editorial downstream을 무효화한다.
+- 열한 Unit 유형, speaker 조합, ID/order 중복, 잘못된 Reconstruction, Profile Schema/Hash/Pin/Version, Legacy Config, Predicate와 DAG invalidation을 Targeted test로 검증했다.
+- Runtime Doctor, 기존 Scaffold·Gate Transaction·Runtime Engine·Production CLI 회귀, Targeted Ruff·strict mypy, Registered Version Immutability: PASS.
 
 ## Final Acceptance Evidence
 

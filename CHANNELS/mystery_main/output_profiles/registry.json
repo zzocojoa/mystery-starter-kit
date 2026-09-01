@@ -1,0 +1,15 @@
+{
+  "$schema": "../../../STANDARD/schemas/reenactment_output_profile_registry.schema.json",
+  "schema_family": "reenactment-output-profile-registry",
+  "schema_version": "1.0.0",
+  "profiles": {
+    "REENACTMENT_CHARACTER_SCRIPT": {
+      "versions": {
+        "1.0.0": {
+          "path": "CHANNELS/mystery_main/output_profiles/reenactment-character-script/1.0.0.json",
+          "sha256": "8383f2c9598d51b86369789c6119321584a089f61b5ab0e7ddc5dee29aeb60b9"
+        }
+      }
+    }
+  }
+}

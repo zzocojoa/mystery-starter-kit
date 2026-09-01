@@ -48,8 +48,11 @@
     "narration_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "panel_reaction_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "expert_analysis_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
+    "screenplay_units": {"media_type": "application/json", "schema": "STANDARD/schemas/screenplay_units.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 4194304},
     "draft_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY", "SCRIPT_INTEGRITY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "final_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY", "SCRIPT_INTEGRITY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
+    "reenactment_character_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
+    "reenactment_export_report": {"media_type": "application/json", "schema": "STANDARD/schemas/reenactment_export_report.schema.json", "validators": [], "commit_policy": "ALWAYS_DIAGNOSTIC", "max_bytes": 1048576},
     "script_realization_report": {"media_type": "application/json", "schema": "STANDARD/schemas/script_realization_report.schema.json", "validators": [], "commit_policy": "ALWAYS_DIAGNOSTIC", "max_bytes": 524288},
     "continuity_report": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/qaReport", "validators": [], "commit_policy": "ALWAYS_DIAGNOSTIC", "max_bytes": 524288},
     "story_fingerprint": {"media_type": "application/json", "schema": "STANDARD/schemas/story_fingerprint.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
@@ -64,6 +67,7 @@
     "production_expert_analysis_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "subtitle_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "edit_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
+    "production_reenactment_character_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "editorial_review": {"media_type": "application/json", "schema": "STANDARD/schemas/editorial_review.schema.json", "validators": [], "commit_policy": "ALWAYS_DIAGNOSTIC", "max_bytes": 524288}
   }
 }

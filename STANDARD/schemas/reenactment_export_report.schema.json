@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/reenactment-export-report-1.0.0.json",
+  "title": "Reenactment Export Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "result",
+    "input_artifact_hashes",
+    "output_profile",
+    "output_markdown_sha256",
+    "scene_coverage",
+    "unit_coverage",
+    "speaker_resolution",
+    "type_coverage",
+    "harm_coverage",
+    "clue_reveal_coverage",
+    "reconstruction_references",
+    "runtime_status",
+    "issues"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "reenactment-export-report"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "result": {"enum": ["NEEDS_REVIEW", "FAIL", "MISSING"]},
+    "input_artifact_hashes": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"},
+      "additionalProperties": {"$ref": "#/$defs/sha256"}
+    },
+    "output_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "profile_version", "sha256"],
+      "properties": {
+        "profile_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "profile_version": {"$ref": "#/$defs/semanticVersion"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "output_markdown_sha256": {"$ref": "#/$defs/sha256"},
+    "scene_coverage": {"$ref": "#/$defs/coverage"},
+    "unit_coverage": {"$ref": "#/$defs/unitCoverage"},
+    "speaker_resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolved_character_ids", "unknown_speaker_ids"],
+      "properties": {
+        "resolved_character_ids": {"$ref": "#/$defs/identifierList"},
+        "unknown_speaker_ids": {"$ref": "#/$defs/identifierList"}
+      }
+    },
+    "type_coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["included_unit_types", "excluded_unit_types", "rendered_unit_types"],
+      "properties": {
+        "included_unit_types": {"$ref": "#/$defs/stringList"},
+        "excluded_unit_types": {"$ref": "#/$defs/stringList"},
+        "rendered_unit_types": {"$ref": "#/$defs/stringList"}
+      }
+    },
+    "harm_coverage": {"$ref": "#/$defs/coverage"},
+    "clue_reveal_coverage": {"$ref": "#/$defs/coverage"},
+    "reconstruction_references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scene_id", "reconstruction_of_scene_id", "status"],
+        "properties": {
+          "scene_id": {"type": "string", "pattern": "^SCN-[A-Z0-9_-]+$"},
+          "reconstruction_of_scene_id": {
+            "type": "string",
+            "pattern": "^SCN-[A-Z0-9_-]+$"
+          },
+          "status": {"enum": ["VALID", "INVALID"]}
+        }
+      }
+    },
+    "runtime_status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target_minutes", "tolerance_ratio", "estimated_minutes", "measured_minutes", "status"],
+      "properties": {
+        "target_minutes": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "tolerance_ratio": {"type": ["number", "null"], "minimum": 0, "exclusiveMaximum": 1},
+        "estimated_minutes": {"type": ["number", "null"], "minimum": 0},
+        "measured_minutes": {"type": ["number", "null"], "minimum": 0},
+        "status": {"enum": ["NOT_CONFIGURED", "ESTIMATED", "MEASURED_MATCH", "MEASURED_MISMATCH", "MISSING"]}
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/issue"}
+    }
+  },
+  "$defs": {
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "stringList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "identifierList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$"}
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expected_ids", "rendered_ids", "missing_ids", "duplicate_ids"],
+      "properties": {
+        "expected_ids": {"$ref": "#/$defs/identifierList"},
+        "rendered_ids": {"$ref": "#/$defs/identifierList"},
+        "missing_ids": {"$ref": "#/$defs/identifierList"},
+        "duplicate_ids": {"$ref": "#/$defs/identifierList"}
+      }
+    },
+    "unitCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_ids",
+        "rendered_ids",
+        "missing_ids",
+        "duplicate_ids",
+        "rendered_order"
+      ],
+      "properties": {
+        "expected_ids": {"$ref": "#/$defs/identifierList"},
+        "rendered_ids": {"$ref": "#/$defs/identifierList"},
+        "missing_ids": {"$ref": "#/$defs/identifierList"},
+        "duplicate_ids": {"$ref": "#/$defs/identifierList"},
+        "rendered_order": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^UNIT-[A-Z0-9_-]+$"}
+        }
+      }
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "code", "message", "artifact", "context"],
+      "properties": {
+        "severity": {"enum": ["ERROR", "WARN", "INFO"]},
+        "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "message": {"type": "string", "minLength": 1},
+        "artifact": {"type": "string", "minLength": 1},
+        "context": {"type": "object"}
+      }
+    }
+  }
+}

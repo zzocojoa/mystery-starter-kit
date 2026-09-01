@@ -1,4 +1,4 @@
-"""Base Branch에 등록된 Variation Version 파일의 불변성을 검증한다."""
+"""Base Branch에 등록된 Version 파일의 불변성을 검증한다."""
 
 import argparse
 import json
@@ -12,6 +12,7 @@ from VALIDATORS.io import load_json_object
 
 ENGINE_REGISTRY_PATH = "STANDARD/variation_engines/registry.json"
 CATALOG_REGISTRY_PATH = "STANDARD/variation_catalogs/registry.json"
+OUTPUT_PROFILE_REGISTRY_PATH = "CHANNELS/mystery_main/output_profiles/registry.json"
 
 
 def registry_mapping(document: Mapping[str, object], field: str) -> Mapping[str, object]:
@@ -61,6 +62,71 @@ def changed_registry_entries(
         for version, base_entry in sorted(base_entries.items())
         if current_entries.get(version) != base_entry
     ]
+
+
+def output_profile_version_mapping(
+    registry: Mapping[str, object],
+) -> dict[str, Mapping[str, object]]:
+    """Output Profile Registry를 Profile ID와 Version의 평탄 사전으로 만든다."""
+    profiles = registry.get("profiles")
+    if not isinstance(profiles, Mapping):
+        raise ConfigurationError("REENACTMENT_OUTPUT_PROFILE_REGISTRY_INVALID: field=profiles")
+    entries: dict[str, Mapping[str, object]] = {}
+    for profile_id, profile in profiles.items():
+        versions = profile.get("versions") if isinstance(profile, Mapping) else None
+        if not isinstance(profile_id, str) or not isinstance(versions, Mapping):
+            raise ConfigurationError(
+                "REENACTMENT_OUTPUT_PROFILE_REGISTRY_INVALID: "
+                f"profile_id={profile_id!r}"
+            )
+        for version, entry in versions.items():
+            if not isinstance(version, str) or not isinstance(entry, Mapping):
+                raise ConfigurationError(
+                    "REENACTMENT_OUTPUT_PROFILE_REGISTRY_INVALID: "
+                    f"profile_id={profile_id!r}, version={version!r}"
+                )
+            entries[f"{profile_id}@{version}"] = entry
+    return entries
+
+
+def protected_output_profile_paths(registry: Mapping[str, object]) -> set[str]:
+    """Base Registry에 등록된 Output Profile 파일 경로를 반환한다."""
+    return {
+        path
+        for entry in output_profile_version_mapping(registry).values()
+        if isinstance((path := entry.get("path")), str)
+    }
+
+
+def output_profile_version_mutations(
+    repository_root: Path,
+    base_files: Mapping[str, bytes],
+    base_registry: Mapping[str, object],
+) -> list[str]:
+    """등록된 Output Profile Entry와 파일의 제자리 변경을 반환한다."""
+    current_registry = load_json_object(repository_root / OUTPUT_PROFILE_REGISTRY_PATH)
+    base_entries = output_profile_version_mapping(base_registry)
+    current_entries = output_profile_version_mapping(current_registry)
+    mutations = [
+        f"{OUTPUT_PROFILE_REGISTRY_PATH}#profiles.{identity}"
+        for identity, base_entry in sorted(base_entries.items())
+        if current_entries.get(identity) != base_entry
+    ]
+    for relative_path in sorted(protected_output_profile_paths(base_registry)):
+        expected = base_files.get(relative_path)
+        current_path = repository_root / relative_path
+        if expected is None or not current_path.is_file():
+            mutations.append(relative_path)
+            continue
+        try:
+            current = current_path.read_bytes()
+        except OSError as error:
+            raise ConfigurationError(
+                f"REGISTERED_VERSION_MUTATED: path={relative_path}"
+            ) from error
+        if current != expected:
+            mutations.append(relative_path)
+    return sorted(mutations)
 
 
 def registered_version_mutations(
@@ -142,11 +208,37 @@ def mutations_against_base(repository_root: Path, base_ref: str) -> list[str]:
         for path in protected_registered_paths(engine_registry, catalog_registry)
         if (content := git_show_bytes(repository_root, base_ref, path)) is not None
     }
-    return registered_version_mutations(
+    mutations = registered_version_mutations(
         repository_root,
         base_files,
         engine_registry,
         catalog_registry,
+    )
+    output_profile_registry_bytes = git_show_bytes(
+        repository_root,
+        base_ref,
+        OUTPUT_PROFILE_REGISTRY_PATH,
+    )
+    if output_profile_registry_bytes is None:
+        return mutations
+    output_profile_registry = json_object_from_bytes(
+        output_profile_registry_bytes,
+        OUTPUT_PROFILE_REGISTRY_PATH,
+    )
+    output_profile_files = {
+        path: content
+        for path in protected_output_profile_paths(output_profile_registry)
+        if (content := git_show_bytes(repository_root, base_ref, path)) is not None
+    }
+    return sorted(
+        [
+            *mutations,
+            *output_profile_version_mutations(
+                repository_root,
+                output_profile_files,
+                output_profile_registry,
+            ),
+        ]
     )
 
 
@@ -174,6 +266,11 @@ def main() -> int:
     current_engine_registry = load_json_object(repository_root / ENGINE_REGISTRY_PATH)
     current_catalog_registry = load_json_object(repository_root / CATALOG_REGISTRY_PATH)
     protected_registered_paths(current_engine_registry, current_catalog_registry)
+    current_output_profile_registry_path = repository_root / OUTPUT_PROFILE_REGISTRY_PATH
+    if current_output_profile_registry_path.is_file():
+        protected_output_profile_paths(
+            load_json_object(current_output_profile_registry_path)
+        )
     print("REGISTERED_VERSION_IMMUTABILITY_PASS")
     return 0
 
