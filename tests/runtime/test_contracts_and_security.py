@@ -15,10 +15,12 @@ from RUNTIME.context import build_minimal_context
 from RUNTIME.contracts import (
     load_model_routes,
     load_provider_registry,
+    load_task_catalog,
     validate_runtime_contracts,
 )
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.models import RuntimeTask
+from RUNTIME.planner import task_condition_matches, topological_task_ids
 from RUNTIME.providers.fake import FakeProvider
 from RUNTIME.router import route_candidates
 from RUNTIME.tools.broker import invoke_tool, tool_definitions
@@ -79,7 +81,7 @@ def test_runtime_contracts_cross_validate_all_authorities() -> None:
 
     assert result["result"] == "PASS"
     assert result["runtime_version"] == "1.0.0"
-    assert result["task_count"] == 40
+    assert result["task_count"] == 47
 
 
 def test_runtime_task_contract_has_no_duplicate_json_keys() -> None:
@@ -89,6 +91,87 @@ def test_runtime_task_contract_has_no_duplicate_json_keys() -> None:
     json.loads(
         contract_path.read_text(encoding="utf-8"),
         object_pairs_hook=reject_duplicate_json_keys,
+    )
+
+
+def test_screenplay_unit_tasks_preserve_minimum_authority_and_executor_order() -> None:
+    """창작 LLM은 Unit만 쓰고 모든 파생·검증·Package 단계는 CORE가 맡는다."""
+    tasks = load_task_catalog(ROOT)
+    compose = tasks["script.compose_screenplay_units"]
+    assert compose["writes"] == ["screenplay_units"]
+    assert set(compose["reads"]) == {
+        "production_config",
+        "characters",
+        "relationships",
+        "knowledge_matrix",
+        "actual_timeline",
+        "viewer_timeline",
+        "audience_belief",
+        "clue_matrix",
+        "character_state_transitions",
+        "crime_event_contract",
+        "scene_cards",
+        "presentation_plan",
+    }
+    core_task_ids = (
+        "script.render_screenplay_layers",
+        "script.render_broadcast_master",
+        "script.render_reenactment_export",
+        "continuity.validate_reenactment",
+        "production.package_reenactment",
+    )
+    assert all(tasks[task_id]["executor"] == "CORE" for task_id in core_task_ids)
+    assert all(tasks[task_id]["model_profile"] is None for task_id in core_task_ids)
+    ordered = topological_task_ids(tasks)
+    assert ordered.index("script.compose_screenplay_units") < ordered.index(
+        "script.render_screenplay_layers"
+    )
+    assert ordered.index("script.render_screenplay_layers") < ordered.index(
+        "script.render_broadcast_master"
+    )
+    assert ordered.index("script.render_reenactment_export") < ordered.index(
+        "continuity.validate_reenactment"
+    )
+    assert ordered.index("continuity.validate_reenactment") < ordered.index(
+        "production.package_reenactment"
+    )
+
+
+def test_screenplay_and_legacy_task_conditions_are_mutually_exclusive() -> None:
+    """필드 없는 기존 Project는 Legacy Task만, 고정 Profile Project는 새 Task만 계획한다."""
+    tasks = load_task_catalog(ROOT)
+    channel = load_json_object(
+        ROOT / "CHANNELS/mystery_main/versions/2.1.0/channel_dna.json"
+    )
+    legacy_config: dict[str, object] = {}
+    screenplay_config: dict[str, object] = {
+        "script_source_mode": "SCREENPLAY_UNITS",
+        "reenactment_output_profile_id": "REENACTMENT_CHARACTER_SCRIPT",
+        "reenactment_output_profile_version": "1.0.0",
+    }
+    assert task_condition_matches(
+        tasks["script.write_layers"]["condition"],
+        legacy_config,
+        channel,
+        {},
+    )
+    assert not task_condition_matches(
+        tasks["script.compose_screenplay_units"]["condition"],
+        legacy_config,
+        channel,
+        {},
+    )
+    assert not task_condition_matches(
+        tasks["script.write_layers"]["condition"],
+        screenplay_config,
+        channel,
+        {},
+    )
+    assert task_condition_matches(
+        tasks["script.compose_screenplay_units"]["condition"],
+        screenplay_config,
+        channel,
+        {},
     )
 
 

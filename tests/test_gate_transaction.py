@@ -512,12 +512,9 @@ def test_task_open_excludes_same_gate_outputs_from_input_hashes(
     assert "narration_script" not in input_hashes
     assert "panel_reaction_script" not in input_hashes
     assert "scene_cards" in input_hashes
-    assert record["current_task_id"] == "script.write_layers"
-    assert record["allowed_writes"] == [
-        "drama_script",
-        "narration_script",
-        "panel_reaction_script",
-    ]
+    assert record["current_task_id"] == "script.compose_screenplay_units"
+    assert record["allowed_writes"] == ["screenplay_units"]
+    assert not (project_path / "07_SCRIPT" / "screenplay_units.json").exists()
 
 
 def test_codex_writer_runs_core_llm_sequence_through_gate_four(

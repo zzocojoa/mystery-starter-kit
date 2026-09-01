@@ -8,8 +8,8 @@ Script와 모든 구조 Artifact 사이의 ID, Timeline, Knowledge, Clue, Runtim
 
 ## 입력과 출력
 
-- 입력: Layer Scripts, Final Script, Timelines, Audience Belief, Knowledge Matrix, Clue Matrix, Panel Cast, Reaction Segments, Presentation Plan, Production Package, Channel DNA
-- 출력: Script Realization Report, Continuity Report, Channel Consistency Report, Editorial Review
+- 입력: Screenplay Units, 재연용 Script, Layer Scripts, Final Script, Timelines, Audience Belief, Knowledge Matrix, Clue Matrix, Panel Cast, Reaction Segments, Presentation Plan, Production Package, Channel DNA
+- 출력: Script Realization Report, Reenactment Export Report, Continuity Report, Channel Consistency Report, Editorial Review
 
 ## Gate
 
@@ -18,6 +18,8 @@ ERROR가 0건이어야 하며 핵심 단서는 Introduced/Revealed/Resolved 상�
 각 검사는 Channel Version이 아니라 대응 Capability가 활성화된 경우에만 수행한다. 범죄 심리, 구체 사건, Source Label, Expert Claim-Evidence와 임상 용어 검사를 서로 암묵적으로 묶지 않는다.
 
 `EXPLICIT_CRIME_EVENT_POLICY`가 활성화되면 `continuity.realization` Task가 Final Script의 실제 Drama Segment와 비가시 사건·행동·피해·Development Function 추적 정보, Reveal 배치를 다시 계산해 `script_realization_report.json`을 작성한다. CORE는 근거를 `NEEDS_REVIEW` 또는 `MISSING`으로만 표시하고 의미 충족을 PASS로 선언하지 않는다. Editorial Review는 사건 실현, 주관적 Narration, Panel 추적, Reveal Timing, 조기 공개 Scan, 단서·증거 정합성을 실제 발췌로 판정한다.
+
+`SCREENPLAY_UNITS` mode에서는 `continuity.validate_reenactment` CORE Task가 Unit·Cast·Relationship·Crime/Harm·Clue/Reveal·고정 Output Profile·Broadcast Master의 현재 Hash에서 Export Report를 재구성한다. `result`는 자동 Editorial PASS가 아니라 `NEEDS_REVIEW`, `FAIL`, `MISSING` 중 하나다. Critic은 Script나 Report Metadata를 직접 고쳐 통과시키지 않는다.
 
 ## 금지
 

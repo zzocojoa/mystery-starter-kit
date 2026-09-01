@@ -81,6 +81,7 @@ from VALIDATORS.production_footprint import (
     validate_production_footprint,
 )
 from VALIDATORS.project_constraints import project_constraint_compiler_issues
+from VALIDATORS.reenactment_export import validate_reenactment_export_report
 from VALIDATORS.reference_validation import build_story_element_profile
 from VALIDATORS.scene_realization import (
     validate_channel_realization_evidence,
@@ -93,6 +94,7 @@ from VALIDATORS.scene_realization import (
     validate_script_realization,
     validate_script_realization_report,
 )
+from VALIDATORS.screenplay_units import validate_screenplay_units
 from VALIDATORS.source_truth import source_truth_requires_evidence
 from VALIDATORS.source_truth_contract import (
     validate_source_subject_mapping,
@@ -143,6 +145,63 @@ def script_nonempty_issues(artifacts: Mapping[str, ArtifactContent]) -> list[Val
             )
         )
     return issues
+
+
+def screenplay_unit_mode(production_config: Mapping[str, object]) -> bool:
+    """현재 Project가 구조화 Screenplay Unit 경로를 사용하는지 판정한다."""
+    return production_config.get("script_source_mode") == "SCREENPLAY_UNITS"
+
+
+def reenactment_profile_inputs(
+    presentation_schemas: Mapping[str, Mapping[str, object]],
+) -> tuple[Mapping[str, object], str]:
+    """Runtime이 미리 검증한 Output Profile 문서와 Hash를 읽는다."""
+    profile = presentation_schemas.get("reenactment_output_profile", {})
+    binding = presentation_schemas.get("reenactment_output_profile_binding", {})
+    profile_hash = binding.get("sha256")
+    if not isinstance(profile_hash, str):
+        raise ValueError("검증된 Reenactment Output Profile Hash가 없습니다.")
+    return profile, profile_hash
+
+
+def reenactment_text_issues(
+    artifacts: Mapping[str, ArtifactContent],
+) -> list[ValidationIssue]:
+    """재연용 Script가 비어 있지 않은지 검사한다."""
+    content = optional_artifact_text(artifacts, "reenactment_character_script")
+    if content is not None and content.strip():
+        return []
+    return [
+        ValidationIssue(
+            severity="ERROR",
+            code="REENACTMENT_SCRIPT_EMPTY",
+            message="재연용 인물별 대사 Script가 비어 있습니다.",
+            artifact="07_SCRIPT/reenactment_character_script.md",
+            context={},
+        )
+    ]
+
+
+def production_reenactment_copy_issues(
+    artifacts: Mapping[str, ArtifactContent],
+) -> list[ValidationIssue]:
+    """Production 재연 Script가 검증된 Script와 바이트 단위로 같은지 검사한다."""
+    source = optional_artifact_text(artifacts, "reenactment_character_script")
+    production = optional_artifact_text(
+        artifacts,
+        "production_reenactment_character_script",
+    )
+    if source and production and source == production:
+        return []
+    return [
+        ValidationIssue(
+            severity="ERROR",
+            code="PRODUCTION_REENACTMENT_COPY_MISMATCH",
+            message="Production 재연 Script가 검증된 Canonical 재연 Script와 다릅니다.",
+            artifact="09_PRODUCTION/reenactment_character_script.md",
+            context={},
+        )
+    ]
 
 
 def validate_gate(
@@ -648,7 +707,7 @@ def validate_gate(
             ),
         ]
     if gate_id == "GATE-08":
-        return [
+        issues = [
             *validate_presentation_design(
                 panel_cast,
                 reaction_segments,
@@ -696,6 +755,26 @@ def validate_gate(
                 artifact_text(artifacts, "panel_reaction_script"),
             ),
         ]
+        if screenplay_unit_mode(production_config):
+            screenplay_units = optional_artifact_document(artifacts, "screenplay_units")
+            issues.extend(
+                required_channel_artifact_issues(
+                    artifacts,
+                    production_config,
+                    channel,
+                    ("screenplay_units", "reenactment_character_script"),
+                )
+            )
+            issues.extend(
+                schema_issues(
+                    screenplay_units,
+                    presentation_schemas["screenplay_units"],
+                    "07_SCRIPT/screenplay_units.json",
+                )
+            )
+            issues.extend(validate_screenplay_units(screenplay_units))
+            issues.extend(reenactment_text_issues(artifacts))
+        return issues
     if gate_id == "GATE-09":
         report = validate_continuity(
             production_config,
@@ -712,7 +791,7 @@ def validate_gate(
             artifacts,
             "script_realization_report",
         )
-        return [
+        issues = [
             *(list(report_issues) if isinstance(report_issues, list) else []),
             *required_channel_artifact_issues(
                 artifacts,
@@ -746,6 +825,47 @@ def validate_gate(
                 realization_report,
             ),
         ]
+        if screenplay_unit_mode(production_config):
+            output_profile, profile_hash = reenactment_profile_inputs(
+                presentation_schemas,
+            )
+            screenplay_units = optional_artifact_document(artifacts, "screenplay_units")
+            reenactment_report = optional_artifact_document(
+                artifacts,
+                "reenactment_export_report",
+            )
+            issues.extend(
+                required_channel_artifact_issues(
+                    artifacts,
+                    production_config,
+                    channel,
+                    ("reenactment_export_report",),
+                )
+            )
+            issues.extend(
+                schema_issues(
+                    reenactment_report,
+                    presentation_schemas["reenactment_export_report"],
+                    "08_QA/reenactment_export_report.json",
+                )
+            )
+            issues.extend(
+                validate_reenactment_export_report(
+                    reenactment_report,
+                    production_config,
+                    screenplay_units,
+                    characters,
+                    relationships,
+                    optional_artifact_document(artifacts, "crime_event_contract"),
+                    clues,
+                    output_profile,
+                    profile_hash,
+                    artifact_text(artifacts, "reenactment_character_script"),
+                    presentation,
+                    artifact_text(artifacts, "final_script"),
+                )
+            )
+        return issues
     fingerprint = artifact_document(artifacts, "story_fingerprint")
     if gate_id == "GATE-10":
         novelty_report = evaluate_novelty(fingerprint, story_history, novelty_thresholds)
@@ -868,7 +988,7 @@ def validate_gate(
             ),
         ]
     if gate_id == "GATE-13":
-        return [
+        issues = [
             *validate_presentation_design(
                 panel_cast,
                 reaction_segments,
@@ -982,6 +1102,17 @@ def validate_gate(
                 artifact_text(artifacts, "shooting_script"),
             ),
         ]
+        if screenplay_unit_mode(production_config):
+            issues.extend(
+                required_channel_artifact_issues(
+                    artifacts,
+                    production_config,
+                    channel,
+                    ("production_reenactment_character_script",),
+                )
+            )
+            issues.extend(production_reenactment_copy_issues(artifacts))
+        return issues
     raise ValueError(f"알 수 없는 Gate입니다: {gate_id}")
 
 

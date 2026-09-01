@@ -259,7 +259,7 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
         .read_text(encoding="utf-8")
         .splitlines()
     )
-    assert len(trace_lines) == 32
+    assert len(trace_lines) == 37
     novelty_entries = novelty_index["entries"]
     assert isinstance(novelty_entries, list)
     runtime_entry = next(
@@ -272,8 +272,18 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
     for relative_path in (
         "01_CASE/crime_event_contract.json",
         "01_CASE/source_disclosure.json",
+        "05_STORY/character_state_transitions.json",
+        "07_SCRIPT/screenplay_units.json",
+        "07_SCRIPT/reenactment_character_script.md",
+        "08_QA/reenactment_export_report.json",
+        "09_PRODUCTION/reenactment_character_script.md",
     ):
         assert (project_path / relative_path).is_file()
+    assert (
+        project_path / "07_SCRIPT/reenactment_character_script.md"
+    ).read_bytes() == (
+        project_path / "09_PRODUCTION/reenactment_character_script.md"
+    ).read_bytes()
     for relative_path in (
         "01_CASE/clinical_labels.json",
         "06_SCENE/expert_segments.json",

@@ -47,6 +47,12 @@ Codex App은 Canonical Project를 직접 편집하지 않는다. `task-open`은 
 
 Runtime 시작 시 JSON Schema뿐 아니라 Task가 Agent Manifest 권한을 넓히지 않는지, Task Writer가 Dependency Graph Owner인지, Resource가 Repository 내부이며 `EXAMPLES/`가 아닌지 교차 검증한다.
 
+### Screenplay Unit 실행 경로
+
+새 Scaffold는 `SCREENPLAY_UNITS` mode와 고정 Reenactment Output Profile을 사용한다. GATE-06의 LLM은 Character State Transition만, GATE-08의 LLM은 Canonical Screenplay Unit만 작성한다. 이후 `script.render_screenplay_layers → script.render_broadcast_master → script.render_reenactment_export`는 CORE이며, Trace Marker와 파생 Markdown을 LLM 권한 밖에서 생성한다. GATE-09의 `continuity.validate_reenactment`는 Unit·Cast·Relationship·Event/Harm·Clue/Reveal·Profile·Broadcast Hash로 Report를 재구성하고, GATE-13의 `production.package_reenactment`는 검증된 원문을 byte-identical 사본으로만 전달한다.
+
+기존 Production Config에 `script_source_mode`가 없으면 `LEGACY_MARKDOWN`으로 평가해 `script.write_layers → script.integrate`를 유지한다. 두 경로는 Task Condition으로 상호 배타적이며 같은 Gate 안의 LLM→CORE 전환도 하나의 Staging Overlay에 남아 Gate PASS 전에는 Canonical 중간 Artifact를 Commit하지 않는다.
+
 ## 실행과 원자성
 
 한 Gate의 Task 출력은 메모리에서 결합한 뒤 Canonical Project를 복제한 Staging Overlay에 기록한다. 기존 Gate Validator가 Overlay 전체를 통과시킨 경우에만 Transaction Record를 `PREPARED`로 남기고 Artifact와 Project State를 교체한다. 중간 교체가 실패하면 모든 백업을 복구해 `ROLLED_BACK`으로 기록한다. Process가 Commit 도중 종료돼 `PREPARED`가 남으면 다음 Run 시작 시 먼저 복구한다. 복구 경로는 Canonical Project와 해당 Transaction의 백업 디렉터리 내부로 제한한다.

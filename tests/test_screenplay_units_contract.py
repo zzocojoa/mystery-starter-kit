@@ -352,6 +352,9 @@ def test_invalid_output_profile_version_pin_fails_explicitly() -> None:
 def test_legacy_production_config_remains_valid_without_profile_pin() -> None:
     """기존 Production Config는 자동 Migration 없이 Legacy mode로 남는다."""
     config = load_json_object(PRODUCTION_CONFIG_PATH)
+    config.pop("script_source_mode")
+    config.pop("reenactment_output_profile_id")
+    config.pop("reenactment_output_profile_version")
     schema = load_json_object(PRODUCTION_CONFIG_SCHEMA_PATH)
 
     assert collect_schema_errors(config, schema, str(PRODUCTION_CONFIG_PATH)) == []
@@ -368,7 +371,8 @@ def test_legacy_production_config_remains_valid_without_profile_pin() -> None:
 def test_screenplay_mode_requires_both_output_profile_pins() -> None:
     """새 Source mode는 Profile ID와 Version을 함께 고정해야 한다."""
     config = load_json_object(PRODUCTION_CONFIG_PATH)
-    config["script_source_mode"] = "SCREENPLAY_UNITS"
+    config.pop("reenactment_output_profile_id")
+    config.pop("reenactment_output_profile_version")
 
     errors = collect_schema_errors(
         config,
@@ -388,8 +392,15 @@ def test_screenplay_artifacts_are_opt_in_and_invalidate_all_exports() -> None:
     graph = load_json_object(ROOT / "STANDARD/dependency_graph.json")
     definition = dependency_artifacts(graph)["screenplay_units"]
     legacy_config = load_json_object(PRODUCTION_CONFIG_PATH)
+    legacy_config.pop("script_source_mode")
+    legacy_config.pop("reenactment_output_profile_id")
+    legacy_config.pop("reenactment_output_profile_version")
     screenplay_config = deepcopy(legacy_config)
     screenplay_config["script_source_mode"] = "SCREENPLAY_UNITS"
+    screenplay_config["reenactment_output_profile_id"] = (
+        "REENACTMENT_CHARACTER_SCRIPT"
+    )
+    screenplay_config["reenactment_output_profile_version"] = "1.0.0"
     channel: dict[str, object] = {"capabilities": {}}
 
     assert not artifact_required_for_project(

@@ -1308,6 +1308,481 @@ def context_artifact(request: LLMRequest, artifact_name: str) -> Mapping[str, ob
     return artifact
 
 
+def screenplay_units_mode(request: LLMRequest) -> bool:
+    """현재 Fake Task가 새 구조화 Script 경로인지 반환한다."""
+    production_config = context_artifact(request, "production_config")
+    return (
+        production_config is not None
+        and production_config.get("script_source_mode") == "SCREENPLAY_UNITS"
+    )
+
+
+def fake_clue_matrix(
+    request: LLMRequest,
+    project_id: str,
+    selection: Mapping[str, str],
+) -> dict[str, object]:
+    """Script mode에 맞는 Legacy 또는 명시적 Reveal Clue Fixture를 만든다."""
+    common: dict[str, object] = {
+        "project_id": project_id,
+        **(
+            {
+                "final_proof_mechanism": selection["final_proof_mechanism"],
+                "technical_dependency_level": selection["technical_dependency_level"],
+            }
+            if "final_proof_mechanism" in selection
+            and "technical_dependency_level" in selection
+            else {}
+        ),
+    }
+    base_clues: list[dict[str, object]] = [
+        {
+            "clue_id": "CLUE-01",
+            "role": "CORE",
+            "evidence_class": "RELATIONAL",
+            "independent_ground_id": "GROUND-01",
+            "supports_final_reveal": True,
+            "introduced_scene_order": 1,
+            "introduced_scene_id": "SCN-01",
+            "resolved_scene_order": 2,
+            "resolved_scene_id": "SCN-02",
+        },
+        {
+            "clue_id": "CLUE-02",
+            "role": "CORE",
+            "evidence_class": "BEHAVIORAL",
+            "independent_ground_id": "GROUND-02",
+            "supports_final_reveal": True,
+            "introduced_scene_order": 1,
+            "introduced_scene_id": "SCN-01",
+            "resolved_scene_order": 2,
+            "resolved_scene_id": "SCN-02",
+        },
+    ]
+    if not screenplay_units_mode(request):
+        return {**common, "clues": base_clues}
+    versioned_clues = [
+        {
+            **base_clues[0],
+            "reveal_mode": "SEEDED_REINTERPRETATION",
+            "surface_meaning": "기록 공백은 피해자의 자발적 이탈처럼 보인다.",
+            "actual_meaning": "기록 공백은 가해자가 사건을 숨기려 만든 흔적이다.",
+            "first_seen_scene_id": "SCN-01",
+            "reveal_scene_id": "SCN-02",
+            "recontextualized_scene_ids": ["SCN-01"],
+        },
+        {
+            **base_clues[1],
+            "reveal_mode": "INTENTIONAL_NON_MYSTERY_DISCLOSURE",
+            "reveal_scene_id": "SCN-02",
+        },
+    ]
+    return {
+        "$schema": "../../../STANDARD/schemas/clue_matrix.schema.json",
+        "schema_family": "clue-matrix",
+        "schema_version": "1.1.0",
+        **common,
+        "clues": versioned_clues,
+    }
+
+
+def first_identifier(
+    document: Mapping[str, object],
+    collection_field: str,
+    identifier_field: str,
+    task_id: str,
+    artifact_name: str,
+) -> str:
+    """Fixture 입력 배열의 첫 Canonical ID를 엄격하게 읽는다."""
+    for record in mapping_values(document.get(collection_field)):
+        identifier = record.get(identifier_field)
+        if isinstance(identifier, str):
+            return identifier
+    raise RuntimeExecutionError(
+        "RUNTIME_CONFIGURATION_ERROR",
+        False,
+        "TASK",
+        "FakeProvider Fixture 입력에 Canonical ID가 없습니다.",
+        task_id,
+        artifact_name,
+        {
+            "collection_field": collection_field,
+            "identifier_field": identifier_field,
+        },
+    )
+
+
+def fake_character_state_transitions(
+    request: LLMRequest,
+    project_id: str,
+) -> dict[str, object]:
+    """Beat와 사건·단서에 결속된 Character State Transition을 만든다."""
+    characters = context_artifact(request, "characters")
+    facts = context_artifact(request, "facts")
+    clues = context_artifact(request, "clue_matrix")
+    crime_event = context_artifact(request, "crime_event_contract")
+    if characters is None or facts is None or clues is None or crime_event is None:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "State Transition Fixture 입력이 누락되었습니다.",
+            "story.design_state_transitions",
+            "character_state_transitions",
+            {},
+        )
+    character_id = first_identifier(
+        characters,
+        "characters",
+        "character_id",
+        "story.design_state_transitions",
+        "characters",
+    )
+    fact_id = first_identifier(
+        facts,
+        "facts",
+        "fact_id",
+        "story.design_state_transitions",
+        "facts",
+    )
+    clue_id = first_identifier(
+        clues,
+        "clues",
+        "clue_id",
+        "story.design_state_transitions",
+        "clue_matrix",
+    )
+    event_id = crime_event.get("event_id")
+    if not isinstance(event_id, str):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "State Transition Fixture에 Crime Event ID가 없습니다.",
+            "story.design_state_transitions",
+            "crime_event_contract",
+            {},
+        )
+    return {
+        "$schema": "../../../STANDARD/schemas/character_state_transitions.schema.json",
+        "schema_family": "character-state-transitions",
+        "schema_version": "1.0.0",
+        "project_id": project_id,
+        "narrative_path": "SURVIVOR_RECOVERY",
+        "transitions": [
+            {
+                "transition_id": "CSTATE-001",
+                "order": 1,
+                "character_id": character_id,
+                "scope_type": "BEAT",
+                "scope_id": "BEAT-01",
+                "state_before": "기록 공백을 피해자의 선택으로 오해한다.",
+                "state_after": "기록 공백이 의도적으로 만들어졌다고 의심한다.",
+                "triggers": {
+                    "fact_ids": [fact_id],
+                    "clue_ids": [],
+                    "crime_event_ids": [],
+                },
+                "change_category": "BELIEF",
+            },
+            {
+                "transition_id": "CSTATE-002",
+                "order": 2,
+                "character_id": character_id,
+                "scope_type": "BEAT",
+                "scope_id": "BEAT-02",
+                "state_before": "기록 공백이 의도적으로 만들어졌다고 의심한다.",
+                "state_after": "사건 기록을 보존하고 책임을 드러내기로 선택한다.",
+                "triggers": {
+                    "fact_ids": [],
+                    "clue_ids": [clue_id],
+                    "crime_event_ids": [event_id],
+                },
+                "change_category": "CHOICE",
+                "recovery_function": "AGENCY_RECOVERY",
+            },
+        ],
+    }
+
+
+def screenplay_references(
+    fact_ids: list[str],
+    clue_ids: list[str],
+    crime_event_ids: list[str],
+    harm_ids: list[str],
+    development_function_ids: list[str],
+    reveal_target_ids: list[str],
+) -> dict[str, object]:
+    """Screenplay Unit의 여섯 Reference 배열을 빠짐없이 만든다."""
+    return {
+        "fact_ids": fact_ids,
+        "clue_ids": clue_ids,
+        "crime_event_ids": crime_event_ids,
+        "harm_ids": harm_ids,
+        "development_function_ids": development_function_ids,
+        "reveal_target_ids": reveal_target_ids,
+    }
+
+
+def screenplay_character_ids(characters: Mapping[str, object]) -> list[str]:
+    """Canonical Character ID를 문서 순서로 반환한다."""
+    return [
+        str(record["character_id"])
+        for record in mapping_values(characters.get("characters"))
+        if isinstance(record.get("character_id"), str)
+    ]
+
+
+def fake_screenplay_units(
+    request: LLMRequest,
+    project_id: str,
+    source_truth: str,
+) -> dict[str, object]:
+    """Approved 구조 입력만 사용해 검증 가능한 Screenplay Unit Fixture를 만든다."""
+    characters = context_artifact(request, "characters")
+    viewer_timeline = context_artifact(request, "viewer_timeline")
+    clues = context_artifact(request, "clue_matrix")
+    crime_event = context_artifact(request, "crime_event_contract")
+    scene_cards = context_artifact(request, "scene_cards")
+    if characters is None or viewer_timeline is None or clues is None or crime_event is None:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Screenplay Unit Fixture 입력이 누락되었습니다.",
+            "script.compose_screenplay_units",
+            "screenplay_units",
+            {},
+        )
+    character_ids = screenplay_character_ids(characters)
+    fact_ids = [
+        str(record["fact_id"])
+        for record in mapping_values(viewer_timeline.get("reveals"))
+        if isinstance(record.get("fact_id"), str)
+    ]
+    clue_ids = [
+        str(record["clue_id"])
+        for record in mapping_values(clues.get("clues"))
+        if isinstance(record.get("clue_id"), str)
+    ]
+    event_id = crime_event.get("event_id")
+    harm_ids = string_values(crime_event.get("harm_ids"))
+    development_ids = [
+        str(record["development_function_id"])
+        for record in mapping_values(crime_event.get("development_functions"))
+        if isinstance(record.get("development_function_id"), str)
+        and record.get("required") is True
+    ]
+    reveal_ids = [
+        str(record["reveal_target_id"])
+        for record in mapping_values(crime_event.get("reveal_targets"))
+        if isinstance(record.get("reveal_target_id"), str)
+    ]
+    method = crime_event.get("non_actionable_method_summary")
+    immediate_harm = crime_event.get("immediate_harm")
+    lasting_harm = crime_event.get("lasting_harm")
+    if (
+        not character_ids
+        or len(fact_ids) < 2
+        or len(clue_ids) < 2
+        or not isinstance(event_id, str)
+        or not harm_ids
+        or not development_ids
+        or not all(isinstance(value, str) for value in (method, immediate_harm, lasting_harm))
+    ):
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Screenplay Unit Fixture의 인물·Fact·Clue·사건 입력이 불완전합니다.",
+            "script.compose_screenplay_units",
+            "screenplay_units",
+            {
+                "character_count": len(character_ids),
+                "fact_count": len(fact_ids),
+                "clue_count": len(clue_ids),
+            },
+        )
+    primary_speaker = character_ids[0]
+    secondary_speaker = character_ids[min(1, len(character_ids) - 1)]
+    audience_labels = {
+        "ORIGINAL_FICTION": "본 이야기는 창작입니다.",
+        "VERIFIED_TRUE_CASE": "실제 사건을 바탕으로 재구성했습니다.",
+        "INSPIRED_BY_TRUE_EVENTS": "실제 사건에서 모티프를 얻어 각색했습니다.",
+    }
+    audience_label = audience_labels.get(source_truth)
+    if audience_label is None:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Screenplay Unit Fixture의 Source Truth 분류를 지원하지 않습니다.",
+            "script.compose_screenplay_units",
+            "production_config",
+            {"source_truth_classification": source_truth},
+        )
+    empty_refs = screenplay_references([], [], [], [], [], [])
+    crime_refs = screenplay_references(
+        [fact_ids[1]],
+        clue_ids,
+        [event_id],
+        harm_ids,
+        development_ids,
+        reveal_ids,
+    )
+    title = "교대 기록의 7분"
+    if scene_cards is not None:
+        raw_scenes = scene_cards.get("scenes")
+        if not isinstance(raw_scenes, list) or len(raw_scenes) < 2:
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Screenplay Unit Fixture에는 두 Scene Card가 필요합니다.",
+                "script.compose_screenplay_units",
+                "scene_cards",
+                {},
+            )
+    return {
+        "$schema": "../../../STANDARD/schemas/screenplay_units.schema.json",
+        "schema_family": "screenplay-units",
+        "schema_version": "1.0.0",
+        "project_id": project_id,
+        "title": title,
+        "source_truth_classification": source_truth,
+        "scenes": [
+            {
+                "scene_id": "SCN-01",
+                "order": 1,
+                "title": "기록의 공백",
+                "time_layer": "COLD_OPEN",
+                "location_id": "LOC-01",
+                "segment_ids": ["SEG-001", "SEG-003"],
+                "context": {
+                    "location_description": "교대 기록을 확인하는 폐쇄된 통제실",
+                    "time_description": "사건 당일 밤, 교대 직전",
+                    "previous_scene_id": None,
+                    "background_music_description": "낮게 이어지는 금속성 리듬",
+                    "sound_cues": [
+                        {
+                            "sound_cue_id": "SOUND-001",
+                            "order": 1,
+                            "description": "기록 단말의 경고음이 한 번 울린다.",
+                        }
+                    ],
+                    "opening_character_state": "기록 공백을 단순한 이탈로 받아들인다.",
+                    "opening_emotional_state": "확신과 불안이 섞인 경계 상태",
+                    "action_summary": "기록 공백과 현장 흔적을 처음 대조한다.",
+                    "audience_information_gain": "공백 기록이 사건의 첫 단서임을 알게 된다.",
+                },
+                "units": [
+                    {
+                        "unit_id": "UNIT-001",
+                        "order": 1,
+                        "type": "SCREEN_TEXT",
+                        "text": audience_label,
+                        "segment_id": "SEG-001",
+                        "references": deepcopy(empty_refs),
+                    },
+                    {
+                        "unit_id": "UNIT-002",
+                        "order": 2,
+                        "type": "ACTION",
+                        "text": "지안은 교대 기록의 7분 공백과 멈춘 표시등을 함께 확인한다.",
+                        "segment_id": "SEG-001",
+                        "references": screenplay_references(
+                            [fact_ids[0]],
+                            [clue_ids[0]],
+                            [],
+                            [],
+                            [],
+                            [],
+                        ),
+                    },
+                    {
+                        "unit_id": "UNIT-003",
+                        "order": 3,
+                        "type": "DIALOGUE",
+                        "text": (
+                            "이 공백은 누군가 떠났다는 기록이 아니라, "
+                            "누군가 숨긴 기록일 수 있어."
+                        ),
+                        "segment_id": "SEG-001",
+                        "speaker_id": primary_speaker,
+                        "delivery": {"instruction": "확신을 누르고 낮게 말한다.", "pace": "SLOW"},
+                        "references": deepcopy(empty_refs),
+                    },
+                    {
+                        "unit_id": "UNIT-004",
+                        "order": 4,
+                        "type": "NARRATION",
+                        "text": "그는 기록이 가리키는 빈 시간을 피해자의 선택으로 오해하고 있었다.",
+                        "segment_id": "SEG-003",
+                        "speaker_id": primary_speaker,
+                        "delivery": {"instruction": "회고하듯 차분하게 읽는다.", "pace": "NORMAL"},
+                        "references": deepcopy(empty_refs),
+                    },
+                ],
+            },
+            {
+                "scene_id": "SCN-02",
+                "order": 2,
+                "title": "공백의 실제 의미",
+                "time_layer": "PRESENT",
+                "location_id": "LOC-02",
+                "segment_ids": ["SEG-005"],
+                "context": {
+                    "location_description": "현장 기록과 피해 흔적이 보존된 조사 공간",
+                    "time_description": "다음 날 새벽, 기록 대조 직후",
+                    "previous_scene_id": "SCN-01",
+                    "background_music_description": "리듬이 멈추고 낮은 현악음이 남는다.",
+                    "sound_cues": [
+                        {
+                            "sound_cue_id": "SOUND-002",
+                            "order": 1,
+                            "description": "보존된 기록 파일이 열리는 소리",
+                        }
+                    ],
+                    "opening_character_state": "기록 공백의 조작 가능성을 추적한다.",
+                    "opening_emotional_state": "두려움보다 책임 확인이 앞선다.",
+                    "action_summary": "범죄 행위와 피해 결과를 기록으로 확정한다.",
+                    "audience_information_gain": "가해 행위와 피해 인과, 책임 주체가 드러난다.",
+                    "retrospective_meaning": (
+                        "첫 장면의 공백은 이탈이 아니라 범죄 은폐의 흔적이었다."
+                    ),
+                },
+                "units": [
+                    {
+                        "unit_id": "UNIT-005",
+                        "order": 1,
+                        "type": "ACTION",
+                        "text": (
+                            f"사건 기록은 {method}을 보여 준다. "
+                            f"그 결과 {immediate_harm}이 발생했고, "
+                            f"{lasting_harm}으로 이어졌다."
+                        ),
+                        "segment_id": "SEG-005",
+                        "references": crime_refs,
+                    },
+                    {
+                        "unit_id": "UNIT-006",
+                        "order": 2,
+                        "type": "DIALOGUE",
+                        "text": "이제 공백이 아니라, 누가 무엇을 선택했는지 기록하겠습니다.",
+                        "segment_id": "SEG-005",
+                        "speaker_id": secondary_speaker,
+                        "delivery": {
+                            "instruction": "또렷하고 흔들림 없이 말한다.",
+                            "volume": "NORMAL",
+                        },
+                        "references": deepcopy(empty_refs),
+                    },
+                ],
+            },
+        ],
+    }
+
+
 def source_disclosure_label(request: LLMRequest) -> str:
     """Source Disclosure Artifact의 검증 대상 Audience Label을 읽는다."""
     disclosure = context_artifact(request, "source_disclosure")
@@ -2690,42 +3165,7 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             {
                 "artifact_name": "clue_matrix",
                 "media_type": "application/json",
-                "content": {
-                    "project_id": project_id,
-                    **(
-                        {
-                            "final_proof_mechanism": selected["final_proof_mechanism"],
-                            "technical_dependency_level": selected["technical_dependency_level"],
-                        }
-                        if "final_proof_mechanism" in selected
-                        and "technical_dependency_level" in selected
-                        else {}
-                    ),
-                    "clues": [
-                        {
-                            "clue_id": "CLUE-01",
-                            "role": "CORE",
-                            "evidence_class": "RELATIONAL",
-                            "independent_ground_id": "GROUND-01",
-                            "supports_final_reveal": True,
-                            "introduced_scene_order": 1,
-                            "introduced_scene_id": "SCN-01",
-                            "resolved_scene_order": 2,
-                            "resolved_scene_id": "SCN-02",
-                        },
-                        {
-                            "clue_id": "CLUE-02",
-                            "role": "CORE",
-                            "evidence_class": "BEHAVIORAL",
-                            "independent_ground_id": "GROUND-02",
-                            "supports_final_reveal": True,
-                            "introduced_scene_order": 1,
-                            "introduced_scene_id": "SCN-01",
-                            "resolved_scene_order": 2,
-                            "resolved_scene_id": "SCN-02",
-                        },
-                    ],
-                },
+                "content": fake_clue_matrix(request, project_id, selected),
             },
             {
                 "artifact_name": "hypothesis_ledger",
@@ -2805,6 +3245,14 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     "checkpoints": [{"scene_id": "SCN-01", "function": "QUESTION"}],
                 },
             },
+        ]
+    if task_id == "story.design_state_transitions":
+        return [
+            {
+                "artifact_name": "character_state_transitions",
+                "media_type": "application/json",
+                "content": fake_character_state_transitions(request, project_id),
+            }
         ]
     if task_id == "scene.design":
         scene_seconds = target_runtime_seconds(metadata) // 2
@@ -2916,6 +3364,18 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                     "not_applicable_reason": "FakeProvider 정책 Fixture에는 적용하지 않습니다.",
                     "segments": [],
                 },
+            }
+        ]
+    if task_id == "script.compose_screenplay_units":
+        return [
+            {
+                "artifact_name": "screenplay_units",
+                "media_type": "application/json",
+                "content": fake_screenplay_units(
+                    request,
+                    project_id,
+                    source_truth,
+                ),
             }
         ]
     if task_id == "script.write_layers":

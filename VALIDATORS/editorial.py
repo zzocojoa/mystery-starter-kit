@@ -25,9 +25,13 @@ EDITORIAL_CHECKS = (
 )
 EDITORIAL_REVIEWED_ARTIFACTS = (
     "psychological_arc",
+    "character_state_transitions",
     "crime_event_contract",
     "scene_cards",
     "final_script",
+    "screenplay_units",
+    "reenactment_character_script",
+    "reenactment_export_report",
     "script_realization_report",
     "actual_timeline",
     "viewer_timeline",
@@ -46,6 +50,7 @@ EDITORIAL_REVIEWED_ARTIFACTS = (
     "production_expert_analysis_script",
     "subtitle_script",
     "edit_script",
+    "production_reenactment_character_script",
 )
 PANEL_DIALOGUE_LINE = re.compile(
     r"^\[(?P<panelist_id>PANEL-[0-9]{2,})(?:\s*·[^\]]+)?\]\s*"
@@ -61,6 +66,7 @@ EVIDENCE_SELECTOR_FIELDS = {
     "FACT_ID": "fact_id",
     "CLUE_ID": "clue_id",
     "REVEAL_TARGET_ID": "reveal_target_id",
+    "UNIT_ID": "unit_id",
 }
 
 

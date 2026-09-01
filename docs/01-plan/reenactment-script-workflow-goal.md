@@ -36,12 +36,12 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 - [x] Phase 3 — Clue recontextualization과 flexible state transition
 - [x] Phase 4 — Deterministic CORE renderer
 - [x] Phase 5 — Export integrity와 semantic binding
-- [ ] Phase 6 — Runtime Task, Agent, Gate, dependency 통합
+- [x] Phase 6 — Runtime Task, Agent, Gate, dependency 통합
 - [ ] Phase 7 — 재연극 runtime 계획·측정 분리
 - [ ] Phase 8 — 네 Source-style feature fixture와 Full Original Pilot
 - [ ] Phase 9 — 최종 문서·수용 증거·Stacked PR
 
-현재 Phase: `5`
+현재 Phase: `6`
 
 ## Architecture 결정
 
@@ -113,8 +113,9 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 | 2 | `codex/reenactment-contracts-v1` | `03aa87a6d9e07796b4a1e55f1a7309625d6675e1` | 완료 |
 | 3 | `codex/reenactment-contracts-v1` | `d12e9823e27c788762efc49f2b8b787f33c5f635` | 완료 |
 | 4 | `codex/reenactment-runtime-v1` | `d88e96d0aef3af487b8005c9a54911d7690beeb7` | 완료 |
-| 5 | `codex/reenactment-runtime-v1` | `feat: validate reenactment export integrity` | 현재 Commit 예정 |
-| 6–7 | `codex/reenactment-runtime-v1` | Phase별 Commit | 대기 |
+| 5 | `codex/reenactment-runtime-v1` | `659f9e5e403a5bdc25bd2749d1d8b668245e98ed` | 완료 |
+| 6 | `codex/reenactment-runtime-v1` | `feat: wire screenplay unit workflow into production gates` | 현재 Commit 예정 |
+| 7 | `codex/reenactment-runtime-v1` | Phase Commit | 대기 |
 | 8–9 | `codex/reenactment-pilot-v1` | Phase별 Commit | 대기 |
 
 ## Backward Compatibility 전략
@@ -129,8 +130,8 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 
 ## 현재 Risk와 Deferred 항목
 
-- Runtime condition DSL에 `config_equals`를 추가했으며 Phase 6에서 새 Task와 Gate requiredness가 같은 Predicate를 사용하도록 결속해야 한다.
-- 기존 Broadcast marker parser와 새 Unit-derived evidence가 공존해야 하므로 mode별 단일 진입점을 명확히 분리해야 한다.
+- 새 Unit 경로와 Legacy 경로는 Runtime Task Predicate로 분리했지만 Phase 7의 독립 재연 runtime evidence까지 Report Hash와 Editorial 계약에 결속해야 한다.
+- 기존 Broadcast marker parser와 새 Unit-derived evidence는 mode별 회귀가 통과했다. Phase 8 Pilot에서 실제 LLM 작성 Unit의 자연스러운 Scene·발화와 동일 불변식이 함께 유지되는지 확인해야 한다.
 - Package metadata에 Standard version `1.3.3`이 보이는 기존 build metadata 경로를 조사해 사용자 문서에서 Package `1.6.1`과 혼동되지 않게 해야 한다.
 - Cross-Python byte determinism은 CI matrix 결과를 최종 증거로 사용한다.
 - 대사의 자연스러움·캐릭터 음성·반전 설득력은 결정론적 PASS로 위장하지 않고 Pilot Editorial evidence의 `NEEDS_REVIEW`로 남긴다.
@@ -187,6 +188,17 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 - 정상 CORE 결과는 `NEEDS_REVIEW`, 본문 부재는 `MISSING`, 기계 오류는 `FAIL`만 사용하며 Editorial PASS를 선언하지 않는다.
 - speaker, Unit text/order, 내부 Trace, Output Profile filter, 특수 Unit 삭제·중복, Panel 삽입, Harm, Clue/Reveal, retrospective meaning, Reconstruction, Original Fiction marker, Report 생성 뒤 output bytes와 Metadata-only spoof를 mutation test로 검증했다.
 - Targeted Ruff·strict mypy와 11개 Export test PASS. 전체 Ruff, strict mypy 137 source files, pytest 367개 회귀 테스트 PASS.
+
+## Phase 6 수용 증거
+
+- Runtime Task Catalog는 47개 Task로 확장됐다. `story.design_state_transitions`와 `script.compose_screenplay_units`만 새 구조 콘텐츠를 LLM이 작성하고, 후자는 최소 승인 구조 입력을 읽어 `screenplay_units` 하나만 쓴다.
+- `script.render_screenplay_layers`, `script.render_broadcast_master`, `script.render_reenactment_export`, `continuity.validate_reenactment`, `production.package_reenactment`는 모두 CORE이며 Model Profile이 없다. Layer·Unit/Crime Trace·Broadcast·재연 Markdown·Report·Production copy를 LLM이 쓰지 못한다.
+- 새 Task는 `script_source_mode == SCREENPLAY_UNITS`와 `REENACTMENT_CHARACTER_SCRIPT@1.0.0` Pin이 모두 일치할 때만 실행한다. 필드가 없는 기존 Config는 `script.write_layers`와 `script.integrate`만 실행하며 두 경로가 상호 배타적임을 회귀 테스트로 고정했다.
+- Dependency Graph와 GATE-06/08/09/13 필수 Artifact에 State Transition, Screenplay Units, Reenactment Script, Export Report와 Production copy를 조건부 등록했다. Production Config/Profile, Unit, Character/Relationship, Scene, Event/Harm, Clue, Presentation/Final Script 변화가 Export와 Report를 무효화한다.
+- GATE-08은 Screenplay Schema·순서 의미와 재연 Script 존재를 검사한다. GATE-09는 현재 Profile Hash와 모든 입력에서 Report를 재구성하며, GATE-13은 오류 없는 `NEEDS_REVIEW` Report와 byte-identical Production copy를 요구한다. GATE-12 전체 Validation에도 GATE-09 검증이 포함된다.
+- 새 Scaffold는 Screenplay mode와 Output Profile을 명시한다. 기존 Historical Config와 Legacy Fixture는 필드 부재 기본값으로 유지한다. Agent Manifest·역할 문서·README·Runtime 설계 문서도 최소 권한과 LLM→CORE 순서를 반영했다.
+- FakeProvider Full Gate 회귀는 새 경로로 GATE-00~13을 완주해 `EDITORIAL_REVIEW_REQUIRED`에서 정지했다. Screenplay/State/Export/Production Artifact가 생성되고 Production 재연 Script bytes가 Canonical 재연 Script와 동일했다. 이 Fixture는 Runtime 회귀 전용이며 창작 품질 증거가 아니다.
+- 전체 검증: Ruff PASS, strict mypy PASS(137 source files), pytest PASS(369 tests), package `1.6.1` sdist/wheel build PASS, dependency audit 알려진 취약점 없음, Runtime Doctor PASS, Registered Version Immutability PASS.
 
 ## Final Acceptance Evidence
 

@@ -39,9 +39,13 @@
       "additionalProperties": false,
       "properties": {
         "psychological_arc": {"$ref": "#/$defs/sha256"},
+        "character_state_transitions": {"$ref": "#/$defs/sha256"},
         "crime_event_contract": {"$ref": "#/$defs/sha256"},
         "scene_cards": {"$ref": "#/$defs/sha256"},
         "final_script": {"$ref": "#/$defs/sha256"},
+        "screenplay_units": {"$ref": "#/$defs/sha256"},
+        "reenactment_character_script": {"$ref": "#/$defs/sha256"},
+        "reenactment_export_report": {"$ref": "#/$defs/sha256"},
         "script_realization_report": {"$ref": "#/$defs/sha256"},
         "actual_timeline": {"$ref": "#/$defs/sha256"},
         "viewer_timeline": {"$ref": "#/$defs/sha256"},
@@ -59,7 +63,8 @@
         "production_panel_reaction_script": {"$ref": "#/$defs/sha256"},
         "production_expert_analysis_script": {"$ref": "#/$defs/sha256"},
         "subtitle_script": {"$ref": "#/$defs/sha256"},
-        "edit_script": {"$ref": "#/$defs/sha256"}
+        "edit_script": {"$ref": "#/$defs/sha256"},
+        "production_reenactment_character_script": {"$ref": "#/$defs/sha256"}
       }
     },
     "runtime_evidence": {"$ref": "#/$defs/runtimeEvidence"},
@@ -132,9 +137,13 @@
         "artifact": {
           "enum": [
             "psychological_arc",
+            "character_state_transitions",
             "crime_event_contract",
             "scene_cards",
             "final_script",
+            "screenplay_units",
+            "reenactment_character_script",
+            "reenactment_export_report",
             "script_realization_report",
             "actual_timeline",
             "viewer_timeline",
@@ -152,7 +161,8 @@
             "production_panel_reaction_script",
             "production_expert_analysis_script",
             "subtitle_script",
-            "edit_script"
+            "edit_script",
+            "production_reenactment_character_script"
           ]
         },
         "selector_type": {
@@ -164,8 +174,9 @@
             "PSYCHOLOGICAL_STAGE_ID",
             "EVENT_ID",
             "FACT_ID",
-            "CLUE_ID"
-            ,"REVEAL_TARGET_ID"
+            "CLUE_ID",
+            "REVEAL_TARGET_ID",
+            "UNIT_ID"
           ]
         },
         "selector_id": {"type": "string", "minLength": 1},

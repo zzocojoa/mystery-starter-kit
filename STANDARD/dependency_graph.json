@@ -244,17 +244,17 @@
     },
     "drama_script": {
       "path": "07_SCRIPT/drama_script.md",
-      "depends_on": ["scene_cards", "crime_event_contract", "knowledge_matrix", "clue_matrix"],
+      "depends_on": ["screenplay_units", "scene_cards", "crime_event_contract", "knowledge_matrix", "clue_matrix"],
       "owner_agent": "script_writer"
     },
     "narration_script": {
       "path": "07_SCRIPT/narration_script.md",
-      "depends_on": ["scene_cards", "viewer_timeline", "audience_belief"],
+      "depends_on": ["screenplay_units", "scene_cards", "viewer_timeline", "audience_belief"],
       "owner_agent": "script_writer"
     },
     "panel_reaction_script": {
       "path": "07_SCRIPT/panel_reaction_script.md",
-      "depends_on": ["reaction_segments", "panel_cast", "clue_matrix", "viewer_timeline"],
+      "depends_on": ["screenplay_units", "reaction_segments", "panel_cast", "clue_matrix", "viewer_timeline"],
       "owner_agent": "script_writer"
     },
     "expert_analysis_script": {
@@ -265,7 +265,7 @@
     },
     "screenplay_units": {
       "path": "07_SCRIPT/screenplay_units.json",
-      "depends_on": ["production_config", "crime_event_contract", "characters", "knowledge_matrix", "actual_timeline", "viewer_timeline", "clue_matrix", "character_state_transitions", "scene_cards", "presentation_plan"],
+      "depends_on": ["production_config", "crime_event_contract", "characters", "relationships", "knowledge_matrix", "actual_timeline", "viewer_timeline", "audience_belief", "clue_matrix", "character_state_transitions", "scene_cards", "presentation_plan"],
       "owner_agent": "script_writer",
       "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
     },
@@ -281,13 +281,13 @@
     },
     "reenactment_character_script": {
       "path": "07_SCRIPT/reenactment_character_script.md",
-      "depends_on": ["production_config", "screenplay_units", "characters"],
+      "depends_on": ["production_config", "screenplay_units", "characters", "relationships"],
       "owner_agent": "script_writer",
       "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
     },
     "reenactment_export_report": {
       "path": "08_QA/reenactment_export_report.json",
-      "depends_on": ["production_config", "screenplay_units", "reenactment_character_script", "characters", "crime_event_contract", "clue_matrix", "character_state_transitions"],
+      "depends_on": ["production_config", "screenplay_units", "reenactment_character_script", "characters", "relationships", "crime_event_contract", "clue_matrix", "character_state_transitions", "presentation_plan", "final_script"],
       "owner_agent": "continuity_critic",
       "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
     },

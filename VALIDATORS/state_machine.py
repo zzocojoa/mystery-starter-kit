@@ -81,7 +81,12 @@ GATES: tuple[GateDefinition, ...] = (
     },
     {
         "gate_id": "GATE-06",
-        "required_artifacts": ("beat_sheet", "retention_plan"),
+        "required_artifacts": (
+            "beat_sheet",
+            "retention_plan",
+            "psychological_arc",
+            "character_state_transitions",
+        ),
         "target_state": "STORY_STRUCTURED",
     },
     {
@@ -105,12 +110,18 @@ GATES: tuple[GateDefinition, ...] = (
             "expert_analysis_script",
             "draft_script",
             "final_script",
+            "screenplay_units",
+            "reenactment_character_script",
         ),
         "target_state": "SCRIPT_WRITTEN",
     },
     {
         "gate_id": "GATE-09",
-        "required_artifacts": ("continuity_report",),
+        "required_artifacts": (
+            "continuity_report",
+            "script_realization_report",
+            "reenactment_export_report",
+        ),
         "target_state": "SCRIPT_WRITTEN",
     },
     {
@@ -138,6 +149,7 @@ GATES: tuple[GateDefinition, ...] = (
             "production_expert_analysis_script",
             "subtitle_script",
             "edit_script",
+            "production_reenactment_character_script",
             "editorial_review",
         ),
         "target_state": "EDITORIAL_REVIEW_REQUIRED",

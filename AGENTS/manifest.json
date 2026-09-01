@@ -218,6 +218,7 @@
       "prompt_file": "mystery_designer.md",
       "stage": 4,
       "reads": [
+        "production_config",
         "story_dna",
         "facts",
         "crime_event_contract",
@@ -292,6 +293,7 @@
       "reads": [
         "production_config",
         "characters",
+        "relationships",
         "actual_timeline",
         "psychological_arc",
         "character_state_transitions",
@@ -310,7 +312,8 @@
         "drama_script",
         "narration_script",
         "panel_reaction_script",
-        "expert_analysis_script"
+        "expert_analysis_script",
+        "screenplay_units"
       ],
       "writes": [
         "screenplay_units",
@@ -354,6 +357,7 @@
         "viewer_timeline",
         "audience_belief",
         "characters",
+        "relationships",
         "facts",
         "knowledge_matrix",
         "clue_matrix",

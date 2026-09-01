@@ -52,6 +52,8 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 
 각 제출은 현재 Task의 writes Allowlist, Artifact Owner, Future Gate 수정, 입력 Hash Drift와 Schema를 검사한다. 통과하면 같은 Workspace에서 후속 CORE를 실행하고, 다음 LLM Task가 있으면 Canonical 중간 Commit 없이 새 `current_task_id`와 최소 권한을 반환한다. Gate의 모든 Task와 Gate Validator가 PASS한 경우에만 Artifact·Project State·`00_PROJECT/process_trace.jsonl`을 기존 Write-ahead Transaction으로 함께 Commit한다. 다음 Gate를 열기 전에는 이미 통과한 Canonical Artifact를 Project State Hash와 대조한다. 작업을 폐기하려면 `task-abort`를 사용한다. Critic Issue는 `task-return`으로 Owner Agent Gate에 반환하며, 새 `process_revision`의 Trace만 재작업 적합성에 사용한다. `AUTO_CONTINUE`는 정상 Task 통과 뒤 의존 가능한 CORE 또는 다음 LLM Task로 진행할 수 있다는 뜻이며 여러 Gate를 한꺼번에 작성한다는 뜻이 아니다.
 
+새 Scaffold는 `script_source_mode: SCREENPLAY_UNITS`와 `REENACTMENT_CHARACTER_SCRIPT 1.0.0` Output Profile을 고정한다. GATE-08에서 Codex가 작성하는 유일한 새 창작 출력은 `screenplay_units.json`이다. 제출 뒤 CORE가 Layer Script, Broadcast Master와 `reenactment_character_script.md`를 만들고, GATE-09가 현재 입력 Hash에 결속된 `reenactment_export_report.json`을 계산한다. GATE-13은 이 Report가 오류 없는 `NEEDS_REVIEW`일 때만 동일 bytes를 Production 경로로 전달한다. `script_source_mode` 필드가 없는 기존 Project는 `LEGACY_MARKDOWN` Task 순서와 Artifact를 그대로 사용한다.
+
 ### 3. 감사, Editorial 승인과 등록
 
 ```bash
