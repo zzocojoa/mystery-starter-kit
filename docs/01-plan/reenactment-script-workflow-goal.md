@@ -35,13 +35,13 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 - [x] Phase 2 — Screenplay Units와 Output Profile 계약
 - [x] Phase 3 — Clue recontextualization과 flexible state transition
 - [x] Phase 4 — Deterministic CORE renderer
-- [ ] Phase 5 — Export integrity와 semantic binding
+- [x] Phase 5 — Export integrity와 semantic binding
 - [ ] Phase 6 — Runtime Task, Agent, Gate, dependency 통합
 - [ ] Phase 7 — 재연극 runtime 계획·측정 분리
 - [ ] Phase 8 — 네 Source-style feature fixture와 Full Original Pilot
 - [ ] Phase 9 — 최종 문서·수용 증거·Stacked PR
 
-현재 Phase: `4`
+현재 Phase: `5`
 
 ## Architecture 결정
 
@@ -112,8 +112,9 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 | 1 | `codex/reenactment-contracts-v1` | `5b42991569a5edaa8534c7cb68376127fa8374c6` | 완료 |
 | 2 | `codex/reenactment-contracts-v1` | `03aa87a6d9e07796b4a1e55f1a7309625d6675e1` | 완료 |
 | 3 | `codex/reenactment-contracts-v1` | `d12e9823e27c788762efc49f2b8b787f33c5f635` | 완료 |
-| 4 | `codex/reenactment-runtime-v1` | `feat: add deterministic screenplay and reenactment renderers` | 현재 Commit 예정 |
-| 5–7 | `codex/reenactment-runtime-v1` | Phase별 Commit | 대기 |
+| 4 | `codex/reenactment-runtime-v1` | `d88e96d0aef3af487b8005c9a54911d7690beeb7` | 완료 |
+| 5 | `codex/reenactment-runtime-v1` | `feat: validate reenactment export integrity` | 현재 Commit 예정 |
+| 6–7 | `codex/reenactment-runtime-v1` | Phase별 Commit | 대기 |
 | 8–9 | `codex/reenactment-pilot-v1` | Phase별 Commit | 대기 |
 
 ## Backward Compatibility 전략
@@ -175,6 +176,17 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 - Production copy 함수는 검증된 Canonical 재연극 Markdown을 바이트 그대로 반환한다. 명시적 외부 Export 파일명은 작품명에서 경로 구분자와 제어 문자를 제거해 `[작품명]_인물별_대사_스크립트.md` 규칙을 안전하게 적용한다.
 - Golden Markdown snapshot, 반복 호출 byte identity, 모든 Unit 원문 발생 횟수, 특수 유형 Label, 방송 전용 내용의 zero leakage, COLD_OPEN 후 RECONSTRUCTION 순서, multi-harm trace, 잘못된 계층 배치, Production byte identity와 export path 안전성을 회귀 테스트로 고정했다.
 - Targeted Ruff·strict mypy와 새 Renderer 테스트: PASS. 전체 Ruff·strict mypy와 pytest 356개 회귀 테스트도 PASS했다. 로컬의 3.11~3.13 Interpreter에는 Project dependency 환경이 없어 교차-Version 실행은 CI matrix 증거로 남긴다.
+
+## Phase 5 수용 증거
+
+- `reenactment_export_report`는 Production Config, Screenplay Units, Characters, Relationships, Crime Event Contract, Clue Matrix, Output Profile, Presentation Plan과 Broadcast Master의 Canonical Hash를 입력 증거로 기록한다. Profile 원본 Hash와 재연 Markdown bytes Hash도 별도로 고정한다.
+- Report는 Scene heading coverage, 포함 Unit의 exact block·order·중복, Canonical speaker resolution, 포함·제외 유형, 모든 Contract Harm, Seed/Reveal Clue, Reconstruction 원본·exact repetition과 runtime 구성 상태를 결정론적으로 기록한다.
+- 현재 입력에서 재연 Markdown 전체를 다시 렌더링해 bytes를 비교한다. Unit text, Cast·Relationship, Scene Context 또는 Profile이 달라지면 `UNIT_RENDER_MISMATCH`이고, 기존 Report와 재구성 Report가 한 필드라도 다르면 `REENACTMENT_EXPORT_REPORT_STALE`이다.
+- Broadcast Master의 Segment 순서와 내부 `UNIT` Marker를 각 Unit References에서 다시 계산한다. `CRIME_TRACE`의 Event·Action·여러 Harm·Development Function 집합도 해당 Segment의 실제 Unit에서 재계산하므로 숨은 Trace만 조작하거나 가시 본문 없는 Trace를 넣을 수 없다.
+- Original Fiction 명시, Panel/Expert/Audience와 내부 Marker zero leakage, Cast·speaker·Scene Context, 특수 Unit 보존, Harm coverage, 선행 Seed와 회고적 의미, Reconstruction 선행 참조를 구체적 Issue code로 실패시킨다.
+- 정상 CORE 결과는 `NEEDS_REVIEW`, 본문 부재는 `MISSING`, 기계 오류는 `FAIL`만 사용하며 Editorial PASS를 선언하지 않는다.
+- speaker, Unit text/order, 내부 Trace, Output Profile filter, 특수 Unit 삭제·중복, Panel 삽입, Harm, Clue/Reveal, retrospective meaning, Reconstruction, Original Fiction marker, Report 생성 뒤 output bytes와 Metadata-only spoof를 mutation test로 검증했다.
+- Targeted Ruff·strict mypy와 11개 Export test PASS. 전체 Ruff, strict mypy 137 source files, pytest 367개 회귀 테스트 PASS.
 
 ## Final Acceptance Evidence
 
