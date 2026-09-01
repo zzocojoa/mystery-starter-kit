@@ -37,11 +37,11 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 - [x] Phase 4 — Deterministic CORE renderer
 - [x] Phase 5 — Export integrity와 semantic binding
 - [x] Phase 6 — Runtime Task, Agent, Gate, dependency 통합
-- [ ] Phase 7 — 재연극 runtime 계획·측정 분리
+- [x] Phase 7 — 재연극 runtime 계획·측정 분리
 - [ ] Phase 8 — 네 Source-style feature fixture와 Full Original Pilot
 - [ ] Phase 9 — 최종 문서·수용 증거·Stacked PR
 
-현재 Phase: `6`
+현재 Phase: `7`
 
 ## Architecture 결정
 
@@ -114,8 +114,8 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 | 3 | `codex/reenactment-contracts-v1` | `d12e9823e27c788762efc49f2b8b787f33c5f635` | 완료 |
 | 4 | `codex/reenactment-runtime-v1` | `d88e96d0aef3af487b8005c9a54911d7690beeb7` | 완료 |
 | 5 | `codex/reenactment-runtime-v1` | `659f9e5e403a5bdc25bd2749d1d8b668245e98ed` | 완료 |
-| 6 | `codex/reenactment-runtime-v1` | `feat: wire screenplay unit workflow into production gates` | 현재 Commit 예정 |
-| 7 | `codex/reenactment-runtime-v1` | Phase Commit | 대기 |
+| 6 | `codex/reenactment-runtime-v1` | `60e6cbef639f8d108f96be5b76524091f08c9fd6` | 완료 |
+| 7 | `codex/reenactment-runtime-v1` | `feat: validate independent reenactment runtime` | 현재 Commit 예정 |
 | 8–9 | `codex/reenactment-pilot-v1` | Phase별 Commit | 대기 |
 
 ## Backward Compatibility 전략
@@ -130,7 +130,6 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 
 ## 현재 Risk와 Deferred 항목
 
-- 새 Unit 경로와 Legacy 경로는 Runtime Task Predicate로 분리했지만 Phase 7의 독립 재연 runtime evidence까지 Report Hash와 Editorial 계약에 결속해야 한다.
 - 기존 Broadcast marker parser와 새 Unit-derived evidence는 mode별 회귀가 통과했다. Phase 8 Pilot에서 실제 LLM 작성 Unit의 자연스러운 Scene·발화와 동일 불변식이 함께 유지되는지 확인해야 한다.
 - Package metadata에 Standard version `1.3.3`이 보이는 기존 build metadata 경로를 조사해 사용자 문서에서 Package `1.6.1`과 혼동되지 않게 해야 한다.
 - Cross-Python byte determinism은 CI matrix 결과를 최종 증거로 사용한다.
@@ -199,6 +198,16 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 - 새 Scaffold는 Screenplay mode와 Output Profile을 명시한다. 기존 Historical Config와 Legacy Fixture는 필드 부재 기본값으로 유지한다. Agent Manifest·역할 문서·README·Runtime 설계 문서도 최소 권한과 LLM→CORE 순서를 반영했다.
 - FakeProvider Full Gate 회귀는 새 경로로 GATE-00~13을 완주해 `EDITORIAL_REVIEW_REQUIRED`에서 정지했다. Screenplay/State/Export/Production Artifact가 생성되고 Production 재연 Script bytes가 Canonical 재연 Script와 동일했다. 이 Fixture는 Runtime 회귀 전용이며 창작 품질 증거가 아니다.
 - 전체 검증: Ruff PASS, strict mypy PASS(137 source files), pytest PASS(369 tests), package `1.6.1` sdist/wheel build PASS, dependency audit 알려진 취약점 없음, Runtime Doctor PASS, Registered Version Immutability PASS.
+
+## Phase 7 수용 증거
+
+- Production Config의 `target_reenactment_minutes`와 `reenactment_runtime_tolerance_ratio`는 선택 필드이며 둘을 함께 설정해야 한다. 필드가 없는 기존 Project는 재연극 Runtime을 강제하지 않고 계속 통과한다.
+- 재연극 목표는 전체 방송 목표를 초과할 수 없다. 고정 16분 가정은 사용하지 않으며 Project가 명시한 target/tolerance만 검증한다.
+- CORE 계획시간은 Output Profile에 포함된 Unit type과 Layer가 모두 일치하는 고유 Presentation Segment만 합산한다. Report는 포함·제외 Segment ID, 계획 초, 예상 분과 입력 Hash를 보존한다.
+- 설정된 목표의 허용범위 경계는 포함하고 경계를 넘으면 `REENACTMENT_RUNTIME_MISMATCH`로 실패한다. 방송 목표 초과는 별도 `REENACTMENT_RUNTIME_TARGET_EXCEEDS_BROADCAST`로 실패한다.
+- Editorial 재연극 근거는 Export Report와 전체 입력 Hash에 결속하고 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO`를 구분한다. Unit 또는 Report 변경 뒤 이전 근거는 `REENACTMENT_RUNTIME_MEASUREMENT_STALE`로 거부한다.
+- `WORD_COUNT_ESTIMATE`에 실측값을 섞을 수 없으며 Production Finalize 조건을 충족하지 않는다. 설정된 재연극 Runtime의 Finalize에는 `TABLE_READ` 또는 `RECORDED_AUDIO` 실측이 필요하다.
+- 전체 검증: Ruff PASS, strict mypy PASS(139 source files), pytest PASS(378 tests), package `1.6.1` sdist/wheel build PASS, dependency audit 알려진 취약점 없음, Runtime Doctor PASS, Registered Version Immutability PASS.
 
 ## Final Acceptance Evidence
 

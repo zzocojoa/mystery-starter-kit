@@ -1016,6 +1016,21 @@ def finalize_production_ready(
             f"method={method!r}, measured_total={measured_total!r}, "
             f"missing_segments={missing_measured_segments}"
         )
+    reenactment_evidence = review.get("reenactment_runtime_evidence")
+    if isinstance(reenactment_evidence, Mapping):
+        reenactment_method = reenactment_evidence.get("method")
+        reenactment_measured = numeric_value(
+            reenactment_evidence.get("measured_duration_sec")
+        )
+        if (
+            reenactment_method not in {"TABLE_READ", "RECORDED_AUDIO"}
+            or reenactment_measured is None
+        ):
+            raise StateTransitionError(
+                "Production Ready의 재연극 Runtime에는 TABLE_READ 또는 "
+                "RECORDED_AUDIO 실측이 필요합니다: "
+                f"method={reenactment_method!r}, measured={reenactment_measured!r}"
+            )
     next_state = deepcopy(state)
     next_state["state"] = "PRODUCTION_READY"
     next_state["updated_at"] = updated_at

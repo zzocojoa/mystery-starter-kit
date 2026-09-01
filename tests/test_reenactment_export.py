@@ -185,7 +185,11 @@ def test_valid_export_report_is_schema_valid_and_never_claims_editorial_pass() -
     assert report["runtime_status"] == {
         "target_minutes": None,
         "tolerance_ratio": None,
-        "estimated_minutes": None,
+        "planning_basis": "PRESENTATION_PLAN_INCLUDED_SEGMENTS",
+        "included_segment_ids": ["SEG-001", "SEG-002", "SEG-004"],
+        "excluded_segment_ids": ["SEG-003"],
+        "planned_duration_sec": 100.0,
+        "estimated_minutes": 1.666667,
         "measured_minutes": None,
         "status": "NOT_CONFIGURED",
     }

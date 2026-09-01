@@ -87,10 +87,24 @@
     "runtime_status": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["target_minutes", "tolerance_ratio", "estimated_minutes", "measured_minutes", "status"],
+      "required": [
+        "target_minutes",
+        "tolerance_ratio",
+        "planning_basis",
+        "included_segment_ids",
+        "excluded_segment_ids",
+        "planned_duration_sec",
+        "estimated_minutes",
+        "measured_minutes",
+        "status"
+      ],
       "properties": {
         "target_minutes": {"type": ["number", "null"], "exclusiveMinimum": 0},
         "tolerance_ratio": {"type": ["number", "null"], "minimum": 0, "exclusiveMaximum": 1},
+        "planning_basis": {"const": "PRESENTATION_PLAN_INCLUDED_SEGMENTS"},
+        "included_segment_ids": {"$ref": "#/$defs/segmentIdList"},
+        "excluded_segment_ids": {"$ref": "#/$defs/segmentIdList"},
+        "planned_duration_sec": {"type": "number", "minimum": 0},
         "estimated_minutes": {"type": ["number", "null"], "minimum": 0},
         "measured_minutes": {"type": ["number", "null"], "minimum": 0},
         "status": {"enum": ["NOT_CONFIGURED", "ESTIMATED", "MEASURED_MATCH", "MEASURED_MISMATCH", "MISSING"]}
@@ -116,6 +130,11 @@
       "type": "array",
       "uniqueItems": true,
       "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$"}
+    },
+    "segmentIdList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^SEG-[A-Z0-9_-]+$"}
     },
     "coverage": {
       "type": "object",

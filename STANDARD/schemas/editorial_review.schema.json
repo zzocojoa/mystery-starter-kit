@@ -68,6 +68,7 @@
       }
     },
     "runtime_evidence": {"$ref": "#/$defs/runtimeEvidence"},
+    "reenactment_runtime_evidence": {"$ref": "#/$defs/reenactmentRuntimeEvidence"},
     "semantic_assessments": {
       "type": "array",
       "uniqueItems": true,
@@ -115,6 +116,11 @@
   },
   "$defs": {
     "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "segmentIdList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^SEG-[A-Z0-9_-]+$"}
+    },
     "check": {
       "type": "object",
       "additionalProperties": false,
@@ -292,6 +298,43 @@
         "panel_segments": {
           "type": "array",
           "items": {"$ref": "#/$defs/panelSegmentRuntime"}
+        }
+      }
+    },
+    "reenactmentRuntimeEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "input_artifact_hashes",
+        "reenactment_export_report_sha256",
+        "included_segment_ids",
+        "excluded_segment_ids",
+        "planned_duration_sec",
+        "estimated_duration_sec",
+        "measured_duration_sec"
+      ],
+      "properties": {
+        "method": {
+          "enum": ["WORD_COUNT_ESTIMATE", "TABLE_READ", "RECORDED_AUDIO"]
+        },
+        "input_artifact_hashes": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"},
+          "additionalProperties": {"$ref": "#/$defs/sha256"}
+        },
+        "reenactment_export_report_sha256": {"$ref": "#/$defs/sha256"},
+        "included_segment_ids": {"$ref": "#/$defs/segmentIdList"},
+        "excluded_segment_ids": {"$ref": "#/$defs/segmentIdList"},
+        "planned_duration_sec": {"type": "number", "minimum": 0},
+        "estimated_duration_sec": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0
+        },
+        "measured_duration_sec": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0
         }
       }
     },

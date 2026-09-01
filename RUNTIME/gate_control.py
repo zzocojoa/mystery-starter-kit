@@ -82,6 +82,7 @@ from VALIDATORS.production_footprint import (
 )
 from VALIDATORS.project_constraints import project_constraint_compiler_issues
 from VALIDATORS.reenactment_export import validate_reenactment_export_report
+from VALIDATORS.reenactment_runtime import reenactment_runtime_evidence_issues
 from VALIDATORS.reference_validation import build_story_element_profile
 from VALIDATORS.scene_realization import (
     validate_channel_realization_evidence,
@@ -1112,6 +1113,13 @@ def validate_gate(
                 )
             )
             issues.extend(production_reenactment_copy_issues(artifacts))
+            issues.extend(
+                reenactment_runtime_evidence_issues(
+                    production_config,
+                    artifact_document(artifacts, "reenactment_export_report"),
+                    artifact_document(artifacts, "editorial_review"),
+                )
+            )
         return issues
     raise ValueError(f"알 수 없는 Gate입니다: {gate_id}")
 

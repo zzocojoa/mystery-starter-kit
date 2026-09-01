@@ -18,6 +18,7 @@ from VALIDATORS.crime_event import CRIME_TRACE_BLOCK, segment_trace_blocks
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.models import Severity, ValidationIssue
 from VALIDATORS.presentation_validation import parse_script_segments
+from VALIDATORS.reenactment_runtime import reenactment_runtime_status
 from VALIDATORS.screenplay_units import validate_screenplay_units
 
 REPORT_ARTIFACT = "08_QA/reenactment_export_report.json"
@@ -683,27 +684,6 @@ def type_coverage_evidence(
     }
 
 
-def runtime_status(production_config: Mapping[str, object]) -> dict[str, object]:
-    """Phase 7 전에도 명시적으로 미구성·측정 누락 상태를 구분한다."""
-    target = production_config.get("target_reenactment_minutes")
-    tolerance = production_config.get("reenactment_runtime_tolerance_ratio")
-    if target is None and tolerance is None:
-        return {
-            "target_minutes": None,
-            "tolerance_ratio": None,
-            "estimated_minutes": None,
-            "measured_minutes": None,
-            "status": "NOT_CONFIGURED",
-        }
-    return {
-        "target_minutes": target if isinstance(target, int | float) else None,
-        "tolerance_ratio": tolerance if isinstance(tolerance, int | float) else None,
-        "estimated_minutes": None,
-        "measured_minutes": None,
-        "status": "MISSING",
-    }
-
-
 def expected_unit_trace_fields(unit: Mapping[str, object]) -> dict[str, set[str]]:
     """한 Unit의 구조화 Reference를 방송 Trace field 집합으로 변환한다."""
     references = unit.get("references")
@@ -953,6 +933,12 @@ def build_reenactment_export_report(
         clue_matrix,
     )
     reconstruction, reconstruction_issues = reconstruction_evidence(screenplay_units)
+    runtime_evidence, runtime_issues = reenactment_runtime_status(
+        production_config,
+        screenplay_units,
+        presentation_plan,
+        output_profile,
+    )
     issues = deduplicate_issues(
         [
             *cast_input_issues,
@@ -968,6 +954,7 @@ def build_reenactment_export_report(
             *harm_issues,
             *clue_issues,
             *reconstruction_issues,
+            *runtime_issues,
             *broadcast_trace_issues(
                 screenplay_units,
                 presentation_plan,
@@ -1020,7 +1007,7 @@ def build_reenactment_export_report(
         "harm_coverage": harm_evidence,
         "clue_reveal_coverage": clue_evidence,
         "reconstruction_references": reconstruction,
-        "runtime_status": runtime_status(production_config),
+        "runtime_status": runtime_evidence,
         "issues": issues,
     }
 

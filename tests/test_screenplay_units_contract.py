@@ -387,6 +387,20 @@ def test_screenplay_mode_requires_both_output_profile_pins() -> None:
     } == {"required"}
 
 
+def test_reenactment_runtime_config_fields_are_optional_but_atomic() -> None:
+    """기존 Config에는 필수가 아니지만 목표와 허용치는 반드시 함께 설정한다."""
+    config = load_json_object(PRODUCTION_CONFIG_PATH)
+    schema = load_json_object(PRODUCTION_CONFIG_SCHEMA_PATH)
+
+    assert collect_schema_errors(config, schema, "screenplay production config") == []
+
+    config["target_reenactment_minutes"] = 18
+    assert collect_schema_errors(config, schema, "screenplay production config")
+
+    config["reenactment_runtime_tolerance_ratio"] = 0.1
+    assert collect_schema_errors(config, schema, "screenplay production config") == []
+
+
 def test_screenplay_artifacts_are_opt_in_and_invalidate_all_exports() -> None:
     """새 Artifact는 새 mode에서만 필수이며 Unit 변경은 모든 Export를 무효화한다."""
     graph = load_json_object(ROOT / "STANDARD/dependency_graph.json")

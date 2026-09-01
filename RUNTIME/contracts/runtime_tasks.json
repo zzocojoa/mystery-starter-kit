@@ -843,7 +843,7 @@
       "agent_id": "continuity_critic",
       "executor": "LLM",
       "target_gate": "GATE-13",
-      "reads": ["final_script", "actual_timeline", "viewer_timeline", "audience_belief", "panel_cast", "reaction_segments", "presentation_plan", "panel_reaction_script", "shooting_script", "narration", "production_panel_reaction_script", "subtitle_script", "edit_script"],
+      "reads": ["production_config", "final_script", "actual_timeline", "viewer_timeline", "audience_belief", "panel_cast", "reaction_segments", "presentation_plan", "panel_reaction_script", "shooting_script", "narration", "production_panel_reaction_script", "subtitle_script", "edit_script"],
       "optional_reads": ["crime_event_contract", "scene_cards", "psychological_arc", "script_realization_report", "production_footprint", "production_manifest", "expert_segments", "expert_analysis_script", "production_expert_analysis_script", "character_state_transitions", "screenplay_units", "reenactment_character_script", "reenactment_export_report", "production_reenactment_character_script"],
       "writes": ["editorial_review"],
       "depends_on_tasks": ["production.package", "production.package_expert", "production.build_manifest", "production.package_reenactment"],

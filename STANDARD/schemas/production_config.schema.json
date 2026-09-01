@@ -63,7 +63,13 @@
       "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
     },
     "target_runtime_minutes": {"type": "number", "exclusiveMinimum": 0},
-    "runtime_tolerance_ratio": {"type": "number", "minimum": 0, "exclusiveMaximum": 1}
+    "runtime_tolerance_ratio": {"type": "number", "minimum": 0, "exclusiveMaximum": 1},
+    "target_reenactment_minutes": {"type": "number", "exclusiveMinimum": 0},
+    "reenactment_runtime_tolerance_ratio": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMaximum": 1
+    }
   },
   "allOf": [
     {
@@ -131,6 +137,13 @@
             {"required": ["reenactment_output_profile_version"]}
           ]
         }
+      }
+    },
+    {
+      "if": {"required": ["target_reenactment_minutes"]},
+      "then": {"required": ["reenactment_runtime_tolerance_ratio"]},
+      "else": {
+        "not": {"required": ["reenactment_runtime_tolerance_ratio"]}
       }
     }
   ],

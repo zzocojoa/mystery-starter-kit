@@ -54,6 +54,8 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 
 새 Scaffold는 `script_source_mode: SCREENPLAY_UNITS`와 `REENACTMENT_CHARACTER_SCRIPT 1.0.0` Output Profile을 고정한다. GATE-08에서 Codex가 작성하는 유일한 새 창작 출력은 `screenplay_units.json`이다. 제출 뒤 CORE가 Layer Script, Broadcast Master와 `reenactment_character_script.md`를 만들고, GATE-09가 현재 입력 Hash에 결속된 `reenactment_export_report.json`을 계산한다. GATE-13은 이 Report가 오류 없는 `NEEDS_REVIEW`일 때만 동일 bytes를 Production 경로로 전달한다. `script_source_mode` 필드가 없는 기존 Project는 `LEGACY_MARKDOWN` Task 순서와 Artifact를 그대로 사용한다.
 
+재연극 목표시간이 필요하면 `target_reenactment_minutes`와 `reenactment_runtime_tolerance_ratio`를 함께 설정한다. 이 값은 방송 전체의 `target_runtime_minutes`와 별도이며 방송 목표를 넘을 수 없다. CORE는 Output Profile이 포함한 Unit이 결속된 Drama·Narration Segment만 합산하고 Panel 등 제외 Segment를 Report에 따로 기록한다. Editorial evidence는 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO`를 구분하며, Unit·Profile·Presentation 입력이 바뀌면 기존 측정 Hash를 거부한다.
+
 ### 3. 감사, Editorial 승인과 등록
 
 ```bash
@@ -68,7 +70,7 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 
 `validate`는 현재 파일 집합의 14개 Gate 정합성을 진단하고 `validation_report.json`과 파생 QA Report를 기록한다. `audit`는 같은 Artifact 검증에 Gate별 Process Trace 완전성을 더해 `audit_report.json`에 기록한다. 둘 다 `current_gate`, Project Status, Artifact `CLEAN` 상태나 기존 실행 이력을 바꾸지 않는다. 손상된 State를 Artifact에서 명시적으로 복구할 때만 `rebuild-state PROJECT --force`를 사용하며, 이 명령도 Process Trace나 Human Editorial 승인을 만들어 내지 않는다.
 
-GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Editorial Review v1.2는 검토자·검토 시각·Artifact Hash와 `artifact + selector_type + selector_id + excerpt_hash`를 보존한다. Validator는 Selector를 현재 Artifact에서 다시 해석해 근거 위조와 유효하지 않은 ID를 차단한다. `WORD_COUNT_ESTIMATE`는 Editorial PASS 증거로는 사용할 수 있지만 Production Finalize를 허용하지 않는다. Finalize에는 Segment별 `measured_duration_sec`가 완전한 `TABLE_READ` 또는 `RECORDED_AUDIO`가 필요하다.
+GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Editorial Review v1.2는 검토자·검토 시각·Artifact Hash와 `artifact + selector_type + selector_id + excerpt_hash`를 보존한다. Validator는 Selector를 현재 Artifact에서 다시 해석해 근거 위조와 유효하지 않은 ID를 차단한다. `WORD_COUNT_ESTIMATE`는 Editorial PASS 증거로는 사용할 수 있지만 Production Finalize를 허용하지 않는다. Finalize에는 방송 Panel과 설정된 재연극 Runtime 모두 `TABLE_READ` 또는 `RECORDED_AUDIO` 실측이 필요하다.
 
 Continuity Critic의 `editorial_review.json`이 PASS여도 이는 기술적 Editorial 검토 결과일 뿐 Human Approval이 아니다. Human Actor와 Reason을 기록한 `editorial-approve` 전에는 승인되지 않는다. `production-finalize`는 `ARTIFACT_COMPLETE + CONTRACT_VALIDATED + PROCESS_CONFORMANT + EDITORIAL_APPROVED`를 모두 요구한다. `register`는 이 조건으로 확정된 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 성공 `0`, 검증 실패 `1`, 입력·구성·Transaction 오류 `2`다.
 

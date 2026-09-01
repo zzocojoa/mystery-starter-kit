@@ -234,6 +234,9 @@ Continuity Critic 소유의 `script_realization_report.json`은 사건·Reveal·
 - Segment `duration_sec` 합으로 계산한 Panel Reaction 비율은 계획된 편집 비율이다. Editorial Review는 각 Panel Segment의 실제 화자와 Script에서 재계산한 발화 단어 수를 보존하고, 발화시간과 Replay·Graphic·Reaction Hold 같은 비발화 요소가 계획시간을 완전히 설명하는지 검사한다.
 - 사건 중심 Channel 2.1의 Runtime Evidence는 한국어 어절 기준, 추정 가정, 발화·행동·비발화 시간을 분리하고 Graphic을 포함한 모든 보충 시간의 Script 또는 편집 근거를 기록한다. 합계가 맞더라도 근거 없는 Graphic 시간은 허용하지 않는다.
 - `WORD_COUNT_ESTIMATE`는 명시한 WPM으로 예상 발화시간을 계산한다. `TABLE_READ`와 `RECORDED_AUDIO`는 Segment별 실측 `measured_duration_sec`와 합계를 요구한다. Human Editor는 이 근거로 방송 호흡과 의미상 중복을 최종 판단한다.
+- 재연극 목표시간은 선택적인 `target_reenactment_minutes`와 `reenactment_runtime_tolerance_ratio`로 방송 총 목표시간과 분리한다. 둘은 함께 설정하며 재연극 목표가 방송 목표를 넘지 않아야 한다.
+- 재연극 계획시간은 고정 Output Profile에 포함된 Unit이 결속된 포함 Layer Segment만 한 번씩 합산한다. 제외 Segment와 계획 근거를 Export Report에 보존하며 고정 분량을 암묵적으로 가정하지 않는다.
+- 재연극 Editorial Runtime은 Export Report와 입력 Hash에 결속하고 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO`를 구분한다. 추정치를 실측이나 Human Approval로 승격하지 않으며 Unit 변경 뒤의 측정 근거는 폐기한다.
 - Validator는 모든 Turn의 화자·기능·근거·공개 시점과 Panel Script의 순서·문장을 검증한다. 자연스러운 집단 대화가 필요한 Reaction Segment는 최소 두 명 이상의 짧은 질문·반박·가설 수정·감정 연결을 허용한다. 결정론적 Validator가 Metadata나 문장 표면 일치로 잡기 어려운 의미상 조기 공개와 바꿔 쓴 반복은 Human Editorial Review 책임으로 남긴다.
 
 ### Fact Integrity

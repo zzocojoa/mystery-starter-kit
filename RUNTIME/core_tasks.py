@@ -861,12 +861,19 @@ def production_reenactment_output(
     report = mapping_artifact(artifacts, "reenactment_export_report")
     markdown = text_artifact(artifacts, "reenactment_character_script")
     report_issues = report.get("issues")
+    runtime_status = report.get("runtime_status")
+    runtime_result = (
+        runtime_status.get("status")
+        if isinstance(runtime_status, Mapping)
+        else None
+    )
     expected_hash = report.get("output_markdown_sha256")
     actual_hash = sha256(markdown.encode("utf-8")).hexdigest()
     if (
         report.get("result") != "NEEDS_REVIEW"
         or not isinstance(report_issues, list)
         or report_issues
+        or runtime_result not in {"NOT_CONFIGURED", "ESTIMATED", "MEASURED_MATCH"}
         or expected_hash != actual_hash
     ):
         raise RuntimeExecutionError(
@@ -878,6 +885,7 @@ def production_reenactment_output(
             "reenactment_export_report",
             {
                 "report_result": report.get("result"),
+                "runtime_status": runtime_result,
                 "expected_hash": expected_hash,
                 "actual_hash": actual_hash,
             },

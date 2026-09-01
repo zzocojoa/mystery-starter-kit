@@ -197,3 +197,31 @@ def test_production_finalize_requires_measured_runtime_method() -> None:
             review,
             "2026-08-28T01:00:00Z",
         )
+
+
+def test_production_finalize_rejects_reenactment_estimate_as_measurement() -> None:
+    """재연극 단어 수 예상은 Production Ready 실측 근거가 아니다."""
+    graph = load_json_object(ROOT / "STANDARD" / "dependency_graph.json")
+    state = build_initial_project_state(graph, "PRJ-002", "2026-08-28T00:00:00Z")
+    state["state"] = "EDITORIAL_APPROVED"
+    state["current_gate"] = "GATE-13"
+    state["readiness"].update(
+        {
+            "artifact_status": "ARTIFACT_COMPLETE",
+            "contract_status": "CONTRACT_VALIDATED",
+            "process_status": "PROCESS_CONFORMANT",
+            "editorial_status": "EDITORIAL_APPROVED",
+        }
+    )
+    review = editorial_review(make_complete_project_artifacts())
+    review["reenactment_runtime_evidence"] = {
+        "method": "WORD_COUNT_ESTIMATE",
+        "measured_duration_sec": None,
+    }
+
+    with pytest.raises(StateTransitionError, match="재연극 Runtime"):
+        finalize_production_ready(
+            state,
+            review,
+            "2026-08-28T01:00:00Z",
+        )

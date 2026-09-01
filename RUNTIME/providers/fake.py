@@ -31,6 +31,7 @@ from VALIDATORS.production_footprint import (
     production_footprint_enforced,
     production_scene_marker,
 )
+from VALIDATORS.reenactment_runtime import reenactment_runtime_evidence
 
 PresentationDefinition: TypeAlias = tuple[
     str,
@@ -972,6 +973,29 @@ def fake_editorial_review(
         },
         "issues": [],
     }
+    production_config = artifacts.get("production_config")
+    reenactment_report = artifacts.get("reenactment_export_report")
+    if (
+        isinstance(production_config, Mapping)
+        and production_config.get("target_reenactment_minutes") is not None
+        and isinstance(reenactment_report, Mapping)
+    ):
+        runtime_status = reenactment_report.get("runtime_status")
+        planned_duration = (
+            runtime_status.get("planned_duration_sec")
+            if isinstance(runtime_status, Mapping)
+            else None
+        )
+        if isinstance(planned_duration, int | float) and not isinstance(
+            planned_duration,
+            bool,
+        ):
+            review["reenactment_runtime_evidence"] = reenactment_runtime_evidence(
+                reenactment_report,
+                "TABLE_READ",
+                float(planned_duration),
+                float(planned_duration),
+            )
     crime_event = artifacts.get("crime_event_contract")
     if isinstance(crime_event, Mapping):
         reveal_targets = crime_event.get("reveal_targets")

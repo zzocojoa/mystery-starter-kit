@@ -21,6 +21,8 @@ ERROR가 0건이어야 하며 핵심 단서는 Introduced/Revealed/Resolved 상�
 
 `SCREENPLAY_UNITS` mode에서는 `continuity.validate_reenactment` CORE Task가 Unit·Cast·Relationship·Crime/Harm·Clue/Reveal·고정 Output Profile·Broadcast Master의 현재 Hash에서 Export Report를 재구성한다. `result`는 자동 Editorial PASS가 아니라 `NEEDS_REVIEW`, `FAIL`, `MISSING` 중 하나다. Critic은 Script나 Report Metadata를 직접 고쳐 통과시키지 않는다.
 
+재연극 Runtime 목표가 설정되면 Output Profile 포함 Segment의 계획시간과 제외 Segment를 Report에서 확인한다. Editorial Review의 별도 재연극 근거는 현재 Report와 입력 Hash에 결속하고 실제 방법을 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO` 중 하나로 기록한다. 예상값을 실측값으로 복제하거나 Unit 변경 전 측정을 재사용하지 않는다.
+
 ## 금지
 
 - 오류를 직접 숨기거나 Severity를 낮추지 않는다.

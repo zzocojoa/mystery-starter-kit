@@ -79,6 +79,7 @@ from VALIDATORS.production_footprint import (
 )
 from VALIDATORS.project_constraints import project_constraint_compiler_issues
 from VALIDATORS.reenactment_export import validate_reenactment_export_report
+from VALIDATORS.reenactment_runtime import reenactment_runtime_evidence_issues
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
     validate_reference_collision,
@@ -1717,6 +1718,13 @@ def run_production_validation(
         ),
     ]
     if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
+        gate_13.extend(
+            reenactment_runtime_evidence_issues(
+                production_config,
+                reenactment_export_report,
+                editorial_review,
+            )
+        )
         gate_13.extend(
             required_channel_artifact_issues(
                 artifacts,
