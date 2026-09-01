@@ -8,6 +8,14 @@ from difflib import SequenceMatcher
 from hashlib import sha256
 
 from VALIDATORS.crime_functions import development_function_issues
+from VALIDATORS.crime_harms import (
+    bind_harm_records,
+    derived_harm_fields,
+    structured_harm_issues,
+)
+from VALIDATORS.crime_harms import (
+    mapping_records as harm_records,
+)
 from VALIDATORS.models import ValidationIssue
 
 PLACEHOLDER_PATTERNS: tuple[re.Pattern[str], ...] = (
@@ -359,6 +367,15 @@ def validate_candidate_event_briefs(
                     )
                 )
         issues.extend(cardinality_issues(brief))
+        issues.extend(
+            structured_harm_issues(
+                brief,
+                "00_PROJECT/candidate_event_briefs.json",
+                "victim_role_slots",
+                set(string_values(brief, "victim_role_slots")),
+                document.get("schema_version") == "1.1.0",
+            )
+        )
         issues.extend(placeholder_issues(brief))
         issues.extend(fiction_resolution_issues(brief))
         if explicit_crime_policy is not None:
@@ -649,10 +666,22 @@ def build_bound_crime_event_contract(
     action = brief.get("core_action_type")
     related = [action] if primary != action else []
     harm_classification = selection.get("harm_classification")
+    brief_harms = harm_records(brief, "harms")
+    bound_harms = bind_harm_records(brief_harms, slot_map)
+    compatible_harm_fields = (
+        derived_harm_fields(bound_harms)
+        if bound_harms
+        else {
+            "immediate_harm": brief.get("immediate_harm"),
+            "lasting_harm": brief.get("lasting_harm"),
+            "harm_ids": ["HARM-01"],
+            "harm_classifications": [harm_classification],
+        }
+    )
     contract: dict[str, object] = {
         "$schema": "../../../STANDARD/schemas/crime_event_contract.schema.json",
         "schema_family": "crime-event-contract",
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0" if bound_harms else "1.1.0",
         "project_id": project_id,
         "approved_candidate_id": variations.get("approved_candidate_id"),
         "candidate_selection_sha256": canonical_json_hash(selection),
@@ -677,14 +706,14 @@ def build_bound_crime_event_contract(
         "motive_category": brief.get("motive_category"),
         "motive_summary": brief.get("motive_summary"),
         "non_actionable_method_summary": brief.get("non_actionable_method_summary"),
-        "immediate_harm": brief.get("immediate_harm"),
-        "lasting_harm": brief.get("lasting_harm"),
+        "immediate_harm": compatible_harm_fields["immediate_harm"],
+        "lasting_harm": compatible_harm_fields["lasting_harm"],
         "concealment_or_denial": brief.get("concealment_or_denial"),
         "discovery_path": brief.get("discovery_path"),
         "responsibility_path": brief.get("responsibility_path"),
         "central_pursuit_question": brief.get("central_pursuit_question"),
-        "harm_ids": ["HARM-01"],
-        "harm_classifications": [harm_classification],
+        "harm_ids": compatible_harm_fields["harm_ids"],
+        "harm_classifications": compatible_harm_fields["harm_classifications"],
         "protagonist_goal": selection.get("protagonist_goal"),
         "protagonist_risk": selection.get("protagonist_risk"),
         "depiction_mode": selection.get("depiction_mode"),
@@ -693,4 +722,6 @@ def build_bound_crime_event_contract(
         "method_detail_level": "NON_ACTIONABLE_SUMMARY_ONLY",
         "truth_basis": deepcopy(brief.get("truth_basis")),
     }
+    if bound_harms:
+        contract["harms"] = bound_harms
     return contract, []

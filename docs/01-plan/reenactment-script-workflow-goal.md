@@ -31,7 +31,7 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 ## Phase 상태
 
 - [x] Phase 0 — Foundation, baseline, 영향 설계
-- [ ] Phase 1 — Versioned multi-harm event model
+- [x] Phase 1 — Versioned multi-harm event model
 - [ ] Phase 2 — Screenplay Units와 Output Profile 계약
 - [ ] Phase 3 — Clue recontextualization과 flexible state transition
 - [ ] Phase 4 — Deterministic CORE renderer
@@ -41,7 +41,7 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 - [ ] Phase 8 — 네 Source-style feature fixture와 Full Original Pilot
 - [ ] Phase 9 — 최종 문서·수용 증거·Stacked PR
 
-현재 Phase: `0`
+현재 Phase: `1`
 
 ## Architecture 결정
 
@@ -108,8 +108,8 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 
 | Phase | Branch | Commit | 상태 |
 |---|---|---|---|
-| 0 | `codex/reenactment-contracts-v1` | `docs: establish reenactment workflow goal baseline` | 현재 Commit 예정 |
-| 1 | `codex/reenactment-contracts-v1` | `feat: add versioned multi-harm crime contracts` | 대기 |
+| 0 | `codex/reenactment-contracts-v1` | `0992c920b9fd69b80f112d9fa95f4522feeb3fd3` | 완료 |
+| 1 | `codex/reenactment-contracts-v1` | `feat: add versioned multi-harm crime contracts` | 현재 Commit 예정 |
 | 2 | `codex/reenactment-contracts-v1` | `feat: add screenplay units and reenactment output profile contracts` | 대기 |
 | 3 | `codex/reenactment-contracts-v1` | `feat: model clue recontextualization and flexible state transitions` | 대기 |
 | 4–7 | `codex/reenactment-runtime-v1` | Phase별 Commit | 대기 |
@@ -132,6 +132,16 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 - Package metadata에 Standard version `1.3.3`이 보이는 기존 build metadata 경로를 조사해 사용자 문서에서 Package `1.6.1`과 혼동되지 않게 해야 한다.
 - Cross-Python byte determinism은 CI matrix 결과를 최종 증거로 사용한다.
 - 대사의 자연스러움·캐릭터 음성·반전 설득력은 결정론적 PASS로 위장하지 않고 Pilot Editorial evidence의 `NEEDS_REVIEW`로 남긴다.
+
+## Phase 1 수용 증거
+
+- Candidate Event Brief `1.0.0`과 Crime Event Contract `1.1.0`은 `harms[]` 없이 기존 Schema·Validator를 계속 통과한다.
+- Candidate Event Brief `1.1.0`은 `harm_id`, classification, timing, `victim_role_slots`, exact summary를 가진 `harms[]`와 파생 호환 필드를 요구한다.
+- Bound Crime Event Contract `1.2.0`은 각 Role Slot을 실제 `victim_ids`에 결속하고 동일 피해 집합에서 `harm_ids`, `harm_classifications`, immediate/lasting summary를 파생한다.
+- `HARM_ID_DUPLICATED`, `HARM_VICTIM_BINDING_INVALID`, `HARM_VICTIM_COVERAGE_MISSING`, `HARM_CLASSIFICATION_ACTION_MISMATCH`, `HARM_OUTCOME_REQUIRED`, `HARM_COMPATIBILITY_FIELDS_MISMATCH`, `CRIME_HARM_PROJECTION_MISMATCH`를 명시적으로 검증한다.
+- Timeline과 Causal Graph는 여러 결과 Event/Node에 나뉜 Harm의 합집합 coverage를 검증한다. Scene과 Script도 모든 Contract Harm의 누락을 차단한다.
+- Targeted regression: Explicit Crime, Scene Realization, Candidate Evaluation, Pipeline, Runtime Engine 묶음 PASS.
+- Targeted Ruff와 strict mypy: PASS.
 
 ## Final Acceptance Evidence
 

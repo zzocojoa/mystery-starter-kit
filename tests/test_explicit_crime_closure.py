@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from VALIDATORS.candidate_event_briefs import (
+    build_bound_crime_event_contract,
     canonical_json_hash,
     cardinality_issues,
     fiction_resolution_issues,
@@ -16,6 +17,7 @@ from VALIDATORS.candidate_projection import validate_approved_candidate_projecti
 from VALIDATORS.crime_event import (
     explicit_crime_policy,
     required_semantic_subjects,
+    validate_crime_event_contract,
     validate_crime_event_traceability,
     validate_crime_role_bindings,
     validate_scene_crime_realization,
@@ -23,6 +25,7 @@ from VALIDATORS.crime_event import (
     validate_truth_basis,
 )
 from VALIDATORS.crime_functions import DEFAULT_DEVELOPMENT_FUNCTIONS
+from VALIDATORS.crime_harms import derived_harm_fields
 from VALIDATORS.editorial import (
     explicit_crime_runtime_evidence_issues,
     make_editorial_evidence,
@@ -34,6 +37,7 @@ from VALIDATORS.scene_realization import (
     validate_panel_design_realization,
     validate_panel_script_density,
 )
+from VALIDATORS.schema_validation import collect_schema_errors
 
 ROOT = Path(__file__).resolve().parents[1]
 CHANNEL = load_json_object(ROOT / "CHANNELS/mystery_main/versions/2.1.0/channel_dna.json")
@@ -327,6 +331,241 @@ def event_brief(candidate_id: str, causal_index: int) -> dict[str, object]:
     }
 
 
+def multi_harm_selection() -> dict[str, object]:
+    """복수 피해 Contract 생성에 필요한 잠긴 Candidate Selection을 만든다."""
+    return {
+        **selection(),
+        "victim_structure": "MULTIPLE_VICTIMS",
+        "harm_classification": "COMPOUND_HARM",
+        "protagonist_goal": "두 피해자의 안전을 확보하고 책임을 확인한다.",
+        "protagonist_risk": "증거가 사라지면 추가 접근을 막기 어렵다.",
+        "depiction_mode": "DIRECT_NON_GRAPHIC",
+    }
+
+
+def multi_harm_brief(candidate_id: str, causal_index: int) -> dict[str, object]:
+    """서로 다른 피해자와 시점을 가진 구조화 피해 Brief를 만든다."""
+    brief = event_brief(candidate_id, causal_index)
+    locked_selection = multi_harm_selection()
+    harms: list[dict[str, object]] = [
+        {
+            "harm_id": "HARM-01",
+            "classification": "BODILY_INJURY",
+            "timing": "IMMEDIATE",
+            "victim_role_slots": ["VICTIM-01"],
+            "summary": "첫 피해자는 충돌 과정에서 치료가 필요한 상해를 입었다.",
+        },
+        {
+            "harm_id": "HARM-02",
+            "classification": "THREAT_OR_TRAUMA",
+            "timing": "LASTING",
+            "victim_role_slots": ["VICTIM-02"],
+            "summary": "두 번째 피해자는 반복 접근의 위협으로 생활 공간을 옮겼다.",
+        },
+    ]
+    for field in selection():
+        brief[field] = locked_selection[field]
+    brief["candidate_selection_sha256"] = canonical_json_hash(locked_selection)
+    brief["victim_role_slots"] = ["VICTIM-01", "VICTIM-02"]
+    brief["harms"] = harms
+    brief.update(derived_harm_fields(harms))
+    brief["reveal_targets"] = event_contract()["reveal_targets"]
+    return brief
+
+
+def test_versioned_multi_harm_schemas_preserve_legacy_documents() -> None:
+    """Legacy 1.0/1.1과 새 피해 SSOT 1.1/1.2가 Version별로 검증된다."""
+    brief_schema = load_json_object(
+        ROOT / "STANDARD/schemas/candidate_event_briefs.schema.json"
+    )
+    contract_schema = load_json_object(
+        ROOT / "STANDARD/schemas/crime_event_contract.schema.json"
+    )
+    legacy_briefs = [event_brief(f"VAR-{index:02d}", index - 1) for index in range(1, 4)]
+    for brief in legacy_briefs:
+        brief["reveal_targets"] = event_contract()["reveal_targets"]
+    legacy_document = {
+        "schema_family": "candidate-event-briefs",
+        "schema_version": "1.0.0",
+        "project_id": "PRJ-970",
+        "briefs": legacy_briefs,
+    }
+    structured_document = {
+        "schema_family": "candidate-event-briefs",
+        "schema_version": "1.1.0",
+        "project_id": "PRJ-970",
+        "briefs": [
+            multi_harm_brief(f"VAR-{index:02d}", index - 1)
+            for index in range(1, 4)
+        ],
+    }
+    assert collect_schema_errors(legacy_document, brief_schema, "legacy_briefs") == []
+    assert collect_schema_errors(structured_document, brief_schema, "multi_harm_briefs") == []
+
+    legacy_contract = {
+        "$schema": "../../../STANDARD/schemas/crime_event_contract.schema.json",
+        "schema_family": "crime-event-contract",
+        "schema_version": "1.1.0",
+        "project_id": "PRJ-970",
+        "approved_candidate_id": "VAR-01",
+        "candidate_selection_sha256": "a" * 64,
+        "candidate_event_brief_sha256": "b" * 64,
+        **event_contract(),
+        "related_crimes": [],
+        "relationship_context": "WORKPLACE",
+        "target_selection_reason": "마감 시간에 혼자 남는 근무 조건을 노렸다.",
+        "initiating_context": "업무상 접근 가능한 환경이 먼저 형성됐다.",
+        "trigger_event": "사적 접근을 거절하자 보복을 선택했다.",
+        "motive_category": "RETALIATION",
+        "concealment_or_denial": "우발적 충돌이라고 책임을 부인했다.",
+        "discovery_path": "목격과 출입 기록이 피해 진술을 뒷받침했다.",
+        "central_pursuit_question": "어떤 기록이 책임 주체를 확인하는가?",
+        "harm_classifications": ["BODILY_INJURY"],
+        "protagonist_goal": "안전을 확보한다.",
+        "protagonist_risk": "증거가 사라질 수 있다.",
+        "depiction_mode": "DIRECT_NON_GRAPHIC",
+        "method_detail_level": "NON_ACTIONABLE_SUMMARY_ONLY",
+    }
+    assert collect_schema_errors(legacy_contract, contract_schema, "legacy_contract") == []
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected_code"),
+    (
+        ("duplicate_id", "HARM_ID_DUPLICATED"),
+        ("unbound_victim", "HARM_VICTIM_BINDING_INVALID"),
+        ("wrong_classification", "HARM_CLASSIFICATION_ACTION_MISMATCH"),
+        ("no_immediate_or_outcome", "HARM_OUTCOME_REQUIRED"),
+    ),
+)
+def test_multi_harm_validator_rejects_invalid_structures(
+    mutation: str,
+    expected_code: str,
+) -> None:
+    """구조화 피해의 ID·피해자·행동 분류·시점 오류를 각각 차단한다."""
+    brief = multi_harm_brief("VAR-01", 0)
+    harms = brief["harms"]
+    assert isinstance(harms, list)
+    if mutation == "duplicate_id":
+        harms[1]["harm_id"] = "HARM-01"
+    elif mutation == "unbound_victim":
+        harms[1]["victim_role_slots"] = ["VICTIM-99"]
+    elif mutation == "wrong_classification":
+        harms[1]["classification"] = "LIBERTY_DEPRIVATION"
+    else:
+        harms[0]["timing"] = "LASTING"
+    brief.update(derived_harm_fields(harms))
+    locked_selection = multi_harm_selection()
+    variations = {
+        "candidates": [{"candidate_id": "VAR-01", "selection": locked_selection}],
+        "approved_candidate_id": "VAR-01",
+    }
+    codes = issue_codes(
+        validate_candidate_event_briefs(
+            variations,
+            {
+                "schema_version": "1.1.0",
+                "briefs": [brief],
+            },
+            explicit_crime_policy(CHANNEL),
+        )
+    )
+    assert expected_code in codes
+
+
+def test_multi_harm_contract_binds_each_victim_and_validates() -> None:
+    """Brief의 피해 Role Slot이 실제 피해자 Character ID로 결속된다."""
+    locked_selection = multi_harm_selection()
+    variations: dict[str, object] = {
+        "candidates": [{"candidate_id": "VAR-01", "selection": locked_selection}],
+        "approved_candidate_id": "VAR-01",
+    }
+    brief = multi_harm_brief("VAR-01", 0)
+    briefs_document: dict[str, object] = {
+        "schema_version": "1.1.0",
+        "briefs": [brief],
+    }
+    case_input: dict[str, object] = {
+        "primary_crime": brief["primary_crime"],
+        "motive_summary": brief["motive_summary"],
+        "crime_method_summary": brief["non_actionable_method_summary"],
+        "harm_result": f"{brief['immediate_harm']} / {brief['lasting_harm']}",
+        "final_case_truth": brief["responsibility_path"],
+    }
+    facts: dict[str, object] = {
+        "facts": [
+            {"crime_fact_type": fact_type}
+            for fact_type in (
+                "CRIME_ACTION",
+                "HARM_RESULT",
+                "MOTIVE_STATUS",
+                "RESPONSIBILITY",
+            )
+        ]
+    }
+    characters: dict[str, object] = {
+        "characters": [
+            {"character_id": "CHAR-01", "crime_role_slots": ["OFFENDER-01"]},
+            {
+                "character_id": "CHAR-02",
+                "crime_role_slots": ["VICTIM-01", "PROTAGONIST-01"],
+            },
+            {"character_id": "CHAR-03", "crime_role_slots": ["VICTIM-02"]},
+        ]
+    }
+    relationships: dict[str, object] = {
+        "relationships": [
+            {"from": "CHAR-01", "to": "CHAR-02"},
+            {"from": "CHAR-01", "to": "CHAR-03"},
+        ]
+    }
+    contract, build_issues = build_bound_crime_event_contract(
+        "PRJ-970",
+        variations,
+        briefs_document,
+        case_input,
+        facts,
+        characters,
+        relationships,
+        {"source_truth_classification": "ORIGINAL_FICTION"},
+    )
+    assert build_issues == []
+    assert contract is not None
+    assert contract["schema_version"] == "1.2.0"
+    assert contract["harm_ids"] == ["HARM-01", "HARM-02"]
+    assert contract["harms"] == [
+        {
+            "harm_id": "HARM-01",
+            "classification": "BODILY_INJURY",
+            "timing": "IMMEDIATE",
+            "victim_ids": ["CHAR-02"],
+            "summary": "첫 피해자는 충돌 과정에서 치료가 필요한 상해를 입었다.",
+        },
+        {
+            "harm_id": "HARM-02",
+            "classification": "THREAT_OR_TRAUMA",
+            "timing": "LASTING",
+            "victim_ids": ["CHAR-03"],
+            "summary": "두 번째 피해자는 반복 접근의 위협으로 생활 공간을 옮겼다.",
+        },
+    ]
+    contract_schema = load_json_object(
+        ROOT / "STANDARD/schemas/crime_event_contract.schema.json"
+    )
+    assert collect_schema_errors(contract, contract_schema, "multi_harm_contract") == []
+    assert (
+        validate_crime_event_contract(
+            CHANNEL,
+            {"source_truth_classification": "ORIGINAL_FICTION"},
+            variations,
+            contract,
+            facts,
+            briefs_document,
+        )
+        == []
+    )
+
+
 @pytest.mark.parametrize(
     ("field", "placeholder"),
     (
@@ -581,6 +820,58 @@ def test_cross_artifact_trace_matrix() -> None:
     assert "CRIME_CAUSAL_TRACE_MISMATCH" in issue_codes(trace_issues(causal_missing_path))
 
 
+def test_each_structured_harm_reaches_timeline_and_causal_graph() -> None:
+    """복수 Harm은 서로 다른 결과 Event/Node에 있어도 전체가 추적되어야 한다."""
+    bundle = trace_bundle()
+    contract = bundle[0]
+    contract["harm_ids"] = ["HARM-01", "HARM-02"]
+    timeline_events = bundle[4]["events"]
+    assert isinstance(timeline_events, list)
+    crime_event = timeline_events[0]
+    assert isinstance(crime_event, dict)
+    crime_event["harm_ids"] = ["HARM-01", "HARM-02"]
+    timeline_events.append(
+        {
+            "crime_event_id": "EVENT-01",
+            "event_type": "HARM_RESULT",
+            "actor_ids": ["CHAR-01"],
+            "victim_ids": ["CHAR-02"],
+            "harm_ids": ["HARM-02"],
+        }
+    )
+    nodes = bundle[5]["nodes"]
+    edges = bundle[5]["edges"]
+    assert isinstance(nodes, list)
+    assert isinstance(edges, list)
+    crime_node = nodes[1]
+    assert isinstance(crime_node, dict)
+    crime_node["harm_ids"] = ["HARM-01", "HARM-02"]
+    nodes.append(
+        {
+            "node_id": "HARM-02",
+            "type": "HARM_RESULT",
+            "crime_event_id": "EVENT-01",
+            "harm_ids": ["HARM-02"],
+        }
+    )
+    edges.append({"from": "CRIME-01", "to": "HARM-02"})
+    assert trace_issues(bundle) == []
+
+    missing_timeline = deepcopy(bundle)
+    missing_timeline_events = missing_timeline[4]["events"]
+    assert isinstance(missing_timeline_events, list)
+    missing_timeline[4]["events"] = missing_timeline_events[:-1]
+    assert "CRIME_TIMELINE_TRACE_MISMATCH" in issue_codes(
+        trace_issues(missing_timeline)
+    )
+
+    missing_causal = deepcopy(bundle)
+    missing_causal_nodes = missing_causal[5]["nodes"]
+    assert isinstance(missing_causal_nodes, list)
+    missing_causal[5]["nodes"] = missing_causal_nodes[:-1]
+    assert "CRIME_CAUSAL_TRACE_MISMATCH" in issue_codes(trace_issues(missing_causal))
+
+
 def true_case_bundle() -> tuple[dict[str, object], dict[str, object]]:
     """필드별 FACT Evidence가 완전한 실화 사건을 만든다."""
     facts: dict[str, object] = {
@@ -804,6 +1095,29 @@ def test_development_function_coverage_matrix() -> None:
 
     valid = development_bundle("DRAMA", True, True)
     assert validate_script_crime_realization(CHANNEL, *valid) == []
+
+
+def test_each_contract_harm_requires_scene_and_script_evidence() -> None:
+    """단일 Harm 흔적으로 복수 피해 Scene·Script coverage를 통과할 수 없다."""
+    bundle = development_bundle("DRAMA", True, True)
+    contract, cards, presentation, reactions, viewer, script = bundle
+    contract["harm_ids"] = ["HARM-01", "HARM-02"]
+    scene_codes = issue_codes(
+        validate_scene_crime_realization(CHANNEL, contract, cards, presentation)
+    )
+    assert "HARM_REALIZATION_MISSING" in scene_codes
+    script_codes = issue_codes(
+        validate_script_crime_realization(
+            CHANNEL,
+            contract,
+            cards,
+            presentation,
+            reactions,
+            viewer,
+            script,
+        )
+    )
+    assert "SCRIPT_CRIME_ACTION_UNREALIZED" in script_codes
 
 
 def test_policy_required_function_and_unknown_references_cannot_be_evaded() -> None:

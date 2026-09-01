@@ -18,6 +18,14 @@ from VALIDATORS.crime_functions import (
     development_function_issues,
     required_development_function_map,
 )
+from VALIDATORS.crime_harms import (
+    ACTION_HARM_REQUIREMENTS,
+    bind_harm_records,
+    structured_harm_issues,
+)
+from VALIDATORS.crime_harms import (
+    mapping_records as harm_records,
+)
 from VALIDATORS.models import ValidationIssue
 from VALIDATORS.presentation_validation import (
     canonical_mode,
@@ -47,16 +55,6 @@ CRIME_ACTIONS = frozenset(
         "HOME_INVASION",
     }
 )
-ACTION_HARM_REQUIREMENTS: Mapping[str, frozenset[str]] = {
-    "MURDER": frozenset({"FATALITY"}),
-    "KIDNAPPING": frozenset({"LIBERTY_DEPRIVATION", "COMPOUND_HARM"}),
-    "CONFINEMENT": frozenset({"LIBERTY_DEPRIVATION", "COMPOUND_HARM"}),
-    "ASSAULT": frozenset({"BODILY_INJURY", "THREAT_OR_TRAUMA", "COMPOUND_HARM"}),
-    "STALKING": frozenset({"SAFETY_COLLAPSE", "THREAT_OR_TRAUMA", "COMPOUND_HARM"}),
-    "HOME_INVASION": frozenset(
-        {"SAFETY_COLLAPSE", "THREAT_OR_TRAUMA", "BODILY_INJURY", "COMPOUND_HARM"}
-    ),
-}
 REQUIRED_REVEAL_TYPES = frozenset({"CULPRIT", "MOTIVE", "METHOD", "HARM_RESULT"})
 SUBJECTIVE_NARRATION_FUNCTIONS = frozenset(
     {
@@ -514,6 +512,15 @@ def validate_crime_event_contract(
         contract,
         "01_CASE/crime_event_contract.json",
     )
+    issues.extend(
+        structured_harm_issues(
+            contract,
+            "01_CASE/crime_event_contract.json",
+            "victim_ids",
+            set(string_values(contract, "victim_ids")),
+            contract.get("schema_version") == "1.2.0",
+        )
+    )
     if brief is not None:
         selection = candidate.get("selection")
         if not isinstance(selection, Mapping):
@@ -628,6 +635,27 @@ def validate_crime_event_contract(
                     },
                 )
             )
+        brief_harms = harm_records(brief, "harms")
+        if brief_harms:
+            slot_map = {
+                cast(str, binding["role_slot"]): cast(str, binding["character_id"])
+                for binding in bindings
+                if isinstance(binding.get("role_slot"), str)
+                and isinstance(binding.get("character_id"), str)
+            }
+            expected_harms = bind_harm_records(brief_harms, slot_map)
+            if contract.get("harms") != expected_harms:
+                issues.append(
+                    crime_issue(
+                        "CRIME_HARM_PROJECTION_MISMATCH",
+                        "최종 피해 계약이 Event Brief의 피해자 Role 결속과 다릅니다.",
+                        "01_CASE/crime_event_contract.json",
+                        {
+                            "expected_harms": expected_harms,
+                            "actual_harms": contract.get("harms"),
+                        },
+                    )
+                )
         issues.extend(validate_truth_basis(production_config, contract, facts))
         return issues
     assert isinstance(event, Mapping)
@@ -890,10 +918,16 @@ def validate_crime_event_traceability(
         and harm_ids.issubset(set(string_values(event, "harm_ids")))
         for event in crime_events
     )
-    harm_event_valid = any(
-        set(string_values(event, "actor_ids")) == actor_ids
-        and set(string_values(event, "victim_ids")) == victim_ids
-        and harm_ids.issubset(set(string_values(event, "harm_ids")))
+    timeline_harm_ids = {
+        harm_id
+        for event in harm_events
+        for harm_id in string_values(event, "harm_ids")
+    }
+    harm_event_valid = harm_ids.issubset(timeline_harm_ids) and all(
+        bool(set(string_values(event, "actor_ids")))
+        and set(string_values(event, "actor_ids")).issubset(actor_ids)
+        and bool(set(string_values(event, "victim_ids")))
+        and set(string_values(event, "victim_ids")).issubset(victim_ids)
         for event in harm_events
     )
     if not crime_event_valid or not harm_event_valid:
@@ -929,11 +963,13 @@ def validate_crime_event_traceability(
         and harm_ids.issubset(set(string_values(node, "harm_ids")))
         for node in trace_nodes
     )
-    harm_node_valid = any(
-        node.get("type") == "HARM_RESULT"
-        and harm_ids.issubset(set(string_values(node, "harm_ids")))
+    causal_harm_ids = {
+        harm_id
         for node in trace_nodes
-    )
+        if node.get("type") == "HARM_RESULT"
+        for harm_id in string_values(node, "harm_ids")
+    }
+    harm_node_valid = harm_ids.issubset(causal_harm_ids)
     core_path_valid = reachable_node(
         node_ids_by_type.get("MOTIVE_OR_TRIGGER", set()),
         node_ids_by_type.get("CRIME_EVENT", set()),
@@ -1054,9 +1090,11 @@ def validate_scene_crime_realization(
         if isinstance(function.get("development_function_id"), str)
     }
     mapped_function_ids: set[str] = set()
+    mapped_harm_ids: set[str] = set()
     for scene, realization in records:
         scene_id = scene.get("scene_id")
         realization_harms = set(string_values(realization, "harm_ids"))
+        mapped_harm_ids.update(realization_harms & harm_ids)
         realization_actors = set(string_values(realization, "actor_ids"))
         realization_victims = set(string_values(realization, "victim_ids"))
         empty_fields = [
@@ -1116,6 +1154,16 @@ def validate_scene_crime_realization(
                 "필수 Development Function이 어떤 Scene에도 연결되지 않았습니다.",
                 "06_SCENE/scene_cards.json",
                 {"development_function_ids": unmapped_functions},
+            )
+        )
+    missing_harm_ids = sorted(harm_ids - mapped_harm_ids)
+    if missing_harm_ids:
+        issues.append(
+            crime_issue(
+                "HARM_REALIZATION_MISSING",
+                "모든 Contract Harm은 최소 한 개 Scene Realization에 연결되어야 합니다.",
+                "06_SCENE/scene_cards.json",
+                {"harm_ids": missing_harm_ids},
             )
         )
     for function_id in sorted(required_function_ids):

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/crime-event-contract-1.1.0.json",
+  "$id": "https://example.local/schemas/crime-event-contract-1.1-1.2.json",
   "title": "Bound Explicit Interpersonal Crime Event Contract",
   "type": "object",
   "additionalProperties": false,
@@ -19,7 +19,7 @@
   "properties": {
     "$schema": {"type": "string"},
     "schema_family": {"const": "crime-event-contract"},
-    "schema_version": {"const": "1.1.0"},
+    "schema_version": {"enum": ["1.1.0", "1.2.0"]},
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "approved_candidate_id": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
     "candidate_selection_sha256": {"$ref": "#/$defs/hash"},
@@ -46,6 +46,7 @@
     "non_actionable_method_summary": {"$ref": "#/$defs/nonEmpty"},
     "immediate_harm": {"$ref": "#/$defs/nonEmpty"},
     "lasting_harm": {"$ref": "#/$defs/nonEmpty"},
+    "harms": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/harm"}},
     "concealment_or_denial": {"$ref": "#/$defs/nonEmpty"},
     "discovery_path": {"$ref": "#/$defs/nonEmpty"},
     "responsibility_path": {"$ref": "#/$defs/nonEmpty"},
@@ -60,12 +61,31 @@
     "method_detail_level": {"const": "NON_ACTIONABLE_SUMMARY_ONLY"},
     "truth_basis": {"$ref": "#/$defs/truthBasis"}
   },
+  "allOf": [
+    {
+      "if": {"properties": {"schema_version": {"const": "1.2.0"}}, "required": ["schema_version"]},
+      "then": {"required": ["harms"]},
+      "else": {"not": {"required": ["harms"]}}
+    }
+  ],
   "$defs": {
     "nonEmpty": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"},
     "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "coreCrime": {"enum": ["MURDER", "KIDNAPPING", "CONFINEMENT", "ASSAULT", "STALKING", "HOME_INVASION", "DATING_VIOLENCE", "DOMESTIC_VIOLENCE"]},
     "crimeAction": {"enum": ["MURDER", "KIDNAPPING", "CONFINEMENT", "ASSAULT", "STALKING", "HOME_INVASION"]},
     "characterIds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^CHAR-[0-9]{2,}$"}},
+    "harm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["harm_id", "classification", "timing", "victim_ids", "summary"],
+      "properties": {
+        "harm_id": {"type": "string", "pattern": "^HARM-[0-9]{2,}$"},
+        "classification": {"enum": ["FATALITY", "BODILY_INJURY", "LIBERTY_DEPRIVATION", "SAFETY_COLLAPSE", "THREAT_OR_TRAUMA", "COMPOUND_HARM"]},
+        "timing": {"enum": ["IMMEDIATE", "LASTING", "OUTCOME", "COMPOUND"]},
+        "victim_ids": {"$ref": "#/$defs/characterIds"},
+        "summary": {"$ref": "#/$defs/nonEmpty"}
+      }
+    },
     "roleBinding": {
       "type": "object",
       "additionalProperties": false,

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/candidate-event-briefs-1.0.0.json",
+  "$id": "https://example.local/schemas/candidate-event-briefs-1.0-1.1.json",
   "title": "Candidate Explicit Crime Event Briefs",
   "type": "object",
   "additionalProperties": false,
@@ -8,10 +8,17 @@
   "properties": {
     "$schema": {"type": "string"},
     "schema_family": {"const": "candidate-event-briefs"},
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"enum": ["1.0.0", "1.1.0"]},
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "briefs": {"type": "array", "minItems": 3, "items": {"$ref": "#/$defs/eventBrief"}}
   },
+  "allOf": [
+    {
+      "if": {"properties": {"schema_version": {"const": "1.1.0"}}, "required": ["schema_version"]},
+      "then": {"properties": {"briefs": {"items": {"required": ["harms", "harm_ids", "harm_classifications"]}}}},
+      "else": {"properties": {"briefs": {"items": {"not": {"required": ["harms"]}}}}}
+    }
+  ],
   "$defs": {
     "nonEmpty": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"},
     "enumName": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
@@ -21,6 +28,18 @@
       "minItems": 1,
       "uniqueItems": true,
       "items": {"type": "string", "pattern": "^(OFFENDER|VICTIM)-[0-9]{2,}$"}
+    },
+    "harm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["harm_id", "classification", "timing", "victim_role_slots", "summary"],
+      "properties": {
+        "harm_id": {"type": "string", "pattern": "^HARM-[0-9]{2,}$"},
+        "classification": {"enum": ["FATALITY", "BODILY_INJURY", "LIBERTY_DEPRIVATION", "SAFETY_COLLAPSE", "THREAT_OR_TRAUMA", "COMPOUND_HARM"]},
+        "timing": {"enum": ["IMMEDIATE", "LASTING", "OUTCOME", "COMPOUND"]},
+        "victim_role_slots": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^VICTIM-[0-9]{2,}$"}},
+        "summary": {"$ref": "#/$defs/nonEmpty"}
+      }
     },
     "developmentFunction": {
       "type": "object",
@@ -105,6 +124,9 @@
         "non_actionable_method_summary": {"$ref": "#/$defs/nonEmpty"},
         "immediate_harm": {"$ref": "#/$defs/nonEmpty"},
         "lasting_harm": {"$ref": "#/$defs/nonEmpty"},
+        "harms": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/harm"}},
+        "harm_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^HARM-[0-9]{2,}$"}},
+        "harm_classifications": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["FATALITY", "BODILY_INJURY", "LIBERTY_DEPRIVATION", "SAFETY_COLLAPSE", "THREAT_OR_TRAUMA", "COMPOUND_HARM"]}},
         "concealment_or_denial": {"$ref": "#/$defs/nonEmpty"},
         "discovery_path": {"$ref": "#/$defs/nonEmpty"},
         "responsibility_path": {"$ref": "#/$defs/nonEmpty"},
