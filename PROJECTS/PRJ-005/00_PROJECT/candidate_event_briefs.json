@@ -1,0 +1,724 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_event_briefs.schema.json",
+  "schema_family": "candidate-event-briefs",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-005",
+  "briefs": [
+    {
+      "candidate_id": "VAR-01",
+      "candidate_selection_sha256": "8c0e2feb295823cd7fdb4569fe2f5aa8d04698adafb17766598177a9412af13e",
+      "primary_crime": "DOMESTIC_VIOLENCE",
+      "core_action_type": "ASSAULT",
+      "responsible_agent_structure": "SINGLE_AGENT",
+      "victim_structure": "SINGLE_VICTIM",
+      "offender_role_slots": [
+        "OFFENDER-01"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "relationship_context": "FAMILY_OR_HOUSEHOLD",
+      "target_selection_reason": "가족 공동숙소의 출입 시간과 피해자의 야간 근무표를 알고 있었다.",
+      "initiating_context": "피해자가 공동계좌 사용 내역을 공개하겠다고 알리자 통제 관계가 흔들렸다.",
+      "trigger_event": "피해자가 숙소 비밀번호를 바꾸고 개인 물품 반환을 요구했다.",
+      "motive_category": "POSSESSION",
+      "motive_summary": "가족이라는 지위를 소유권처럼 오해한 행위자가 피해자의 독립 결정을 꺾으려 했다.",
+      "non_actionable_method_summary": "행위자는 가족 방문을 구실로 숙소에 들어가 퇴로를 막고 비선정적 폭력을 가했다.",
+      "immediate_harm": "피해자가 팔을 다쳐 치료를 받고 즉시 숙소를 떠났다.",
+      "lasting_harm": "피해자가 익숙한 집에서도 혼자 잠들기 어려운 안전 상실을 겪었다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "BODILY_INJURY",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "피해자가 팔을 다쳐 치료를 받고 즉시 숙소를 떠났다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "피해자가 익숙한 집에서도 혼자 잠들기 어려운 안전 상실을 겪었다."
+        }
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "BODILY_INJURY",
+        "THREAT_OR_TRAUMA"
+      ],
+      "concealment_or_denial": "행위자는 피해자가 스스로 넘어졌다고 주장하고 가족 대화를 외부에 알리지 말라고 압박했다.",
+      "discovery_path": "피해자의 음성 메모와 이웃이 들은 두 차례의 문 두드림이 사건 순서를 맞췄다.",
+      "responsibility_path": "방문 시각 기록과 현관 앞 목격이 행위자의 단독 책임을 확인했다.",
+      "central_pursuit_question": "가족의 보호라는 말 뒤에서 누가 피해자의 선택과 안전을 침해했는가?",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "VIOLENCE_OR_THREAT",
+          "summary": "비선정적 행동과 피해 결과를 분명히 보인다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "RELATIONSHIP_AND_POWER",
+          "summary": "가족 지위가 접근 통제로 악용된 관계를 드러낸다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "RESPONSE_BARRIER",
+          "summary": "피해자가 가족 압박 때문에 도움 요청을 망설인 이유를 보여 준다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "VIOLENCE_OUTCOME",
+          "summary": "상해와 안전 상실이 남긴 결과를 피해자 중심으로 확인한다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "가족 방문을 주장한 인물이 침입과 폭력의 책임자다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "보호가 아니라 피해자의 독립을 꺾으려는 소유 욕구였다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "가족 방문 구실로 접근해 퇴로를 막았다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "치료가 필요한 상해와 지속적인 안전 상실이 남았다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      }
+    },
+    {
+      "candidate_id": "VAR-02",
+      "candidate_selection_sha256": "b308f4a984e536aef0351ac464065a18bd8705ed70fe9fd594ba95cdb74af1d9",
+      "primary_crime": "MURDER",
+      "core_action_type": "MURDER",
+      "responsible_agent_structure": "COMPLICIT_GROUP",
+      "victim_structure": "MULTIPLE_VICTIMS",
+      "offender_role_slots": [
+        "OFFENDER-01",
+        "OFFENDER-02",
+        "OFFENDER-03"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01",
+        "VICTIM-02"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "relationship_context": "STRANGER",
+      "target_selection_reason": "야간 환승 통로의 사각 구간을 우연히 목격한 두 사람을 침묵시킬 대상으로 삼았다.",
+      "initiating_context": "주인공은 비에 젖은 안경 때문에 사건의 일부만 본 채 잘못된 옷 색을 기억했다.",
+      "trigger_event": "한 피해자가 공모자들의 은폐 행동을 휴대용 녹음기에 남겼다.",
+      "motive_category": "CONTROL",
+      "motive_summary": "공모자들은 앞선 비리를 숨기기 위해 목격자의 진술 가능성을 제거하려 했다.",
+      "non_actionable_method_summary": "공모자들은 폐쇄 예정 통로에서 두 피해자를 공격하고 사고처럼 보이게 현장을 흐렸다.",
+      "immediate_harm": "두 피해자가 목숨을 잃었다.",
+      "lasting_harm": "사건이 남긴 공포가 유족과 목격자의 일상을 흔들었다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "FATALITY",
+          "timing": "OUTCOME",
+          "victim_role_slots": [
+            "VICTIM-01",
+            "VICTIM-02"
+          ],
+          "summary": "두 피해자가 목숨을 잃었다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01",
+            "VICTIM-02"
+          ],
+          "summary": "사건이 남긴 공포가 유족과 목격자의 일상을 흔들었다."
+        }
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "FATALITY",
+        "THREAT_OR_TRAUMA"
+      ],
+      "concealment_or_denial": "공모자들은 목격자의 틀린 옷 색 기억을 이용해 진술 전체가 거짓이라고 몰았다.",
+      "discovery_path": "난간에 비친 역방향 표지와 피해자의 녹음 속 안내음이 실제 위치를 바로잡았다.",
+      "responsibility_path": "서로 다른 세 사람의 행동이 녹음 시간과 동선 모순으로 한 사건에 합쳐졌다.",
+      "central_pursuit_question": "불완전한 목격에서 무엇이 틀렸고, 그 틈을 누가 은폐에 이용했는가?",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "HARM_OR_DANGER_RECOGNITION",
+          "summary": "두 피해의 결과와 목격자의 위험을 인지시킨다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "INVOLVEMENT_OR_SUSPICION",
+          "summary": "제한된 목격 때문에 용의 범위를 단계적으로 좁힌다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "MOTIVE_AND_RESPONSIBILITY",
+          "summary": "은폐 동기와 공모 책임을 분리해 확인한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "EVENT_RECONSTRUCTION",
+          "summary": "반사된 표지와 안내음으로 늦게 사건 순서를 재구성한다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "세 공모자의 역할이 하나의 사건으로 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "살인은 앞선 비리를 숨기려는 통제 행위였다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "폐쇄 통로의 혼란을 사고처럼 이용했다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "두 사망과 목격자에 대한 보복 위협이 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      }
+    },
+    {
+      "candidate_id": "VAR-03",
+      "candidate_selection_sha256": "c77b38317c2654af9e5930587ff7ec3b816e9c93259252c1362a2a9d6f63e741",
+      "primary_crime": "KIDNAPPING",
+      "core_action_type": "KIDNAPPING",
+      "responsible_agent_structure": "DUAL_AGENTS",
+      "victim_structure": "SINGLE_VICTIM",
+      "offender_role_slots": [
+        "OFFENDER-01",
+        "OFFENDER-02"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "relationship_context": "WORKPLACE",
+      "target_selection_reason": "기록보존사 정해온이 폐기 목록과 실제 보관함 표식의 불일치를 발견했다.",
+      "initiating_context": "폐관을 앞둔 해원시 기록관에서 보존 예산의 허위 집행을 감추려는 두 책임자가 야간 점검 권한을 공유했다.",
+      "trigger_event": "해온이 다음 날 감사팀에 봉인 번호 사진을 제출하겠다고 알렸다.",
+      "motive_category": "CONCEALMENT",
+      "motive_summary": "두 행위자는 조작된 폐기 기록과 예산 유용을 숨기기 위해 해온의 제출을 막으려 했다.",
+      "non_actionable_method_summary": "시설 책임자와 출입업체 관리자는 점검 절차를 가장해 해온을 방음 수장고로 유인한 뒤 이동을 제한했다.",
+      "immediate_harm": "해온은 외부 연락이 끊긴 수장고에 감금되어 이동의 자유를 잃었다.",
+      "lasting_harm": "탈출 과정에서 손목을 다치고 폐쇄된 업무 공간에 대한 지속적인 공포를 겪었다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "LIBERTY_DEPRIVATION",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "해온은 외부 연락이 끊긴 수장고에 감금되어 이동의 자유를 잃었다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "BODILY_INJURY",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "탈출 과정에서 손목을 다치고 폐쇄된 업무 공간에 대한 지속적인 공포를 겪었다."
+        }
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "LIBERTY_DEPRIVATION",
+        "BODILY_INJURY"
+      ],
+      "concealment_or_denial": "행위자들은 야간 대피 훈련 중 해온이 공황 상태로 스스로 문을 잠갔다고 주장했다.",
+      "discovery_path": "동료 오수빈이 예약된 통화의 중단과 세 번 울리는 이동식 점검 종소리를 연결해 수장고를 찾았다.",
+      "responsibility_path": "종소리의 방향, 교체된 봉인 라벨, 두 사람의 엇갈린 점검 기록이 공동 책임을 확인했다.",
+      "central_pursuit_question": "세 번째 점검 종이 울린 뒤 해온을 수장고에 가둔 두 사람은 무엇을 감추려 했는가?",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "LIBERTY_DEPRIVATION",
+          "summary": "감금의 시작과 이동 제한을 비선정적으로 명확히 보인다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "THREAT_AND_CHOICE_CONSTRAINT",
+          "summary": "해온이 증거 보존과 즉시 탈출 사이에서 선택하도록 압박한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "RESPONSE_OR_DISCOVERY",
+          "summary": "수빈이 중단된 통화와 점검 종으로 위치를 찾아낸다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "HARM_OUTCOME",
+          "summary": "자유 박탈과 손목 부상의 결과 및 책임을 확인한다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "문재호와 백도윤이 출입 권한을 나눠 사용한 공동 행위자다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "보존 예산 유용과 조작된 폐기 기록을 숨기려 했다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "점검 절차를 가장해 수장고로 유인하고 출입을 막았다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "이동의 자유 박탈과 손목 부상이라는 두 피해가 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      }
+    },
+    {
+      "candidate_id": "VAR-04",
+      "candidate_selection_sha256": "6a12eb9de4ccad214e9c988c45362830ad306781f33b02422f6f2b0be59fdbf5",
+      "primary_crime": "CONFINEMENT",
+      "core_action_type": "CONFINEMENT",
+      "responsible_agent_structure": "SINGLE_AGENT",
+      "victim_structure": "MULTIPLE_VICTIMS",
+      "offender_role_slots": [
+        "OFFENDER-01"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01",
+        "VICTIM-02"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "relationship_context": "NEIGHBOR",
+      "target_selection_reason": "행위자는 빈집 관리 열쇠를 맡은 이웃이라는 신뢰로 두 피해자의 귀가 시간을 알았다.",
+      "initiating_context": "피해자들이 공동 창고에서 반복적으로 사라진 물품을 관리사무소에 신고했다.",
+      "trigger_event": "두 피해자가 낡은 출입 메모에서 행위자의 반복 방문을 확인했다.",
+      "motive_category": "RETALIATION",
+      "motive_summary": "행위자는 절도 의심이 드러나자 신고를 취소시키려는 보복을 선택했다.",
+      "non_actionable_method_summary": "행위자는 비상 점검을 핑계로 두 피해자를 지하 창고에 들여보낸 뒤 출구를 막았다.",
+      "immediate_harm": "두 피해자는 지하 창고에서 이동의 자유를 잃고 도움 요청이 차단됐다.",
+      "lasting_harm": "두 피해자는 집과 공동 공간의 안전을 믿지 못하는 지속적 공포를 겪었다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "LIBERTY_DEPRIVATION",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01",
+            "VICTIM-02"
+          ],
+          "summary": "두 피해자는 지하 창고에서 이동의 자유를 잃고 도움 요청이 차단됐다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01",
+            "VICTIM-02"
+          ],
+          "summary": "두 피해자는 집과 공동 공간의 안전을 믿지 못하는 지속적 공포를 겪었다."
+        }
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "LIBERTY_DEPRIVATION",
+        "THREAT_OR_TRAUMA"
+      ],
+      "concealment_or_denial": "행위자는 문이 저절로 닫혔고 자신은 현장에 없었다고 주장했다.",
+      "discovery_path": "손으로 적힌 출입 메모와 복도 환풍음의 반복이 이전 침입 시각을 되살렸다.",
+      "responsibility_path": "메모의 필압과 창고 안에서 발견된 관리 열쇠 고리가 행위자의 책임을 확정했다.",
+      "central_pursuit_question": "이웃에게 맡긴 관리 열쇠가 어떻게 반복 침입과 감금에 사용됐는가?",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "LIBERTY_DEPRIVATION",
+          "summary": "두 피해자의 이동 자유 박탈을 명확히 보인다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "THREAT_AND_CHOICE_CONSTRAINT",
+          "summary": "도움 요청과 증거 보존 사이의 선택을 압박한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "RESPONSE_OR_DISCOVERY",
+          "summary": "출입 메모와 반복된 소리로 위치와 시간을 찾는다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "HARM_OUTCOME",
+          "summary": "감금과 이후의 안전 상실을 확인한다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "관리 열쇠를 맡은 이웃이 책임자다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "절도 신고를 취소시키려는 보복이었다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "비상 점검을 가장해 창고 출구를 막았다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "두 사람의 자유 박탈과 안전감 붕괴가 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      }
+    },
+    {
+      "candidate_id": "VAR-05",
+      "candidate_selection_sha256": "0a44fdf2af380099644f777d22b92ff0e593e1766390247ff5e1ad3da3850950",
+      "primary_crime": "ASSAULT",
+      "core_action_type": "ASSAULT",
+      "responsible_agent_structure": "COMPLICIT_GROUP",
+      "victim_structure": "SINGLE_VICTIM",
+      "offender_role_slots": [
+        "OFFENDER-01",
+        "OFFENDER-02",
+        "OFFENDER-03"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "relationship_context": "FAMILY_OR_HOUSEHOLD",
+      "target_selection_reason": "피해자가 가족 사업장의 허위 근무표를 외부에 알리려 했다.",
+      "initiating_context": "세 가족 구성원이 경제적 의존을 이용해 피해자의 이동과 연락을 통제했다.",
+      "trigger_event": "피해자가 독립 거처 계약서와 진술 초안을 가족 식탁에 놓았다.",
+      "motive_category": "DOMINATION",
+      "motive_summary": "공모자들은 피해자의 이탈이 가족 사업 통제를 무너뜨릴까 두려워 강압을 선택했다.",
+      "non_actionable_method_summary": "세 사람은 피해자를 둘러싸고 출구를 막은 채 비선정적 폭력과 위협으로 서류를 빼앗았다.",
+      "immediate_harm": "피해자는 넘어지며 어깨를 다치고 즉시 외부 도움을 요청하지 못했다.",
+      "lasting_harm": "피해자는 가족의 반복 연락과 공동 압박 때문에 거처를 옮겨야 했다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "BODILY_INJURY",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "피해자는 넘어지며 어깨를 다치고 즉시 외부 도움을 요청하지 못했다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "피해자는 가족의 반복 연락과 공동 압박 때문에 거처를 옮겨야 했다."
+        }
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "BODILY_INJURY",
+        "THREAT_OR_TRAUMA"
+      ],
+      "concealment_or_denial": "공모자들은 피해자가 가족 돈을 훔치다 제지당했다고 거짓 주장을 맞췄다.",
+      "discovery_path": "피해자의 예약 전송 메시지와 각 공모자의 서로 다른 식탁 배치 진술이 거짓말을 드러냈다.",
+      "responsibility_path": "문서 사진, 메시지 시각, 세 사람의 역할 분담이 공동 책임을 확인했다.",
+      "central_pursuit_question": "피해자의 신뢰를 무너뜨린 가족의 일치된 주장은 어떤 증거에서 갈라지는가?",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "VIOLENCE_OR_THREAT",
+          "summary": "폭력과 위협의 실제 행동을 비선정적으로 보인다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "RELATIONSHIP_AND_POWER",
+          "summary": "가족과 경제 의존이 통제 수단이 된 과정을 드러낸다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "RESPONSE_BARRIER",
+          "summary": "일치된 거짓 비난이 피해자의 신빙성을 깎는 장벽을 보인다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "VIOLENCE_OUTCOME",
+          "summary": "상해와 거처 상실이라는 결과를 확인한다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "세 가족 구성원이 역할을 나눈 공모자다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "가족 사업과 피해자에 대한 통제를 유지하려 했다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "출구를 막고 폭력과 거짓 비난으로 서류를 빼앗았다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "어깨 상해와 거처 상실이 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      }
+    }
+  ]
+}

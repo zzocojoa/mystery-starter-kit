@@ -1,0 +1,149 @@
+{
+  "project_id": "PRJ-005",
+  "events": [
+    {
+      "event_id": "EVT-01",
+      "crime_event_id": "EVENT-01",
+      "event_type": "MOTIVE_OR_TRIGGER",
+      "start_minute": 0,
+      "end_minute": 5,
+      "location_id": "ARCHIVE_OFFICE",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [],
+      "description": "정해온이 봉인 번호 불일치 사진을 다음 날 감사팀에 제출하겠다고 문재호에게 알린다."
+    },
+    {
+      "event_id": "EVT-02",
+      "crime_event_id": "EVENT-01",
+      "event_type": "CRIME_EVENT",
+      "start_minute": 5,
+      "end_minute": 12,
+      "location_id": "ARCHIVE_VAULT_CORRIDOR",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "description": "두 사람은 야간 점검을 가장해 해온을 방음 수장고로 유인하고 이동과 연락을 제한한다."
+    },
+    {
+      "event_id": "EVT-03",
+      "crime_event_id": "EVENT-01",
+      "event_type": "HARM_RESULT",
+      "start_minute": 12,
+      "end_minute": 35,
+      "location_id": "SOUND_ISOLATED_VAULT",
+      "participant_ids": [
+        "CHAR-01"
+      ],
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "description": "해온은 감금으로 자유를 잃고 탈출을 시도하는 과정에서 손목을 다친다."
+    },
+    {
+      "event_id": "EVT-04",
+      "crime_event_id": "EVENT-01",
+      "event_type": "CONCEALMENT_OR_DENIAL",
+      "start_minute": 35,
+      "end_minute": 40,
+      "location_id": "FACILITY_CONTROL_DESK",
+      "participant_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "description": "문재호와 백도윤은 훈련 기록을 엇갈리게 작성하고 해온이 공황으로 스스로 문을 잠갔다는 설명을 맞춘다."
+    },
+    {
+      "event_id": "EVT-05",
+      "crime_event_id": "EVENT-01",
+      "event_type": "DISCOVERY_PATH",
+      "start_minute": 40,
+      "end_minute": 48,
+      "location_id": "ARCHIVE_VAULT_CORRIDOR",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "description": "오수빈은 통화 중단과 세 번의 점검 종 방향을 연결해 수장고를 찾아 해온을 발견한다."
+    },
+    {
+      "event_id": "EVT-06",
+      "crime_event_id": "EVENT-01",
+      "event_type": "RESPONSIBILITY_CONFIRMATION",
+      "start_minute": 600,
+      "end_minute": 630,
+      "location_id": "CITY_AUDIT_ROOM",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "description": "종소리 방향, 교체된 봉인 라벨, 서로 충돌하는 점검 기록을 시간순으로 맞춰 두 사람의 공동 책임을 확인한다."
+    }
+  ]
+}

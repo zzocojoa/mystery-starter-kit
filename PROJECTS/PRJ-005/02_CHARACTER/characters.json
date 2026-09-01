@@ -1,0 +1,61 @@
+{
+  "project_id": "PRJ-005",
+  "characters": [
+    {
+      "character_id": "CHAR-01",
+      "name": "정해온",
+      "role": "기록보존사이자 감금 피해자",
+      "crime_role_slots": [
+        "VICTIM-01",
+        "PROTAGONIST-01"
+      ],
+      "production_role": "MAJOR",
+      "goal": "감사 자료와 자신의 증언을 지켜 공동 가해 책임을 밝힌다.",
+      "secret": "감사팀 제출 전까지 봉인 번호 사진을 동료에게도 보여 주지 않았다."
+    },
+    {
+      "character_id": "CHAR-02",
+      "name": "오수빈",
+      "role": "해온의 동료이자 발견 목격자",
+      "crime_role_slots": [
+        "WITNESS-01"
+      ],
+      "production_role": "MAJOR",
+      "goal": "끊긴 통화와 종소리를 따라 해온을 찾고 사고라는 설명의 모순을 입증한다.",
+      "secret": "폐관 뒤 계약 연장을 기대해 문재호의 지시를 공개적으로 반박하지 못했다."
+    },
+    {
+      "character_id": "CHAR-03",
+      "name": "문재호",
+      "role": "기록관 시설 책임자이자 공동 가해자",
+      "crime_role_slots": [
+        "OFFENDER-01"
+      ],
+      "production_role": "MAJOR",
+      "goal": "조작된 폐기 기록과 예산 유용이 감사팀에 넘어가는 것을 막는다.",
+      "secret": "백도윤의 출입 권한으로 봉인 라벨을 교체하게 했다."
+    },
+    {
+      "character_id": "CHAR-04",
+      "name": "백도윤",
+      "role": "출입 설비 업체 관리자이자 공동 가해자",
+      "crime_role_slots": [
+        "OFFENDER-02"
+      ],
+      "production_role": "MAJOR",
+      "goal": "자신의 권한 사용 기록과 문재호의 지시가 연결되지 않게 한다.",
+      "secret": "점검 종과 이동식 작업 카트를 일부러 다른 복도에 옮겼다."
+    },
+    {
+      "character_id": "CHAR-05",
+      "name": "이주경",
+      "role": "해원시 감사 연락관",
+      "crime_role_slots": [
+        "INVESTIGATOR-01"
+      ],
+      "production_role": "MAJOR",
+      "goal": "가해자·피해자 결속을 증언과 물리 흔적에 대조해 공동 범행의 순서를 재구성한다.",
+      "secret": "해온이 제출을 예고한 사진의 존재만 알았고 내용은 사건 뒤에 처음 확인했다."
+    }
+  ]
+}

@@ -8,7 +8,7 @@
 - 예상·실제 Foundation SHA: `b24b47456003057cfebbecf9e156551cc51369f2`
 - 선조 관계: 실제 원격 HEAD가 예상 SHA와 동일하며 `origin/main`의 후손이다.
 - PR 상태: `OPEN`, `CLEAN`, 미병합
-- 현재 Stack branch: `codex/reenactment-runtime-v1`
+- 현재 Stack branch: `codex/reenactment-pilot-v1`
 - PR #23: `OPEN`; PR #24 계보의 선행 변경이므로 자동 종료하지 않고 최종 보고에서 superseded/retarget 권고만 기록한다.
 - Source-style 원문: 이 Task에는 네 원문 파일이 첨부되지 않았다. Goal에 정제된 추상 기능 요구만 사용하며 고유 인명·대사·장소·사건·반전은 저장소나 Runtime Context에 반입하지 않는다.
 
@@ -38,10 +38,10 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 - [x] Phase 5 — Export integrity와 semantic binding
 - [x] Phase 6 — Runtime Task, Agent, Gate, dependency 통합
 - [x] Phase 7 — 재연극 runtime 계획·측정 분리
-- [ ] Phase 8 — 네 Source-style feature fixture와 Full Original Pilot
+- [x] Phase 8 — 네 Source-style feature fixture와 Full Original Pilot
 - [ ] Phase 9 — 최종 문서·수용 증거·Stacked PR
 
-현재 Phase: `7`
+현재 Phase: `8`
 
 ## Architecture 결정
 
@@ -115,8 +115,9 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 | 4 | `codex/reenactment-runtime-v1` | `d88e96d0aef3af487b8005c9a54911d7690beeb7` | 완료 |
 | 5 | `codex/reenactment-runtime-v1` | `659f9e5e403a5bdc25bd2749d1d8b668245e98ed` | 완료 |
 | 6 | `codex/reenactment-runtime-v1` | `60e6cbef639f8d108f96be5b76524091f08c9fd6` | 완료 |
-| 7 | `codex/reenactment-runtime-v1` | `feat: validate independent reenactment runtime` | 현재 Commit 예정 |
-| 8–9 | `codex/reenactment-pilot-v1` | Phase별 Commit | 대기 |
+| 7 | `codex/reenactment-runtime-v1` | `f79779b747a8ae5103159657ad9bcf997328156d` | 완료 |
+| 8 | `codex/reenactment-pilot-v1` | `test: add source-style reenactment workflow pilots` | 현재 Commit 예정 |
+| 9 | `codex/reenactment-pilot-v1` | `docs: finalize reenactment workflow acceptance evidence` | 대기 |
 
 ## Backward Compatibility 전략
 
@@ -208,6 +209,18 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 - Editorial 재연극 근거는 Export Report와 전체 입력 Hash에 결속하고 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO`를 구분한다. Unit 또는 Report 변경 뒤 이전 근거는 `REENACTMENT_RUNTIME_MEASUREMENT_STALE`로 거부한다.
 - `WORD_COUNT_ESTIMATE`에 실측값을 섞을 수 없으며 Production Finalize 조건을 충족하지 않는다. 설정된 재연극 Runtime의 Finalize에는 `TABLE_READ` 또는 `RECORDED_AUDIO` 실측이 필요하다.
 - 전체 검증: Ruff PASS, strict mypy PASS(139 source files), pytest PASS(378 tests), package `1.6.1` sdist/wheel build PASS, dependency audit 알려진 취약점 없음, Runtime Doctor PASS, Registered Version Immutability PASS.
+
+## Phase 8 수용 증거
+
+- 네 Source-style Fixture는 원문을 반입하지 않고 추상 기능만 Original Fiction으로 고정했다. A는 가족 통제·조작된 자기 의심·허위 비난·복수 행위자 공모, B는 제한된 1인칭 살인 목격·기억 한계·후반 관계 단서 재구성, C는 스토킹·반복 접근·Message/Chat 위협·복수 피해, D는 출입권한 악용 감금·상세 Sound/Action·Note/Screen Text·선행 장면 재구성을 각각 검증한다.
+- 모든 Fixture는 Screenplay 1.1 Schema와 의미 Validator를 통과한다. 특수 Unit 원문과 재구성 exact repetition은 재연본에 보존되고, Broadcast에는 Panel Segment가 유지되며 재연본에서는 Panel·Expert·Audience·내부 Trace Marker가 제거된다.
+- Full Original Pilot `PRJ-005`, 작품명 `세 번째 종이 울린 뒤`를 정상 Codex Gate Transaction으로 GATE-00부터 GATE-13까지 순차 제작했다. 9회 Process Revision의 Owner Return을 통해 근거·관객 믿음·반응 밀도·피해 실현·창작 고지를 교정했고 최종 68개 Process Trace가 모두 결속됐다.
+- Pilot은 11개 Scene, 29개 Presentation Segment, 109개 Screenplay Unit, 두 Harm(`LIBERTY_DEPRIVATION`, `BODILY_INJURY`)을 갖는다. `MESSAGE`, `CHAT`, `NOTE`, `RECORDING`, `SCREEN_TEXT`, `INNER_MONOLOGUE`를 포함하고, 콜드 오픈의 세 번의 종은 후반에 두 행위자의 위치 신호로 재맥락화된다.
+- 25분 Broadcast Master는 7개 Panel Reaction Segment를 유지한다. 20분 재연극 Output은 Panel/Expert/Audience를 제외하며 Canonical과 Production 사본이 byte-identical하다. Export Report는 오류 없는 `NEEDS_REVIEW`, runtime은 `WORD_COUNT_ESTIMATE`로만 기록하고 실측으로 위장하지 않았다.
+- Editorial Critic의 Artifact Hash·발췌 근거·의미 평가를 GATE-13에 결속했으나 Human Editorial Approval은 실행하지 않았다. 최종 State는 `EDITORIAL_REVIEW_REQUIRED`; Artifact는 `ARTIFACT_COMPLETE`, Contract는 `CONTRACT_VALIDATED`, Process는 `PROCESS_CONFORMANT`, Editorial은 미승인이다.
+- `task-submit`이 같은 Gate의 다음 LLM Task를 반환하는 중간 상태에서 `runtime_transaction_id` 같은 Commit 전용 필드를 읽지 않도록 CLI를 보강하고 회귀 테스트를 추가했다.
+- 공용 Story Library의 Novelty Index는 비어 있으며 `register`를 실행하지 않았다. Pilot 내부 Fingerprint·Novelty Report만 Canonical Project Artifact로 보존했다.
+- Project `validate`와 `audit`는 GATE-00~13 전체 PASS, Issue 0, State 불변을 확인했다. 전체 검증은 Ruff PASS, strict mypy PASS(140 source files), pytest PASS(384 tests), package `1.6.1` sdist/wheel build PASS, dependency audit 알려진 취약점 없음, Runtime Doctor PASS, Registered Version Immutability PASS다.
 
 ## Final Acceptance Evidence
 

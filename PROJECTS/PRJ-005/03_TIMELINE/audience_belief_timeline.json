@@ -1,0 +1,134 @@
+{
+  "project_id": "PRJ-005",
+  "belief_states": [
+    {
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "belief": "해온은 원인을 알 수 없는 야간 사고로 수장고에 갇혔다.",
+      "confidence": 0.65,
+      "known_fact_ids": [
+        "FACT-03"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01"
+      ]
+    },
+    {
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "belief": "해온의 감금 전에 감사 제출 대상 봉인 번호의 불일치가 발견되었다.",
+      "confidence": 0.7,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-03"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01"
+      ]
+    },
+    {
+      "scene_id": "SCN-04",
+      "scene_order": 4,
+      "belief": "점검에 관여한 누군가가 해온의 이동을 의도적으로 제한했을 수 있다.",
+      "confidence": 0.55,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-03"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02",
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-05",
+      "scene_order": 5,
+      "belief": "수빈은 끊긴 통화와 종소리를 따라 해온을 찾았고, 감금 종료 뒤에도 손목 부상이 남았다.",
+      "confidence": 0.68,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-03",
+        "FACT-04",
+        "FACT-07"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02",
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-06",
+      "scene_order": 6,
+      "belief": "공황 사고라는 공식 설명은 통화와 종소리를 설명하지 못한다.",
+      "confidence": 0.72,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-03",
+        "FACT-04",
+        "FACT-07",
+        "FACT-09"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02",
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-09",
+      "scene_order": 9,
+      "belief": "종소리와 봉인 교체는 한 사람의 실수가 아니라 두 권한의 결합을 가리킨다.",
+      "confidence": 0.88,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-03",
+        "FACT-04",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-04"
+      ]
+    },
+    {
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "belief": "문재호와 백도윤이 예산 유용과 조작 기록을 숨기기 위해 점검 권한을 나눠 해온을 감금했다.",
+      "confidence": 0.98,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-04"
+      ]
+    },
+    {
+      "scene_id": "SCN-11",
+      "scene_order": 11,
+      "belief": "두 사람은 예산 유용을 숨기려 해온을 감금했고 두 피해에 공동 책임이 있다.",
+      "confidence": 1,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-04"
+      ]
+    }
+  ]
+}

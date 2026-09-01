@@ -1,0 +1,23 @@
+{
+  "schema_family": "validation-report",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-005",
+  "result": "PASS",
+  "gate_results": {
+    "GATE-00": "PASS",
+    "GATE-01": "PASS",
+    "GATE-02": "PASS",
+    "GATE-03": "PASS",
+    "GATE-04": "PASS",
+    "GATE-05": "PASS",
+    "GATE-06": "PASS",
+    "GATE-07": "PASS",
+    "GATE-08": "PASS",
+    "GATE-09": "PASS",
+    "GATE-10": "PASS",
+    "GATE-11": "PASS",
+    "GATE-12": "PASS",
+    "GATE-13": "PASS"
+  },
+  "issues": []
+}

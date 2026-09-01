@@ -1,0 +1,51 @@
+{
+  "$schema": "../../../STANDARD/schemas/panel_cast.schema.json",
+  "schema_family": "panel-cast",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-005",
+  "panelists": [
+    {
+      "panelist_id": "PANEL-01",
+      "display_name": "한세진",
+      "persona": "LOGIC_ANALYST",
+      "voice_style": "관찰된 시간·공간 관계를 짧은 질문과 조건문으로 정리한다.",
+      "allowed_functions": [
+        "ANOMALY_DETECTION",
+        "HYPOTHESIS_GENERATION",
+        "SUSPECT_DISCUSSION",
+        "HYPOTHESIS_REVISION",
+        "CONTRADICTION_DETECTION",
+        "BELIEF_CORRECTION"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    },
+    {
+      "panelist_id": "PANEL-02",
+      "display_name": "윤라희",
+      "persona": "EMOTIONAL_PROXY",
+      "voice_style": "피해자의 선택과 위험을 중심에 두고 단정 대신 공감 언어로 반응한다.",
+      "allowed_functions": [
+        "EMOTIONAL_REACTION",
+        "MORAL_REACTION",
+        "RISK_SIGNAL_RECOGNITION",
+        "VICTIM_CONTEXTUALIZATION",
+        "TENSION_RELEASE"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    },
+    {
+      "panelist_id": "PANEL-03",
+      "display_name": "장도훈",
+      "persona": "SKEPTIC",
+      "voice_style": "첫 설명의 빈틈을 짚고 대안 가설이 새 단서를 견디는지 검토한다.",
+      "allowed_functions": [
+        "HYPOTHESIS_GENERATION",
+        "SUSPECT_DISCUSSION",
+        "HYPOTHESIS_REVISION",
+        "CONTRADICTION_DETECTION",
+        "EXPECTATION_BUILDING"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    }
+  ]
+}

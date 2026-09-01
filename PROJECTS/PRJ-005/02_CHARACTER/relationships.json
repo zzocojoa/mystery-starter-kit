@@ -1,0 +1,53 @@
+{
+  "project_id": "PRJ-005",
+  "relationships": [
+    {
+      "relationship_id": "REL-01",
+      "from": "CHAR-01",
+      "to": "CHAR-02",
+      "engine": "WORKPLACE_TRUST_TO_ACTIVE_SOLIDARITY"
+    },
+    {
+      "relationship_id": "REL-02",
+      "from": "CHAR-03",
+      "to": "CHAR-01",
+      "engine": "AUTHORITY_TO_COERCIVE_CONTROL"
+    },
+    {
+      "relationship_id": "REL-03",
+      "from": "CHAR-04",
+      "to": "CHAR-01",
+      "engine": "SERVICE_ACCESS_TO_PHYSICAL_BOUNDARY_VIOLATION"
+    },
+    {
+      "relationship_id": "REL-04",
+      "from": "CHAR-03",
+      "to": "CHAR-04",
+      "engine": "COLLUSION_UNDER_MUTUAL_EXPOSURE"
+    },
+    {
+      "relationship_id": "REL-05",
+      "from": "CHAR-05",
+      "to": "CHAR-01",
+      "engine": "EVIDENCE_REVIEW_TO_WITNESS_CREDIBILITY"
+    },
+    {
+      "relationship_id": "REL-06",
+      "from": "CHAR-02",
+      "to": "CHAR-03",
+      "engine": "DEPENDENCE_TO_SUSPICION"
+    },
+    {
+      "relationship_id": "REL-07",
+      "from": "CHAR-05",
+      "to": "CHAR-03",
+      "engine": "INSTITUTIONAL_AUTHORITY_TO_ACCOUNTABILITY"
+    },
+    {
+      "relationship_id": "REL-08",
+      "from": "CHAR-05",
+      "to": "CHAR-04",
+      "engine": "CONTRACT_ACCESS_TO_ACCOUNTABILITY"
+    }
+  ]
+}

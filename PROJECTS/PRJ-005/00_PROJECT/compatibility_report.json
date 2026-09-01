@@ -1,0 +1,339 @@
+{
+  "project_id": "PRJ-005",
+  "contract_family": "mystery-production-channel-dna",
+  "contract_version": "1.2.0",
+  "channel": {
+    "channel_id": "MYSTERY_MAIN",
+    "schema_family": "channel-dna",
+    "schema_version": "1.0.0",
+    "content_version": "2.1.0",
+    "channel_dna_sha256": "0e8c853f32d5c95a5bb235efc7da9d75e28c202d404e3ae04e0367a9b653c6d6",
+    "relative_path": "versions/2.1.0/channel_dna.json"
+  },
+  "compatibility": "PASS",
+  "required_capabilities": {
+    "GENRE_POLICY": "SUPPORTED",
+    "TONE_POLICY": "SUPPORTED",
+    "PRESENTATION_POLICY": "SUPPORTED",
+    "AUDIENCE_CONTRACT": "SUPPORTED",
+    "STORY_VARIATION_POLICY": "SUPPORTED"
+  },
+  "optional_capabilities": {
+    "NARRATION_POLICY": "SUPPORTED",
+    "REACTION_POLICY": "SUPPORTED",
+    "HUMOR_POLICY": "MISSING_USE_DEFAULT",
+    "VISUAL_POLICY": "MISSING_USE_DEFAULT",
+    "PACING_POLICY": "MISSING_USE_DEFAULT",
+    "RETENTION_POLICY": "SUPPORTED",
+    "HOST_POLICY": "MISSING_USE_DEFAULT",
+    "MUSIC_POLICY": "MISSING_USE_DEFAULT",
+    "THUMBNAIL_POLICY": "MISSING_USE_DEFAULT",
+    "CRIME_PSYCHOLOGY_POLICY": "MISSING_USE_DEFAULT",
+    "TRUST_AND_SAFETY_BETRAYAL_POLICY": "MISSING_USE_DEFAULT",
+    "COERCIVE_CONTROL_POLICY": "MISSING_USE_DEFAULT",
+    "VICTIM_CENTERED_POLICY": "SUPPORTED",
+    "EXPERT_ANALYSIS_POLICY": "MISSING_USE_DEFAULT",
+    "RISK_SIGNAL_AND_PUBLIC_VALUE_POLICY": "MISSING_USE_DEFAULT",
+    "SOURCE_DISCLOSURE_POLICY": "SUPPORTED",
+    "CLINICAL_LABEL_POLICY": "MISSING_USE_DEFAULT",
+    "EPISODE_THEME_POLICY": "MISSING_USE_DEFAULT",
+    "SCENE_REALIZATION_POLICY": "MISSING_USE_DEFAULT",
+    "EXPLICIT_CRIME_EVENT_POLICY": "SUPPORTED"
+  },
+  "resolved_optional_capabilities": {
+    "NARRATION_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "purposes": [
+          "CHARACTER_SUBJECTIVITY",
+          "EMOTIONAL_CONTINUITY",
+          "MEMORY_LIMITATION",
+          "TIME_COMPRESSION"
+        ],
+        "repeat_visible_information": false,
+        "premature_fact_or_clue_reference": false
+      }
+    },
+    "REACTION_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "target_ratio": {
+          "min": 0.1,
+          "max": 0.3
+        },
+        "functions": [
+          "EMOTIONAL_REACTION",
+          "ANOMALY_DETECTION",
+          "HYPOTHESIS_GENERATION",
+          "SUSPECT_DISCUSSION",
+          "HYPOTHESIS_REVISION",
+          "CONTRADICTION_DETECTION",
+          "MORAL_REACTION",
+          "TENSION_RELEASE",
+          "EXPECTATION_BUILDING",
+          "RISK_SIGNAL_RECOGNITION",
+          "VICTIM_CONTEXTUALIZATION",
+          "BELIEF_CORRECTION"
+        ],
+        "required_functions": [
+          "EMOTIONAL_REACTION"
+        ],
+        "required_function_any_of": [
+          "ANOMALY_DETECTION",
+          "SUSPECT_DISCUSSION",
+          "HYPOTHESIS_REVISION",
+          "BELIEF_CORRECTION"
+        ],
+        "minimum_spoken_density": 0.4,
+        "maximum_non_speech_ratio": 0.6,
+        "minimum_exchange_segment_ratio": 0.5
+      }
+    },
+    "HUMOR_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false,
+        "mode": "NONE"
+      }
+    },
+    "VISUAL_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "mode": "UNSPECIFIED"
+      }
+    },
+    "PACING_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "mode": "STANDARD"
+      }
+    },
+    "RETENTION_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "mode": "CASE_REENACTMENT_AND_PURSUIT",
+        "required_functions": [
+          "EVENT_ENTRY",
+          "RISK_ESCALATION",
+          "PURSUIT_UPDATE",
+          "LATE_CASE_REVEAL"
+        ],
+        "fixed_stage_order": false
+      }
+    },
+    "HOST_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false
+      }
+    },
+    "MUSIC_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "mode": "UNSPECIFIED"
+      }
+    },
+    "THUMBNAIL_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "mode": "UNSPECIFIED"
+      }
+    },
+    "CRIME_PSYCHOLOGY_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false,
+        "primary_genres": [
+          "CRIME_PSYCHOLOGICAL_THRILLER"
+        ],
+        "threat_types": [
+          "CRIME",
+          "PREDATORY"
+        ],
+        "require_psychological_pressure": false,
+        "technical_markers": [
+          "TECHNICAL",
+          "MACHINE_LOG"
+        ],
+        "max_technical_clue_ratio": 1.0,
+        "procedural_markers": [
+          "POLICE_PROCEDURAL"
+        ]
+      }
+    },
+    "TRUST_AND_SAFETY_BETRAYAL_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false,
+        "require_trusted_domain": false,
+        "require_safe_domain_expectation": false
+      }
+    },
+    "COERCIVE_CONTROL_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false,
+        "require_warning_signals": false,
+        "require_boundary_erosion": false,
+        "require_control_tactics": false,
+        "require_exit_barriers": false
+      }
+    },
+    "VICTIM_CENTERED_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "require_agency_outcome": false,
+        "require_responsible_agent_payoff": true,
+        "prohibited_phrases": [
+          "피해자가 자초했다",
+          "피해자도 잘못했다",
+          "왜 떠나지 않았나"
+        ]
+      }
+    },
+    "EXPERT_ANALYSIS_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false,
+        "true_story_requirement": "REQUIRED",
+        "inspired_requirement": "REQUIRED_OR_NA",
+        "original_requirement": "OPTIONAL",
+        "require_claim_evidence": false
+      }
+    },
+    "RISK_SIGNAL_AND_PUBLIC_VALUE_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false,
+        "require_risk_signal_payoff": false
+      }
+    },
+    "SOURCE_DISCLOSURE_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "labels_by_source_truth": {
+          "ORIGINAL_FICTION": "ORIGINAL_FICTION",
+          "VERIFIED_TRUE_CASE": "VERIFIED_TRUE_CASE",
+          "INSPIRED_BY_TRUE_EVENTS": "INSPIRED_BY_TRUE_EVENTS"
+        }
+      }
+    },
+    "CLINICAL_LABEL_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false,
+        "controlled_terms": [],
+        "allowed_classifications": [
+          "CONFIRMED_DIAGNOSIS",
+          "EXPERT_ASSESSMENT",
+          "MEDIA_DESCRIPTION",
+          "NARRATOR_OPINION",
+          "UNVERIFIED_LABEL"
+        ],
+        "diagnosis_requires_expert": true,
+        "diagnosis_requires_evidence": true
+      }
+    },
+    "EPISODE_THEME_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false,
+        "allowed_themes": [
+          "UNSPECIFIED"
+        ],
+        "require_episode_theme": false
+      }
+    },
+    "SCENE_REALIZATION_POLICY": {
+      "source": "STANDARD_DEFAULT",
+      "value": {
+        "enabled": false,
+        "required_stages": [
+          "TRUST_FORMATION",
+          "EARLY_WARNING",
+          "RATIONALIZATION",
+          "BOUNDARY_EROSION",
+          "CONTROL_OR_DEPENDENCY",
+          "PSYCHOLOGICAL_CONSEQUENCE",
+          "HARM_OR_CRIME",
+          "RECOGNITION_AND_RESISTANCE",
+          "AGENCY_RECOVERY"
+        ],
+        "critical_stages": [
+          "HARM_OR_CRIME"
+        ],
+        "minimum_distinct_drama_scenes": 1,
+        "maximum_stages_per_scene": 9,
+        "minimum_psychology_drama_ratio": 0.0,
+        "minimum_pre_harm_drama_ratio": 0.0,
+        "drama_realization_required": true,
+        "narration_only_satisfaction": false,
+        "panel_only_satisfaction": false,
+        "minimum_realization_score": 85
+      }
+    },
+    "EXPLICIT_CRIME_EVENT_POLICY": {
+      "source": "CHANNEL",
+      "value": {
+        "enabled": true,
+        "core_crimes": [
+          "MURDER",
+          "KIDNAPPING",
+          "CONFINEMENT",
+          "ASSAULT",
+          "STALKING",
+          "HOME_INVASION",
+          "DATING_VIOLENCE",
+          "DOMESTIC_VIOLENCE"
+        ],
+        "require_central_event": true,
+        "allow_overlapping_crimes": true,
+        "method_detail_level": "NON_ACTIONABLE_SUMMARY_ONLY",
+        "required_reveal_targets": [
+          "CULPRIT",
+          "MOTIVE",
+          "METHOD",
+          "HARM_RESULT"
+        ],
+        "development_functions_by_family": {
+          "MURDER": [
+            "HARM_OR_DANGER_RECOGNITION",
+            "INVOLVEMENT_OR_SUSPICION",
+            "MOTIVE_AND_RESPONSIBILITY",
+            "EVENT_RECONSTRUCTION"
+          ],
+          "LIBERTY_CRIME": [
+            "LIBERTY_DEPRIVATION",
+            "THREAT_AND_CHOICE_CONSTRAINT",
+            "RESPONSE_OR_DISCOVERY",
+            "HARM_OUTCOME"
+          ],
+          "RELATIONAL_VIOLENCE": [
+            "VIOLENCE_OR_THREAT",
+            "RELATIONSHIP_AND_POWER",
+            "RESPONSE_BARRIER",
+            "VIOLENCE_OUTCOME"
+          ],
+          "ACCESS_CRIME": [
+            "REPEATED_ACCESS_OR_INTRUSION",
+            "SAFETY_COLLAPSE",
+            "SAFETY_RESPONSE",
+            "OFFENDER_RESPONSIBILITY"
+          ]
+        },
+        "nonlinear_development_allowed": true,
+        "require_survival": false,
+        "require_direct_reporting": false,
+        "require_forgiveness": false,
+        "require_recovery": false
+      }
+    }
+  },
+  "ignored_unknown_fields": [],
+  "ignored_unknown_capabilities": [],
+  "errors": []
+}

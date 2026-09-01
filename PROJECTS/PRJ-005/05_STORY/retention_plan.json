@@ -1,0 +1,33 @@
+{
+  "project_id": "PRJ-005",
+  "checkpoints": [
+    {
+      "scene_id": "SCN-01",
+      "function": "EVENT_ENTRY"
+    },
+    {
+      "scene_id": "SCN-03",
+      "function": "RISK_ESCALATION"
+    },
+    {
+      "scene_id": "SCN-05",
+      "function": "PURSUIT_UPDATE"
+    },
+    {
+      "scene_id": "SCN-06",
+      "function": "CONTRADICTION_DETECTION"
+    },
+    {
+      "scene_id": "SCN-09",
+      "function": "CLUE_RECONTEXTUALIZATION"
+    },
+    {
+      "scene_id": "SCN-10",
+      "function": "LATE_CASE_REVEAL"
+    },
+    {
+      "scene_id": "SCN-11",
+      "function": "VICTIM_CONTEXTUALIZATION"
+    }
+  ]
+}

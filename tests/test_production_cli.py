@@ -1,5 +1,6 @@
 """통합 CLI의 실제 디렉터리 E2E 검증."""
 
+import json
 import os
 from collections.abc import Mapping
 from pathlib import Path
@@ -150,6 +151,55 @@ def configure_legacy_v1_project(project_path: Path) -> None:
     )
     write_json_object(config_path, config)
     write_json_object(constraints_path, constraints)
+
+
+def test_task_submit_cli_reports_partial_gate_without_commit_hooks(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """다음 LLM Task가 남은 제출은 Commit 전용 필드를 읽지 않고 현재 상태를 출력한다."""
+    project_path = tmp_path / "PRJ-998"
+    partial_result: dict[str, object] = {
+        "schema_family": "gate-transaction",
+        "schema_version": "1.1.0",
+        "transaction_id": "CODEX-TASK-PARTIAL",
+        "project_id": "PRJ-998",
+        "gate_id": "GATE-13",
+        "current_task_id": "editorial.review",
+        "gate_phase": "AWAITING_LLM",
+        "status": "OPEN",
+        "commit_sha": None,
+    }
+
+    def partial_task_submit(
+        repository_root: Path,
+        submitted_project_path: Path,
+        gate_id: str,
+        submitted_at: str,
+        reference_source: Path | None,
+    ) -> dict[str, object]:
+        assert repository_root == ROOT
+        assert submitted_project_path == project_path
+        assert gate_id == "GATE-13"
+        assert submitted_at
+        assert reference_source is None
+        return partial_result
+
+    monkeypatch.setattr(
+        "VALIDATORS.production_cli.task_submit",
+        partial_task_submit,
+    )
+
+    assert run_cli(["task-submit", str(project_path), "GATE-13"]) == 0
+    assert load_json_object_from_text(capsys.readouterr().out) == partial_result
+
+
+def load_json_object_from_text(content: str) -> dict[str, object]:
+    """CLI 표준 출력의 JSON 객체를 엄격하게 읽는다."""
+    parsed: object = json.loads(content)
+    assert isinstance(parsed, dict)
+    return {str(key): value for key, value in parsed.items()}
 
 
 def test_validate_audits_without_reconstructing_state(tmp_path: Path) -> None:

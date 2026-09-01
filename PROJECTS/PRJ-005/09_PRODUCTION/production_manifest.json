@@ -1,0 +1,161 @@
+{
+  "$schema": "../../STANDARD/schemas/production_manifest.schema.json",
+  "schema_family": "production-manifest",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-005",
+  "source_footprint_sha256": "ded64b71d0428b7375a8ede6477a357f59162cd448016ffdde60bdf10bf6f42a",
+  "scenes": [
+    {
+      "scene_id": "SCN-01",
+      "location_id": "SOUND_ISOLATED_VAULT",
+      "cast_ids": [
+        "CHAR-01"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "MEDIUM",
+      "graphic_violence": "NON_GRAPHIC",
+      "production_complexity": "HIGH"
+    },
+    {
+      "scene_id": "SCN-02",
+      "location_id": "ARCHIVE_OFFICE",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "LOW",
+      "graphic_violence": "NONE",
+      "production_complexity": "MEDIUM"
+    },
+    {
+      "scene_id": "SCN-03",
+      "location_id": "ARCHIVE_VAULT_CORRIDOR",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "LOW",
+      "graphic_violence": "NONE",
+      "production_complexity": "HIGH"
+    },
+    {
+      "scene_id": "SCN-04",
+      "location_id": "SOUND_ISOLATED_VAULT",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "MEDIUM",
+      "graphic_violence": "NON_GRAPHIC",
+      "production_complexity": "HIGH"
+    },
+    {
+      "scene_id": "SCN-05",
+      "location_id": "ARCHIVE_VAULT_CORRIDOR",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "LOW",
+      "graphic_violence": "NON_GRAPHIC",
+      "production_complexity": "MEDIUM"
+    },
+    {
+      "scene_id": "SCN-06",
+      "location_id": "FACILITY_CONTROL_DESK",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "MEDIUM"
+    },
+    {
+      "scene_id": "SCN-07",
+      "location_id": "CITY_AUDIT_ROOM",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-05"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NON_GRAPHIC",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-08",
+      "location_id": "CITY_AUDIT_ROOM",
+      "cast_ids": [
+        "CHAR-02",
+        "CHAR-05"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "MEDIUM"
+    },
+    {
+      "scene_id": "SCN-09",
+      "location_id": "CITY_AUDIT_ROOM",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-05"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "LOW",
+      "graphic_violence": "NONE",
+      "production_complexity": "MEDIUM"
+    },
+    {
+      "scene_id": "SCN-10",
+      "location_id": "CITY_AUDIT_ROOM",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "MEDIUM",
+      "graphic_violence": "NON_GRAPHIC",
+      "production_complexity": "HIGH"
+    },
+    {
+      "scene_id": "SCN-11",
+      "location_id": "CITY_AUDIT_ROOM",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-05"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NON_GRAPHIC",
+      "production_complexity": "LOW"
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "project_id": "PRJ-005",
+  "nodes": [
+    {
+      "node_id": "ROOT-01",
+      "type": "ROOT_CAUSE",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": []
+    },
+    {
+      "node_id": "TRIG-01",
+      "type": "MOTIVE_OR_TRIGGER",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": []
+    },
+    {
+      "node_id": "CRIME-01",
+      "type": "CRIME_EVENT",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ]
+    },
+    {
+      "node_id": "HNODE-01",
+      "type": "HARM_RESULT",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ]
+    },
+    {
+      "node_id": "DENIAL-01",
+      "type": "CONCEALMENT_OR_DENIAL",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ]
+    },
+    {
+      "node_id": "DISC-01",
+      "type": "DISCOVERY_PATH",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ]
+    },
+    {
+      "node_id": "RESP-01",
+      "type": "RESPONSIBILITY_CONFIRMATION",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ]
+    },
+    {
+      "node_id": "RESOLVE-01",
+      "type": "RESOLUTION",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "ROOT-01",
+      "to": "TRIG-01"
+    },
+    {
+      "from": "TRIG-01",
+      "to": "CRIME-01"
+    },
+    {
+      "from": "CRIME-01",
+      "to": "HNODE-01"
+    },
+    {
+      "from": "CRIME-01",
+      "to": "DENIAL-01"
+    },
+    {
+      "from": "DENIAL-01",
+      "to": "DISC-01"
+    },
+    {
+      "from": "DISC-01",
+      "to": "RESP-01"
+    },
+    {
+      "from": "HNODE-01",
+      "to": "RESP-01"
+    },
+    {
+      "from": "RESP-01",
+      "to": "RESOLVE-01"
+    }
+  ],
+  "fingerprint": {
+    "root_cause": "AUDIT_EVIDENCE_CONCEALMENT",
+    "mechanism": "PROCEDURE_PRETEXT_AND_SHARED_ACCESS",
+    "concealment": "PANIC_ACCIDENT_DENIAL_AND_SPLIT_LOGS",
+    "discovery_path": "INTERRUPTED_CALL_BELL_DIRECTION_AND_SEAL_MISMATCH",
+    "resolution": "WITNESS_AND_PHYSICAL_CORROBORATION"
+  },
+  "semantic_normalization": {
+    "normalized_roles": [
+      "VICTIM_RECORDS_WORKER",
+      "COWORKER_DISCOVERY_WITNESS",
+      "AUTHORITY_OFFENDER",
+      "ACCESS_OFFENDER",
+      "AUDIT_RECONSTRUCTOR"
+    ],
+    "character_function_chain": [
+      "EVIDENCE_DISCOVERY",
+      "PROCEDURAL_LURE",
+      "LIBERTY_DEPRIVATION",
+      "WITNESS_SEARCH",
+      "DENIAL_CHALLENGE",
+      "COLLUSION_RECONSTRUCTION",
+      "RESPONSIBILITY_CONFIRMATION"
+    ],
+    "audience_hypothesis_transitions": [
+      "ACCIDENT",
+      "SINGLE_ACCESS_OFFENDER",
+      "SINGLE_AUTHORITY_OFFENDER",
+      "DUAL_AGENT_COLLUSION"
+    ]
+  }
+}

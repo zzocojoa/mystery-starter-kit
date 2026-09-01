@@ -1,0 +1,103 @@
+{
+  "project_id": "PRJ-005",
+  "reveals": [
+    {
+      "reveal_id": "REVEAL-05",
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "fact_id": "FACT-03",
+      "intentional_prereveal": false,
+      "information": "해온이 외부 잠금으로 수장고 안에서 이동의 자유를 빼앗긴 상태가 보인다.",
+      "effect": "원인 불명의 불안이 아니라 구체적인 감금 피해가 사건의 출발점이 된다."
+    },
+    {
+      "reveal_id": "REVEAL-06",
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "fact_id": "FACT-01",
+      "intentional_prereveal": false,
+      "information": "폐기 목록의 봉인 번호와 실물 라벨이 다르고 해온이 이를 감사 제출용으로 촬영한다.",
+      "effect": "감금 전에 보존된 기록 불일치가 이후 범행 동기를 추적할 출발 단서가 된다."
+    },
+    {
+      "reveal_id": "REVEAL-07",
+      "scene_id": "SCN-05",
+      "scene_order": 5,
+      "fact_id": "FACT-07",
+      "intentional_prereveal": false,
+      "information": "수빈이 끊긴 통화와 종소리 방향을 따라 수장고를 찾아 해온을 발견한다.",
+      "effect": "구조가 우연이 아니라 통화와 소리 단서가 결합된 발견 경로였음이 확인된다."
+    },
+    {
+      "reveal_id": "REVEAL-08",
+      "scene_id": "SCN-05",
+      "scene_order": 5,
+      "fact_id": "FACT-04",
+      "intentional_prereveal": false,
+      "information": "감금 종료 시점에 해온의 손목 부상이 직접 확인된다.",
+      "effect": "즉시 확인된 부상은 결말에서 지속되는 폐쇄 공간 공포와 함께 최종 피해 결과로 확장된다."
+    },
+    {
+      "reveal_id": "REVEAL-09",
+      "scene_id": "SCN-06",
+      "scene_order": 6,
+      "fact_id": "FACT-09",
+      "intentional_prereveal": false,
+      "information": "문재호와 백도윤이 감금을 해온의 공황과 시설 사고로 설명한다.",
+      "effect": "피해자에게 원인을 돌리는 공식 해명이 이후 기록 모순과 대조될 가설이 된다."
+    },
+    {
+      "reveal_id": "REVEAL-10",
+      "scene_id": "SCN-09",
+      "scene_order": 9,
+      "fact_id": "FACT-08",
+      "intentional_prereveal": false,
+      "information": "두 점검 기록의 종과 카트 위치가 같은 시각에 서로 충돌함이 한 화면에서 확정된다.",
+      "effect": "단독 실수 가설이 무너지고 두 권한의 역할 분담을 재구성할 수 있게 된다."
+    },
+    {
+      "reveal_id": "REVEAL-01",
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "fact_id": "FACT-06",
+      "reveal_target_id": "REVEAL-TARGET-01",
+      "target_type": "CULPRIT",
+      "intentional_prereveal": false,
+      "information": "문재호와 백도윤이 출입 권한을 나눠 쓴 공동 가해자임이 확정된다.",
+      "effect": "따로 보였던 지시와 작업 동선이 하나의 범죄 행동으로 합쳐진다."
+    },
+    {
+      "reveal_id": "REVEAL-02",
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "fact_id": "FACT-05",
+      "reveal_target_id": "REVEAL-TARGET-02",
+      "target_type": "MOTIVE",
+      "intentional_prereveal": false,
+      "information": "조작된 폐기 기록과 보존 예산 유용을 숨기는 것이 동기였음이 드러난다.",
+      "effect": "감금이 돌발 대응이 아니라 감사 자료를 막기 위한 계획이었다는 의미가 생긴다."
+    },
+    {
+      "reveal_id": "REVEAL-03",
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "fact_id": "FACT-02",
+      "reveal_target_id": "REVEAL-TARGET-03",
+      "target_type": "METHOD",
+      "intentional_prereveal": false,
+      "information": "점검 절차를 가장한 유인과 분담된 출입 제한이라는 비실행적 범행 개요가 재구성된다.",
+      "effect": "안전 절차로 보였던 행동들이 가해자의 접근 권한 남용으로 뒤집힌다."
+    },
+    {
+      "reveal_id": "REVEAL-04",
+      "scene_id": "SCN-11",
+      "scene_order": 11,
+      "fact_id": "FACT-04",
+      "reveal_target_id": "REVEAL-TARGET-04",
+      "target_type": "HARM_RESULT",
+      "intentional_prereveal": false,
+      "information": "자유 박탈과 손목 부상, 폐쇄 공간 공포라는 복수 피해가 명시된다.",
+      "effect": "사건의 결말을 범인 식별이 아니라 피해와 책임의 확인으로 마감한다."
+    }
+  ]
+}

@@ -1721,6 +1721,9 @@ def run_task_submit(args: argparse.Namespace) -> int:
         submitted_at,
         args.reference_source if isinstance(args.reference_source, Path) else None,
     )
+    if result.get("status") != "COMMITTED":
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
     sync_novelty_gate(
         repository_root_for_project(args.project_path),
         args.project_path,

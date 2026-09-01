@@ -1,0 +1,21 @@
+{
+  "$schema": "../../../STANDARD/schemas/production_config.schema.json",
+  "project_id": "PRJ-005",
+  "standard_version": "1.3.3",
+  "channel_id": "MYSTERY_MAIN",
+  "channel_content_version": "2.1.0",
+  "variation_engine_version": "2.1.0",
+  "variation_catalog_version": "2.1.0",
+  "approval_policy": "AUTO_CONTINUE",
+  "script_source_mode": "SCREENPLAY_UNITS",
+  "reenactment_output_profile_id": "REENACTMENT_CHARACTER_SCRIPT",
+  "reenactment_output_profile_version": "1.0.0",
+  "story_source_mode": "ORIGINAL",
+  "source_truth_classification": "ORIGINAL_FICTION",
+  "genre": "CRIME_EVENT_THRILLER",
+  "tones": ["GROUNDED", "SUSPENSEFUL"],
+  "target_runtime_minutes": 25,
+  "runtime_tolerance_ratio": 0.1,
+  "target_reenactment_minutes": 20,
+  "reenactment_runtime_tolerance_ratio": 0.1
+}

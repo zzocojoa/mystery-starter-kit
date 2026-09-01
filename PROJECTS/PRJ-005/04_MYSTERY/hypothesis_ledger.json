@@ -1,0 +1,25 @@
+{
+  "project_id": "PRJ-005",
+  "hypotheses": [
+    {
+      "hypothesis_id": "HYP-01",
+      "status": "REJECTED",
+      "claim": "폐관 혼선과 해온의 공황이 겹친 단순 잠금 사고다."
+    },
+    {
+      "hypothesis_id": "HYP-02",
+      "status": "REJECTED",
+      "claim": "출입 설비 관리자 백도윤이 혼자 봉인을 바꾸고 해온을 가뒀다."
+    },
+    {
+      "hypothesis_id": "HYP-03",
+      "status": "REJECTED",
+      "claim": "시설 책임자 문재호가 단독으로 해온의 감사 제출을 막았다."
+    },
+    {
+      "hypothesis_id": "HYP-04",
+      "status": "CONFIRMED",
+      "claim": "문재호와 백도윤이 각자의 지시·출입 권한을 나눠 감금과 은폐를 공동 실행했다."
+    }
+  ]
+}

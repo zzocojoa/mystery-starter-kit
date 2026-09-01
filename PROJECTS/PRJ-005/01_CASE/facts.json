@@ -1,0 +1,118 @@
+{
+  "project_id": "PRJ-005",
+  "facts": [
+    {
+      "fact_id": "FACT-01",
+      "statement": "정해온은 폐기 대상 표식과 실제 보관함 봉인 번호가 맞지 않는 사진을 확보하고 다음 날 감사팀에 제출하겠다고 알렸다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "cb7da1925d7dae047df648fe99796158ba47400cd09152028e0d11bcbb05ddcb",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-02",
+      "statement": "문재호와 백도윤은 야간 점검을 가장해 정해온을 방음 수장고로 유인하고 외부 연락과 이동을 제한했다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "562c7bbbf34a78a2b53c48ea92b4fd4b6f0c13b024599ca68313cbfa194bfb79",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_type": "CRIME_ACTION"
+    },
+    {
+      "fact_id": "FACT-03",
+      "statement": "정해온은 수장고 안에 감금되어 이동의 자유를 잃었다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "c190ba285fa9c46ab47e47b5a8b6c5b8b5ffc40ced08cd056794c0e07863d7f0",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_type": "HARM_RESULT"
+    },
+    {
+      "fact_id": "FACT-04",
+      "statement": "정해온은 탈출 과정에서 손목을 다쳤고 이후 폐쇄된 업무 공간에 지속적인 공포를 느꼈다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "c800543bf883bf91b83d8063debad14135acf8e98cb264b0e3c9fdb3e453df1e",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_type": "HARM_RESULT"
+    },
+    {
+      "fact_id": "FACT-05",
+      "statement": "두 행위자의 동기는 조작된 폐기 기록과 보존 예산 유용을 숨기는 것이었다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "90a09cea10dad6f197b501e74f4d31a757367c180839bf814a768dec7240de48",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_type": "MOTIVE_STATUS"
+    },
+    {
+      "fact_id": "FACT-06",
+      "statement": "문재호와 백도윤은 서로 다른 출입 권한과 점검 기록을 나눠 사용한 공동 가해자다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "9314e49781fe5cd6c6aa604a7fead72d6bc2274b7832a957d8c1d112b294e1d3",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_type": "RESPONSIBILITY"
+    },
+    {
+      "fact_id": "FACT-07",
+      "statement": "오수빈은 예약 통화가 끊긴 시점과 기록관 복도에서 세 번 울린 이동식 점검 종의 방향을 연결해 수장고를 찾았다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "352d007ced9fd26aa041a7400dc71a94506a7764f1a819c188ff38613561de51",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-08",
+      "statement": "교체된 봉인 라벨의 순서와 두 사람의 엇갈린 점검 기록은 단순 훈련이라는 주장을 반박했다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "1c2e03575b9b135184207d2a76df60565b3e6dc6801f2a6bad536429b5ef1e2e",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-09",
+      "statement": "두 행위자는 정해온이 대피 훈련 중 공황 상태로 스스로 문을 잠갔다고 거짓 주장했다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "86a5d796034be9dc7773805dbabc3b35c57166640e061f219f1ca14d3da7a07f",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    }
+  ],
+  "crime_fact_trace": [
+    {
+      "crime_fact_type": "CRIME_ACTION",
+      "fact_ids": [
+        "FACT-02"
+      ]
+    },
+    {
+      "crime_fact_type": "HARM_RESULT",
+      "fact_ids": [
+        "FACT-03",
+        "FACT-04"
+      ]
+    },
+    {
+      "crime_fact_type": "MOTIVE_STATUS",
+      "fact_ids": [
+        "FACT-05"
+      ]
+    },
+    {
+      "crime_fact_type": "RESPONSIBILITY",
+      "fact_ids": [
+        "FACT-06"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "schema_family": "novelty-precheck",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-005",
+  "source_hash": "0e5989659893b965c6616f3d8fbf4704a1dab2e1da7b6d0dff0ab14eafd3c448",
+  "result": "PASS",
+  "candidate_results": [
+    {
+      "candidate_id": "VAR-01",
+      "result": "PASS",
+      "comparison_status": "NO_COMPARISON_DATA",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-02",
+      "result": "PASS",
+      "comparison_status": "NO_COMPARISON_DATA",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-03",
+      "result": "PASS",
+      "comparison_status": "NO_COMPARISON_DATA",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-04",
+      "result": "PASS",
+      "comparison_status": "NO_COMPARISON_DATA",
+      "comparisons": []
+    },
+    {
+      "candidate_id": "VAR-05",
+      "result": "PASS",
+      "comparison_status": "NO_COMPARISON_DATA",
+      "comparisons": []
+    }
+  ],
+  "issues": [],
+  "candidate_event_briefs_hash": "666b9ebd8518ef7c6267505685ef03a27573f2060db550cfe1c882010504d807",
+  "candidate_event_brief_hashes": {
+    "VAR-01": "28e66dca08072d706852fb41fe58dbfc872d0cfd930d43484ad1b79e5900492e",
+    "VAR-02": "2e04fa4adbb38247981b988219e0da097286419f9b44c15d3d2b3e7d65d7d52a",
+    "VAR-03": "67a1066a80b2a4f4de80f3d4e4dfe50f93abdc02bc360f0e6c7381657108db70",
+    "VAR-04": "6031a166f2421974fc915d7220d579b17863c8974cdd6d07841a331298048645",
+    "VAR-05": "154557b8274775281c30b714ae240dfeb419a9993c7456c7b696d2639897af39"
+  }
+}
