@@ -26,6 +26,10 @@ from VALIDATORS.channel_policy_v2 import (
     validate_channel_policy_v2,
 )
 from VALIDATORS.channel_validation import validate_channel_consistency
+from VALIDATORS.character_state_transitions import (
+    validate_character_state_transitions,
+)
+from VALIDATORS.clue_recontextualization import validate_clue_recontextualization
 from VALIDATORS.compatibility import channel_dna_sha256, parse_semantic_version
 from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.crime_event import (
@@ -839,6 +843,10 @@ def run_production_validation(
         "candidate_event_briefs",
     )
     candidate_event_brief_schema = presentation_schemas.get("candidate_event_briefs")
+    clue_matrix_schema = presentation_schemas.get("clue_matrix")
+    character_state_transition_schema = presentation_schemas.get(
+        "character_state_transitions"
+    )
     candidate_eligibility = artifact_document(artifacts, "candidate_eligibility")
     candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
     candidate_approval = artifact_document(artifacts, "candidate_approval")
@@ -869,6 +877,10 @@ def run_production_validation(
     beat_sheet = artifact_document(artifacts, "beat_sheet")
     retention_plan = artifact_document(artifacts, "retention_plan")
     psychological_arc = optional_artifact_document(artifacts, "psychological_arc")
+    character_state_transitions = optional_artifact_document(
+        artifacts,
+        "character_state_transitions",
+    )
     scene_cards = artifact_document(artifacts, "scene_cards")
     production_footprint = optional_artifact_document(artifacts, "production_footprint")
     panel_cast = artifact_document(artifacts, "panel_cast")
@@ -1212,6 +1224,15 @@ def run_production_validation(
             "03_TIMELINE/audience_belief_timeline.json",
         ),
         *nonempty_list_issues(clue_matrix, "clues", "04_MYSTERY/clue_matrix.json"),
+        *(
+            schema_issues(
+                clue_matrix,
+                clue_matrix_schema,
+                "04_MYSTERY/clue_matrix.json",
+            )
+            if clue_matrix_schema is not None
+            else []
+        ),
         *nonempty_list_issues(
             hypothesis_ledger,
             "hypotheses",
@@ -1268,7 +1289,7 @@ def run_production_validation(
             artifacts,
             production_config,
             channel,
-            ("psychological_arc",),
+            ("psychological_arc", "character_state_transitions"),
         ),
         *optional_schema_issues(
             artifacts,
@@ -1277,6 +1298,27 @@ def run_production_validation(
             "05_STORY/psychological_arc.json",
         ),
         *validate_psychological_arc(channel, psychological_arc),
+        *(
+            optional_schema_issues(
+                artifacts,
+                "character_state_transitions",
+                character_state_transition_schema,
+                "05_STORY/character_state_transitions.json",
+            )
+            if character_state_transition_schema is not None
+            else []
+        ),
+        *validate_character_state_transitions(
+            production_config,
+            channel,
+            character_state_transitions,
+            characters,
+            facts,
+            clue_matrix,
+            crime_event_contract,
+            beat_sheet,
+            {},
+        ),
     ]
     gate_07 = [
         *nonempty_list_issues(scene_cards, "scenes", "06_SCENE/scene_cards.json"),
@@ -1317,6 +1359,18 @@ def run_production_validation(
             clue_matrix,
             channel,
             production_config,
+        ),
+        *validate_clue_recontextualization(clue_matrix, scene_cards),
+        *validate_character_state_transitions(
+            production_config,
+            channel,
+            character_state_transitions,
+            characters,
+            facts,
+            clue_matrix,
+            crime_event_contract,
+            beat_sheet,
+            scene_cards,
         ),
         *validate_scene_coverage(
             channel,

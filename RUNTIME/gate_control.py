@@ -21,6 +21,10 @@ from VALIDATORS.channel_policy_v2 import (
     validate_channel_policy_v2,
 )
 from VALIDATORS.channel_validation import validate_channel_consistency
+from VALIDATORS.character_state_transitions import (
+    validate_character_state_transitions,
+)
+from VALIDATORS.clue_recontextualization import validate_clue_recontextualization
 from VALIDATORS.continuity import validate_continuity
 from VALIDATORS.crime_event import (
     explicit_crime_policy,
@@ -470,6 +474,15 @@ def validate_gate(
                 audience, "belief_states", "03_TIMELINE/audience_belief_timeline.json"
             ),
             *nonempty_list_issues(clues, "clues", "04_MYSTERY/clue_matrix.json"),
+            *(
+                schema_issues(
+                    clues,
+                    presentation_schemas["clue_matrix"],
+                    "04_MYSTERY/clue_matrix.json",
+                )
+                if "clue_matrix" in presentation_schemas
+                else []
+            ),
             *nonempty_list_issues(hypotheses, "hypotheses", "04_MYSTERY/hypothesis_ledger.json"),
             *nonempty_list_issues(causal, "nodes", "04_MYSTERY/causal_graph.json"),
             *nonempty_list_issues(causal, "edges", "04_MYSTERY/causal_graph.json"),
@@ -522,7 +535,7 @@ def validate_gate(
                 artifacts,
                 production_config,
                 channel,
-                ("psychological_arc",),
+                ("psychological_arc", "character_state_transitions"),
             ),
             *optional_schema_issues(
                 artifacts,
@@ -533,6 +546,27 @@ def validate_gate(
             *validate_psychological_arc(
                 channel,
                 optional_artifact_document(artifacts, "psychological_arc"),
+            ),
+            *(
+                optional_schema_issues(
+                    artifacts,
+                    "character_state_transitions",
+                    presentation_schemas["character_state_transitions"],
+                    "05_STORY/character_state_transitions.json",
+                )
+                if "character_state_transitions" in presentation_schemas
+                else []
+            ),
+            *validate_character_state_transitions(
+                production_config,
+                channel,
+                optional_artifact_document(artifacts, "character_state_transitions"),
+                characters,
+                facts,
+                clues,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                beats,
+                {},
             ),
         ]
     scenes = artifact_document(artifacts, "scene_cards")
@@ -573,6 +607,18 @@ def validate_gate(
                 clues,
                 channel,
                 production_config,
+            ),
+            *validate_clue_recontextualization(clues, scenes),
+            *validate_character_state_transitions(
+                production_config,
+                channel,
+                optional_artifact_document(artifacts, "character_state_transitions"),
+                characters,
+                facts,
+                clues,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                beats,
+                scenes,
             ),
             *validate_scene_coverage(
                 channel,

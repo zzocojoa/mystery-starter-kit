@@ -210,6 +210,15 @@ def runtime_validation_inputs(
             "psychological_arc": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "psychological_arc.schema.json"
             ),
+            "character_state_transitions": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "character_state_transitions.schema.json"
+            ),
+            "clue_matrix": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "clue_matrix.schema.json"
+            ),
             "script_realization_report": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "script_realization_report.schema.json"
             ),

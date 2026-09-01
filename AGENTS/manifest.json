@@ -46,6 +46,7 @@
         "beat_sheet",
         "retention_plan",
         "psychological_arc",
+        "character_state_transitions",
         "scene_cards",
         "production_footprint",
         "panel_cast",
@@ -160,7 +161,8 @@
         "clue_matrix",
         "crime_psychology",
         "beat_sheet",
-        "psychological_arc"
+        "psychological_arc",
+        "character_state_transitions"
       ],
       "writes": [
         "story_dna",
@@ -170,7 +172,8 @@
         "crime_psychology",
         "beat_sheet",
         "retention_plan",
-        "psychological_arc"
+        "psychological_arc",
+        "character_state_transitions"
       ],
       "gates": [
         "GATE-02",
@@ -248,6 +251,7 @@
         "beat_sheet",
         "retention_plan",
         "psychological_arc",
+        "character_state_transitions",
         "crime_event_contract",
         "scene_cards",
         "production_footprint",
@@ -290,6 +294,7 @@
         "characters",
         "actual_timeline",
         "psychological_arc",
+        "character_state_transitions",
         "crime_event_contract",
         "scene_cards",
         "presentation_plan",
@@ -336,6 +341,7 @@
         "crime_event_contract",
         "crime_psychology",
         "psychological_arc",
+        "character_state_transitions",
         "claim_evidence",
         "source_disclosure",
         "clinical_labels",

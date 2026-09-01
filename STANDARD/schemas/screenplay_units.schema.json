@@ -15,7 +15,7 @@
   "properties": {
     "$schema": {"type": "string"},
     "schema_family": {"const": "screenplay-units"},
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"enum": ["1.0.0", "1.1.0"]},
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "title": {"$ref": "#/$defs/nonBlankText"},
     "source_truth_classification": {
@@ -120,6 +120,16 @@
         "volume": {"enum": ["WHISPER", "LOW", "NORMAL", "LOUD"]}
       }
     },
+    "reconstructionBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_unit_id", "repeated_unit_id", "preservation"],
+      "properties": {
+        "source_unit_id": {"type": "string", "pattern": "^UNIT-[A-Z0-9_-]+$"},
+        "repeated_unit_id": {"type": "string", "pattern": "^UNIT-[A-Z0-9_-]+$"},
+        "preservation": {"const": "EXACT_TEXT"}
+      }
+    },
     "unit": {
       "type": "object",
       "additionalProperties": false,
@@ -216,6 +226,11 @@
           "type": "string",
           "pattern": "^SCN-[A-Z0-9_-]+$"
         },
+        "reconstruction_bindings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/reconstructionBinding"}
+        },
         "context": {"$ref": "#/$defs/sceneContext"},
         "units": {
           "type": "array",
@@ -230,7 +245,14 @@
             "required": ["time_layer"]
           },
           "then": {"required": ["reconstruction_of_scene_id"]},
-          "else": {"not": {"required": ["reconstruction_of_scene_id"]}}
+          "else": {
+            "not": {
+              "anyOf": [
+                {"required": ["reconstruction_of_scene_id"]},
+                {"required": ["reconstruction_bindings"]}
+              ]
+            }
+          }
         }
       ]
     }

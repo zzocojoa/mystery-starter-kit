@@ -202,11 +202,17 @@
       "path": "05_STORY/psychological_arc.json",
       "depends_on": ["story_dna", "crime_psychology", "characters", "beat_sheet"],
       "owner_agent": "story_architect",
-      "required_when": {"all": [{"channel_version_at_least": "2.1.0"}, {"capability_enabled": "SCENE_REALIZATION_POLICY"}]}
+      "required_when": {"all": [{"channel_version_at_least": "2.1.0"}, {"capability_enabled": "SCENE_REALIZATION_POLICY"}, {"not": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}}]}
+    },
+    "character_state_transitions": {
+      "path": "05_STORY/character_state_transitions.json",
+      "depends_on": ["production_config", "story_dna", "crime_event_contract", "characters", "facts", "beat_sheet", "clue_matrix"],
+      "owner_agent": "story_architect",
+      "required_when": {"all": [{"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}, {"capability_enabled": "EXPLICIT_CRIME_EVENT_POLICY"}]}
     },
     "scene_cards": {
       "path": "06_SCENE/scene_cards.json",
-      "depends_on": ["beat_sheet", "retention_plan", "psychological_arc", "crime_event_contract", "clue_matrix"],
+      "depends_on": ["beat_sheet", "retention_plan", "psychological_arc", "character_state_transitions", "crime_event_contract", "clue_matrix"],
       "owner_agent": "scene_designer"
     },
     "production_footprint": {
@@ -259,7 +265,7 @@
     },
     "screenplay_units": {
       "path": "07_SCRIPT/screenplay_units.json",
-      "depends_on": ["production_config", "crime_event_contract", "characters", "knowledge_matrix", "actual_timeline", "viewer_timeline", "clue_matrix", "scene_cards", "presentation_plan"],
+      "depends_on": ["production_config", "crime_event_contract", "characters", "knowledge_matrix", "actual_timeline", "viewer_timeline", "clue_matrix", "character_state_transitions", "scene_cards", "presentation_plan"],
       "owner_agent": "script_writer",
       "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
     },
@@ -281,7 +287,7 @@
     },
     "reenactment_export_report": {
       "path": "08_QA/reenactment_export_report.json",
-      "depends_on": ["production_config", "screenplay_units", "reenactment_character_script", "characters", "crime_event_contract", "clue_matrix"],
+      "depends_on": ["production_config", "screenplay_units", "reenactment_character_script", "characters", "crime_event_contract", "clue_matrix", "character_state_transitions"],
       "owner_agent": "continuity_critic",
       "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
     },

@@ -239,6 +239,38 @@ def test_screenplay_rejects_future_reconstruction_reference() -> None:
     assert "RECONSTRUCTION_REFERENCE_INVALID" in issue_codes(document)
 
 
+def test_screenplay_v11_requires_exact_binding_for_repeated_reconstruction_unit() -> None:
+    """재구성에서 반복한 Unit은 원본 Unit과 exact text/type 결속을 보존해야 한다."""
+    document = screenplay_document()
+    document["schema_version"] = "1.1.0"
+    scenes = document["scenes"]
+    assert isinstance(scenes, list)
+    reconstruction = scenes[1]
+    assert isinstance(reconstruction, dict)
+    reconstruction["reconstruction_bindings"] = [
+        {
+            "source_unit_id": "UNIT-001",
+            "repeated_unit_id": "UNIT-012",
+            "preservation": "EXACT_TEXT",
+        }
+    ]
+
+    assert collect_schema_errors(
+        document,
+        load_json_object(SCREENPLAY_SCHEMA_PATH),
+        "screenplay 1.1 fixture",
+    ) == []
+    assert validate_screenplay_units(document) == []
+
+    units = reconstruction["units"]
+    assert isinstance(units, list)
+    repeated = units[0]
+    assert isinstance(repeated, dict)
+    repeated["text"] = "재구성에서 임의로 바꾼 문장"
+
+    assert "RECONSTRUCTION_REPETITION_MISMATCH" in issue_codes(document)
+
+
 def test_output_profile_and_registry_are_schema_valid_and_resolvable() -> None:
     """등록 Profile은 Pin, Schema와 File Hash가 모두 일치해야 한다."""
     assert collect_schema_errors(

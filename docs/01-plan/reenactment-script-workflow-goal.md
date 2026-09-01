@@ -33,7 +33,7 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 - [x] Phase 0 — Foundation, baseline, 영향 설계
 - [x] Phase 1 — Versioned multi-harm event model
 - [x] Phase 2 — Screenplay Units와 Output Profile 계약
-- [ ] Phase 3 — Clue recontextualization과 flexible state transition
+- [x] Phase 3 — Clue recontextualization과 flexible state transition
 - [ ] Phase 4 — Deterministic CORE renderer
 - [ ] Phase 5 — Export integrity와 semantic binding
 - [ ] Phase 6 — Runtime Task, Agent, Gate, dependency 통합
@@ -41,7 +41,7 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 - [ ] Phase 8 — 네 Source-style feature fixture와 Full Original Pilot
 - [ ] Phase 9 — 최종 문서·수용 증거·Stacked PR
 
-현재 Phase: `2`
+현재 Phase: `3`
 
 ## Architecture 결정
 
@@ -110,8 +110,8 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 |---|---|---|---|
 | 0 | `codex/reenactment-contracts-v1` | `0992c920b9fd69b80f112d9fa95f4522feeb3fd3` | 완료 |
 | 1 | `codex/reenactment-contracts-v1` | `5b42991569a5edaa8534c7cb68376127fa8374c6` | 완료 |
-| 2 | `codex/reenactment-contracts-v1` | `feat: add screenplay units and reenactment output profile contracts` | 현재 Commit 예정 |
-| 3 | `codex/reenactment-contracts-v1` | `feat: model clue recontextualization and flexible state transitions` | 대기 |
+| 2 | `codex/reenactment-contracts-v1` | `03aa87a6d9e07796b4a1e55f1a7309625d6675e1` | 완료 |
+| 3 | `codex/reenactment-contracts-v1` | `feat: model clue recontextualization and flexible state transitions` | 현재 Commit 예정 |
 | 4–7 | `codex/reenactment-runtime-v1` | Phase별 Commit | 대기 |
 | 8–9 | `codex/reenactment-pilot-v1` | Phase별 Commit | 대기 |
 
@@ -153,6 +153,17 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 - `screenplay_units`, canonical 재연극 Script, Export Report, Production copy를 Artifact Contract·Dependency Graph·Agent 최대 권한에 등록했다. 모든 새 Artifact는 새 mode에서만 필수이며 Unit 변경은 Broadcast·Export·Report·Production·Editorial downstream을 무효화한다.
 - 열한 Unit 유형, speaker 조합, ID/order 중복, 잘못된 Reconstruction, Profile Schema/Hash/Pin/Version, Legacy Config, Predicate와 DAG invalidation을 Targeted test로 검증했다.
 - Runtime Doctor, 기존 Scaffold·Gate Transaction·Runtime Engine·Production CLI 회귀, Targeted Ruff·strict mypy, Registered Version Immutability: PASS.
+
+## Phase 3 수용 증거
+
+- Clue Matrix는 필드가 없는 Legacy 문서와 `clue-matrix` `1.1.0` 문서를 함께 허용한다. 새 Version의 최종 Reveal Clue는 `SEEDED_REINTERPRETATION` 또는 `INTENTIONAL_NON_MYSTERY_DISCLOSURE`를 명시한다.
+- Seeded Reinterpretation은 `surface_meaning`, 서로 다른 `actual_meaning`, 선행 `first_seen_scene_id`, 후행 `reveal_scene_id`, 시간순 `recontextualized_scene_ids`를 요구한다. `REVEAL_WITHOUT_PRIOR_SEED`, `CLUE_MEANING_NOT_RECONTEXTUALIZED`, Scene/Reveal binding 오류를 명시적으로 보고한다.
+- Screenplay Units `1.1.0`은 재구성 반복을 `source_unit_id`와 `repeated_unit_id`로 결속한다. 반복 text와 type이 원본과 정확히 같지 않거나 반복 Unit이 Metadata 없이 나타나면 `RECONSTRUCTION_REPETITION_MISMATCH`로 실패한다. `1.0.0` 문서는 기존 동작을 유지한다.
+- `05_STORY/character_state_transitions.json`은 Beat 또는 Scene Scope, 인물별 before/after 상태, Fact·Clue·Crime Event Trigger, Information·Emotion·Relationship·Risk·Choice·Belief 변화 범주를 지원한다.
+- 유연한 Transition은 새 Screenplay mode와 Explicit Crime Capability에서만 필수다. 기존 고정 `psychological_arc`는 Legacy + 해당 Scene Realization Capability 조합에서만 요구되며 제자리 변경하지 않았다.
+- 사망 피해·목격자·비회복 경로는 `AGENCY_RECOVERY`를 요구하지 않는다. Validator는 ID/order, 실제 상태 Delta, 동일 인물 Chain, Character·Beat/Scene·Trigger 참조를 검증한다.
+- 새 Clue와 Transition Schema를 Artifact Contract, Dependency Graph, Agent 최대 권한과 GATE-05~07 Validator 경로에 등록했다. 새 Schema 키가 없는 기존 호출자의 Schema Map도 계속 허용한다.
+- 계약 브랜치 전체 검증: Ruff PASS, strict mypy PASS(133 source files), 전체 pytest PASS, package `1.6.1` sdist/wheel build PASS, dependency audit 알려진 취약점 없음, Runtime Doctor PASS, Registered Version Immutability PASS.
 
 ## Final Acceptance Evidence
 

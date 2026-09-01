@@ -290,6 +290,8 @@ def validate_psychological_arc(
     psychological_arc: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """GATE-06의 순서화된 심리 진행과 상태 변화를 검증한다."""
+    if not psychological_arc:
+        return []
     policy = realization_policy(channel)
     if policy is None:
         return []

@@ -227,6 +227,81 @@ def validate_scene_links(scenes: Sequence[Mapping[str, object]]) -> list[Validat
     return issues
 
 
+def validate_reconstruction_repetition(
+    scenes: Sequence[Mapping[str, object]],
+) -> list[ValidationIssue]:
+    """Screenplay 1.1 재구성의 의도적 반복이 원문 Unit과 정확히 결속됐는지 검증한다."""
+    scene_units = {
+        scene_id: mapping_items(scene.get("units"))
+        for scene in scenes
+        if isinstance((scene_id := scene.get("scene_id")), str)
+    }
+    issues: list[ValidationIssue] = []
+    for scene in scenes:
+        if scene.get("time_layer") != "RECONSTRUCTION":
+            continue
+        scene_id = scene.get("scene_id")
+        source_scene_id = scene.get("reconstruction_of_scene_id")
+        source_units = (
+            scene_units.get(source_scene_id, [])
+            if isinstance(source_scene_id, str)
+            else []
+        )
+        repeated_units = mapping_items(scene.get("units"))
+        source_by_id = {
+            unit_id: unit
+            for unit in source_units
+            if isinstance((unit_id := unit.get("unit_id")), str)
+        }
+        repeated_by_id = {
+            unit_id: unit
+            for unit in repeated_units
+            if isinstance((unit_id := unit.get("unit_id")), str)
+        }
+        bindings = mapping_items(scene.get("reconstruction_bindings"))
+        bound_pairs = {
+            (source_id, repeated_id)
+            for binding in bindings
+            if isinstance((source_id := binding.get("source_unit_id")), str)
+            and isinstance((repeated_id := binding.get("repeated_unit_id")), str)
+        }
+        invalid_pairs = sorted(
+            [
+                [source_id, repeated_id]
+                for source_id, repeated_id in bound_pairs
+                if source_id not in source_by_id
+                or repeated_id not in repeated_by_id
+                or source_by_id[source_id].get("text") != repeated_by_id[repeated_id].get("text")
+                or source_by_id[source_id].get("type") != repeated_by_id[repeated_id].get("type")
+            ]
+        )
+        unbound_repeated_ids = sorted(
+            repeated_id
+            for repeated_id, repeated in repeated_by_id.items()
+            if any(
+                source.get("text") == repeated.get("text")
+                and source.get("type") == repeated.get("type")
+                for source in source_units
+            )
+            and not any(pair[1] == repeated_id for pair in bound_pairs)
+        )
+        if invalid_pairs or unbound_repeated_ids:
+            issues.append(
+                screenplay_issue(
+                    "RECONSTRUCTION_REPETITION_MISMATCH",
+                    "재구성 반복 Unit은 원본 Scene Unit과 유형·text가 같고 "
+                    "명시적으로 결속돼야 합니다.",
+                    {
+                        "scene_id": scene_id,
+                        "source_scene_id": source_scene_id,
+                        "invalid_pairs": invalid_pairs,
+                        "unbound_repeated_unit_ids": unbound_repeated_ids,
+                    },
+                )
+            )
+    return issues
+
+
 def validate_screenplay_units(
     document: Mapping[str, object],
 ) -> list[ValidationIssue]:
@@ -255,4 +330,6 @@ def validate_screenplay_units(
     for scene in scenes:
         issues.extend(validate_scene_units(scene, global_unit_ids))
     issues.extend(validate_scene_links(scenes))
+    if document.get("schema_version") == "1.1.0":
+        issues.extend(validate_reconstruction_repetition(scenes))
     return issues
