@@ -8,7 +8,7 @@
 - 예상·실제 Foundation SHA: `b24b47456003057cfebbecf9e156551cc51369f2`
 - 선조 관계: 실제 원격 HEAD가 예상 SHA와 동일하며 `origin/main`의 후손이다.
 - PR 상태: `OPEN`, `CLEAN`, 미병합
-- 현재 Stack branch: `codex/reenactment-contracts-v1`
+- 현재 Stack branch: `codex/reenactment-runtime-v1`
 - PR #23: `OPEN`; PR #24 계보의 선행 변경이므로 자동 종료하지 않고 최종 보고에서 superseded/retarget 권고만 기록한다.
 - Source-style 원문: 이 Task에는 네 원문 파일이 첨부되지 않았다. Goal에 정제된 추상 기능 요구만 사용하며 고유 인명·대사·장소·사건·반전은 저장소나 Runtime Context에 반입하지 않는다.
 
@@ -34,14 +34,14 @@ Version 명칭은 서로 다른 수명주기다. Package는 `1.6.1`, Production 
 - [x] Phase 1 — Versioned multi-harm event model
 - [x] Phase 2 — Screenplay Units와 Output Profile 계약
 - [x] Phase 3 — Clue recontextualization과 flexible state transition
-- [ ] Phase 4 — Deterministic CORE renderer
+- [x] Phase 4 — Deterministic CORE renderer
 - [ ] Phase 5 — Export integrity와 semantic binding
 - [ ] Phase 6 — Runtime Task, Agent, Gate, dependency 통합
 - [ ] Phase 7 — 재연극 runtime 계획·측정 분리
 - [ ] Phase 8 — 네 Source-style feature fixture와 Full Original Pilot
 - [ ] Phase 9 — 최종 문서·수용 증거·Stacked PR
 
-현재 Phase: `3`
+현재 Phase: `4`
 
 ## Architecture 결정
 
@@ -111,8 +111,9 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 | 0 | `codex/reenactment-contracts-v1` | `0992c920b9fd69b80f112d9fa95f4522feeb3fd3` | 완료 |
 | 1 | `codex/reenactment-contracts-v1` | `5b42991569a5edaa8534c7cb68376127fa8374c6` | 완료 |
 | 2 | `codex/reenactment-contracts-v1` | `03aa87a6d9e07796b4a1e55f1a7309625d6675e1` | 완료 |
-| 3 | `codex/reenactment-contracts-v1` | `feat: model clue recontextualization and flexible state transitions` | 현재 Commit 예정 |
-| 4–7 | `codex/reenactment-runtime-v1` | Phase별 Commit | 대기 |
+| 3 | `codex/reenactment-contracts-v1` | `d12e9823e27c788762efc49f2b8b787f33c5f635` | 완료 |
+| 4 | `codex/reenactment-runtime-v1` | `feat: add deterministic screenplay and reenactment renderers` | 현재 Commit 예정 |
+| 5–7 | `codex/reenactment-runtime-v1` | Phase별 Commit | 대기 |
 | 8–9 | `codex/reenactment-pilot-v1` | Phase별 Commit | 대기 |
 
 ## Backward Compatibility 전략
@@ -164,6 +165,16 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 - 사망 피해·목격자·비회복 경로는 `AGENCY_RECOVERY`를 요구하지 않는다. Validator는 ID/order, 실제 상태 Delta, 동일 인물 Chain, Character·Beat/Scene·Trigger 참조를 검증한다.
 - 새 Clue와 Transition Schema를 Artifact Contract, Dependency Graph, Agent 최대 권한과 GATE-05~07 Validator 경로에 등록했다. 새 Schema 키가 없는 기존 호출자의 Schema Map도 계속 허용한다.
 - 계약 브랜치 전체 검증: Ruff PASS, strict mypy PASS(133 source files), 전체 pytest PASS, package `1.6.1` sdist/wheel build PASS, dependency audit 알려진 취약점 없음, Runtime Doctor PASS, Registered Version Immutability PASS.
+
+## Phase 4 수용 증거
+
+- `screenplay_units`의 Scene·Unit 순서와 Presentation Segment를 결속해 Drama와 Narration Layer를 순수 함수로 렌더링한다. Unit text는 LF 줄바꿈 외에 교정·요약·재작성하지 않는다.
+- 방송 내부 `UNIT`과 `CRIME_TRACE` Marker는 실제 렌더링한 Unit References의 합집합에서만 파생한다. Event가 Crime Contract와 결속됐을 때만 Action Type을 더하며 한 Segment의 여러 Harm과 Development Function을 모두 보존한다.
+- 기존 Reaction Contract의 Turn 순서·화자·발화를 Panel Layer로 렌더링하고, Layer Segment를 Presentation 순서와 source artifact에 따라 Broadcast Master로 결합한다. 계획 누락·중복·계층 불일치는 조용히 유실하지 않고 구체적 구성 오류를 낸다.
+- 재연극 문서는 등록 Output Profile, Canonical Characters와 Relationships로 작품 정보·구성 원칙·Cast 표·상세 Scene Context와 열한 Unit 유형을 렌더링한다. Panel Reaction, Expert Analysis, Audience Prompt, 내부 Fact·Clue·Event·Harm·Unit Marker는 경로상 반입하지 않는다.
+- Production copy 함수는 검증된 Canonical 재연극 Markdown을 바이트 그대로 반환한다. 명시적 외부 Export 파일명은 작품명에서 경로 구분자와 제어 문자를 제거해 `[작품명]_인물별_대사_스크립트.md` 규칙을 안전하게 적용한다.
+- Golden Markdown snapshot, 반복 호출 byte identity, 모든 Unit 원문 발생 횟수, 특수 유형 Label, 방송 전용 내용의 zero leakage, COLD_OPEN 후 RECONSTRUCTION 순서, multi-harm trace, 잘못된 계층 배치, Production byte identity와 export path 안전성을 회귀 테스트로 고정했다.
+- Targeted Ruff·strict mypy와 새 Renderer 테스트: PASS. 전체 Ruff·strict mypy와 pytest 356개 회귀 테스트도 PASS했다. 로컬의 3.11~3.13 Interpreter에는 Project dependency 환경이 없어 교차-Version 실행은 CI matrix 증거로 남긴다.
 
 ## Final Acceptance Evidence
 
