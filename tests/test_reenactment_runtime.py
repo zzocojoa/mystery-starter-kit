@@ -4,9 +4,10 @@ from collections.abc import Mapping, Sequence
 from copy import deepcopy
 
 from test_reenactment_export import (
-    canonical_broadcast_master,
+    canonical_derived_outputs,
     clue_matrix,
     crime_event_contract,
+    facts_document,
     profile_sha256,
     rendered_markdown,
 )
@@ -14,6 +15,7 @@ from test_screenplay_renderers import (
     characters_document,
     output_profile,
     presentation_plan,
+    reaction_segments,
     relationships_document,
     screenplay_document,
 )
@@ -51,15 +53,16 @@ def configured_report(config: dict[str, object]) -> dict[str, object]:
     return build_reenactment_export_report(
         config,
         screenplay,
+        facts_document(),
         characters,
         relationships,
         crime_event_contract(),
         clue_matrix(),
         profile,
         profile_sha256(),
-        markdown,
         presentation_plan(),
-        canonical_broadcast_master(),
+        reaction_segments(),
+        canonical_derived_outputs(markdown),
     )
 
 
@@ -176,7 +179,7 @@ def test_measurement_is_stale_after_unit_bound_report_changes() -> None:
     """Unit 입력 Hash가 바뀐 Report에는 이전 측정 근거를 재사용할 수 없다."""
     config = runtime_config()
     report = configured_report(config)
-    evidence = reenactment_runtime_evidence(report, "TABLE_READ", 100.0, 100.0)
+    evidence = reenactment_runtime_evidence(report, "TABLE_READ", None, 100.0)
     review: dict[str, object] = {"reenactment_runtime_evidence": evidence}
 
     assert reenactment_runtime_evidence_issues(config, report, review) == []
@@ -207,5 +210,76 @@ def test_estimate_cannot_claim_measured_duration() -> None:
             config,
             report,
             {"reenactment_runtime_evidence": invalid},
+        )
+    )
+
+
+def test_valid_word_count_estimate_uses_only_estimated_duration() -> None:
+    """단어 수 예상은 양의 예상값만 가지고 실측값은 비워야 한다."""
+    config = runtime_config()
+    report = configured_report(config)
+    evidence = reenactment_runtime_evidence(
+        report,
+        "WORD_COUNT_ESTIMATE",
+        100.0,
+        None,
+    )
+
+    assert reenactment_runtime_evidence_issues(
+        config,
+        report,
+        {"reenactment_runtime_evidence": evidence},
+    ) == []
+
+
+def test_valid_recorded_audio_uses_only_measured_duration() -> None:
+    """녹음 실측은 양의 실측값만 가지고 예상값은 비워야 한다."""
+    config = runtime_config()
+    report = configured_report(config)
+    evidence = reenactment_runtime_evidence(
+        report,
+        "RECORDED_AUDIO",
+        None,
+        100.0,
+    )
+
+    assert reenactment_runtime_evidence_issues(
+        config,
+        report,
+        {"reenactment_runtime_evidence": evidence},
+    ) == []
+
+
+def test_table_read_cannot_carry_active_estimate() -> None:
+    """Table Read 실측에 활성 예상값을 함께 두면 배타성 위반이다."""
+    config = runtime_config()
+    report = configured_report(config)
+    evidence = reenactment_runtime_evidence(report, "TABLE_READ", 100.0, 100.0)
+
+    assert "REENACTMENT_RUNTIME_EVIDENCE_INVALID" in issue_codes(
+        reenactment_runtime_evidence_issues(
+            config,
+            report,
+            {"reenactment_runtime_evidence": evidence},
+        )
+    )
+
+
+def test_recorded_audio_cannot_carry_active_estimate() -> None:
+    """녹음 실측에 활성 예상값을 함께 두면 배타성 위반이다."""
+    config = runtime_config()
+    report = configured_report(config)
+    evidence = reenactment_runtime_evidence(
+        report,
+        "RECORDED_AUDIO",
+        100.0,
+        100.0,
+    )
+
+    assert "REENACTMENT_RUNTIME_EVIDENCE_INVALID" in issue_codes(
+        reenactment_runtime_evidence_issues(
+            config,
+            report,
+            {"reenactment_runtime_evidence": evidence},
         )
     )

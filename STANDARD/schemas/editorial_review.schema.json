@@ -235,7 +235,7 @@
         "planned_duration_sec": {"type": "number", "exclusiveMinimum": 0},
         "spoken_word_count": {"type": "integer", "minimum": 1},
         "estimated_spoken_duration_sec": {
-          "type": "number",
+          "type": ["number", "null"],
           "exclusiveMinimum": 0
         },
         "action_duration_sec": {"type": "number", "minimum": 0},
@@ -299,7 +299,50 @@
           "type": "array",
           "items": {"$ref": "#/$defs/panelSegmentRuntime"}
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"method": {"const": "WORD_COUNT_ESTIMATE"}},
+            "required": ["method"]
+          },
+          "then": {
+            "properties": {
+              "reading_rate_wpm": {"type": "number", "exclusiveMinimum": 0},
+              "estimated_panel_spoken_duration_sec": {"type": "number", "exclusiveMinimum": 0},
+              "measured_panel_duration_sec": {"type": "null"},
+              "panel_segments": {
+                "items": {
+                  "properties": {
+                    "estimated_spoken_duration_sec": {"type": "number", "exclusiveMinimum": 0},
+                    "measured_duration_sec": {"type": "null"}
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"method": {"enum": ["TABLE_READ", "RECORDED_AUDIO"]}},
+            "required": ["method"]
+          },
+          "then": {
+            "properties": {
+              "estimated_panel_spoken_duration_sec": {"type": "null"},
+              "measured_panel_duration_sec": {"type": "number", "exclusiveMinimum": 0},
+              "panel_segments": {
+                "items": {
+                  "properties": {
+                    "estimated_spoken_duration_sec": {"type": "null"},
+                    "measured_duration_sec": {"type": "number", "exclusiveMinimum": 0}
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "reenactmentRuntimeEvidence": {
       "type": "object",
@@ -336,7 +379,33 @@
           "type": ["number", "null"],
           "exclusiveMinimum": 0
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"method": {"const": "WORD_COUNT_ESTIMATE"}},
+            "required": ["method"]
+          },
+          "then": {
+            "properties": {
+              "estimated_duration_sec": {"type": "number", "exclusiveMinimum": 0},
+              "measured_duration_sec": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"method": {"enum": ["TABLE_READ", "RECORDED_AUDIO"]}},
+            "required": ["method"]
+          },
+          "then": {
+            "properties": {
+              "estimated_duration_sec": {"type": "null"},
+              "measured_duration_sec": {"type": "number", "exclusiveMinimum": 0}
+            }
+          }
+        }
+      ]
     },
     "semanticAssessment": {
       "type": "object",

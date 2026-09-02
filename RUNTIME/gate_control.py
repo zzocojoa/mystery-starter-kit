@@ -81,7 +81,11 @@ from VALIDATORS.production_footprint import (
     validate_production_footprint,
 )
 from VALIDATORS.project_constraints import project_constraint_compiler_issues
-from VALIDATORS.reenactment_export import validate_reenactment_export_report
+from VALIDATORS.reenactment_export import (
+    ScreenplayDerivedOutputs,
+    screenplay_derived_output_issues,
+    validate_reenactment_export_report,
+)
 from VALIDATORS.reenactment_runtime import reenactment_runtime_evidence_issues
 from VALIDATORS.reference_validation import build_story_element_profile
 from VALIDATORS.scene_realization import (
@@ -95,7 +99,10 @@ from VALIDATORS.scene_realization import (
     validate_script_realization,
     validate_script_realization_report,
 )
-from VALIDATORS.screenplay_units import validate_screenplay_units
+from VALIDATORS.screenplay_units import (
+    validate_screenplay_unit_references,
+    validate_screenplay_units,
+)
 from VALIDATORS.source_truth import source_truth_requires_evidence
 from VALIDATORS.source_truth_contract import (
     validate_source_subject_mapping,
@@ -181,6 +188,27 @@ def reenactment_text_issues(
             context={},
         )
     ]
+
+
+def screenplay_derived_outputs(
+    artifacts: Mapping[str, ArtifactContent],
+) -> ScreenplayDerivedOutputs:
+    """현재 Gate의 모든 파생 Script를 정확한 출력 검증 입력으로 묶는다."""
+    outputs = ScreenplayDerivedOutputs(
+        drama_script=artifact_text(artifacts, "drama_script"),
+        narration_script=artifact_text(artifacts, "narration_script"),
+        panel_reaction_script=artifact_text(artifacts, "panel_reaction_script"),
+        draft_script=artifact_text(artifacts, "draft_script"),
+        final_script=artifact_text(artifacts, "final_script"),
+        reenactment_character_script=artifact_text(
+            artifacts,
+            "reenactment_character_script",
+        ),
+    )
+    expert_script = optional_artifact_text(artifacts, "expert_analysis_script")
+    if expert_script is not None:
+        outputs["expert_analysis_script"] = expert_script
+    return outputs
 
 
 def production_reenactment_copy_issues(
@@ -752,6 +780,9 @@ def validate_gate(
             ),
         ]
         if screenplay_unit_mode(production_config):
+            output_profile, _profile_hash = reenactment_profile_inputs(
+                presentation_schemas,
+            )
             screenplay_units = optional_artifact_document(artifacts, "screenplay_units")
             issues.extend(
                 required_channel_artifact_issues(
@@ -769,6 +800,28 @@ def validate_gate(
                 )
             )
             issues.extend(validate_screenplay_units(screenplay_units))
+            issues.extend(
+                validate_screenplay_unit_references(
+                    screenplay_units,
+                    facts,
+                    clues,
+                    optional_artifact_document(artifacts, "crime_event_contract"),
+                    characters,
+                    presentation,
+                )
+            )
+            issues.extend(
+                screenplay_derived_output_issues(
+                    screenplay_units,
+                    presentation,
+                    reaction_segments,
+                    optional_artifact_document(artifacts, "crime_event_contract"),
+                    characters,
+                    relationships,
+                    output_profile,
+                    screenplay_derived_outputs(artifacts),
+                )
+            )
             issues.extend(reenactment_text_issues(artifacts))
         return issues
     if gate_id == "GATE-09":
@@ -850,15 +903,16 @@ def validate_gate(
                     reenactment_report,
                     production_config,
                     screenplay_units,
+                    facts,
                     characters,
                     relationships,
                     optional_artifact_document(artifacts, "crime_event_contract"),
                     clues,
                     output_profile,
                     profile_hash,
-                    artifact_text(artifacts, "reenactment_character_script"),
                     presentation,
-                    artifact_text(artifacts, "final_script"),
+                    reaction_segments,
+                    screenplay_derived_outputs(artifacts),
                 )
             )
         return issues

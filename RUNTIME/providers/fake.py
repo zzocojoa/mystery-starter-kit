@@ -812,7 +812,7 @@ def fake_runtime_evidence(
                 "reaction_segment_id": reaction_segment_id,
                 "planned_duration_sec": float(duration),
                 "spoken_word_count": word_count,
-                "estimated_spoken_duration_sec": estimated_duration,
+                "estimated_spoken_duration_sec": None,
                 "measured_duration_sec": estimated_duration,
                 "action_duration_sec": 0.0,
                 "non_speaking_duration_sec": non_speech_duration,
@@ -841,10 +841,7 @@ def fake_runtime_evidence(
         "reading_rate_wpm": reading_rate_wpm,
         "planned_runtime_sec": planned_runtime,
         "planned_panel_duration_sec": planned_panel_duration,
-        "estimated_panel_spoken_duration_sec": round(
-            estimated_panel_spoken_duration,
-            2,
-        ),
+        "estimated_panel_spoken_duration_sec": None,
         "measured_panel_duration_sec": round(
             estimated_panel_spoken_duration,
             2,
@@ -993,7 +990,7 @@ def fake_editorial_review(
             review["reenactment_runtime_evidence"] = reenactment_runtime_evidence(
                 reenactment_report,
                 "TABLE_READ",
-                float(planned_duration),
+                None,
                 float(planned_duration),
             )
     crime_event = artifacts.get("crime_event_contract")
@@ -2370,17 +2367,34 @@ def true_story_character_outputs(
             to_character = subject_to_character.get(cast(str, to_subject))
             if from_character is None or to_character is None:
                 continue
+            from_name = next(
+                str(character["name"])
+                for character in characters
+                if character.get("character_id") == from_character
+            )
+            to_name = next(
+                str(character["name"])
+                for character in characters
+                if character.get("character_id") == to_character
+            )
             relationships.append(
                 {
                     "relationship_id": f"REL-{index:02d}",
                     "from": from_character,
                     "to": to_character,
                     "engine": cast(str, relationship_type),
+                    "display_summary": f"{from_name}과 {to_name} 사이의 확인된 관계",
                 }
             )
     return (
         {"project_id": project_id, "characters": characters},
-        {"project_id": project_id, "relationships": relationships},
+        {
+            "$schema": "../../../STANDARD/schemas/relationships.schema.json",
+            "schema_family": "relationships",
+            "schema_version": "1.1.0",
+            "project_id": project_id,
+            "relationships": relationships,
+        },
         {"project_id": project_id, "knowledge_events": knowledge_events},
     )
 
@@ -3053,6 +3067,9 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                 "artifact_name": "relationships",
                 "media_type": "application/json",
                 "content": {
+                    "$schema": "../../../STANDARD/schemas/relationships.schema.json",
+                    "schema_family": "relationships",
+                    "schema_version": "1.1.0",
                     "project_id": project_id,
                     "relationships": [
                         {
@@ -3063,6 +3080,10 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
                                 str(event_brief.get("relationship_context"))
                                 if event_brief is not None
                                 else "TRUST_TO_RESPONSIBILITY"
+                            ),
+                            "display_summary": (
+                                f"{default_characters[0]['name']}과 "
+                                f"{default_characters[-1]['name']} 사이의 신뢰와 책임 관계"
                             ),
                         }
                     ],

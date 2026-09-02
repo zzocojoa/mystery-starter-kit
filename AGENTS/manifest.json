@@ -294,6 +294,7 @@
       "stage": 7,
       "reads": [
         "production_config",
+        "facts",
         "characters",
         "relationships",
         "actual_timeline",
@@ -375,6 +376,7 @@
         "narration_script",
         "panel_reaction_script",
         "expert_analysis_script",
+        "draft_script",
         "shooting_script",
         "production_manifest",
         "narration",

@@ -287,7 +287,7 @@
     },
     "reenactment_export_report": {
       "path": "08_QA/reenactment_export_report.json",
-      "depends_on": ["production_config", "screenplay_units", "reenactment_character_script", "characters", "relationships", "crime_event_contract", "clue_matrix", "character_state_transitions", "presentation_plan", "final_script"],
+      "depends_on": ["production_config", "screenplay_units", "facts", "reenactment_character_script", "characters", "relationships", "crime_event_contract", "clue_matrix", "character_state_transitions", "presentation_plan", "reaction_segments", "drama_script", "narration_script", "panel_reaction_script", "expert_analysis_script", "draft_script", "final_script"],
       "owner_agent": "continuity_critic",
       "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
     },

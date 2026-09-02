@@ -56,7 +56,10 @@ from VALIDATORS.production_footprint import (
     build_production_footprint,
     production_manifest_from_scene_cards,
 )
-from VALIDATORS.reenactment_export import build_reenactment_export_report
+from VALIDATORS.reenactment_export import (
+    ScreenplayDerivedOutputs,
+    build_reenactment_export_report,
+)
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
     sanitize_reference_profile,
@@ -66,6 +69,7 @@ from VALIDATORS.scene_realization import (
     build_script_realization_report,
     channel_realization_evidence,
 )
+from VALIDATORS.screenplay_units import validate_screenplay_unit_references
 from VALIDATORS.source_truth import require_source_truth_classification
 from VALIDATORS.variation import (
     approve_variation_candidate,
@@ -745,6 +749,28 @@ def screenplay_layer_outputs(
     presentation_plan = mapping_artifact(artifacts, "presentation_plan")
     crime_event_contract = mapping_artifact(artifacts, "crime_event_contract")
     reaction_segments = mapping_artifact(artifacts, "reaction_segments")
+    reference_issues = validate_screenplay_unit_references(
+        screenplay_units,
+        mapping_artifact(artifacts, "facts"),
+        mapping_artifact(artifacts, "clue_matrix"),
+        crime_event_contract,
+        mapping_artifact(artifacts, "characters"),
+        presentation_plan,
+    )
+    if reference_issues:
+        first_issue = reference_issues[0]
+        raise RuntimeExecutionError(
+            "GATE_REJECTED",
+            False,
+            "TASK",
+            first_issue["message"],
+            task_id,
+            "screenplay_units",
+            {
+                "validation_code": first_issue["code"],
+                **first_issue["context"],
+            },
+        )
     return {
         "drama_script": renderer_output(
             task_id,
@@ -837,18 +863,35 @@ def reenactment_report_output(
         production_config,
         task_id,
     )
+    outputs = ScreenplayDerivedOutputs(
+        drama_script=text_artifact(artifacts, "drama_script"),
+        narration_script=text_artifact(artifacts, "narration_script"),
+        panel_reaction_script=text_artifact(artifacts, "panel_reaction_script"),
+        draft_script=text_artifact(artifacts, "draft_script"),
+        final_script=text_artifact(artifacts, "final_script"),
+        reenactment_character_script=text_artifact(
+            artifacts,
+            "reenactment_character_script",
+        ),
+    )
+    if "expert_analysis_script" in artifacts:
+        outputs["expert_analysis_script"] = text_artifact(
+            artifacts,
+            "expert_analysis_script",
+        )
     return build_reenactment_export_report(
         production_config,
         mapping_artifact(artifacts, "screenplay_units"),
+        mapping_artifact(artifacts, "facts"),
         mapping_artifact(artifacts, "characters"),
         mapping_artifact(artifacts, "relationships"),
         mapping_artifact(artifacts, "crime_event_contract"),
         mapping_artifact(artifacts, "clue_matrix"),
         output_profile,
         profile_hash,
-        text_artifact(artifacts, "reenactment_character_script"),
         mapping_artifact(artifacts, "presentation_plan"),
-        text_artifact(artifacts, "final_script"),
+        mapping_artifact(artifacts, "reaction_segments"),
+        outputs,
     )
 
 
