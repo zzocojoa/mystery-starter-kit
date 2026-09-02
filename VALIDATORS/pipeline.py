@@ -78,7 +78,11 @@ from VALIDATORS.production_footprint import (
     validate_production_footprint,
 )
 from VALIDATORS.project_constraints import project_constraint_compiler_issues
-from VALIDATORS.reenactment_export import validate_reenactment_export_report
+from VALIDATORS.reenactment_export import (
+    ScreenplayDerivedOutputs,
+    screenplay_derived_output_issues,
+    validate_reenactment_export_report,
+)
 from VALIDATORS.reenactment_runtime import reenactment_runtime_evidence_issues
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
@@ -96,7 +100,10 @@ from VALIDATORS.scene_realization import (
     validate_script_realization_report,
 )
 from VALIDATORS.schema_validation import collect_schema_errors
-from VALIDATORS.screenplay_units import validate_screenplay_units
+from VALIDATORS.screenplay_units import (
+    validate_screenplay_unit_references,
+    validate_screenplay_units,
+)
 from VALIDATORS.source_truth import (
     source_truth_configuration_issues,
     source_truth_requires_evidence,
@@ -1305,7 +1312,7 @@ def run_production_validation(
             artifacts,
             production_config,
             channel,
-            ("psychological_arc", "character_state_transitions"),
+            ("psychological_arc",),
         ),
         *optional_schema_issues(
             artifacts,
@@ -1314,27 +1321,6 @@ def run_production_validation(
             "05_STORY/psychological_arc.json",
         ),
         *validate_psychological_arc(channel, psychological_arc),
-        *(
-            optional_schema_issues(
-                artifacts,
-                "character_state_transitions",
-                character_state_transition_schema,
-                "05_STORY/character_state_transitions.json",
-            )
-            if character_state_transition_schema is not None
-            else []
-        ),
-        *validate_character_state_transitions(
-            production_config,
-            channel,
-            character_state_transitions,
-            characters,
-            facts,
-            clue_matrix,
-            crime_event_contract,
-            beat_sheet,
-            {},
-        ),
     ]
     gate_07 = [
         *nonempty_list_issues(scene_cards, "scenes", "06_SCENE/scene_cards.json"),
@@ -1357,7 +1343,17 @@ def run_production_validation(
             artifacts,
             production_config,
             channel,
-            ("expert_segments",),
+            ("character_state_transitions", "expert_segments"),
+        ),
+        *(
+            optional_schema_issues(
+                artifacts,
+                "character_state_transitions",
+                character_state_transition_schema,
+                "05_STORY/character_state_transitions.json",
+            )
+            if character_state_transition_schema is not None
+            else []
         ),
         *optional_schema_issues(
             artifacts,
@@ -1459,6 +1455,19 @@ def run_production_validation(
         ),
     ]
     if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
+        output_profile = presentation_schemas.get("reenactment_output_profile")
+        if not isinstance(output_profile, Mapping):
+            raise ConfigurationError("검증된 Reenactment Output Profile 입력이 필요합니다.")
+        derived_outputs = ScreenplayDerivedOutputs(
+            drama_script=drama_script,
+            narration_script=narration_script,
+            panel_reaction_script=panel_reaction_script,
+            draft_script=draft_script,
+            final_script=final_script,
+            reenactment_character_script=reenactment_character_script,
+        )
+        if expert_analysis_script:
+            derived_outputs["expert_analysis_script"] = expert_analysis_script
         gate_08.extend(
             required_channel_artifact_issues(
                 artifacts,
@@ -1475,6 +1484,28 @@ def run_production_validation(
             )
         )
         gate_08.extend(validate_screenplay_units(screenplay_units))
+        gate_08.extend(
+            validate_screenplay_unit_references(
+                screenplay_units,
+                facts,
+                clue_matrix,
+                crime_event_contract,
+                characters,
+                presentation_plan,
+            )
+        )
+        gate_08.extend(
+            screenplay_derived_output_issues(
+                screenplay_units,
+                presentation_plan,
+                reaction_segments,
+                crime_event_contract,
+                characters,
+                relationships,
+                output_profile,
+                derived_outputs,
+            )
+        )
         if not reenactment_character_script.strip():
             gate_08.append(
                 make_pipeline_issue(
@@ -1532,7 +1563,6 @@ def run_production_validation(
         ),
     ]
     if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
-        output_profile = presentation_schemas.get("reenactment_output_profile")
         output_profile_binding = presentation_schemas.get(
             "reenactment_output_profile_binding"
         )
@@ -1563,15 +1593,16 @@ def run_production_validation(
                 reenactment_export_report,
                 production_config,
                 screenplay_units,
+                facts,
                 characters,
                 relationships,
                 crime_event_contract,
                 clue_matrix,
                 output_profile,
                 profile_hash,
-                reenactment_character_script,
                 presentation_plan,
-                final_script,
+                reaction_segments,
+                derived_outputs,
             )
         )
     novelty_report = evaluate_novelty(fingerprint, story_history, novelty_thresholds)

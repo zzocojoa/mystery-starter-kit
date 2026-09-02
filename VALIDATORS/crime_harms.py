@@ -18,7 +18,17 @@ ACTION_HARM_REQUIREMENTS: Mapping[str, frozenset[str]] = {
         {"SAFETY_COLLAPSE", "THREAT_OR_TRAUMA", "BODILY_INJURY", "COMPOUND_HARM"}
     ),
 }
-ACTION_ALLOWED_HARMS: Mapping[str, frozenset[str]] = {
+DIRECT_ACTION_HARM_REQUIREMENTS: Mapping[str, frozenset[str]] = {
+    "MURDER": frozenset({"FATALITY"}),
+    "KIDNAPPING": frozenset({"LIBERTY_DEPRIVATION"}),
+    "CONFINEMENT": frozenset({"LIBERTY_DEPRIVATION"}),
+    "ASSAULT": frozenset({"BODILY_INJURY"}),
+    "STALKING": frozenset({"SAFETY_COLLAPSE", "THREAT_OR_TRAUMA"}),
+    "HOME_INVASION": frozenset(
+        {"SAFETY_COLLAPSE", "THREAT_OR_TRAUMA", "BODILY_INJURY"}
+    ),
+}
+CRIME_ALLOWED_HARMS: Mapping[str, frozenset[str]] = {
     "MURDER": frozenset(
         {"FATALITY", "BODILY_INJURY", "THREAT_OR_TRAUMA", "COMPOUND_HARM"}
     ),
@@ -55,6 +65,24 @@ ACTION_ALLOWED_HARMS: Mapping[str, frozenset[str]] = {
             "THREAT_OR_TRAUMA",
             "BODILY_INJURY",
             "LIBERTY_DEPRIVATION",
+            "COMPOUND_HARM",
+        }
+    ),
+    "DATING_VIOLENCE": frozenset(
+        {
+            "BODILY_INJURY",
+            "LIBERTY_DEPRIVATION",
+            "SAFETY_COLLAPSE",
+            "THREAT_OR_TRAUMA",
+            "COMPOUND_HARM",
+        }
+    ),
+    "DOMESTIC_VIOLENCE": frozenset(
+        {
+            "BODILY_INJURY",
+            "LIBERTY_DEPRIVATION",
+            "SAFETY_COLLAPSE",
+            "THREAT_OR_TRAUMA",
             "COMPOUND_HARM",
         }
     ),
@@ -181,8 +209,16 @@ def structured_harm_issues(
             )
         )
     action_type = event.get("core_action_type")
-    allowed = ACTION_ALLOWED_HARMS.get(str(action_type), frozenset())
-    required_any = ACTION_HARM_REQUIREMENTS.get(str(action_type), frozenset())
+    primary_crime = event.get("primary_crime")
+    related_crimes = string_values(event, "related_crimes")
+    applicable_crimes = [str(action_type), str(primary_crime), *related_crimes]
+    allowed = frozenset().union(
+        *(CRIME_ALLOWED_HARMS.get(crime, frozenset()) for crime in applicable_crimes)
+    )
+    required_any = DIRECT_ACTION_HARM_REQUIREMENTS.get(
+        str(action_type),
+        frozenset(),
+    )
     classifications = {
         cast(str, harm["classification"])
         for harm in harms
@@ -197,6 +233,8 @@ def structured_harm_issues(
                 artifact,
                 {
                     "core_action_type": action_type,
+                    "primary_crime": primary_crime,
+                    "related_crimes": related_crimes,
                     "incompatible_classifications": incompatible,
                     "required_any_of": sorted(required_any),
                 },
@@ -207,13 +245,28 @@ def structured_harm_issues(
         for harm in harms
         if isinstance(harm.get("timing"), str)
     }
-    if not timings.intersection({"IMMEDIATE", "OUTCOME"}):
+    if not timings.intersection({"IMMEDIATE", "OUTCOME", "COMPOUND"}):
         issues.append(
             harm_issue(
                 "HARM_OUTCOME_REQUIRED",
-                "피해 집합에는 최소 한 개의 즉시 또는 결과 피해가 필요합니다.",
+                "피해 집합에는 최소 한 개의 즉시·결과·복합 피해가 필요합니다.",
                 artifact,
                 {"timings": sorted(timings)},
+            )
+        )
+    invalid_compound_harms = sorted(
+        str(harm.get("harm_id"))
+        for harm in harms
+        if harm.get("classification") == "COMPOUND_HARM"
+        and harm.get("timing") != "COMPOUND"
+    )
+    if invalid_compound_harms:
+        issues.append(
+            harm_issue(
+                "HARM_COMPOUND_OUTCOME_INVALID",
+                "COMPOUND_HARM은 복합 결과를 나타내는 COMPOUND timing이 필요합니다.",
+                artifact,
+                {"harm_ids": invalid_compound_harms},
             )
         )
     bound_victims: set[str] = set()

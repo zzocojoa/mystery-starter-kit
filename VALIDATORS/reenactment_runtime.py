@@ -362,7 +362,7 @@ def reenactment_runtime_evidence_issues(
     selected_duration: float | None = None
     if method == "WORD_COUNT_ESTIMATE" and estimated is not None and measured is None:
         selected_duration = estimated
-    elif method in MEASURED_METHODS and measured is not None:
+    elif method in MEASURED_METHODS and measured is not None and estimated is None:
         selected_duration = measured
     else:
         issues.append(

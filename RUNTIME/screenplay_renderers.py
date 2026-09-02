@@ -22,6 +22,10 @@ DRAMA_UNIT_TYPES = frozenset(
     }
 )
 NARRATION_UNIT_TYPES = frozenset({"NARRATION"})
+UNIT_LAYER_BY_TYPE = {
+    **{unit_type: "DRAMA" for unit_type in DRAMA_UNIT_TYPES},
+    **{unit_type: "NARRATION" for unit_type in NARRATION_UNIT_TYPES},
+}
 CHARACTER_AUTHORED_TYPES = frozenset(
     {
         "NARRATION",
@@ -571,13 +575,13 @@ def relationship_texts(
     relationships: Mapping[str, object],
     character_map: Mapping[str, Mapping[str, object]],
 ) -> dict[str, str]:
-    """Canonical Relationship 방향을 인물별 표 문구로 변환한다."""
+    """표시 요약 또는 이름 기반 Legacy 대체 문구를 인물별로 만든다."""
     values: dict[str, list[str]] = {character_id: [] for character_id in character_map}
     records = mapping_items(relationships.get("relationships"), "relationships")
     for relationship in sorted(records, key=lambda item: required_string(item, "relationship_id")):
         from_id = required_string(relationship, "from")
         to_id = required_string(relationship, "to")
-        engine = required_string(relationship, "engine")
+        required_string(relationship, "engine")
         if from_id not in character_map or to_id not in character_map:
             raise fail(
                 "REENACTMENT_CAST_REQUIRED",
@@ -585,8 +589,16 @@ def relationship_texts(
             )
         from_name = required_string(character_map[from_id], "name")
         to_name = required_string(character_map[to_id], "name")
-        values[from_id].append(f"{to_name}에게 {engine}")
-        values[to_id].append(f"{from_name}에게서 {engine}")
+        display_summary = relationship.get("display_summary")
+        if relationships.get("schema_version") == "1.1.0":
+            display_summary = required_string(relationship, "display_summary")
+        if isinstance(display_summary, str) and display_summary.strip():
+            summary = normalize_line_endings(display_summary)
+            values[from_id].append(f"{to_name}: {summary}")
+            values[to_id].append(f"{from_name}: {summary}")
+        else:
+            values[from_id].append(f"{to_name}와 연결된 기존 관계")
+            values[to_id].append(f"{from_name}와 연결된 기존 관계")
     return {
         character_id: "; ".join(entries) if entries else "—"
         for character_id, entries in values.items()
@@ -670,17 +682,25 @@ def render_reenactment_character_script(
     profile_id = required_string(output_profile, "profile_id")
     profile_version = required_string(output_profile, "profile_version")
     filter_contract = required_mapping(output_profile, "filter_contract")
+    included_layers = set(string_items(filter_contract, "included_layers"))
+    excluded_layers = set(string_items(filter_contract, "excluded_layers"))
     included_types = set(string_items(filter_contract, "included_unit_types"))
     excluded_types = set(string_items(filter_contract, "excluded_unit_types"))
-    if included_types.intersection(excluded_types):
+    if (
+        included_layers.intersection(excluded_layers)
+        or included_types.intersection(excluded_types)
+    ):
         raise fail(
             "REENACTMENT_OUTPUT_PROFILE_INVALID",
-            "included_unit_types와 excluded_unit_types가 겹칩니다.",
+            "Output Profile의 포함·제외 Layer 또는 Unit 유형이 겹칩니다.",
         )
     character_map = characters_by_id(characters)
     ordered_character_ids = cast_order(screenplay_units, character_map)
     relations = relationship_texts(relationships, character_map)
     document_contract = required_mapping(output_profile, "document_contract")
+    headings = string_items(document_contract, "required_headings")
+    if len(headings) != 3:
+        raise fail("REENACTMENT_OUTPUT_PROFILE_INVALID", "필수 Heading은 세 개여야 합니다.")
     cast_contract = required_mapping(document_contract, "cast_table")
     columns = string_items(cast_contract, "columns")
     if len(columns) != 3:
@@ -688,7 +708,7 @@ def render_reenactment_character_script(
     lines = [
         f"# {title} — 인물별 대사 스크립트",
         "",
-        "## 작품 정보",
+        f"## {headings[0]}",
         "",
         f"- 작품명: {title}",
         f"- 프로젝트: {project_id}",
@@ -702,7 +722,7 @@ def render_reenactment_character_script(
         "- 패널 반응·전문가 분석·시청자 유도와 내부 추적 표시는 수록하지 않습니다.",
         "- 발화와 지문은 Canonical Screenplay Unit 원문을 교정 없이 보존합니다.",
         "",
-        "## 등장인물",
+        f"## {headings[1]}",
         "",
         f"| {columns[0]} | {columns[1]} | {columns[2]} |",
         "|---|---|---|",
@@ -720,7 +740,7 @@ def render_reenactment_character_script(
             )
             + " |"
         )
-    lines.extend(("", "## 장면별 인물 대사", ""))
+    lines.extend(("", f"## {headings[2]}", ""))
     scene_heading_template = required_string(document_contract, "scene_heading_template")
     context_fields = string_items(document_contract, "scene_context_fields")
     for scene in sorted_scenes(screenplay_units):
@@ -743,6 +763,14 @@ def render_reenactment_character_script(
         rendered_count = 0
         for unit in ordered_scene_units(scene):
             unit_type = required_string(unit, "type")
+            unit_layer = UNIT_LAYER_BY_TYPE.get(unit_type)
+            if unit_layer is None:
+                raise fail(
+                    "REENACTMENT_UNIT_TYPE_UNSUPPORTED",
+                    f"Profile Layer를 해석할 수 없는 Unit 유형: {unit_type}",
+                )
+            if unit_layer not in included_layers or unit_layer in excluded_layers:
+                continue
             if unit_type in excluded_types:
                 continue
             if unit_type not in included_types:
@@ -758,7 +786,12 @@ def render_reenactment_character_script(
                 "REENACTMENT_CONTEXT_MISSING",
                 f"Scene {scene_order}에 재연용 Unit이 없습니다.",
             )
-    return "\n".join(lines).rstrip() + "\n"
+    if not lines or lines[-1] != "":
+        raise fail(
+            "SCREENPLAY_RENDER_INPUT_INVALID",
+            "Renderer 소유의 마지막 Unit 구분자가 없습니다.",
+        )
+    return "\n".join(lines[:-1]) + "\n"
 
 
 def package_production_reenactment_script(reenactment_script: str) -> str:

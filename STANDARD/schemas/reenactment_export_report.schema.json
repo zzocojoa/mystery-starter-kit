@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/reenactment-export-report-1.0.0.json",
+  "$id": "https://example.local/schemas/reenactment-export-report-1.1.0.json",
   "title": "Reenactment Export Report",
   "type": "object",
   "additionalProperties": false,
@@ -12,6 +12,7 @@
     "input_artifact_hashes",
     "output_profile",
     "output_markdown_sha256",
+    "output_artifact_hashes",
     "scene_coverage",
     "unit_coverage",
     "speaker_resolution",
@@ -25,7 +26,7 @@
   "properties": {
     "$schema": {"type": "string"},
     "schema_family": {"const": "reenactment-export-report"},
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"const": "1.1.0"},
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "result": {"enum": ["NEEDS_REVIEW", "FAIL", "MISSING"]},
     "input_artifact_hashes": {
@@ -45,6 +46,26 @@
       }
     },
     "output_markdown_sha256": {"$ref": "#/$defs/sha256"},
+    "output_artifact_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "drama_script",
+        "narration_script",
+        "panel_reaction_script",
+        "draft_script",
+        "final_script",
+        "reenactment_character_script"
+      ],
+      "properties": {
+        "drama_script": {"$ref": "#/$defs/sha256"},
+        "narration_script": {"$ref": "#/$defs/sha256"},
+        "panel_reaction_script": {"$ref": "#/$defs/sha256"},
+        "draft_script": {"$ref": "#/$defs/sha256"},
+        "final_script": {"$ref": "#/$defs/sha256"},
+        "reenactment_character_script": {"$ref": "#/$defs/sha256"}
+      }
+    },
     "scene_coverage": {"$ref": "#/$defs/coverage"},
     "unit_coverage": {"$ref": "#/$defs/unitCoverage"},
     "speaker_resolution": {

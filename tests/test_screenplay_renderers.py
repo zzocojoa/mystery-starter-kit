@@ -1,6 +1,8 @@
 """결정론적 Screenplay·재연 Renderer 회귀 테스트."""
 
 from collections.abc import Mapping
+from copy import deepcopy
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
@@ -8,6 +10,7 @@ import pytest
 from RUNTIME.screenplay_renderers import (
     package_production_reenactment_script,
     reenactment_export_filename,
+    reenactment_unit_text,
     render_broadcast_master,
     render_drama_layer,
     render_narration_layer,
@@ -237,6 +240,7 @@ def screenplay_document() -> dict[str, object]:
                         "source_unit_id": "UNIT-002",
                         "repeated_unit_id": "UNIT-012",
                         "preservation": "EXACT_TEXT",
+                        "reference_policy": "ALLOW_RECONTEXTUALIZATION",
                     }
                 ],
                 "context": context(
@@ -283,6 +287,8 @@ def characters_document() -> dict[str, object]:
 def relationships_document() -> dict[str, object]:
     """Canonical Relationship Fixture를 만든다."""
     return {
+        "schema_family": "relationships",
+        "schema_version": "1.1.0",
         "project_id": "PRJ-005",
         "relationships": [
             {
@@ -290,6 +296,7 @@ def relationships_document() -> dict[str, object]:
                 "from": "CHAR-001",
                 "to": "CHAR-002",
                 "engine": "TRUST_TO_BETRAYAL",
+                "display_summary": "오랜 신뢰가 배신의 의심으로 뒤집힌 동료 관계",
             }
         ],
     }
@@ -440,6 +447,173 @@ def test_reenactment_preserves_unit_text_and_special_labels() -> None:
     assert "[메모] 민호:" in rendered
     assert "[녹음] 민호:" in rendered
     assert "[화면 문구] 23:47 잠금 해제" in rendered
+
+
+def test_final_unit_preserves_trailing_spaces_blank_lines_and_multiline_text() -> None:
+    """마지막 Unit의 의미 있는 공백·빈 줄과 여러 줄 화면 문구를 그대로 보존한다."""
+    screenplay = screenplay_document()
+    scenes = screenplay["scenes"]
+    assert isinstance(scenes, list)
+    final_scene = scenes[-1]
+    assert isinstance(final_scene, dict)
+    units = final_scene["units"]
+    assert isinstance(units, list)
+    final_unit = units[-1]
+    assert isinstance(final_unit, dict)
+    final_unit["type"] = "SCREEN_TEXT"
+    final_unit.pop("speaker_id")
+    final_unit.pop("delivery")
+    final_text = "첫 줄  \n\n마지막 줄   "
+    final_unit["text"] = final_text
+
+    rendered = render_reenactment_character_script(
+        screenplay,
+        characters_document(),
+        relationships_document(),
+        output_profile(),
+    )
+
+    assert f"[화면 문구] {final_text}\n" in rendered
+    character_map = {
+        "CHAR-001": {"name": "지안", "role": "기록 분석가"},
+        "CHAR-002": {"name": "민호", "role": "실종된 동료"},
+        "CHAR-003": {"name": "서윤", "role": "수사관"},
+    }
+    visible_block = reenactment_unit_text(final_unit, character_map, output_profile())
+    rendered_block = rendered[rendered.index(visible_block) :][: len(visible_block)]
+    assert sha256(rendered_block.encode("utf-8")).hexdigest() == sha256(
+        visible_block.encode("utf-8")
+    ).hexdigest()
+    assert rendered == render_reenactment_character_script(
+        screenplay,
+        characters_document(),
+        relationships_document(),
+        output_profile(),
+    )
+
+
+def test_cast_uses_display_summary_and_legacy_fallback() -> None:
+    """새 관계는 표시 요약을 쓰고 Legacy 관계는 enum을 노출하지 않는 문구를 쓴다."""
+    screenplay = screenplay_document()
+    characters = characters_document()
+    current = render_reenactment_character_script(
+        screenplay,
+        characters,
+        relationships_document(),
+        output_profile(),
+    )
+    legacy_relationships = relationships_document()
+    legacy_relationships.pop("schema_family")
+    legacy_relationships.pop("schema_version")
+    records = legacy_relationships["relationships"]
+    assert isinstance(records, list)
+    relationship = records[0]
+    assert isinstance(relationship, dict)
+    relationship.pop("display_summary")
+    legacy = render_reenactment_character_script(
+        screenplay,
+        characters,
+        legacy_relationships,
+        output_profile(),
+    )
+
+    assert "오랜 신뢰가 배신의 의심으로 뒤집힌 동료 관계" in current
+    assert "TRUST_TO_BETRAYAL" not in current
+    assert "민호와 연결된 기존 관계" in legacy
+    assert "TRUST_TO_BETRAYAL" not in legacy
+
+
+def test_relationship_display_summary_escapes_pipe_and_newline() -> None:
+    """표시 요약의 pipe와 줄바꿈은 Markdown Cast 셀 경계를 깨지 않는다."""
+    relationships = relationships_document()
+    records = relationships["relationships"]
+    assert isinstance(records, list)
+    relationship = records[0]
+    assert isinstance(relationship, dict)
+    relationship["display_summary"] = "동료 | 공동 조사\n현재는 불신"
+
+    rendered = render_reenactment_character_script(
+        screenplay_document(),
+        characters_document(),
+        relationships,
+        output_profile(),
+    )
+
+    assert "동료 \\| 공동 조사<br>현재는 불신" in rendered
+
+
+def test_relationship_unknown_character_reference_fails() -> None:
+    """Cast에 없는 인물을 가리키는 관계는 표시 과정에서 명시적으로 실패한다."""
+    relationships = relationships_document()
+    records = relationships["relationships"]
+    assert isinstance(records, list)
+    relationship = records[0]
+    assert isinstance(relationship, dict)
+    relationship["to"] = "CHAR-999"
+
+    with pytest.raises(ConfigurationError, match="REENACTMENT_CAST_REQUIRED"):
+        render_reenactment_character_script(
+            screenplay_document(),
+            characters_document(),
+            relationships,
+            output_profile(),
+        )
+
+
+def test_output_profile_fields_drive_document_structure_and_filtering() -> None:
+    """Heading·Scene·Cast·특수 Label·Layer·Unit 필터 선언이 출력 bytes를 바꾼다."""
+    profile = deepcopy(output_profile())
+    document_contract = profile["document_contract"]
+    render_contract = profile["render_contract"]
+    filter_contract = profile["filter_contract"]
+    assert isinstance(document_contract, dict)
+    assert isinstance(render_contract, dict)
+    assert isinstance(filter_contract, dict)
+    document_contract["required_headings"] = ["정보", "배우", "촬영 장면"]
+    cast_table = document_contract["cast_table"]
+    assert isinstance(cast_table, dict)
+    cast_table["columns"] = ["배역명", "극중 역할", "인물 관계"]
+    document_contract["scene_heading_template"] = "## 씬 {order} — {title}"
+    labels = render_contract["special_unit_labels"]
+    assert isinstance(labels, dict)
+    labels["SCREEN_TEXT"] = "스크린 자막"
+    included_types = filter_contract["included_unit_types"]
+    assert isinstance(included_types, list)
+    included_types.remove("NARRATION")
+    filter_contract["excluded_unit_types"] = ["NARRATION"]
+
+    rendered = render_reenactment_character_script(
+        screenplay_document(),
+        characters_document(),
+        relationships_document(),
+        profile,
+    )
+
+    assert "## 정보" in rendered
+    assert "## 배우" in rendered
+    assert "## 촬영 장면" in rendered
+    assert "| 배역명 | 극중 역할 | 인물 관계 |" in rendered
+    assert "## 씬 1 — 경보 이전" in rendered
+    assert "[스크린 자막] 23:47 잠금 해제" in rendered
+    assert "[내레이션]" not in rendered
+
+
+def test_unsupported_output_profile_contract_fails_at_renderer_boundary() -> None:
+    """Schema 밖의 Profile 의미는 Renderer가 명확한 계약 오류로 거부한다."""
+    profile = deepcopy(output_profile())
+    document_contract = profile["document_contract"]
+    assert isinstance(document_contract, dict)
+    context_fields = document_contract["scene_context_fields"]
+    assert isinstance(context_fields, list)
+    context_fields.append("unsupported_context")
+
+    with pytest.raises(ConfigurationError, match="REENACTMENT_OUTPUT_PROFILE_INVALID"):
+        render_reenactment_character_script(
+            screenplay_document(),
+            characters_document(),
+            relationships_document(),
+            profile,
+        )
 
 
 def test_reenactment_excludes_broadcast_and_internal_content() -> None:

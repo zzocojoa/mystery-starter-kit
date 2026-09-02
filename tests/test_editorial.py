@@ -16,7 +16,7 @@ from VALIDATORS.editorial import (
 )
 from VALIDATORS.exceptions import StateTransitionError
 from VALIDATORS.io import load_json_object
-from VALIDATORS.models import ValidationIssue
+from VALIDATORS.models import CompatibilityError, ValidationIssue
 from VALIDATORS.pipeline import ArtifactContent
 from VALIDATORS.schema_validation import collect_schema_errors
 
@@ -61,6 +61,19 @@ def first_runtime_segment(review: dict[str, object]) -> dict[str, object]:
     first_segment = panel_segments[0]
     assert isinstance(first_segment, dict)
     return cast(dict[str, object], first_segment)
+
+
+def runtime_evidence(review: dict[str, object]) -> dict[str, object]:
+    """수정 가능한 방송 Runtime 근거 객체를 반환한다."""
+    evidence = review["runtime_evidence"]
+    assert isinstance(evidence, dict)
+    return cast(dict[str, object], evidence)
+
+
+def review_schema_errors(review: dict[str, object]) -> list[CompatibilityError]:
+    """현재 Editorial Review의 Schema 오류를 반환한다."""
+    schema = load_json_object(ROOT / "STANDARD/schemas/editorial_review.schema.json")
+    return collect_schema_errors(review, schema, "editorial_review")
 
 
 def test_editorial_review_v12_requires_resolvable_evidence() -> None:
@@ -145,6 +158,93 @@ def test_editorial_review_rejects_nonfinite_runtime_value() -> None:
     codes = {issue["code"] for issue in editorial_issues(artifacts)}
 
     assert "EDITORIAL_RUNTIME_AGGREGATE_MISMATCH" in codes
+
+
+def test_word_count_runtime_uses_only_estimated_panel_fields() -> None:
+    """방송 단어 수 예상은 Aggregate와 Segment 모두 예상 필드만 사용한다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    review = editorial_review(artifacts)
+    evidence = runtime_evidence(review)
+    measured_total = evidence["measured_panel_duration_sec"]
+    assert isinstance(measured_total, int | float)
+    evidence["method"] = "WORD_COUNT_ESTIMATE"
+    evidence["estimated_panel_spoken_duration_sec"] = measured_total
+    evidence["measured_panel_duration_sec"] = None
+    segments = evidence["panel_segments"]
+    assert isinstance(segments, list)
+    for segment in segments:
+        assert isinstance(segment, dict)
+        measured = segment["measured_duration_sec"]
+        assert isinstance(measured, int | float)
+        segment["estimated_spoken_duration_sec"] = measured
+        segment["measured_duration_sec"] = None
+
+    assert review_schema_errors(review) == []
+    assert editorial_issues(artifacts) == []
+
+
+def test_word_count_runtime_rejects_measured_panel_fields() -> None:
+    """방송 단어 수 예상에 Aggregate 또는 Segment 실측값을 섞을 수 없다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    review = editorial_review(artifacts)
+    evidence = runtime_evidence(review)
+    evidence["method"] = "WORD_COUNT_ESTIMATE"
+    evidence["estimated_panel_spoken_duration_sec"] = evidence[
+        "measured_panel_duration_sec"
+    ]
+    first_segment = first_runtime_segment(review)
+    first_segment["estimated_spoken_duration_sec"] = first_segment[
+        "measured_duration_sec"
+    ]
+
+    assert review_schema_errors(review)
+    assert "EDITORIAL_RUNTIME_METHOD_FIELDS_INVALID" in {
+        issue["code"] for issue in editorial_issues(artifacts)
+    }
+
+
+@pytest.mark.parametrize("method", ("TABLE_READ", "RECORDED_AUDIO"))
+def test_measured_runtime_methods_use_only_measured_panel_fields(method: str) -> None:
+    """방송 실측 방식은 Aggregate와 Segment 예상 필드를 모두 비운다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    review = editorial_review(artifacts)
+    evidence = runtime_evidence(review)
+    evidence["method"] = method
+
+    assert review_schema_errors(review) == []
+    assert editorial_issues(artifacts) == []
+
+
+@pytest.mark.parametrize("method", ("TABLE_READ", "RECORDED_AUDIO"))
+def test_measured_runtime_methods_reject_active_panel_estimates(method: str) -> None:
+    """방송 실측 방식에 Aggregate 또는 Segment 예상값을 함께 둘 수 없다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    review = editorial_review(artifacts)
+    evidence = runtime_evidence(review)
+    evidence["method"] = method
+    evidence["estimated_panel_spoken_duration_sec"] = 1.0
+    first_segment = first_runtime_segment(review)
+    first_segment["estimated_spoken_duration_sec"] = 1.0
+
+    assert review_schema_errors(review)
+    assert "EDITORIAL_RUNTIME_METHOD_FIELDS_INVALID" in {
+        issue["code"] for issue in editorial_issues(artifacts)
+    }
+
+
+def test_measured_runtime_rejects_zero_duration_as_non_positive() -> None:
+    """실측 방식의 Aggregate와 Segment 시간은 0이 아닌 양수여야 한다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    review = editorial_review(artifacts)
+    evidence = runtime_evidence(review)
+    evidence["measured_panel_duration_sec"] = 0.0
+    first_segment = first_runtime_segment(review)
+    first_segment["measured_duration_sec"] = 0.0
+
+    assert review_schema_errors(review)
+    assert "EDITORIAL_RUNTIME_METHOD_FIELDS_INVALID" in {
+        issue["code"] for issue in editorial_issues(artifacts)
+    }
 
 
 def test_editorial_review_rejects_unknown_selector_and_excerpt_drift() -> None:

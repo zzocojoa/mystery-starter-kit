@@ -327,6 +327,12 @@ def numeric_value(value: object) -> float | None:
     return float(value)
 
 
+def positive_numeric_value(value: object) -> float | None:
+    """Boolean과 비유한 값과 0을 제외한 양의 시간값을 반환한다."""
+    normalized = numeric_value(value)
+    return normalized if normalized is not None and normalized > 0 else None
+
+
 def runtime_evidence_issues(
     review: Mapping[str, object],
     presentation_plan: Mapping[str, object],
@@ -345,6 +351,34 @@ def runtime_evidence_issues(
     method = evidence.get("method")
     reading_rate = numeric_value(evidence.get("reading_rate_wpm"))
     raw_segments = mapping_records(evidence, "panel_segments")
+    invalid_method_fields: list[dict[str, object]] = []
+    if method == "WORD_COUNT_ESTIMATE":
+        if (
+            positive_numeric_value(
+                evidence.get("estimated_panel_spoken_duration_sec")
+            )
+            is None
+            or evidence.get("measured_panel_duration_sec") is not None
+        ):
+            invalid_method_fields.append({"scope": "aggregate"})
+        invalid_method_fields.extend(
+            {"scope": "segment", "segment_id": segment.get("segment_id")}
+            for segment in raw_segments
+            if positive_numeric_value(segment.get("estimated_spoken_duration_sec")) is None
+            or segment.get("measured_duration_sec") is not None
+        )
+    elif method in {"TABLE_READ", "RECORDED_AUDIO"}:
+        if (
+            evidence.get("estimated_panel_spoken_duration_sec") is not None
+            or positive_numeric_value(evidence.get("measured_panel_duration_sec")) is None
+        ):
+            invalid_method_fields.append({"scope": "aggregate"})
+        invalid_method_fields.extend(
+            {"scope": "segment", "segment_id": segment.get("segment_id")}
+            for segment in raw_segments
+            if segment.get("estimated_spoken_duration_sec") is not None
+            or positive_numeric_value(segment.get("measured_duration_sec")) is None
+        )
     evidence_by_id = {
         cast(str, item.get("segment_id")): item
         for item in raw_segments
@@ -363,6 +397,14 @@ def runtime_evidence_issues(
     missing_ids = sorted(planned_ids - set(evidence_by_id))
     unexpected_ids = sorted(set(evidence_by_id) - planned_ids)
     issues: list[ValidationIssue] = []
+    if invalid_method_fields:
+        issues.append(
+            make_editorial_issue(
+                "EDITORIAL_RUNTIME_METHOD_FIELDS_INVALID",
+                "Runtime 방법별 추정값과 실측값은 서로 배타적이어야 합니다.",
+                {"method": method, "invalid_fields": invalid_method_fields},
+            )
+        )
     if missing_ids or unexpected_ids:
         issues.append(
             make_editorial_issue(
@@ -500,11 +542,12 @@ def runtime_evidence_issues(
             planned_panel_duration,
             numeric_value(evidence.get("planned_panel_duration_sec")),
         ),
-        "estimated_panel_spoken_duration_sec": (
+    }
+    if method == "WORD_COUNT_ESTIMATE":
+        aggregate_values["estimated_panel_spoken_duration_sec"] = (
             round(estimated_panel_spoken_duration, 2),
             numeric_value(evidence.get("estimated_panel_spoken_duration_sec")),
-        ),
-    }
+        )
     aggregate_mismatches = {
         field: {"expected": expected, "actual": actual}
         for field, (expected, actual) in aggregate_values.items()

@@ -122,7 +122,13 @@ def test_screenplay_unit_tasks_preserve_minimum_authority_and_executor_order() -
     )
     assert all(tasks[task_id]["executor"] == "CORE" for task_id in core_task_ids)
     assert all(tasks[task_id]["model_profile"] is None for task_id in core_task_ids)
+    render_layers = tasks["script.render_screenplay_layers"]
+    assert {"facts", "clue_matrix", "characters"}.issubset(render_layers["reads"])
     ordered = topological_task_ids(tasks)
+    assert ordered.index("scene.design") < ordered.index("story.design_state_transitions")
+    assert ordered.index("story.design_state_transitions") < ordered.index(
+        "scene.design_reactions"
+    )
     assert ordered.index("script.compose_screenplay_units") < ordered.index(
         "script.render_screenplay_layers"
     )
@@ -172,6 +178,20 @@ def test_screenplay_and_legacy_task_conditions_are_mutually_exclusive() -> None:
         screenplay_config,
         channel,
         {},
+    )
+    later_profile_config = {
+        **screenplay_config,
+        "reenactment_output_profile_version": "2.0.0",
+    }
+    assert task_condition_matches(
+        tasks["script.compose_screenplay_units"]["condition"],
+        later_profile_config,
+        channel,
+        {},
+    )
+    assert "reenactment_output_profile_version" not in json.dumps(
+        tasks,
+        ensure_ascii=False,
     )
 
 

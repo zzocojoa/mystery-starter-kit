@@ -4,13 +4,18 @@ import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from hashlib import sha256
-from typing import cast
+from typing import NotRequired, TypedDict, cast
 
 from RUNTIME.screenplay_renderers import (
+    UNIT_LAYER_BY_TYPE,
     characters_by_id,
     markdown_cell,
     reenactment_unit_text,
+    render_broadcast_master,
     render_context_value,
+    render_drama_layer,
+    render_narration_layer,
+    render_panel_layer,
     render_reenactment_character_script,
 )
 from VALIDATORS.candidate_evaluation import document_sha256
@@ -19,7 +24,10 @@ from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.models import Severity, ValidationIssue
 from VALIDATORS.presentation_validation import parse_script_segments
 from VALIDATORS.reenactment_runtime import reenactment_runtime_status
-from VALIDATORS.screenplay_units import validate_screenplay_units
+from VALIDATORS.screenplay_units import (
+    validate_screenplay_unit_references,
+    validate_screenplay_units,
+)
 
 REPORT_ARTIFACT = "08_QA/reenactment_export_report.json"
 EXPORT_ARTIFACT = "07_SCRIPT/reenactment_character_script.md"
@@ -50,6 +58,18 @@ REFERENCE_TRACE_LABELS = {
     "development_function_ids": "DEV",
     "reveal_target_ids": "REVEAL",
 }
+
+
+class ScreenplayDerivedOutputs(TypedDict):
+    """현재 Screenplay 입력에서 파생된 모든 가시 Script Artifact."""
+
+    drama_script: str
+    narration_script: str
+    panel_reaction_script: str
+    draft_script: str
+    final_script: str
+    reenactment_character_script: str
+    expert_analysis_script: NotRequired[str]
 
 
 def export_issue(
@@ -128,39 +148,73 @@ def included_units(
     screenplay_units: Mapping[str, object],
     output_profile: Mapping[str, object],
 ) -> list[Mapping[str, object]]:
-    """Profile이 출력하도록 선언한 Unit을 Scene·Unit 순서로 반환한다."""
+    """Profile이 포함한 Layer와 Unit 유형을 Scene·Unit 순서로 반환한다."""
+    filter_contract = output_profile.get("filter_contract")
+    included_layers = (
+        set(strings(filter_contract.get("included_layers")))
+        if isinstance(filter_contract, Mapping)
+        else set()
+    )
+    excluded_layers = (
+        set(strings(filter_contract.get("excluded_layers")))
+        if isinstance(filter_contract, Mapping)
+        else set()
+    )
     included = set(included_unit_types(output_profile))
     excluded = set(excluded_unit_types(output_profile))
     return [
         unit
         for scene in screenplay_scenes(screenplay_units)
         for unit in scene_units(scene)
-        if unit.get("type") in included and unit.get("type") not in excluded
+        if unit.get("type") in included
+        and unit.get("type") not in excluded
+        and UNIT_LAYER_BY_TYPE.get(cast(str, unit.get("type"))) in included_layers
+        and UNIT_LAYER_BY_TYPE.get(cast(str, unit.get("type"))) not in excluded_layers
     ]
 
 
 def input_artifact_hashes(
     production_config: Mapping[str, object],
     screenplay_units: Mapping[str, object],
+    facts: Mapping[str, object],
     characters: Mapping[str, object],
     relationships: Mapping[str, object],
     crime_event_contract: Mapping[str, object],
     clue_matrix: Mapping[str, object],
     output_profile: Mapping[str, object],
     presentation_plan: Mapping[str, object],
-    broadcast_master: str,
+    reaction_segments: Mapping[str, object],
 ) -> dict[str, str]:
     """Report 신선도를 결속할 Canonical JSON 입력 Hash를 만든다."""
     return {
         "production_config": document_sha256(production_config),
         "screenplay_units": document_sha256(screenplay_units),
+        "facts": document_sha256(facts),
         "characters": document_sha256(characters),
         "relationships": document_sha256(relationships),
         "crime_event_contract": document_sha256(crime_event_contract),
         "clue_matrix": document_sha256(clue_matrix),
         "reenactment_output_profile": document_sha256(output_profile),
         "presentation_plan": document_sha256(presentation_plan),
-        "final_script": sha256(broadcast_master.encode("utf-8")).hexdigest(),
+        "reaction_segments": document_sha256(reaction_segments),
+    }
+
+
+def output_artifact_hashes(outputs: ScreenplayDerivedOutputs) -> dict[str, str]:
+    """모든 결정론적 Layer·Master·Export의 실제 Byte Hash를 만든다."""
+    return {
+        "drama_script": sha256(outputs["drama_script"].encode("utf-8")).hexdigest(),
+        "narration_script": sha256(
+            outputs["narration_script"].encode("utf-8")
+        ).hexdigest(),
+        "panel_reaction_script": sha256(
+            outputs["panel_reaction_script"].encode("utf-8")
+        ).hexdigest(),
+        "draft_script": sha256(outputs["draft_script"].encode("utf-8")).hexdigest(),
+        "final_script": sha256(outputs["final_script"].encode("utf-8")).hexdigest(),
+        "reenactment_character_script": sha256(
+            outputs["reenactment_character_script"].encode("utf-8")
+        ).hexdigest(),
     }
 
 
@@ -351,6 +405,7 @@ def scene_coverage_evidence(
 def cast_and_speaker_evidence(
     expected_units: Sequence[Mapping[str, object]],
     character_map: Mapping[str, Mapping[str, object]],
+    output_profile: Mapping[str, object],
     markdown: str,
 ) -> tuple[dict[str, object], list[ValidationIssue]]:
     """Cast 표와 Unit speaker_id의 Canonical Character 결속을 검증한다."""
@@ -374,8 +429,16 @@ def cast_and_speaker_evidence(
                 {"speaker_ids": unknown},
             )
         )
-    cast_start = markdown.find("## 등장인물")
-    cast_end = markdown.find("## 장면별 인물 대사")
+    document_contract = output_profile.get("document_contract")
+    headings = (
+        strings(document_contract.get("required_headings"))
+        if isinstance(document_contract, Mapping)
+        else []
+    )
+    cast_heading = f"## {headings[1]}" if len(headings) == 3 else ""
+    scene_heading = f"## {headings[2]}" if len(headings) == 3 else ""
+    cast_start = markdown.find(cast_heading) if cast_heading else -1
+    cast_end = markdown.find(scene_heading) if scene_heading else -1
     cast_section = (
         markdown[cast_start:cast_end]
         if cast_start >= 0 and cast_end > cast_start
@@ -401,6 +464,38 @@ def cast_and_speaker_evidence(
         "resolved_character_ids": resolved,
         "unknown_speaker_ids": unknown,
     }, issues
+
+
+def document_structure_issues(
+    output_profile: Mapping[str, object],
+    markdown: str,
+) -> list[ValidationIssue]:
+    """Profile 필수 Heading이 정확히 한 번 선언 순서로 나타나는지 검증한다."""
+    document_contract = output_profile.get("document_contract")
+    headings = (
+        strings(document_contract.get("required_headings"))
+        if isinstance(document_contract, Mapping)
+        else []
+    )
+    markers = [f"## {heading}" for heading in headings]
+    positions = [markdown.find(marker) for marker in markers]
+    invalid = (
+        not markers
+        or any(position < 0 for position in positions)
+        or positions != sorted(positions)
+        or any(markdown.count(marker) != 1 for marker in markers)
+    )
+    if not invalid:
+        return []
+    return [
+        export_issue(
+            "ERROR",
+            "REENACTMENT_REQUIRED_HEADING_MISMATCH",
+            "재연극 문서의 필수 Heading이 Output Profile 선언과 다릅니다.",
+            EXPORT_ARTIFACT,
+            {"required_headings": headings, "positions": positions},
+        )
+    ]
 
 
 def context_issues(
@@ -837,16 +932,58 @@ def broadcast_trace_issues(
     return issues
 
 
-def expected_render_issues(
+def render_mismatch_issue(
+    code: str,
+    artifact: str,
+    expected: str,
+    actual: str,
+) -> ValidationIssue:
+    """결정론적 기대 bytes와 실제 bytes 차이를 Hash 근거로 만든다."""
+    return export_issue(
+        "ERROR",
+        code,
+        "가시 Script가 현재 입력의 결정론적 Renderer 출력과 다릅니다.",
+        artifact,
+        {
+            "affected_artifact": artifact,
+            "expected_sha256": sha256(expected.encode("utf-8")).hexdigest(),
+            "actual_sha256": sha256(actual.encode("utf-8")).hexdigest(),
+        },
+    )
+
+
+def screenplay_derived_output_issues(
     screenplay_units: Mapping[str, object],
+    presentation_plan: Mapping[str, object],
+    reaction_segments: Mapping[str, object],
+    crime_event_contract: Mapping[str, object],
     characters: Mapping[str, object],
     relationships: Mapping[str, object],
     output_profile: Mapping[str, object],
-    markdown: str,
+    outputs: ScreenplayDerivedOutputs,
 ) -> list[ValidationIssue]:
-    """현재 입력에서 다시 렌더링한 정확한 Markdown bytes와 실제 Export를 비교한다."""
+    """모든 Layer·Master·Export를 현재 원본 입력에서 다시 렌더링해 비교한다."""
     try:
-        expected = render_reenactment_character_script(
+        expected_drama = render_drama_layer(
+            screenplay_units,
+            presentation_plan,
+            crime_event_contract,
+        )
+        expected_narration = render_narration_layer(
+            screenplay_units,
+            presentation_plan,
+            crime_event_contract,
+        )
+        expected_panel = render_panel_layer(reaction_segments, presentation_plan)
+        expected_layers = {
+            "drama_script": expected_drama,
+            "narration_script": expected_narration,
+            "panel_reaction_script": expected_panel,
+        }
+        if "expert_analysis_script" in outputs:
+            expected_layers["expert_analysis_script"] = outputs["expert_analysis_script"]
+        expected_master = render_broadcast_master(presentation_plan, expected_layers)
+        expected_reenactment = render_reenactment_character_script(
             screenplay_units,
             characters,
             relationships,
@@ -858,24 +995,53 @@ def expected_render_issues(
             export_issue(
                 "ERROR",
                 code,
-                "현재 입력으로 Canonical 재연극 Markdown을 렌더링할 수 없습니다.",
-                EXPORT_ARTIFACT,
+                "현재 입력으로 모든 파생 Script를 결정론적으로 렌더링할 수 없습니다.",
+                "07_SCRIPT/screenplay_units.json",
                 {"detail": str(error)},
             )
         ]
-    if expected.encode("utf-8") == markdown.encode("utf-8"):
-        return []
-    return [
-        export_issue(
-            "ERROR",
+    comparisons = (
+        (
+            "DRAMA_LAYER_RENDER_MISMATCH",
+            "07_SCRIPT/drama_script.md",
+            expected_drama,
+            outputs["drama_script"],
+        ),
+        (
+            "NARRATION_LAYER_RENDER_MISMATCH",
+            "07_SCRIPT/narration_script.md",
+            expected_narration,
+            outputs["narration_script"],
+        ),
+        (
+            "PANEL_LAYER_RENDER_MISMATCH",
+            "07_SCRIPT/panel_reaction_script.md",
+            expected_panel,
+            outputs["panel_reaction_script"],
+        ),
+        (
+            "BROADCAST_MASTER_RENDER_MISMATCH",
+            "07_SCRIPT/draft_v01.md",
+            expected_master,
+            outputs["draft_script"],
+        ),
+        (
+            "BROADCAST_MASTER_RENDER_MISMATCH",
+            "07_SCRIPT/final_script.md",
+            expected_master,
+            outputs["final_script"],
+        ),
+        (
             "UNIT_RENDER_MISMATCH",
-            "재연극 Markdown이 현재 Unit·Cast·Context·Profile의 결정론적 출력과 다릅니다.",
             EXPORT_ARTIFACT,
-            {
-                "expected_sha256": sha256(expected.encode("utf-8")).hexdigest(),
-                "actual_sha256": sha256(markdown.encode("utf-8")).hexdigest(),
-            },
-        )
+            expected_reenactment,
+            outputs["reenactment_character_script"],
+        ),
+    )
+    return [
+        render_mismatch_issue(code, artifact, expected, actual)
+        for code, artifact, expected, actual in comparisons
+        if expected.encode("utf-8") != actual.encode("utf-8")
     ]
 
 
@@ -894,17 +1060,20 @@ def deduplicate_issues(issues: Sequence[ValidationIssue]) -> list[ValidationIssu
 def build_reenactment_export_report(
     production_config: Mapping[str, object],
     screenplay_units: Mapping[str, object],
+    facts: Mapping[str, object],
     characters: Mapping[str, object],
     relationships: Mapping[str, object],
     crime_event_contract: Mapping[str, object],
     clue_matrix: Mapping[str, object],
     output_profile: Mapping[str, object],
     output_profile_sha256: str,
-    reenactment_markdown: str,
     presentation_plan: Mapping[str, object],
-    broadcast_master: str,
+    reaction_segments: Mapping[str, object],
+    outputs: ScreenplayDerivedOutputs,
 ) -> dict[str, object]:
     """현재 입력·출력에서 재현 가능한 Reenactment Export Report를 만든다."""
+    reenactment_markdown = outputs["reenactment_character_script"]
+    broadcast_master = outputs["final_script"]
     character_map, cast_input_issues = character_map_or_empty(characters)
     expected_units = included_units(screenplay_units, output_profile)
     unit_evidence, _rendered_order, unit_issues = rendered_unit_evidence(
@@ -921,6 +1090,7 @@ def build_reenactment_export_report(
     speaker_evidence, speaker_issues = cast_and_speaker_evidence(
         expected_units,
         character_map,
+        output_profile,
         reenactment_markdown,
     )
     harm_evidence, harm_issues = harm_coverage_evidence(
@@ -945,6 +1115,7 @@ def build_reenactment_export_report(
             *unit_issues,
             *scene_issues,
             *speaker_issues,
+            *document_structure_issues(output_profile, reenactment_markdown),
             *context_issues(screenplay_units, output_profile, reenactment_markdown),
             *forbidden_content_issues(
                 screenplay_units,
@@ -954,6 +1125,14 @@ def build_reenactment_export_report(
             *harm_issues,
             *clue_issues,
             *reconstruction_issues,
+            *validate_screenplay_unit_references(
+                screenplay_units,
+                facts,
+                clue_matrix,
+                crime_event_contract,
+                characters,
+                presentation_plan,
+            ),
             *runtime_issues,
             *broadcast_trace_issues(
                 screenplay_units,
@@ -961,12 +1140,15 @@ def build_reenactment_export_report(
                 crime_event_contract,
                 broadcast_master,
             ),
-            *expected_render_issues(
+            *screenplay_derived_output_issues(
                 screenplay_units,
+                presentation_plan,
+                reaction_segments,
+                crime_event_contract,
                 characters,
                 relationships,
                 output_profile,
-                reenactment_markdown,
+                outputs,
             ),
         ]
     )
@@ -980,19 +1162,20 @@ def build_reenactment_export_report(
     return {
         "$schema": "../../../STANDARD/schemas/reenactment_export_report.schema.json",
         "schema_family": "reenactment-export-report",
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "project_id": screenplay_units.get("project_id"),
         "result": result,
         "input_artifact_hashes": input_artifact_hashes(
             production_config,
             screenplay_units,
+            facts,
             characters,
             relationships,
             crime_event_contract,
             clue_matrix,
             output_profile,
             presentation_plan,
-            broadcast_master,
+            reaction_segments,
         ),
         "output_profile": {
             "profile_id": output_profile.get("profile_id"),
@@ -1000,6 +1183,7 @@ def build_reenactment_export_report(
             "sha256": output_profile_sha256,
         },
         "output_markdown_sha256": sha256(reenactment_markdown.encode("utf-8")).hexdigest(),
+        "output_artifact_hashes": output_artifact_hashes(outputs),
         "scene_coverage": scene_evidence,
         "unit_coverage": unit_evidence,
         "speaker_resolution": speaker_evidence,
@@ -1016,29 +1200,31 @@ def validate_reenactment_export_report(
     report: Mapping[str, object],
     production_config: Mapping[str, object],
     screenplay_units: Mapping[str, object],
+    facts: Mapping[str, object],
     characters: Mapping[str, object],
     relationships: Mapping[str, object],
     crime_event_contract: Mapping[str, object],
     clue_matrix: Mapping[str, object],
     output_profile: Mapping[str, object],
     output_profile_sha256: str,
-    reenactment_markdown: str,
     presentation_plan: Mapping[str, object],
-    broadcast_master: str,
+    reaction_segments: Mapping[str, object],
+    outputs: ScreenplayDerivedOutputs,
 ) -> list[ValidationIssue]:
     """Report를 현재 입출력에서 재구성해 Metadata-only spoof와 stale evidence를 차단한다."""
     expected = build_reenactment_export_report(
         production_config,
         screenplay_units,
+        facts,
         characters,
         relationships,
         crime_event_contract,
         clue_matrix,
         output_profile,
         output_profile_sha256,
-        reenactment_markdown,
         presentation_plan,
-        broadcast_master,
+        reaction_segments,
+        outputs,
     )
     raw_issues = expected.get("issues")
     issues = [

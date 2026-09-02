@@ -85,7 +85,6 @@ GATES: tuple[GateDefinition, ...] = (
             "beat_sheet",
             "retention_plan",
             "psychological_arc",
-            "character_state_transitions",
         ),
         "target_state": "STORY_STRUCTURED",
     },
@@ -93,6 +92,7 @@ GATES: tuple[GateDefinition, ...] = (
         "gate_id": "GATE-07",
         "required_artifacts": (
             "scene_cards",
+            "character_state_transitions",
             "production_footprint",
             "panel_cast",
             "reaction_segments",

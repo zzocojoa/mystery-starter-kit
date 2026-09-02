@@ -1,6 +1,8 @@
 """Screenplay Units와 재연극 Output Profile 계약 검증."""
 
+import json
 from copy import deepcopy
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
@@ -349,6 +351,65 @@ def test_invalid_output_profile_version_pin_fails_explicitly() -> None:
         resolve_reenactment_output_profile(ROOT, config)
 
 
+def test_temporary_registered_later_profile_version_resolves_without_catalog_edit(
+    tmp_path: Path,
+) -> None:
+    """유효하게 등록된 후속 Version은 Runtime Task Catalog 변경 없이 해석된다."""
+    schema_directory = tmp_path / "STANDARD/schemas"
+    registry_path = tmp_path / "CHANNELS/mystery_main/output_profiles/registry.json"
+    profile_path = (
+        tmp_path
+        / "CHANNELS/mystery_main/output_profiles/reenactment-character-script/1.1.0.json"
+    )
+    schema_directory.mkdir(parents=True)
+    registry_path.parent.mkdir(parents=True)
+    profile_path.parent.mkdir(parents=True)
+    (schema_directory / "reenactment_output_profile.schema.json").write_bytes(
+        PROFILE_SCHEMA_PATH.read_bytes()
+    )
+    (schema_directory / "reenactment_output_profile_registry.schema.json").write_bytes(
+        PROFILE_REGISTRY_SCHEMA_PATH.read_bytes()
+    )
+    profile = load_json_object(PROFILE_PATH)
+    profile["profile_version"] = "1.1.0"
+    profile_bytes = (
+        json.dumps(profile, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+    profile_path.write_bytes(profile_bytes)
+    registry = load_json_object(PROFILE_REGISTRY_PATH)
+    profiles = registry["profiles"]
+    assert isinstance(profiles, dict)
+    entry = profiles["REENACTMENT_CHARACTER_SCRIPT"]
+    assert isinstance(entry, dict)
+    versions = entry["versions"]
+    assert isinstance(versions, dict)
+    versions["1.1.0"] = {
+        "path": (
+            "CHANNELS/mystery_main/output_profiles/"
+            "reenactment-character-script/1.1.0.json"
+        ),
+        "sha256": sha256(profile_bytes).hexdigest(),
+    }
+    registry_path.write_text(
+        json.dumps(registry, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    config = load_json_object(PRODUCTION_CONFIG_PATH)
+    config.update(
+        {
+            "script_source_mode": "SCREENPLAY_UNITS",
+            "reenactment_output_profile_id": "REENACTMENT_CHARACTER_SCRIPT",
+            "reenactment_output_profile_version": "1.1.0",
+        }
+    )
+
+    resolved = resolve_reenactment_output_profile(tmp_path, config)
+
+    assert resolved is not None
+    assert resolved["profile_version"] == "1.1.0"
+    assert resolved["sha256"] == sha256(profile_bytes).hexdigest()
+
+
 def test_legacy_production_config_remains_valid_without_profile_pin() -> None:
     """기존 Production Config는 자동 Migration 없이 Legacy mode로 남는다."""
     config = load_json_object(PRODUCTION_CONFIG_PATH)
@@ -385,6 +446,16 @@ def test_screenplay_mode_requires_both_output_profile_pins() -> None:
         error["context"]["validator"]
         for error in errors
     } == {"required"}
+
+
+def test_screenplay_mode_missing_pin_fails_resolver_explicitly() -> None:
+    """새 Source mode의 Pin 누락은 Task 실행 전에 Resolver 오류로 중단된다."""
+    config = load_json_object(PRODUCTION_CONFIG_PATH)
+    config["script_source_mode"] = "SCREENPLAY_UNITS"
+    config.pop("reenactment_output_profile_version")
+
+    with pytest.raises(ConfigurationError, match="REENACTMENT_OUTPUT_PROFILE_PIN_MISSING"):
+        resolve_reenactment_output_profile(ROOT, config)
 
 
 def test_reenactment_runtime_config_fields_are_optional_but_atomic() -> None:
