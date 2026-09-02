@@ -401,4 +401,41 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 
 - 새 mode FakeProvider GATE-00→13과 Reference egress 회귀, Gate Transaction, drift/finalize/register 차단 회귀가 포함된 전체 454개 테스트가 PASS했다. FakeProvider 결과는 코드 흐름 증거일 뿐 창작 품질 증거가 아니다.
 - Test skip/xfail, Validator 완화, fallback 또는 false PASS로 결함을 숨긴 항목: 없음.
-- Remote CI와 최종 PR #26 Head는 Ledger 문서 Commit·Push 뒤 exact SHA Run으로 추가한다.
+- 최종 PR #26 Head `8d1676bf4abdffc551ee61e2faa70d66b11c4682`는 Remote CI Run `33577676951`의 Python 3.11/3.14 Matrix에서 PASS했다.
+
+### PR #27 Pilot 교정 및 재생성 결과
+
+- 검토 Head와 실제 교정 시작 Head는 모두 `d6a56cd9d0890570f01603bd37d1f9bdaaf4a77e`였다. PR #26의 최종 교정 Head `8d1676bf4abdffc551ee61e2faa70d66b11c4682`를 정상 Merge Commit `ca69ee2031db90b2a98bc45928c74d3470df766d`으로 동기화한 뒤 작업했다.
+- C-01은 Fixture Root를 `Path(__file__).parent`에서 계산하도록 고쳐 Linux Case-sensitive 경로를 사용한다. C-07은 네 Fixture를 실제 등록 Crime Enum과 구조화 Harm, 책임 주체, Human-readable Relationship으로 구성하고 Crime Contract Schema·Harm 의미·Unit Reference·Export Report 1.1까지 검증한다.
+- 교정 Pilot 콘텐츠 Commit은 `c56bb60815b5af8369d77d89436101e5aa8828f2` (`feat: regenerate original crime thriller pilot`)이다. 이 Commit은 직접 사용자 지시에 따라 기존 `PROJECTS/PRJ-005/**` 추적 문서 62개를 모두 삭제하고, ID를 재사용하지 않은 `PROJECTS/PRJ-006/**` 62개를 새 Gate Transaction 결과로 추가한다.
+- 과거 Phase 8과 Final Acceptance의 PRJ-005 창작 수용 증거는 `SUPERSEDED_BY_USER_REQUEST_AND_PRJ006_REGENERATION`이다. 역사 기록은 감사용으로 남기되 현재 Pilot Artifact 경로와 작품 품질의 근거로 사용하지 않는다.
+- 새 Full Original Fiction Pilot `PRJ-006`, 작품명 `폐장 음악이 멈춘 7분`은 `CRIME_EVENT_THRILLER`, `MURDER`, `COMPLICIT_GROUP` 계약을 사용한다. 사망 피해와 생존 피해자의 중상, 세 행위자의 지시·공격·은폐 책임을 11개 Scene, 23개 Presentation Segment, 95개 Screenplay Unit으로 전개한다.
+- 최종 Scaffold는 Production Standard 1.3.3, Channel Content 2.1.0, `SCREENPLAY_UNITS`, `REENACTMENT_CHARACTER_SCRIPT` 1.0.0, `ORIGINAL_FICTION`을 사용한다. GATE-00부터 GATE-13까지 순서대로 Commit됐고 최종 GATE-13 Transaction은 `CODEX-TASK-CF53698330E345DD`, 내부 Commit Hash는 `632366290a37121b68a0188ba170aa89f6c827558895c0feb26ade605f6caadd`다.
+- 첫 생성본 Audit에서 `AUDIT_EVENT_TIME_ORDER_ERROR`와 `PROJECT_CREATED_AFTER_GATE_ERROR`를 발견했다. 오류를 성공으로 대체하지 않고 커밋 전 생성본을 보관한 뒤 실제 시각으로 `mystery-kit init`을 다시 실행하고, 승인된 산출물을 각 Task의 `allowed_writes`에만 재제출했다. 최종 Process Revision은 1, Trace는 37개이며 시간·누락 Issue가 없다.
+- Project `validate`와 `audit`는 GATE-00~13 전체 PASS, Issue 0, `state_unchanged: true`, `PROCESS_CONFORMANT`를 확인했다. 전후 State Hash `46b8e397c60e26a0cc7073ac29627ab4a4118e19bb481c400cb6756a14f0199f`와 Trace Hash `1cd981f0ee577f06fa17b329cecb3c8a123d2273c03af9c8beb058ca7347535d`는 동일했다.
+- 최종 State는 `EDITORIAL_REVIEW_REQUIRED`다. Artifact는 `ARTIFACT_COMPLETE`, Contract는 `CONTRACT_VALIDATED`, Process는 `PROCESS_CONFORMANT`, Human Editorial은 미승인, Production Ready는 false다.
+- Canonical/Production 재연본은 byte-identical하다. Broadcast는 25분 40초와 Panel Segment 7개를 유지하고, 재연본은 Panel·Expert·Audience·내부 Marker를 제외한다. 재연 Runtime은 계획 21분, `NOT_CONFIGURED`, `measured_minutes: null`이며 Panel 근거도 `WORD_COUNT_ESTIMATE`만 사용한다.
+- Story Library는 0개 항목으로 유지했다. GATE 진행 중 생긴 `EDITORIAL_PENDING` 임시 항목은 `register`가 아니며 미등록 Library 회귀 조건을 지키도록 최종 Commit에서 제외했다. Project 내부 Fingerprint·Novelty Report는 보존했다.
+
+#### PR #27 검증 기록
+
+| 명령 | Head | Exit | 결과 | State 영향 |
+|---|---|---:|---|---|
+| Source-style Fixture pytest | `c56bb60815b5af8369d77d89436101e5aa8828f2` | 0 | 10 PASS | 없음 |
+| 교정 표적 pytest | 동일 | 0 | 150 PASS | 없음 |
+| 전체 pytest | 동일 | 0 | 465 PASS, skip/xfail 없음 | 없음 |
+| `.venv/bin/python -m ruff check .` | 동일 | 0 | PASS | 없음 |
+| strict mypy | 동일 | 0 | 141 source files PASS | 없음 |
+| package build | 동일 | 0 | package 1.6.1 sdist/wheel PASS | ignored build 산출물 재생성 |
+| dependency audit | 동일 | 0 | 알려진 취약점 없음; 로컬 Package만 제외 | 없음 |
+| Runtime Doctor | 동일 | 0 | contracts/provider descriptors PASS | 없음 |
+| Version Immutability against Runtime base와 `origin/main` | 동일 | 0 | 양쪽 PASS | 없음 |
+| Remote CI Run `33586151859` | 동일 | 0 | Python 3.11/3.14 PASS | 원격 검증만 수행 |
+
+### 잔여 위험과 명시적 미수행
+
+- 창작 품질과 범죄 스릴러 적합성의 최종 판단은 Human Editorial Review 대상이다. 기술적 Editorial Critic PASS는 Human 승인을 대신하지 않는다.
+- `TABLE_READ` 또는 `RECORDED_AUDIO` 실측을 수행하지 않았다. `WORD_COUNT_ESTIMATE`를 실측으로 해석하면 안 된다.
+- Human `editorial-approve`, 사용자-facing `production-finalize`, Story Library `register`, PR Merge/Close는 수행하지 않았다.
+- PR #22의 `PRJ-005` 변경은 손대지 않았다. 다만 사용자의 후속 직접 지시로 PR #27에서 PRJ-005를 삭제했으므로 두 PR을 함께 병합하려 하면 경로 충돌 가능성이 있다.
+- 권장 Stack 순서는 PR #24 → 교정 PR #25 → 교정 PR #26 → 교정 PR #27이며 이 순서를 실행하지 않았다.
