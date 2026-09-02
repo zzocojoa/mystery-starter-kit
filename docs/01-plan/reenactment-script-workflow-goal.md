@@ -437,5 +437,49 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 - 창작 품질과 범죄 스릴러 적합성의 최종 판단은 Human Editorial Review 대상이다. 기술적 Editorial Critic PASS는 Human 승인을 대신하지 않는다.
 - `TABLE_READ` 또는 `RECORDED_AUDIO` 실측을 수행하지 않았다. `WORD_COUNT_ESTIMATE`를 실측으로 해석하면 안 된다.
 - Human `editorial-approve`, 사용자-facing `production-finalize`, Story Library `register`, PR Merge/Close는 수행하지 않았다.
-- PR #22의 `PRJ-005` 변경은 손대지 않았다. 다만 사용자의 후속 직접 지시로 PR #27에서 PRJ-005를 삭제했으므로 두 PR을 함께 병합하려 하면 경로 충돌 가능성이 있다.
+- PR #22의 `PRJ-005` 변경은 손대지 않았다. PR #27 Branch의 과거 생성본은 후속 직접 지시에 따라 삭제됐으며 Runtime Base 대비 최종 PR #27 순변경에는 `PROJECTS/PRJ-005/**`가 없다. 따라서 현재 PR Diff의 경로 충돌은 없지만 PR #22를 나중에 병합하면 삭제된 PRJ-005 문서가 다시 유입될 수 있다.
 - 권장 Stack 순서는 PR #24 → 교정 PR #25 → 교정 PR #26 → 교정 PR #27이며 이 순서를 실행하지 않았다.
+
+## Final Correction Audit — 2026-09-02
+
+### 최종 결함 매트릭스
+
+| ID | 최종 상태 | Stack | 닫힘 증거 |
+|---|---|---|---|
+| C-01 LINUX_FIXTURE_PATH | CLOSED | PR #27 | Fixture Root를 `Path(__file__).parent`에서 계산하고 Linux 원격 CI에서 10개 Source-style Fixture를 수집·통과했다. |
+| C-02 PILOT_PROJECT_ID_COLLISION | CLOSED | PR #27 | PRJ-005를 재사용하지 않고 Repository·Story Library·열린 Stack에 없던 `PRJ-006`을 새 Gate Transaction으로 생성했다. Runtime Base 대비 PR #27의 Project 순변경은 PRJ-006 62개 추가뿐이다. |
+| C-03 REMOTE_CI_EVIDENCE_MISSING | CLOSED | PR #25/#26/#27 | 최종 Head별 Run `33574035850`, `33577676951`, `33586491903`의 Python 3.11/3.14가 모두 PASS했다. |
+| C-04 STATE_TRANSITION_LIFECYCLE | CLOSED | PR #25/#26 | `scene_cards → character_state_transitions → presentation_plan`으로 고정하고 작성·필수화·검증을 GATE-07로 일치시켰다. |
+| C-05 BROADCAST_VISIBLE_TEXT_BINDING | CLOSED | PR #26 | 여섯 파생 출력의 현재 입력 재렌더·byte/hash 비교와 Visible/Trace/Layer/Final 독립 Mutation 실패를 고정했다. |
+| C-06 SCREENPLAY_REFERENCE_INTEGRITY | CLOSED | PR #25/#26 | Fact·Clue·Event·Harm·Development Function·Reveal Target 및 Speaker/Segment 결속을 순수 Validator, CORE, GATE-08/09에서 독립 검증한다. |
+| C-07 FIXTURE_CONTRACT_REALISM | CLOSED | PR #27 | 네 Fixture가 등록 Enum `DOMESTIC_VIOLENCE`, `MURDER`, `STALKING`, `CONFINEMENT`와 실제 Harm/책임/관계 계약을 사용한다. |
+| C-08 MULTI_HARM_COMPOUND_COMPATIBILITY | CLOSED | PR #25 | Core/Primary/Related Crime의 유한 Harm 정책과 최소 Core 호환 Harm을 강제하고 Legacy `COMPOUND`를 유지하되 잘못된 `COMPOUND_HARM` timing을 거부한다. |
+| C-09 RUNTIME_METHOD_EXCLUSIVITY | CLOSED | PR #26 | `WORD_COUNT_ESTIMATE`와 `TABLE_READ`/`RECORDED_AUDIO`의 estimate/measurement 배타성, 양수, stale hash와 tolerance 경계를 검증한다. |
+| C-10 RECONSTRUCTION_VISIBLE_IDENTITY | CLOSED | PR #25 | 반복 Unit의 text/type/speaker/delivery/reference 동일성을 강제하고 명시 Recontextualization Policy만 reference 변화를 허용한다. |
+| C-11 FINAL_UNIT_TEXT_PRESERVATION | CLOSED | PR #26 | Renderer 소유 separator만 제거하고 Unit의 trailing spaces, blank line, multiline text를 byte 단위로 보존한다. |
+| C-12 OUTPUT_PROFILE_VERSION_DECOUPLING | CLOSED | PR #26 | Runtime Task의 hard-coded Profile ID/Version을 제거하고 Pin/Registry/Schema/Hash Resolver로 등록 Version을 활성화한다. |
+| C-13 HUMAN_READABLE_CAST_RELATIONSHIP | CLOSED | PR #25/#26/#27 | Relationships 1.1의 `display_summary`를 결정론적으로 렌더하고 Legacy 요약·escaping·잘못된 Character 참조를 검증한다. |
+
+모든 결함은 회귀 테스트를 추가하거나 기존 테스트를 강화해 닫았고 skip/xfail, Validator 완화, fallback 또는 false PASS를 사용하지 않았다.
+
+### 각 Stack 최종 Head 로컬 재검증
+
+| PR | 검증 Head | 시각(KST) | 전체 pytest | Ruff | strict mypy | build/audit/doctor/immutability |
+|---|---|---|---|---|---|---|
+| #25 | `92f41c7e7cebeab17dfa0c7b3faf2a84db998d4b` | 13:26:56–13:29:03 | 386 PASS | PASS | 134 files PASS | 모두 PASS |
+| #26 | `8d1676bf4abdffc551ee61e2faa70d66b11c4682` | 13:29:15–13:31:30 | 454 PASS | PASS | 140 files PASS | 모두 PASS |
+| #27 | `0bd5b7a3ad84ad5d69606b1b79d65f718abebca9` | 13:31:45–13:34:04 | 465 PASS | PASS | 141 files PASS | 모두 PASS |
+
+- #27은 `pytest --collect-only -q`에서 465개를 수집했고 Source-style Fixture 10개가 별도로 PASS했다.
+- #27의 Project `validate`와 `audit`는 GATE-00~13 PASS, Issue 0, Trace 37개, `state_unchanged: true`였다.
+- #27의 Canonical/Production 재연본은 byte-identical이고 State/Trace SHA-256은 검증 전후 각각 `46b8e397c60e26a0cc7073ac29627ab4a4118e19bb481c400cb6756a14f0199f`, `1cd981f0ee577f06fa17b329cecb3c8a123d2273c03af9c8beb058ca7347535d`로 동일했다.
+- 세 Head 모두 package `1.6.1` sdist/wheel, dependency audit, Runtime Doctor, `origin/main`과 직전 Stack Base 대비 Registered Version Immutability가 PASS했다.
+- 이 원장-only 감사 Commit 뒤 PR #27 최종 Head 검증과 원격 CI를 다시 실행하고, 자기 SHA를 원장에 재기록하는 순환을 피하기 위해 그 exact Head/Run은 PR #27 본문에 기록한다.
+
+### 최종 Stack·권한·상태 확인
+
+- 선조 관계는 `origin/main → PR #24@b24b474 → PR #25@92f41c7 → PR #26@8d1676b → PR #27`이며 모든 검사가 exit 0이다. Published Stack은 additive/normal merge commit만 사용했고 History Rewrite나 Force Push가 없다.
+- PR #25/#26/#27 본문은 목적·범위, 실제 수정, 하위 호환성, exact Head/CI, 알려진 한계와 의도적 제외를 포함한다.
+- PR #27 Runtime Base 대비 최종 순변경에는 PRJ-005 경로가 없고 PRJ-006 62개만 추가된다.
+- PRJ-006은 GATE-13 `EDITORIAL_REVIEW_REQUIRED`, `ARTIFACT_COMPLETE`, `CONTRACT_VALIDATED`, `PROCESS_CONFORMANT`다. Human Editorial은 미승인이고 Production Ready는 false이며 Story Library 항목은 0개다.
+- `editorial-approve`, 사용자-facing `production-finalize`, `register`, PR Merge/Close는 수행하지 않았다.
