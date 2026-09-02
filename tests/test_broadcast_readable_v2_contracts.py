@@ -179,7 +179,7 @@ def v2_readable_report(result: str) -> dict[str, object]:
         "panel_turn_mappings": [
             {
                 "reaction_segment_id": "RSEG-01",
-                "turn_id": "TURN-01",
+                "turn_id": "TURN-001-01",
                 "global_order": 0,
                 "spoken_line_sha256": SHA256_A,
                 "actual_byte_range": {"byte_start": 0, "byte_end": 1},
