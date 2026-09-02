@@ -595,7 +595,7 @@ def validate_gate(
                 artifacts,
                 production_config,
                 channel,
-                ("psychological_arc", "character_state_transitions"),
+                ("psychological_arc",),
             ),
             *optional_schema_issues(
                 artifacts,
@@ -607,6 +607,20 @@ def validate_gate(
                 channel,
                 optional_artifact_document(artifacts, "psychological_arc"),
             ),
+        ]
+    scenes = artifact_document(artifacts, "scene_cards")
+    panel_cast = artifact_document(artifacts, "panel_cast")
+    reaction_segments = artifact_document(artifacts, "reaction_segments")
+    presentation = artifact_document(artifacts, "presentation_plan")
+    if gate_id == "GATE-07":
+        return [
+            *nonempty_list_issues(scenes, "scenes", "06_SCENE/scene_cards.json"),
+            *required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("character_state_transitions",),
+            ),
             *(
                 optional_schema_issues(
                     artifacts,
@@ -617,25 +631,6 @@ def validate_gate(
                 if "character_state_transitions" in presentation_schemas
                 else []
             ),
-            *validate_character_state_transitions(
-                production_config,
-                channel,
-                optional_artifact_document(artifacts, "character_state_transitions"),
-                characters,
-                facts,
-                clues,
-                optional_artifact_document(artifacts, "crime_event_contract"),
-                beats,
-                {},
-            ),
-        ]
-    scenes = artifact_document(artifacts, "scene_cards")
-    panel_cast = artifact_document(artifacts, "panel_cast")
-    reaction_segments = artifact_document(artifacts, "reaction_segments")
-    presentation = artifact_document(artifacts, "presentation_plan")
-    if gate_id == "GATE-07":
-        return [
-            *nonempty_list_issues(scenes, "scenes", "06_SCENE/scene_cards.json"),
             *schema_issues(
                 panel_cast,
                 presentation_schemas["panel_cast"],

@@ -561,6 +561,20 @@ def validate_crime_event_contract(
             for field in brief_fields
             if contract.get(field) != brief.get(field)
         }
+        expected_related_crimes = string_values(brief, "related_crimes")
+        primary_crime = brief.get("primary_crime")
+        core_action_type = brief.get("core_action_type")
+        if (
+            primary_crime != core_action_type
+            and isinstance(core_action_type, str)
+            and core_action_type not in expected_related_crimes
+        ):
+            expected_related_crimes.append(core_action_type)
+        if contract.get("related_crimes") != expected_related_crimes:
+            mismatches["related_crimes"] = {
+                "expected": expected_related_crimes,
+                "actual": contract.get("related_crimes"),
+            }
         expected_id = candidate.get("candidate_id")
         if (
             contract.get("approved_candidate_id") != expected_id

@@ -55,6 +55,172 @@ def duplicate_strings(values: Sequence[object]) -> list[str]:
     return duplicated
 
 
+def identifier_set(
+    document: Mapping[str, object],
+    collection_field: str,
+    identifier_field: str,
+) -> set[str]:
+    """상위 Artifact 배열의 문자열 ID를 반환한다."""
+    return {
+        identifier
+        for record in mapping_items(document.get(collection_field))
+        if isinstance((identifier := record.get(identifier_field)), str)
+    }
+
+
+def reference_values(unit: Mapping[str, object], field: str) -> set[str]:
+    """Unit references 객체의 문자열 ID 집합을 반환한다."""
+    references = unit.get("references")
+    raw_values = references.get(field) if isinstance(references, Mapping) else None
+    if not isinstance(raw_values, list):
+        return set()
+    return {value for value in raw_values if isinstance(value, str)}
+
+
+def string_values(document: Mapping[str, object], field: str) -> set[str]:
+    """객체의 문자열 배열 필드를 집합으로 반환한다."""
+    raw_values = document.get(field)
+    if not isinstance(raw_values, list):
+        return set()
+    return {value for value in raw_values if isinstance(value, str)}
+
+
+def contract_reference_sets(
+    crime_event_contract: Mapping[str, object],
+) -> dict[str, set[str]]:
+    """현재 Crime Event Contract가 선언한 참조 ID 집합을 반환한다."""
+    event_id = crime_event_contract.get("event_id")
+    event_ids = {event_id} if isinstance(event_id, str) else set()
+    harm_ids = string_values(crime_event_contract, "harm_ids")
+    harm_ids.update(
+        identifier_set(crime_event_contract, "harms", "harm_id")
+    )
+    return {
+        "crime_event_ids": event_ids,
+        "harm_ids": harm_ids,
+        "development_function_ids": identifier_set(
+            crime_event_contract,
+            "development_functions",
+            "development_function_id",
+        ),
+        "reveal_target_ids": identifier_set(
+            crime_event_contract,
+            "reveal_targets",
+            "reveal_target_id",
+        ),
+    }
+
+
+def validate_screenplay_unit_references(
+    document: Mapping[str, object],
+    facts: Mapping[str, object],
+    clue_matrix: Mapping[str, object],
+    crime_event_contract: Mapping[str, object],
+    characters: Mapping[str, object],
+    presentation_plan: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """모든 Unit 참조를 현재 상위 Artifact와 Scene 소유권에 대해 검증한다."""
+    valid_references = {
+        "fact_ids": identifier_set(facts, "facts", "fact_id"),
+        "clue_ids": identifier_set(clue_matrix, "clues", "clue_id"),
+        **contract_reference_sets(crime_event_contract),
+    }
+    error_codes = {
+        "fact_ids": "SCREENPLAY_FACT_REFERENCE_UNKNOWN",
+        "clue_ids": "SCREENPLAY_CLUE_REFERENCE_UNKNOWN",
+        "crime_event_ids": "SCREENPLAY_EVENT_REFERENCE_UNKNOWN",
+        "harm_ids": "SCREENPLAY_HARM_REFERENCE_UNKNOWN",
+        "development_function_ids": (
+            "SCREENPLAY_DEVELOPMENT_FUNCTION_REFERENCE_UNKNOWN"
+        ),
+        "reveal_target_ids": "SCREENPLAY_REVEAL_TARGET_REFERENCE_UNKNOWN",
+    }
+    character_ids = identifier_set(characters, "characters", "character_id")
+    segment_owners = {
+        segment_id: segment.get("scene_id")
+        for segment in mapping_items(presentation_plan.get("segments"))
+        if isinstance((segment_id := segment.get("segment_id")), str)
+    }
+    contract_event_id = crime_event_contract.get("event_id")
+    issues: list[ValidationIssue] = []
+    for scene in mapping_items(document.get("scenes")):
+        scene_id = scene.get("scene_id")
+        local_segment_ids = string_values(scene, "segment_ids")
+        for unit in mapping_items(scene.get("units")):
+            unit_id = unit.get("unit_id")
+            for field, valid_ids in valid_references.items():
+                unknown_ids = sorted(reference_values(unit, field) - valid_ids)
+                if unknown_ids:
+                    issues.append(
+                        screenplay_issue(
+                            error_codes[field],
+                            "Screenplay Unit이 현재 상위 Artifact에 없는 ID를 참조합니다.",
+                            {
+                                "scene_id": scene_id,
+                                "unit_id": unit_id,
+                                "reference_field": field,
+                                "unknown_ids": unknown_ids,
+                            },
+                        )
+                    )
+            speaker_id = unit.get("speaker_id")
+            if isinstance(speaker_id, str) and speaker_id not in character_ids:
+                issues.append(
+                    screenplay_issue(
+                        "REENACTMENT_SPEAKER_UNKNOWN",
+                        "Screenplay Unit speaker_id가 현재 Character에 없습니다.",
+                        {
+                            "scene_id": scene_id,
+                            "unit_id": unit_id,
+                            "speaker_id": speaker_id,
+                        },
+                    )
+                )
+            segment_id = unit.get("segment_id")
+            presentation_scene_id = (
+                segment_owners.get(segment_id)
+                if isinstance(segment_id, str)
+                else None
+            )
+            if (
+                not isinstance(segment_id, str)
+                or segment_id not in local_segment_ids
+                or presentation_scene_id != scene_id
+            ):
+                issues.append(
+                    screenplay_issue(
+                        "SCREENPLAY_SEGMENT_REFERENCE_INVALID",
+                        "Unit segment_id는 Presentation Plan의 동일 Scene Segment여야 합니다.",
+                        {
+                            "scene_id": scene_id,
+                            "unit_id": unit_id,
+                            "segment_id": segment_id,
+                            "presentation_scene_id": presentation_scene_id,
+                        },
+                    )
+                )
+            harm_ids = reference_values(unit, "harm_ids")
+            event_ids = reference_values(unit, "crime_event_ids")
+            if (
+                harm_ids
+                and isinstance(contract_event_id, str)
+                and contract_event_id not in event_ids
+            ):
+                issues.append(
+                    screenplay_issue(
+                        "SCREENPLAY_HARM_EVENT_BINDING_INVALID",
+                        "Harm 참조 Unit은 같은 Crime Event 참조를 함께 가져야 합니다.",
+                        {
+                            "scene_id": scene_id,
+                            "unit_id": unit_id,
+                            "harm_ids": sorted(harm_ids),
+                            "required_event_id": contract_event_id,
+                        },
+                    )
+                )
+    return issues
+
+
 def integer_order_issues(
     values: Sequence[object],
     code: str,
@@ -265,16 +431,35 @@ def validate_reconstruction_repetition(
             if isinstance((source_id := binding.get("source_unit_id")), str)
             and isinstance((repeated_id := binding.get("repeated_unit_id")), str)
         }
-        invalid_pairs = sorted(
-            [
-                [source_id, repeated_id]
-                for source_id, repeated_id in bound_pairs
-                if source_id not in source_by_id
-                or repeated_id not in repeated_by_id
-                or source_by_id[source_id].get("text") != repeated_by_id[repeated_id].get("text")
-                or source_by_id[source_id].get("type") != repeated_by_id[repeated_id].get("type")
-            ]
-        )
+        invalid_pairs: list[dict[str, object]] = []
+        for binding in bindings:
+            source_id = binding.get("source_unit_id")
+            repeated_id = binding.get("repeated_unit_id")
+            if not isinstance(source_id, str) or not isinstance(repeated_id, str):
+                continue
+            source_unit = source_by_id.get(source_id)
+            repeated_unit = repeated_by_id.get(repeated_id)
+            reason: str | None = None
+            if source_unit is None or repeated_unit is None:
+                reason = "UNIT_NOT_FOUND"
+            elif any(
+                source_unit.get(field) != repeated_unit.get(field)
+                for field in ("type", "text", "speaker_id", "delivery")
+            ):
+                reason = "VISIBLE_IDENTITY_CHANGED"
+            elif (
+                source_unit.get("references") != repeated_unit.get("references")
+                and binding.get("reference_policy") != "ALLOW_RECONTEXTUALIZATION"
+            ):
+                reason = "REFERENCE_CHANGE_NOT_ALLOWED"
+            if reason is not None:
+                invalid_pairs.append(
+                    {
+                        "source_unit_id": source_id,
+                        "repeated_unit_id": repeated_id,
+                        "reason": reason,
+                    }
+                )
         unbound_repeated_ids = sorted(
             repeated_id
             for repeated_id, repeated in repeated_by_id.items()
@@ -289,8 +474,8 @@ def validate_reconstruction_repetition(
             issues.append(
                 screenplay_issue(
                     "RECONSTRUCTION_REPETITION_MISMATCH",
-                    "재구성 반복 Unit은 원본 Scene Unit과 유형·text가 같고 "
-                    "명시적으로 결속돼야 합니다.",
+                    "재구성 반복 Unit은 원본의 유형·text·화자·연기 지시를 보존하고 "
+                    "참조 변화 정책을 명시해야 합니다.",
                     {
                         "scene_id": scene_id,
                         "source_scene_id": source_scene_id,

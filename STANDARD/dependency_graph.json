@@ -206,13 +206,13 @@
     },
     "character_state_transitions": {
       "path": "05_STORY/character_state_transitions.json",
-      "depends_on": ["production_config", "story_dna", "crime_event_contract", "characters", "facts", "beat_sheet", "clue_matrix"],
+      "depends_on": ["production_config", "story_dna", "crime_event_contract", "characters", "facts", "beat_sheet", "clue_matrix", "scene_cards"],
       "owner_agent": "story_architect",
       "required_when": {"all": [{"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}, {"capability_enabled": "EXPLICIT_CRIME_EVENT_POLICY"}]}
     },
     "scene_cards": {
       "path": "06_SCENE/scene_cards.json",
-      "depends_on": ["beat_sheet", "retention_plan", "psychological_arc", "character_state_transitions", "crime_event_contract", "clue_matrix"],
+      "depends_on": ["beat_sheet", "retention_plan", "psychological_arc", "crime_event_contract", "clue_matrix"],
       "owner_agent": "scene_designer"
     },
     "production_footprint": {
@@ -233,7 +233,7 @@
     },
     "presentation_plan": {
       "path": "06_SCENE/presentation_plan.json",
-      "depends_on": ["scene_cards", "psychological_arc", "crime_event_contract", "production_config", "panel_cast", "reaction_segments"],
+      "depends_on": ["scene_cards", "psychological_arc", "character_state_transitions", "crime_event_contract", "production_config", "panel_cast", "reaction_segments"],
       "owner_agent": "scene_designer"
     },
     "expert_segments": {

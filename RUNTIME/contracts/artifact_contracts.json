@@ -27,7 +27,7 @@
     "source_disclosure": {"media_type": "application/json", "schema": "STANDARD/schemas/source_disclosure.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},
     "clinical_labels": {"media_type": "application/json", "schema": "STANDARD/schemas/clinical_labels.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "characters": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/characters", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
-    "relationships": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/relationships", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
+    "relationships": {"media_type": "application/json", "schema": "STANDARD/schemas/relationships.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "knowledge_matrix": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/knowledgeMatrix", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "actual_timeline": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/actualTimeline", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 1048576},
     "viewer_timeline": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/viewerTimeline", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},

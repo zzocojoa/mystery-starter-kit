@@ -127,7 +127,8 @@
       "properties": {
         "source_unit_id": {"type": "string", "pattern": "^UNIT-[A-Z0-9_-]+$"},
         "repeated_unit_id": {"type": "string", "pattern": "^UNIT-[A-Z0-9_-]+$"},
-        "preservation": {"const": "EXACT_TEXT"}
+        "preservation": {"enum": ["EXACT_TEXT", "EXACT_VISIBLE_IDENTITY"]},
+        "reference_policy": {"enum": ["PRESERVE_REFERENCES", "ALLOW_RECONTEXTUALIZATION"]}
       }
     },
     "unit": {
