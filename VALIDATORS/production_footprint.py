@@ -545,6 +545,46 @@ def production_manifest_from_scene_cards(
     }
 
 
+def production_manifest_from_scene_cards_v11(
+    project_id: str,
+    footprint: Mapping[str, object],
+    scene_cards: Mapping[str, object],
+    characters: Mapping[str, object],
+    actual_timeline: Mapping[str, object],
+    readable_deliverable: Mapping[str, object],
+) -> dict[str, object]:
+    """Scene Manifest에 검증된 v2 Readable Deliverable을 결합한다."""
+    base = production_manifest_from_scene_cards(
+        project_id,
+        footprint,
+        scene_cards,
+        characters,
+        actual_timeline,
+    )
+    return {
+        **base,
+        "$schema": "../../STANDARD/schemas/production_manifest_1_1.schema.json",
+        "schema_version": "1.1.0",
+        "deliverables": [dict(readable_deliverable)],
+    }
+
+
+def production_manifest_scene_projection(
+    production_manifest: Mapping[str, object],
+) -> dict[str, object]:
+    """Manifest Version과 무관한 Footprint 소유 필드만 반환한다."""
+    return {
+        "$schema": "../../STANDARD/schemas/production_manifest.schema.json",
+        "schema_family": production_manifest.get("schema_family"),
+        "schema_version": "1.0.0",
+        "project_id": production_manifest.get("project_id"),
+        "source_footprint_sha256": production_manifest.get(
+            "source_footprint_sha256"
+        ),
+        "scenes": production_manifest.get("scenes"),
+    }
+
+
 def production_scene_marker(scene: Mapping[str, object]) -> str:
     """Shooting Script에 사용할 정규 Production Scene Marker를 반환한다."""
     cast_ids = scene.get("cast_ids")
@@ -623,7 +663,7 @@ def validate_final_production_footprint(
         characters,
         actual_timeline,
     )
-    if dict(production_manifest) != expected_manifest:
+    if production_manifest_scene_projection(production_manifest) != expected_manifest:
         issues.append(
             footprint_issue(
                 "UNDECLARED_PRODUCTION_ELEMENT",

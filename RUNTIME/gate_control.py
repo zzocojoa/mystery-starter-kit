@@ -1,15 +1,24 @@
 """Staging Overlay에서 기존 결정론적 Validator를 Gate별로 실행."""
 
 from collections.abc import Mapping, Sequence
+from typing import cast
 
 from VALIDATORS.broadcast_readable import (
     broadcast_readable_script_issues,
     production_broadcast_readable_copy_issues,
+    production_readable_deliverable_issues,
     validate_broadcast_readable_report,
+)
+from VALIDATORS.broadcast_readable_v2 import (
+    build_broadcast_readable_report_v2,
+    validate_broadcast_readable_report_v2,
 )
 from VALIDATORS.candidate_approval import validate_candidate_approval
 from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
-from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_evaluation import (
+    document_sha256,
+    validate_candidate_evaluation,
+)
 from VALIDATORS.candidate_event_briefs import (
     approved_event_brief,
     validate_candidate_event_briefs,
@@ -197,6 +206,100 @@ def broadcast_readable_profile_enabled(
 ) -> bool:
     """현재 Project에서 검증된 Readable Profile이 활성인지 반환한다."""
     return "broadcast_readable_output_profile" in presentation_schemas
+
+
+def report_validation_issues(
+    report: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """생성된 Report의 공통 Issue 배열을 엄격한 형식으로 반환한다."""
+    raw_issues = report.get("issues")
+    if not isinstance(raw_issues, list):
+        return [
+            ValidationIssue(
+                severity="ERROR",
+                code="BROADCAST_READABLE_REPORT_ISSUES_INVALID",
+                message="Broadcast Readable Report Issue 배열이 없습니다.",
+                artifact="08_QA/broadcast_readable_report.json",
+                context={},
+            )
+        ]
+    return cast(list[ValidationIssue], raw_issues)
+
+
+def current_broadcast_readable_script_issues(
+    artifacts: Mapping[str, ArtifactContent],
+    production_config: Mapping[str, object],
+    output_profile: Mapping[str, object],
+    output_profile_hash: str,
+) -> list[ValidationIssue]:
+    """활성 Profile Version에 맞춰 GATE-08 Readable을 검증한다."""
+    readable_script = optional_artifact_text(
+        artifacts,
+        "broadcast_readable_script",
+    ) or ""
+    if output_profile.get("profile_version") == "2.0.0":
+        report = build_broadcast_readable_report_v2(
+            artifact_document(artifacts, "broadcast_readable_config"),
+            artifact_document(artifacts, "screenplay_units"),
+            artifact_document(artifacts, "characters"),
+            artifact_document(artifacts, "relationships"),
+            artifact_document(artifacts, "panel_cast"),
+            artifact_document(artifacts, "reaction_segments"),
+            artifact_document(artifacts, "presentation_plan"),
+            artifact_text(artifacts, "final_script"),
+            output_profile,
+            output_profile_hash,
+            readable_script,
+        )
+        return report_validation_issues(report)
+    return broadcast_readable_script_issues(
+        production_config,
+        artifact_document(artifacts, "screenplay_units"),
+        artifact_document(artifacts, "characters"),
+        artifact_document(artifacts, "panel_cast"),
+        artifact_document(artifacts, "reaction_segments"),
+        artifact_document(artifacts, "presentation_plan"),
+        output_profile,
+        output_profile_hash,
+        readable_script,
+    )
+
+
+def current_broadcast_readable_report_issues(
+    artifacts: Mapping[str, ArtifactContent],
+    production_config: Mapping[str, object],
+    output_profile: Mapping[str, object],
+    output_profile_hash: str,
+) -> list[ValidationIssue]:
+    """활성 Profile Version에 맞춰 저장 Readable Report를 재검증한다."""
+    report = artifact_document(artifacts, "broadcast_readable_report")
+    if output_profile.get("profile_version") == "2.0.0":
+        return validate_broadcast_readable_report_v2(
+            report,
+            artifact_document(artifacts, "broadcast_readable_config"),
+            artifact_document(artifacts, "screenplay_units"),
+            artifact_document(artifacts, "characters"),
+            artifact_document(artifacts, "relationships"),
+            artifact_document(artifacts, "panel_cast"),
+            artifact_document(artifacts, "reaction_segments"),
+            artifact_document(artifacts, "presentation_plan"),
+            artifact_text(artifacts, "final_script"),
+            output_profile,
+            output_profile_hash,
+            artifact_text(artifacts, "broadcast_readable_script"),
+        )
+    return validate_broadcast_readable_report(
+        report,
+        production_config,
+        artifact_document(artifacts, "screenplay_units"),
+        artifact_document(artifacts, "characters"),
+        artifact_document(artifacts, "panel_cast"),
+        artifact_document(artifacts, "reaction_segments"),
+        artifact_document(artifacts, "presentation_plan"),
+        output_profile,
+        output_profile_hash,
+        artifact_text(artifacts, "broadcast_readable_script"),
+    )
 
 
 def reenactment_text_issues(
@@ -859,20 +962,11 @@ def validate_gate(
                     broadcast_readable_profile_inputs(presentation_schemas)
                 )
                 issues.extend(
-                    broadcast_readable_script_issues(
+                    current_broadcast_readable_script_issues(
+                        artifacts,
                         production_config,
-                        screenplay_units,
-                        characters,
-                        panel_cast,
-                        reaction_segments,
-                        presentation,
                         readable_profile,
                         readable_profile_hash,
-                        optional_artifact_text(
-                            artifacts,
-                            "broadcast_readable_script",
-                        )
-                        or "",
                     )
                 )
         return issues
@@ -983,21 +1077,11 @@ def validate_gate(
                     )
                 )
                 issues.extend(
-                    validate_broadcast_readable_report(
-                        readable_report,
+                    current_broadcast_readable_report_issues(
+                        artifacts,
                         production_config,
-                        screenplay_units,
-                        characters,
-                        panel_cast,
-                        reaction_segments,
-                        presentation,
                         readable_profile,
                         readable_profile_hash,
-                        optional_artifact_text(
-                            artifacts,
-                            "broadcast_readable_script",
-                        )
-                        or "",
                     )
                 )
         return issues
@@ -1032,7 +1116,7 @@ def validate_gate(
             reference_policy,
         )
     if gate_id == "GATE-12":
-        return [
+        issues = [
             *validate_presentation_design(
                 panel_cast,
                 reaction_segments,
@@ -1122,6 +1206,19 @@ def validate_gate(
                 optional_artifact_document(artifacts, "channel_consistency_report"),
             ),
         ]
+        if broadcast_readable_profile_enabled(presentation_schemas):
+            readable_profile, readable_profile_hash = (
+                broadcast_readable_profile_inputs(presentation_schemas)
+            )
+            issues.extend(
+                current_broadcast_readable_report_issues(
+                    artifacts,
+                    production_config,
+                    readable_profile,
+                    readable_profile_hash,
+                )
+            )
+        return issues
     if gate_id == "GATE-13":
         issues = [
             *validate_presentation_design(
@@ -1262,17 +1359,11 @@ def validate_gate(
                 broadcast_readable_profile_inputs(presentation_schemas)
             )
             issues.extend(
-                validate_broadcast_readable_report(
-                    artifact_document(artifacts, "broadcast_readable_report"),
+                current_broadcast_readable_report_issues(
+                    artifacts,
                     production_config,
-                    artifact_document(artifacts, "screenplay_units"),
-                    characters,
-                    panel_cast,
-                    reaction_segments,
-                    presentation,
                     readable_profile,
                     readable_profile_hash,
-                    artifact_text(artifacts, "broadcast_readable_script"),
                 )
             )
             issues.extend(
@@ -1284,6 +1375,30 @@ def validate_gate(
                     ),
                 )
             )
+            if readable_profile.get("profile_version") == "2.0.0":
+                readable_report = artifact_document(
+                    artifacts,
+                    "broadcast_readable_report",
+                )
+                issues.extend(
+                    production_readable_deliverable_issues(
+                        optional_artifact_document(
+                            artifacts,
+                            "production_manifest",
+                        ),
+                        optional_artifact_text(
+                            artifacts,
+                            "broadcast_readable_script",
+                        ),
+                        optional_artifact_text(
+                            artifacts,
+                            "production_broadcast_readable_script",
+                        ),
+                        document_sha256(readable_report),
+                        "BROADCAST_READABLE_SCRIPT",
+                        "2.0.0",
+                    )
+                )
         return issues
     raise ValueError(f"알 수 없는 Gate입니다: {gate_id}")
 

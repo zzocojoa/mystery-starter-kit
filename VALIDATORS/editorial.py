@@ -24,6 +24,7 @@ EDITORIAL_CHECKS = (
     "victim_dignity",
 )
 EDITORIAL_REVIEWED_ARTIFACTS = (
+    "broadcast_readable_config",
     "psychological_arc",
     "character_state_transitions",
     "crime_event_contract",
@@ -116,6 +117,19 @@ def editorial_artifact_hashes(
         hashes[artifact_name] = sha256(
             encoded_review_artifact(artifacts[artifact_name])
         ).hexdigest()
+    readable_report = artifacts.get("broadcast_readable_report")
+    if (
+        isinstance(readable_report, Mapping)
+        and readable_report.get("schema_version") == "2.0.0"
+    ):
+        profile_binding = readable_report.get("output_profile_binding")
+        profile_hash = (
+            profile_binding.get("file_sha256")
+            if isinstance(profile_binding, Mapping)
+            else None
+        )
+        if isinstance(profile_hash, str):
+            hashes["broadcast_readable_output_profile"] = profile_hash
     return hashes
 
 

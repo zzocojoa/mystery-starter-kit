@@ -5,7 +5,9 @@ from hashlib import sha256
 from pathlib import Path
 from typing import TypeVar, cast
 
-from RUNTIME.broadcast_readable_renderer import render_broadcast_readable_script
+from RUNTIME.broadcast_readable_v2_renderer import (
+    render_broadcast_readable_script_versioned,
+)
 from RUNTIME.errors import RuntimeErrorCode, RuntimeExecutionError
 from RUNTIME.event_store import utc_now
 from RUNTIME.gate_control import validation_report_through
@@ -21,11 +23,19 @@ from RUNTIME.screenplay_renderers import (
 )
 from VALIDATORS.broadcast_readable import (
     build_broadcast_readable_report,
+    production_readable_deliverable_record,
     validate_broadcast_readable_report,
+)
+from VALIDATORS.broadcast_readable_v2 import (
+    build_broadcast_readable_report_v2,
+    validate_broadcast_readable_report_v2,
 )
 from VALIDATORS.candidate_approval import build_candidate_approval
 from VALIDATORS.candidate_eligibility import build_candidate_eligibility_bound
-from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_evaluation import (
+    document_sha256,
+    validate_candidate_evaluation,
+)
 from VALIDATORS.candidate_event_briefs import build_bound_crime_event_contract
 from VALIDATORS.channel_policy_v2 import (
     build_channel_policy_inputs,
@@ -57,13 +67,13 @@ from VALIDATORS.novelty import (
 )
 from VALIDATORS.output_profiles import (
     resolve_active_broadcast_readable_output_profile,
-    resolve_broadcast_readable_output_profile,
     resolve_reenactment_output_profile,
 )
 from VALIDATORS.pipeline import ArtifactContent, load_existing_project_artifacts
 from VALIDATORS.production_footprint import (
     build_production_footprint,
     production_manifest_from_scene_cards,
+    production_manifest_from_scene_cards_v11,
 )
 from VALIDATORS.reenactment_export import (
     ScreenplayDerivedOutputs,
@@ -201,13 +211,15 @@ def reenactment_output_profile(
 def broadcast_readable_output_profile(
     repository_root: Path,
     production_config: Mapping[str, object],
+    artifacts: Mapping[str, ArtifactContent],
     task_id: str,
-) -> tuple[Mapping[str, object], str]:
+) -> tuple[Mapping[str, object], str, str]:
     """고정 사람용 Broadcast Profile을 Runtime 오류 경계에서 해석한다."""
     try:
-        resolved = resolve_broadcast_readable_output_profile(
+        resolved = resolve_active_broadcast_readable_output_profile(
             repository_root,
             production_config,
+            artifacts,
         )
     except ConfigurationError as error:
         raise production_configuration_error(
@@ -225,7 +237,11 @@ def broadcast_readable_output_profile(
             "production_config",
             {},
         )
-    return resolved["document"], resolved["sha256"]
+    return (
+        resolved["document"],
+        resolved["sha256"],
+        resolved["profile_version"],
+    )
 
 
 def renderer_output(
@@ -923,17 +939,19 @@ def broadcast_readable_output(
     artifacts: Mapping[str, ArtifactContent],
 ) -> str:
     """동일 Canonical JSON에서 사람용 Broadcast Artifact를 만든다."""
-    output_profile, _profile_hash = broadcast_readable_output_profile(
+    output_profile, _profile_hash, _profile_version = broadcast_readable_output_profile(
         repository_root,
         production_config,
+        artifacts,
         task_id,
     )
     return renderer_output(
         task_id,
         "broadcast_readable_script",
-        lambda: render_broadcast_readable_script(
+        lambda: render_broadcast_readable_script_versioned(
             mapping_artifact(artifacts, "screenplay_units"),
             mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "relationships"),
             mapping_artifact(artifacts, "panel_cast"),
             mapping_artifact(artifacts, "reaction_segments"),
             mapping_artifact(artifacts, "presentation_plan"),
@@ -949,11 +967,26 @@ def broadcast_readable_report_output(
     artifacts: Mapping[str, ArtifactContent],
 ) -> dict[str, object]:
     """현재 Canonical 입력과 사람용 Broadcast에 결속된 QA Report를 만든다."""
-    output_profile, profile_hash = broadcast_readable_output_profile(
+    output_profile, profile_hash, profile_version = broadcast_readable_output_profile(
         repository_root,
         production_config,
+        artifacts,
         task_id,
     )
+    if profile_version == "2.0.0":
+        return build_broadcast_readable_report_v2(
+            mapping_artifact(artifacts, "broadcast_readable_config"),
+            mapping_artifact(artifacts, "screenplay_units"),
+            mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "relationships"),
+            mapping_artifact(artifacts, "panel_cast"),
+            mapping_artifact(artifacts, "reaction_segments"),
+            mapping_artifact(artifacts, "presentation_plan"),
+            text_artifact(artifacts, "final_script"),
+            output_profile,
+            profile_hash,
+            text_artifact(artifacts, "broadcast_readable_script"),
+        )
     return build_broadcast_readable_report(
         production_config,
         mapping_artifact(artifacts, "screenplay_units"),
@@ -1066,33 +1099,54 @@ def production_broadcast_readable_output(
     validation_report = mapping_artifact(artifacts, "validation_report")
     report = mapping_artifact(artifacts, "broadcast_readable_report")
     readable_script = text_artifact(artifacts, "broadcast_readable_script")
-    output_profile, profile_hash = broadcast_readable_output_profile(
+    output_profile, profile_hash, profile_version = broadcast_readable_output_profile(
         repository_root,
         production_config,
+        artifacts,
         task_id,
     )
-    report_issues = validate_broadcast_readable_report(
-        report,
-        production_config,
-        mapping_artifact(artifacts, "screenplay_units"),
-        mapping_artifact(artifacts, "characters"),
-        mapping_artifact(artifacts, "panel_cast"),
-        mapping_artifact(artifacts, "reaction_segments"),
-        mapping_artifact(artifacts, "presentation_plan"),
-        output_profile,
-        profile_hash,
-        readable_script,
+    report_issues = (
+        validate_broadcast_readable_report_v2(
+            report,
+            mapping_artifact(artifacts, "broadcast_readable_config"),
+            mapping_artifact(artifacts, "screenplay_units"),
+            mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "relationships"),
+            mapping_artifact(artifacts, "panel_cast"),
+            mapping_artifact(artifacts, "reaction_segments"),
+            mapping_artifact(artifacts, "presentation_plan"),
+            text_artifact(artifacts, "final_script"),
+            output_profile,
+            profile_hash,
+            readable_script,
+        )
+        if profile_version == "2.0.0"
+        else validate_broadcast_readable_report(
+            report,
+            production_config,
+            mapping_artifact(artifacts, "screenplay_units"),
+            mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "panel_cast"),
+            mapping_artifact(artifacts, "reaction_segments"),
+            mapping_artifact(artifacts, "presentation_plan"),
+            output_profile,
+            profile_hash,
+            readable_script,
+        )
+    )
+    required_report_result = (
+        "NEEDS_REVIEW" if profile_version == "2.0.0" else "PASS"
     )
     if (
         validation_report.get("result") != "PASS"
-        or report.get("result") != "PASS"
+        or report.get("result") != required_report_result
         or report_issues
     ):
         raise RuntimeExecutionError(
             "GATE_REJECTED",
             False,
             "TASK",
-            "현재 사람용 Broadcast와 결속된 PASS QA Report가 필요합니다.",
+            "현재 사람용 Broadcast와 결속된 무결성 QA Report가 필요합니다.",
             task_id,
             "broadcast_readable_report",
             {
@@ -1378,13 +1432,45 @@ def core_task_outputs(
     if task_id == "production.build_manifest":
         text_artifact(artifacts, "shooting_script")
         try:
-            manifest = production_manifest_from_scene_cards(
-                project_id,
-                mapping_artifact(artifacts, "production_footprint"),
-                mapping_artifact(artifacts, "scene_cards"),
-                mapping_artifact(artifacts, "characters"),
-                mapping_artifact(artifacts, "actual_timeline"),
+            resolved_readable = resolve_active_broadcast_readable_output_profile(
+                repository_root,
+                production_config,
+                artifacts,
             )
+            if (
+                resolved_readable is not None
+                and resolved_readable["profile_version"] == "2.0.0"
+            ):
+                production_readable = text_artifact(
+                    artifacts,
+                    "production_broadcast_readable_script",
+                )
+                readable_report = mapping_artifact(
+                    artifacts,
+                    "broadcast_readable_report",
+                )
+                deliverable = production_readable_deliverable_record(
+                    production_readable,
+                    document_sha256(readable_report),
+                    resolved_readable["profile_id"],
+                    resolved_readable["profile_version"],
+                )
+                manifest = production_manifest_from_scene_cards_v11(
+                    project_id,
+                    mapping_artifact(artifacts, "production_footprint"),
+                    mapping_artifact(artifacts, "scene_cards"),
+                    mapping_artifact(artifacts, "characters"),
+                    mapping_artifact(artifacts, "actual_timeline"),
+                    deliverable,
+                )
+            else:
+                manifest = production_manifest_from_scene_cards(
+                    project_id,
+                    mapping_artifact(artifacts, "production_footprint"),
+                    mapping_artifact(artifacts, "scene_cards"),
+                    mapping_artifact(artifacts, "characters"),
+                    mapping_artifact(artifacts, "actual_timeline"),
+                )
         except ConfigurationError as error:
             raise production_configuration_error(
                 error,

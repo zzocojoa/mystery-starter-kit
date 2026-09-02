@@ -50,6 +50,9 @@ from VALIDATORS.dependency import (
 from VALIDATORS.exceptions import ConfigurationError, GateTransactionError
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.models import ProductionValidationReport, ProjectState
+from VALIDATORS.output_profiles import (
+    resolve_active_broadcast_readable_output_profile,
+)
 from VALIDATORS.pipeline import (
     load_existing_project_artifacts,
     load_project_artifacts,
@@ -855,16 +858,33 @@ def task_available_reads(
 
 
 def task_artifact_hashes(
+    repository_root: Path,
     workspace: Path,
     task: RuntimeTask,
     dependency_graph: Mapping[str, object],
 ) -> dict[str, str]:
     """현재 Task가 실제로 읽는 Workspace Artifact Hash를 계산한다."""
-    return capture_artifact_hashes(
+    available_reads = task_available_reads(workspace, task, dependency_graph)
+    hashes = capture_artifact_hashes(
         workspace,
-        task_available_reads(workspace, task, dependency_graph),
+        available_reads,
         dependency_graph,
     )
+    declared_reads = set(task["reads"]) | set(task.get("optional_reads", []))
+    if "broadcast_readable_config" not in declared_reads:
+        return hashes
+    artifacts = load_existing_project_artifacts(workspace, dependency_graph)
+    production_config = artifacts.get("production_config")
+    if not isinstance(production_config, Mapping):
+        raise ConfigurationError("Production Config 객체가 필요합니다.")
+    resolved = resolve_active_broadcast_readable_output_profile(
+        repository_root,
+        production_config,
+        artifacts,
+    )
+    if resolved is not None:
+        hashes["broadcast_readable_output_profile"] = resolved["sha256"]
+    return hashes
 
 
 def generate_core_task_output(
@@ -998,7 +1018,12 @@ def advance_gate_tasks(
         }
         if not internal_dependencies.issubset(completed_set):
             continue
-        current_hashes = task_artifact_hashes(workspace, task, dependency_graph)
+        current_hashes = task_artifact_hashes(
+            repository_root,
+            workspace,
+            task,
+            dependency_graph,
+        )
         task_hashes[task_id] = current_hashes
         if task["executor"] == "LLM":
             statuses[task_id] = "AWAITING_LLM"

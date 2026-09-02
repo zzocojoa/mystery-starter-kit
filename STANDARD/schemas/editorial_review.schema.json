@@ -38,6 +38,8 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "broadcast_readable_config": {"$ref": "#/$defs/sha256"},
+        "broadcast_readable_output_profile": {"$ref": "#/$defs/sha256"},
         "psychological_arc": {"$ref": "#/$defs/sha256"},
         "character_state_transitions": {"$ref": "#/$defs/sha256"},
         "crime_event_contract": {"$ref": "#/$defs/sha256"},

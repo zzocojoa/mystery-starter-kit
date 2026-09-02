@@ -1129,6 +1129,16 @@ def validate_broadcast_readable_report_v2(
     actual_markdown: str,
 ) -> list[ValidationIssue]:
     """저장 Report를 현재 입력·Output의 독립 재계산 결과와 대조한다."""
+    result_issues: list[ValidationIssue] = []
+    if report.get("result") == "PASS":
+        result_issues.append(
+            v2_issue(
+                "BROADCAST_READABLE_V2_PASS_RESULT_FORBIDDEN",
+                "v2 Report는 Human Editorial PASS를 선언할 수 없습니다.",
+                REPORT_PATH,
+                {},
+            )
+        )
     if (
         broadcast_readable_config.get("enabled") is not True
         or broadcast_readable_config.get("profile_id")
@@ -1136,6 +1146,7 @@ def validate_broadcast_readable_report_v2(
         or broadcast_readable_config.get("profile_version") != "2.0.0"
     ):
         return [
+            *result_issues,
             v2_issue(
                 "BROADCAST_READABLE_V2_CONFIG_BINDING_INVALID",
                 "v2 Config Profile 결속이 활성 2.0.0 계약과 다릅니다.",
@@ -1157,7 +1168,10 @@ def validate_broadcast_readable_report_v2(
         actual_markdown,
     )
     raw_issues = expected["issues"]
-    issues = list(raw_issues) if isinstance(raw_issues, list) else []
+    issues = [
+        *result_issues,
+        *(list(raw_issues) if isinstance(raw_issues, list) else []),
+    ]
     if dict(report) != expected:
         issues.append(
             v2_issue(
