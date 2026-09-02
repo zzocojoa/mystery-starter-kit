@@ -1,0 +1,138 @@
+{
+  "schema_family": "broadcast-readable-v2-source-style-test-fixtures",
+  "schema_version": "1.0.0",
+  "fixtures": [
+    {
+      "fixture_id": "R1",
+      "project_id": "PRJ-901",
+      "title": "새벽 세탁실의 세 번째 종",
+      "character_names": {
+        "CHAR-01": "조태오",
+        "CHAR-02": "배현우",
+        "CHAR-03": "송미진",
+        "CHAR-04": "최은결",
+        "CHAR-05": "임수아",
+        "CHAR-06": "윤가람"
+      },
+      "panel_names": {
+        "PANEL-01": "하린",
+        "PANEL-02": "재호",
+        "PANEL-03": "소미"
+      },
+      "relationship_summaries": {
+        "REL-01": "설비 점검 기록을 두고 책임과 양심이 갈라진 동료 관계",
+        "REL-02": "반복되는 생활 신호를 함께 기억하는 야간 근무 관계",
+        "REL-06": "원본 기록을 남긴 사람과 그 뜻을 복원하는 남매 관계"
+      },
+      "scene_context": {
+        "SCN-01": {
+          "location_description": "24시간 셀프 세탁실의 건조기 통로와 잠긴 관리실 앞",
+          "time_description": "비가 잦아든 새벽 4시 12분",
+          "opening_character_state": "임수아는 젖은 영수증을 쥔 채 세 번째 건조기 앞에 멈춰 있다.",
+          "opening_emotional_state": "익숙한 생활 소리가 어긋났다는 경계",
+          "audience_information_gain": "매일 두 번 울리던 종료음이 오늘만 세 번 울렸음을 먼저 안다.",
+          "background_music_description": "낮은 환풍기 진동만 유지된다.",
+          "sound_cues": [
+            {"sound_cue_id": "SOUND-01-01", "order": 1, "description": "건조기 종료음이 두 번 일정하게 울린다."},
+            {"sound_cue_id": "SOUND-01-02", "order": 2, "description": "잠시 뒤 같은 음이 한 번 더 짧게 울린다."}
+          ],
+          "action_summary": "임수아가 소리 간격을 영수증 시각과 대조한 뒤 관리실 손잡이의 물기를 확인한다.",
+          "retrospective_meaning": "평범한 종료음의 반복은 후반에 관리실 출입을 숨기기 위한 수동 재시작 신호로 다시 읽힌다."
+        }
+      },
+      "unit_text": {
+        "UNIT-001": "건조기 종료음이 두 번 울리고, 열세 초 뒤 세 번째 종이 짧게 끊긴다.",
+        "UNIT-002": "임수아가 빈 세탁 바구니를 밀어 두고 관리실 문 아래 번진 물기를 살핀다.",
+        "UNIT-008": "영수증 종료 시각 04:12 / 실제 세 번째 종료음 04:19",
+        "UNIT-012": "세 번째 종 뒤에는 관리실 전원을 확인할 것. 자동 기록만 믿지 말 것.",
+        "UNIT-090": "생활 소리인 줄 알았던 세 번째 종은 누군가 출입 기록을 덮으려 보낸 신호였어요."
+      },
+      "panel_text": {
+        "TURN-001-01": "피해자가 매일 듣던 소리라면 한 번 더 울린 차이는 공포 장식이 아니라 기억의 기준입니다.",
+        "TURN-001-02": "종의 간격과 젖은 손잡이를 같은 시간선에 놓아야 누가 관리실에 들어갔는지 좁힐 수 있습니다."
+      },
+      "presentation_front_ids": ["SEG-001", "SEG-004", "SEG-003", "SEG-002", "SEG-005"],
+      "scene_segment_ids": {
+        "SCN-01": ["SEG-001", "SEG-003", "SEG-002"]
+      },
+      "required_visible_text": [
+        "새벽 세탁실의 세 번째 종",
+        "세 번째 건조기 앞",
+        "건조기 종료음이 두 번 일정하게 울린다.",
+        "세 번째 종 뒤에는 관리실 전원을 확인할 것.",
+        "평범한 종료음의 반복은 후반에 관리실 출입을 숨기기 위한 수동 재시작 신호로 다시 읽힌다.",
+        "재호",
+        "윤가람"
+      ]
+    },
+    {
+      "fixture_id": "R2",
+      "project_id": "PRJ-902",
+      "title": "겨울 연수원의 마지막 좌석",
+      "character_names": {
+        "CHAR-01": "문강석",
+        "CHAR-02": "차유진",
+        "CHAR-03": "백도현",
+        "CHAR-04": "서준혁",
+        "CHAR-05": "나예림",
+        "CHAR-06": "고은채"
+      },
+      "panel_names": {
+        "PANEL-01": "태린",
+        "PANEL-02": "우석",
+        "PANEL-03": "다정"
+      },
+      "relationship_summaries": {
+        "REL-01": "연수원 장부를 함께 관리했지만 책임 진술에서 충돌하는 옛 동료 관계",
+        "REL-02": "오래된 모임의 침묵을 서로 다르게 기억하는 동창 관계",
+        "REL-03": "조사 인터뷰에서 알리바이를 교차 검증하는 긴장 관계",
+        "REL-06": "사라진 기록을 끝까지 보존해 마지막 책임을 밝히는 가족 관계"
+      },
+      "scene_context": {
+        "SCN-01": {
+          "location_description": "폭설 뒤 폐쇄된 산장 연수원의 긴 식탁과 비어 있는 마지막 좌석",
+          "time_description": "구조대가 도착한 다음 날 오전, 결과 장면",
+          "opening_character_state": "고은채는 빈 좌석 앞의 명찰과 깨진 휴대전화를 한 화면에 놓는다.",
+          "opening_emotional_state": "결론을 먼저 보았지만 원인을 단정하지 않는 절제",
+          "audience_information_gain": "모임 참석자 한 명이 돌아오지 않았고 마지막 좌석의 주인이 바뀌었음을 먼저 안다.",
+          "background_music_description": "창문을 두드리는 눈발과 멀리서 접근하는 구조 차량음",
+          "sound_cues": [
+            {"sound_cue_id": "SOUND-01-01", "order": 1, "description": "깨진 휴대전화에서 전송 실패음이 난다."},
+            {"sound_cue_id": "SOUND-01-02", "order": 2, "description": "식탁 끝의 녹음기가 자동 재생된다."}
+          ],
+          "action_summary": "고은채가 결과 장면을 봉인한 뒤 인터뷰 기록을 시간 역순으로 펼친다.",
+          "retrospective_meaning": "비어 있던 마지막 좌석은 희생자의 자리가 아니라 책임을 피하려 서로 떠넘긴 자리였음이 드러난다."
+        },
+        "SCN-02": {
+          "time_description": "사건 열두 시간 전의 동창 모임으로 돌아가는 회상",
+          "opening_emotional_state": "오래된 친밀함 아래 묻힌 경쟁과 불신"
+        }
+      },
+      "unit_text": {
+        "UNIT-001": "식탁 끝 녹음기가 켜지고, 비어 있는 마지막 좌석의 명찰만 흔들린다.",
+        "UNIT-003": "결과는 이미 여기 있어요. 이제 누가 이 좌석의 이름을 바꿨는지 확인해야 해요.",
+        "UNIT-015": "오늘 밤 장부 이야기를 꺼내면 산길에서 혼자 돌아가게 될 거야.",
+        "UNIT-020": "인터뷰 대조표: 도착 시각 / 좌석 배치 / 마지막 메시지",
+        "UNIT-022": "저는 그 사람이 먼저 나갔다고 말했지만, 눈 위에는 제 발자국만 남았습니다.",
+        "UNIT-090": "우리는 침묵을 우정이라고 불렀지만, 장부를 바꾸고 위협을 보낸 책임은 각자 말해야 합니다."
+      },
+      "panel_text": {
+        "TURN-001-01": "결과 장면을 먼저 보여 줬지만 빈 좌석의 주인을 섣불리 정하면 안 됩니다.",
+        "TURN-001-02": "메시지 시각과 인터뷰의 발자국 진술이 충돌하니 관계 갈등을 단계별로 다시 봐야 합니다."
+      },
+      "presentation_front_ids": ["SEG-023", "SEG-001", "SEG-004", "SEG-003", "SEG-002", "SEG-005"],
+      "scene_segment_ids": {
+        "SCN-01": ["SEG-001", "SEG-003", "SEG-002"]
+      },
+      "required_visible_text": [
+        "겨울 연수원의 마지막 좌석",
+        "결과 장면",
+        "사건 열두 시간 전의 동창 모임으로 돌아가는 회상",
+        "오늘 밤 장부 이야기를 꺼내면 산길에서 혼자 돌아가게 될 거야.",
+        "우리는 침묵을 우정이라고 불렀지만",
+        "다정",
+        "고은채"
+      ]
+    }
+  ]
+}
