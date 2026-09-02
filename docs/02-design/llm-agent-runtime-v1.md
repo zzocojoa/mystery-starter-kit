@@ -49,9 +49,9 @@ Runtime 시작 시 JSON Schema뿐 아니라 Task가 Agent Manifest 권한을 넓
 
 ### Screenplay Unit 실행 경로
 
-새 Scaffold는 `SCREENPLAY_UNITS` mode와 고정 Reenactment Output Profile을 사용한다. GATE-06의 LLM은 Character State Transition만, GATE-08의 LLM은 Canonical Screenplay Unit만 작성한다. 이후 `script.render_screenplay_layers → script.render_broadcast_master → script.render_reenactment_export`와 `script.render_broadcast_readable`은 CORE이며, Trace Marker와 파생 Markdown을 LLM 권한 밖에서 생성한다. GATE-09의 `continuity.validate_reenactment`는 Unit·Cast·Relationship·Event/Harm·Clue/Reveal·Profile·Broadcast Hash로 Report를 재구성하고, GATE-13의 `production.package_reenactment`는 검증된 원문을 byte-identical 사본으로만 전달한다.
+새 Scaffold는 `SCREENPLAY_UNITS` mode와 고정 Reenactment Output Profile을 사용한다. GATE-06의 LLM은 Character State Transition만, GATE-08의 LLM은 Canonical Screenplay Unit만 작성한다. 이후 `script.render_screenplay_layers → script.render_broadcast_master → script.render_reenactment_export`는 CORE이며, Trace Marker와 파생 Markdown을 LLM 권한 밖에서 생성한다. GATE-09의 `continuity.validate_reenactment`는 Unit·Cast·Relationship·Event/Harm·Clue/Reveal·Profile·Broadcast Hash로 Report를 재구성하고, GATE-13의 `production.package_reenactment`는 검증된 원문을 byte-identical 사본으로만 전달한다.
 
-`broadcast_readable_script.md`는 같은 Canonical Screenplay Unit, Character, Panel, Reaction, Presentation JSON에서 Source-style 장면 Context, 실제 인물 이름과 Canonical Panel 발화를 결정론적으로 표시하는 정식 GATE-08 Artifact다. GATE-09의 `continuity.validate_broadcast_readable`은 다섯 입력 Hash, 출력 Hash와 Coverage를 `broadcast_readable_report.json`에 기록하고 현재 입력에서 Report를 다시 만들어 stale 결과를 거부한다. GATE-12 Validation은 이 QA Report에 의존하고, GATE-13의 `production.package_broadcast_readable`은 검증된 bytes만 Production 경로로 복사한다. Source·Report·Production Copy는 Dependency Invalidation과 Project State Hash, Process Trace, Editorial Review Hash에 모두 연결된다. Gate 밖의 직접 쓰기 명령은 제공하지 않으며 기존 Broadcast Master의 Marker 문법과 bytes는 바꾸지 않는다.
+`broadcast_readable_script.md`는 이 Gate 경로와 분리된 사람용 Companion View다. 명시적 `render-broadcast-readable` 명령이 같은 Canonical Screenplay Unit, Character, Panel, Reaction, Presentation JSON을 읽고 Source-style 장면 Context, 실제 인물 이름과 Canonical Panel 발화를 결정론적으로 표시한다. 이 View는 `artifact_contracts.json`, Dependency Graph, Runtime Task, Project State에 등록하지 않으며 Broadcast Master의 Marker 문법이나 기존 Renderer를 변경하지 않는다. 따라서 검토 편의 형식이 Production Artifact의 소유권·검증·Byte 동일성 경계를 넓히지 않는다.
 
 선택적인 재연극 Runtime target/tolerance는 방송 전체 Runtime과 독립적으로 검증한다. GATE-09 Report는 Output Profile에 포함된 Unit이 결속된 Segment와 제외 Segment, 계획시간을 기록하고, GATE-13 Editorial evidence는 Report 입력 Hash와 측정 방법에 결속된다. 추정은 `WORD_COUNT_ESTIMATE`, 실측은 `TABLE_READ` 또는 `RECORDED_AUDIO`로 구분하며 Unit 변경 뒤 기존 측정을 사용할 수 없다.
 
@@ -65,15 +65,12 @@ GATE-07  LLM/CORE  scene_cards → production_footprint
 GATE-08  LLM  screenplay_units
                 ↓ CORE
           drama / narration / broadcast master / reenactment script
-          broadcast readable script
    ↓
 GATE-09  CORE  reenactment_export_report (NEEDS_REVIEW)
-               broadcast_readable_report (PASS)
    ↓
 GATE-12  CORE  full validation
    ↓
-GATE-13  LLM production package → CORE manifest/reenactment/readable copies
-               → LLM editorial review
+GATE-13  LLM production package → CORE manifest/copy → LLM editorial review
                 → CORE gate-final validation
    ↓
 EDITORIAL_REVIEW_REQUIRED
@@ -86,10 +83,10 @@ EDITORIAL_REVIEW_REQUIRED
 |---|---|---|
 | `character_state_transitions` | Story Architect LLM | GATE-06 |
 | `screenplay_units` | Script Writer LLM | GATE-08 |
-| Layer Script, Broadcast Master, 재연 Script, Readable Script | CORE Renderer | GATE-08 |
-| `reenactment_export_report`, `broadcast_readable_report` | CORE Validator | GATE-09 |
+| Layer Script, Broadcast Master, 재연 Script | CORE Renderer | GATE-08 |
+| `reenactment_export_report` | CORE Validator | GATE-09 |
 | Production 문서 | Orchestrator LLM | GATE-13 |
-| Production Manifest, 재연·Readable Production copy | CORE | GATE-13 |
+| Production Manifest, 재연 Production copy | CORE | GATE-13 |
 | `editorial_review` | Continuity Critic LLM | GATE-13 |
 | Editorial Approval | Human Actor | GATE-13 이후 |
 

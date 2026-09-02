@@ -512,12 +512,9 @@ def test_screenplay_artifacts_are_opt_in_and_invalidate_all_exports() -> None:
 
     for artifact_name in (
         "final_script",
-        "broadcast_readable_script",
-        "broadcast_readable_report",
         "reenactment_character_script",
         "reenactment_export_report",
         "production_reenactment_character_script",
-        "production_broadcast_readable_script",
         "editorial_review",
     ):
         assert changed["artifacts"][artifact_name]["status"] == "DIRTY"

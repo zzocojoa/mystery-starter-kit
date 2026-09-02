@@ -484,23 +484,22 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 - PRJ-006은 GATE-13 `EDITORIAL_REVIEW_REQUIRED`, `ARTIFACT_COMPLETE`, `CONTRACT_VALIDATED`, `PROCESS_CONFORMANT`다. Human Editorial은 미승인이고 Production Ready는 false이며 Story Library 항목은 0개다.
 - `editorial-approve`, 사용자-facing `production-finalize`, `register`, PR Merge/Close는 수행하지 않았다.
 
-## Broadcast Readable Canonical Chain Correction — 2026-09-02
+## Broadcast Readable Companion Correction — 2026-09-02
 
 ### 입력과 불변 경계
 
-- Canonical Chain 교정 시작 시 Local·Remote Head는 모두 `63d4cec81fd7cea6f204ddd1936adfaada5dc229`였고, 이 Commit은 최신 `origin/codex/reenactment-pilot-v1`의 선조였다.
+- 교정 시작 시 Local·Remote Head는 모두 `bfcc9e821a9b95afe56ca8c3be082b3bfb5db2ac`였고, 이 Commit은 최신 `origin/codex/reenactment-pilot-v1`의 선조였다.
 - `거머리_인물별_대사_스크립트.md`와 `죽음의_동창회_인물별_대사_스크립트.md`는 저장소 밖에서 제목·등장인물 표·순서화된 장면·상황 설명·실제 이름 발화라는 추상 형식 Coverage만 확인했다. Reference 원문과 고유 인물·대사·장소·범죄·반전은 Project나 Runtime Context에 복제하지 않았다.
-- 기존 `final_script.md`는 기계형 Broadcast Master다. Marker 문법, `screenplay_renderers.py`와 Master bytes는 변경하지 않는다. 보호 Master SHA-256은 `df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602`다.
+- 기존 `final_script.md`는 기계형 Broadcast Master다. `artifact_contracts.json`, Marker 문법, `screenplay_renderers.py`와 Master bytes는 변경하지 않았다. 보호 Master SHA-256은 작업 전후 모두 `df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602`다.
 
 ### 구현과 Coverage
 
 - `broadcast_readable_renderer.py`는 동일 Project의 Canonical Screenplay Unit, Character, Panel Cast, Reaction Segment, Presentation Plan만 입력받는 순수 결정론적 Renderer다. 11개 장면의 Source-style Context, 95개 Unit, 실제 Character 이름, 7개 Panel 구간과 Canonical Panel Turn 14개를 방송 순서대로 표시한다.
-- GATE-08 `script.render_broadcast_readable`이 `07_SCRIPT/broadcast_readable_script.md`를 만들고, GATE-09 `continuity.validate_broadcast_readable`이 다섯 입력과 출력 Hash·Coverage를 `08_QA/broadcast_readable_report.json`에 결속한다. Validator는 현재 입력에서 Script와 Report를 모두 재구성해 stale 또는 위조를 거부한다.
-- Dependency Graph는 Screenplay Unit 변경을 Readable Source, QA Report, 통합 Validation, Production Copy와 Editorial Review까지 전파한다. GATE-13 `production.package_broadcast_readable`은 PASS Report가 가리키는 Source bytes만 `09_PRODUCTION/broadcast_readable_script.md`로 복사한다. 세 Artifact는 Contract, Agent 권한, Runtime Task, Project State Hash, Gate Transaction과 Process Trace에 등록하며 Gate 밖 직접 쓰기 CLI는 제공하지 않는다.
+- `mystery-kit render-broadcast-readable PROJECT`는 `SCREENPLAY_UNITS` mode에서만 고정 경로 `07_SCRIPT/broadcast_readable_script.md`를 생성한다. Project ID·Scene/Segment·Unit Layer·Speaker·Panelist·Reaction 결속 오류를 명시적으로 거부하고 Legacy 추측 변환이나 대체 문구 fallback을 두지 않는다.
+- Readable Script는 Artifact Contract, Runtime Task, Dependency Graph, Project State에 등록하지 않은 사람용 Companion View다. Gate Artifact 소유권과 Production Artifact Byte 동일성의 범위를 넓히지 않는다.
 
 ### 검증과 상태
 
-- PRJ-006을 Script Writer의 GATE-08로 반환해 Process Revision 2를 열고 GATE-08부터 GATE-13까지 순서대로 Commit했다. 새 Task Trace는 GATE-08 `script.render_broadcast_readable`, GATE-09 `continuity.validate_broadcast_readable`, GATE-13 `production.package_broadcast_readable`을 포함하며 전체 Process Trace는 56개다.
-- Readable Source와 Production Copy의 byte SHA-256은 모두 `a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa`이고, QA Report 파일 SHA-256은 `5941226ba3490c2885dfdfe47aa542921e1faa41f81f17eeb060c2baf6a295ce`다. 세 State Entry는 모두 `CLEAN`이며 QA Report는 다섯 Canonical JSON Hash, Source bytes Hash와 11 Scene·95 Unit·7 Reaction Segment·14 Panel Turn Coverage를 보존한다.
-- 저장소 소스 기준 `validate`와 `audit`는 GATE-00~13 PASS, Issue 0, `state_unchanged: true`, Process Conformant다. 검증 전후 Project State와 Process Trace SHA-256은 각각 `73f075142fc966ad60152336a352446206dd8f7a770a3e865b636fe6d3be97d3`, `2c5f2a066122eaa705258f48d9d0f384db526cbc38360dd0e535f5ba30569335`로 동일했다. 477개 전체 pytest, Ruff, strict mypy 144개 파일, package build, dependency audit와 Runtime Doctor가 통과했다.
-- 최종 상태는 `EDITORIAL_REVIEW_REQUIRED`이고 Human Editorial은 미승인, Production Ready는 false, Story Library 항목은 0개다. 사용자-facing `production-finalize`, Story Library `register`, PR Merge/Close는 수행하지 않는다. 최종 Commit SHA와 정확한 Head의 Python 3.11/3.14 원격 CI 증거는 PR 본문에 기록한다.
+- Readable 전용·기존 Renderer·Source-style Fixture·Production CLI·README 표적 테스트 58개가 PASS했다. 전체 pytest는 473개를 수집해 모두 PASS했고 Ruff, strict mypy 143개 파일, package 1.6.1 sdist/wheel, dependency audit, Runtime Doctor, Runtime Base와 `origin/main` 대비 Registered Version Immutability도 PASS했다.
+- Project `validate`와 `audit`는 GATE-00~13 PASS, Issue 0, Trace 37개, `state_unchanged: true`를 반환했다. State·Trace SHA-256은 전후 각각 `46b8e397c60e26a0cc7073ac29627ab4a4118e19bb481c400cb6756a14f0199f`, `1cd981f0ee577f06fa17b329cecb3c8a123d2273c03af9c8beb058ca7347535d`로 동일했다.
+- 최종 상태는 계속 `EDITORIAL_REVIEW_REQUIRED`다. Human Editorial 승인, `production-finalize`, Story Library `register`, PR Merge/Close는 수행하지 않는다. 최종 Commit SHA와 정확한 Head의 Python 3.11/3.14 원격 CI 증거는 PR 본문에 기록한다.

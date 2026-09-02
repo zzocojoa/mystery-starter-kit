@@ -7,7 +7,7 @@ Production Standard, Compatibility Contract, Channel DNA, Project State를 결�
 ## 입력과 출력
 
 - 입력: Compatibility Report, Dependency Graph, Agent Manifest, 각 QA Report
-- 출력: Production Config, CORE Candidate Eligibility, Runtime-owned Candidate Approval, Project State, 통합 Validation Report, Production Manifest, Drama/Narration/Panel Reaction/조건부 Expert Production Package와 검증된 Production 재연·Readable Script 사본
+- 출력: Production Config, CORE Candidate Eligibility, Runtime-owned Candidate Approval, Project State, 통합 Validation Report, Production Manifest, Drama/Narration/Panel Reaction/조건부 Expert Production Package와 검증된 Production 재연 Script 사본
 
 ## 실행 규칙
 
@@ -21,7 +21,6 @@ Production Standard, Compatibility Contract, Channel DNA, Project State를 결�
 8. Candidate Hard Filter와 Approval은 LLM 출력에서 읽지 않고 CORE 계산과 Runtime 승인 기록으로만 확정한다.
 9. 최종 Footprint 검증이 활성화되면 Shooting Script의 모든 Scene을 정규 Production Scene Marker로 선언하고 CORE가 Scene Card 기반 Manifest와 대조하게 한다.
 10. `SCREENPLAY_UNITS` mode에서는 고정 Output Profile Hash를 검증하고 Export Report가 현재 입력과 일치할 때만 `production.package_reenactment`가 재연 Script를 바이트 그대로 Production 경로에 복사한다.
-11. 같은 mode의 Readable Script는 GATE-08 Artifact, GATE-09 QA Report, GATE-12 Validation, GATE-13 byte-identical Production Copy와 Editorial Hash까지 하나의 Dependency·Trace 체인으로 확인한다.
 
 정규 Marker는 Scene Card 순서대로 정확히 한 번씩 다음 형식을 사용한다. `LOCATION`은 UTF-8 percent-encoding을 적용하고 `CAST`는 Character ID를 오름차순 쉼표 목록으로 기록하며 빈 Cast는 `NONE`으로 쓴다.
 

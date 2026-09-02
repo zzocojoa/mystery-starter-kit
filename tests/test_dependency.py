@@ -1,6 +1,5 @@
 """Artifact Dependency Graph와 상태 무효화 검증."""
 
-from copy import deepcopy
 from pathlib import Path
 
 from VALIDATORS.dependency import (
@@ -8,7 +7,6 @@ from VALIDATORS.dependency import (
     artifact_required_for_project,
     build_initial_project_state,
     invalidate_artifact_dependents,
-    reconcile_project_state_artifacts,
     validate_dependency_graph,
 )
 from VALIDATORS.io import load_json_object
@@ -48,63 +46,6 @@ def test_story_dna_change_invalidates_all_downstream_artifacts() -> None:
     assert changed_state["artifacts"]["validation_report"]["status"] == "DIRTY"
     assert changed_state["artifacts"]["edit_script"]["status"] == "DIRTY"
     assert state["artifacts"]["story_dna"]["status"] == "MISSING"
-
-
-def test_screenplay_change_invalidates_readable_trace_chain() -> None:
-    """Unit 변경은 Readable 원본·QA·Validation·Production Copy를 모두 무효화한다."""
-    graph = load_json_object(GRAPH_PATH)
-    state = build_initial_project_state(graph, "PRJ-006", "2026-09-02T00:00:00Z")
-
-    changed = invalidate_artifact_dependents(
-        graph,
-        state,
-        "screenplay_units",
-        artifact_hash(b"changed-screenplay"),
-        "2026-09-02T00:01:00Z",
-    )
-
-    for artifact_name in (
-        "broadcast_readable_script",
-        "broadcast_readable_report",
-        "validation_report",
-        "production_broadcast_readable_script",
-        "editorial_review",
-    ):
-        assert changed["artifacts"][artifact_name]["status"] == "DIRTY"
-
-
-def test_existing_state_registers_new_contract_artifacts_as_missing() -> None:
-    """Contract 확장 시 기존 State는 새 Artifact를 자동 등록하되 입력을 바꾸지 않는다."""
-    graph = load_json_object(GRAPH_PATH)
-    state = build_initial_project_state(graph, "PRJ-006", "2026-09-02T00:00:00Z")
-    original = deepcopy(state)
-    for artifact_name in (
-        "broadcast_readable_script",
-        "broadcast_readable_report",
-        "production_broadcast_readable_script",
-    ):
-        original["artifacts"].pop(artifact_name)
-
-    reconciled = reconcile_project_state_artifacts(graph, original)
-
-    for artifact_name in (
-        "broadcast_readable_script",
-        "broadcast_readable_report",
-        "production_broadcast_readable_script",
-    ):
-        assert reconciled["artifacts"][artifact_name] == {
-            "status": "MISSING",
-            "content_hash": None,
-            "invalidated_by": [],
-        }
-    assert all(
-        artifact_name not in original["artifacts"]
-        for artifact_name in (
-            "broadcast_readable_script",
-            "broadcast_readable_report",
-            "production_broadcast_readable_script",
-        )
-    )
 
 
 def test_scene_change_invalidates_footprint_and_production_manifest() -> None:

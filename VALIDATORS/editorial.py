@@ -30,8 +30,6 @@ EDITORIAL_REVIEWED_ARTIFACTS = (
     "scene_cards",
     "final_script",
     "screenplay_units",
-    "broadcast_readable_script",
-    "broadcast_readable_report",
     "reenactment_character_script",
     "reenactment_export_report",
     "script_realization_report",
@@ -53,7 +51,6 @@ EDITORIAL_REVIEWED_ARTIFACTS = (
     "subtitle_script",
     "edit_script",
     "production_reenactment_character_script",
-    "production_broadcast_readable_script",
 )
 PANEL_DIALOGUE_LINE = re.compile(
     r"^\[(?P<panelist_id>PANEL-[0-9]{2,})(?:\s*·[^\]]+)?\]\s*"

@@ -46,4 +46,4 @@ Codex App은 저장소 내부 `LLMProvider`가 아니라 저장소를 직접 다
 
 변경은 작고 단일 목적이어야 한다. Python은 strict typing을 유지하고, 외부 시스템 Connector 외에는 순수 함수 중심으로 작성한다. 코드 주석과 Docstring은 한국어로 쓴다. 새 Provider는 실제로 선언하는 Capability만 제공하고 Adapter Conformance Test를 추가한다.
 
-완료 전 `ruff`, strict `mypy`, 전체 `pytest`, package build, dependency audit와 관련 CLI 진단을 실행한다. GitHub 변경은 `codex/` Branch와 Pull Request로 제출하고 CI 통과 후 Squash Merge한다. 최종 보고에는 수행 항목, 검증 증거, 의도적으로 미수행한 항목과 이유를 분리해 기록한다. 생성 Artifact를 보고할 때는 파일 생성 → Artifact Contract 등록 → Runtime Task → QA Report → Gate Transaction·Process Trace → Production Copy를 하나의 Hash 추적 체인으로 확인한다.
+완료 전 `ruff`, strict `mypy`, 전체 `pytest`, package build, dependency audit와 관련 CLI 진단을 실행한다. GitHub 변경은 `codex/` Branch와 Pull Request로 제출하고 CI 통과 후 Squash Merge한다. 최종 보고에는 수행 항목, 검증 증거, 의도적으로 미수행한 항목과 이유를 분리해 기록한다.

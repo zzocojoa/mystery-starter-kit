@@ -150,12 +150,12 @@ Compatibility → Variations → All-candidate Novelty Precheck → Evaluation �
 | `GATE-05` | 3개 Timeline, Clue, Hypothesis, Causal DAG | `MYSTERY_DESIGNED` |
 | `GATE-06` | Beat와 Retention | `STORY_STRUCTURED` |
 | `GATE-07` | Scene, 사건 행동·피해 인과, Panel Cast, Reaction/Expert Segment와 Presentation v2 | `SCENES_DESIGNED` |
-| `GATE-08` | 기본 세 Layer, 조건부 Expert Layer, Draft와 Marker 기반 Broadcast Master, 사건 Script 실현, 조건부 Readable Broadcast Artifact | `SCRIPT_WRITTEN` |
-| `GATE-09` | Continuity QA, 재계산 가능한 Script Realization Report와 조건부 Readable Hash·Coverage Report | `SCRIPT_WRITTEN` |
+| `GATE-08` | 기본 세 Layer, 조건부 Expert Layer, Draft와 Marker 기반 Broadcast Master, 사건 Script 실현 | `SCRIPT_WRITTEN` |
+| `GATE-09` | Continuity QA와 재계산 가능한 Script Realization Report | `SCRIPT_WRITTEN` |
 | `GATE-10` | 최종 Fingerprint 현재성과 Novelty QA | `SCRIPT_WRITTEN` |
 | `GATE-11` | Reference QA | `SCRIPT_WRITTEN` |
 | `GATE-12` | Channel QA, 사건·Reveal Evidence와 통합 Validation | `QA_PASSED` |
-| `GATE-13` | Production Artifact, 조건부 Readable byte-identical Copy와 사건 의미 Evidence를 포함한 Editorial Review PASS | `EDITORIAL_REVIEW_REQUIRED` |
+| `GATE-13` | Production Artifact와 사건 의미 Evidence를 포함한 Editorial Review PASS | `EDITORIAL_REVIEW_REQUIRED` |
 
 Gate는 순서를 건너뛸 수 없다. 필수 Artifact는 모두 `CLEAN`이어야 하며 실패하면 마지막 통과 Gate를 유지한 채 `BLOCKED`가 된다.
 
@@ -237,7 +237,6 @@ Continuity Critic 소유의 `script_realization_report.json`은 사건·Reveal·
 - 재연극 목표시간은 선택적인 `target_reenactment_minutes`와 `reenactment_runtime_tolerance_ratio`로 방송 총 목표시간과 분리한다. 둘은 함께 설정하며 재연극 목표가 방송 목표를 넘지 않아야 한다.
 - 재연극 계획시간은 고정 Output Profile에 포함된 Unit이 결속된 포함 Layer Segment만 한 번씩 합산한다. 제외 Segment와 계획 근거를 Export Report에 보존하며 고정 분량을 암묵적으로 가정하지 않는다.
 - 재연극 Editorial Runtime은 Export Report와 입력 Hash에 결속하고 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO`를 구분한다. 추정치를 실측이나 Human Approval로 승격하지 않으며 Unit 변경 뒤의 측정 근거는 폐기한다.
-- `SCREENPLAY_UNITS` mode의 사람용 Broadcast는 `07_SCRIPT/broadcast_readable_script.md` → `08_QA/broadcast_readable_report.json` → `08_QA/validation_report.json` → `09_PRODUCTION/broadcast_readable_script.md` 순서로 관리한다. Report는 Screenplay Unit, Character, Panel Cast, Reaction Segment, Presentation Plan과 출력 bytes의 Hash·Coverage를 보존하고 현재 입력에서 재구성한다. Production Copy는 검증된 Source와 byte-identical이어야 하며 세 Artifact 모두 Dependency Invalidation, Project State Hash, Gate Transaction, Process Trace와 Editorial Review Hash에 포함한다.
 - Validator는 모든 Turn의 화자·기능·근거·공개 시점과 Panel Script의 순서·문장을 검증한다. 자연스러운 집단 대화가 필요한 Reaction Segment는 최소 두 명 이상의 짧은 질문·반박·가설 수정·감정 연결을 허용한다. 결정론적 Validator가 Metadata나 문장 표면 일치로 잡기 어려운 의미상 조기 공개와 바꿔 쓴 반복은 Human Editorial Review 책임으로 남긴다.
 
 ### Fact Integrity

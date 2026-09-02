@@ -5,11 +5,6 @@ from copy import deepcopy
 from pathlib import Path
 from typing import cast
 
-from VALIDATORS.broadcast_readable import (
-    broadcast_readable_script_issues,
-    production_broadcast_readable_copy_issues,
-    validate_broadcast_readable_report,
-)
 from VALIDATORS.candidate_approval import validate_candidate_approval
 from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
@@ -815,8 +810,6 @@ def production_text_issues(
         or "production_expert_analysis_script" in artifacts
     ):
         artifact_names.append("production_expert_analysis_script")
-    if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
-        artifact_names.append("production_broadcast_readable_script")
     issues: list[ValidationIssue] = []
     for artifact_name in artifact_names:
         content = artifact_text(artifacts, artifact_name)
@@ -913,14 +906,6 @@ def run_production_validation(
     draft_script = artifact_text(artifacts, "draft_script")
     final_script = artifact_text(artifacts, "final_script")
     screenplay_units = optional_artifact_document(artifacts, "screenplay_units")
-    broadcast_readable_script = optional_artifact_text(
-        artifacts,
-        "broadcast_readable_script",
-    )
-    broadcast_readable_report = optional_artifact_document(
-        artifacts,
-        "broadcast_readable_report",
-    )
     reenactment_character_script = optional_artifact_text(
         artifacts,
         "reenactment_character_script",
@@ -932,10 +917,6 @@ def run_production_validation(
     production_reenactment_character_script = optional_artifact_text(
         artifacts,
         "production_reenactment_character_script",
-    )
-    production_broadcast_readable_script = optional_artifact_text(
-        artifacts,
-        "production_broadcast_readable_script",
     )
     script_realization_report = optional_artifact_document(
         artifacts,
@@ -1492,11 +1473,7 @@ def run_production_validation(
                 artifacts,
                 production_config,
                 channel,
-                (
-                    "screenplay_units",
-                    "reenactment_character_script",
-                    "broadcast_readable_script",
-                ),
+                ("screenplay_units", "reenactment_character_script"),
             )
         )
         gate_08.extend(
@@ -1538,16 +1515,6 @@ def run_production_validation(
                     {},
                 )
             )
-        gate_08.extend(
-            broadcast_readable_script_issues(
-                screenplay_units,
-                characters,
-                panel_cast,
-                reaction_segments,
-                presentation_plan,
-                broadcast_readable_script,
-            )
-        )
     continuity_report = validate_continuity(
         production_config,
         characters,
@@ -1611,7 +1578,7 @@ def run_production_validation(
                 artifacts,
                 production_config,
                 channel,
-                ("reenactment_export_report", "broadcast_readable_report"),
+                ("reenactment_export_report",),
             )
         )
         gate_09.extend(
@@ -1636,24 +1603,6 @@ def run_production_validation(
                 presentation_plan,
                 reaction_segments,
                 derived_outputs,
-            )
-        )
-        gate_09.extend(
-            schema_issues(
-                broadcast_readable_report,
-                presentation_schemas["broadcast_readable_report"],
-                "08_QA/broadcast_readable_report.json",
-            )
-        )
-        gate_09.extend(
-            validate_broadcast_readable_report(
-                broadcast_readable_report,
-                screenplay_units,
-                characters,
-                panel_cast,
-                reaction_segments,
-                presentation_plan,
-                broadcast_readable_script,
             )
         )
     novelty_report = evaluate_novelty(fingerprint, story_history, novelty_thresholds)
@@ -1812,27 +1761,7 @@ def run_production_validation(
                 artifacts,
                 production_config,
                 channel,
-                (
-                    "production_reenactment_character_script",
-                    "production_broadcast_readable_script",
-                ),
-            )
-        )
-        gate_13.extend(
-            validate_broadcast_readable_report(
-                broadcast_readable_report,
-                screenplay_units,
-                characters,
-                panel_cast,
-                reaction_segments,
-                presentation_plan,
-                broadcast_readable_script,
-            )
-        )
-        gate_13.extend(
-            production_broadcast_readable_copy_issues(
-                broadcast_readable_script,
-                production_broadcast_readable_script,
+                ("production_reenactment_character_script",),
             )
         )
         if (

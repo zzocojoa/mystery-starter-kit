@@ -1,4 +1,4 @@
-"""Canonical 사람용 Broadcast Artifact 추적 체인을 검증한다."""
+"""사람용 Broadcast companion view의 결정성과 불변 경계를 검증한다."""
 
 from copy import deepcopy
 from hashlib import sha256
@@ -7,15 +7,9 @@ from pathlib import Path
 import pytest
 
 from RUNTIME.broadcast_readable_renderer import render_broadcast_readable_script
-from VALIDATORS.broadcast_readable import (
-    build_broadcast_readable_report,
-    production_broadcast_readable_copy_issues,
-    validate_broadcast_readable_report,
-)
-from VALIDATORS.dependency import artifact_required_for_project
 from VALIDATORS.exceptions import ConfigurationError
-from VALIDATORS.io import load_json_object
-from VALIDATORS.schema_validation import collect_schema_errors
+from VALIDATORS.io import load_json_object, write_json_object
+from VALIDATORS.production_cli import run_cli
 
 ROOT = Path(__file__).resolve().parents[1]
 PILOT_ROOT = ROOT / "PROJECTS" / "PRJ-006"
@@ -193,59 +187,52 @@ def test_readable_broadcast_rejects_canonical_project_mismatch() -> None:
         )
 
 
-def test_readable_report_binds_inputs_output_and_schema() -> None:
-    """QA Report는 모든 입력과 출력 Hash 및 Coverage를 결정론적으로 결속한다."""
+def test_cli_writes_only_fixed_readable_view_and_preserves_master(
+    tmp_path: Path,
+) -> None:
+    """CLI 반복 실행은 동일 View만 쓰고 기존 Broadcast Master Byte를 보존한다."""
+    project_path = tmp_path / "PRJ-006"
     screenplay, characters, panel_cast, reactions, plan = pilot_documents()
-    rendered = rendered_pilot()
-    report = build_broadcast_readable_report(
-        screenplay,
-        characters,
-        panel_cast,
-        reactions,
-        plan,
-        rendered,
-    )
-    schema = load_json_object(
-        ROOT / "STANDARD/schemas/broadcast_readable_report.schema.json"
-    )
-
-    assert collect_schema_errors(report, schema, "broadcast readable report") == []
-    assert report["result"] == "PASS"
-    assert report["output_markdown_sha256"] == sha256(
-        rendered.encode("utf-8")
-    ).hexdigest()
-    assert report["coverage"] == {
-        "scene_count": 11,
-        "unit_count": 95,
-        "character_count": 6,
-        "panelist_count": 3,
-        "panel_reaction_segment_count": 7,
-        "panel_turn_count": 14,
-        "presentation_segment_count": 23,
+    config = load_json_object(PILOT_ROOT / "00_PROJECT" / "production_config.json")
+    inputs = {
+        "00_PROJECT/production_config.json": config,
+        "07_SCRIPT/screenplay_units.json": screenplay,
+        "02_CHARACTER/characters.json": characters,
+        "06_SCENE/panel_cast.json": panel_cast,
+        "06_SCENE/reaction_segments.json": reactions,
+        "06_SCENE/presentation_plan.json": plan,
     }
+    for relative_path, document in inputs.items():
+        write_json_object(project_path / relative_path, document)
+    final_script_path = project_path / "07_SCRIPT" / "final_script.md"
+    final_script_path.parent.mkdir(parents=True, exist_ok=True)
+    final_script_bytes = (PILOT_ROOT / "07_SCRIPT" / "final_script.md").read_bytes()
+    final_script_path.write_bytes(final_script_bytes)
+
+    assert run_cli(["render-broadcast-readable", str(project_path)]) == 0
+    output_path = project_path / "07_SCRIPT" / "broadcast_readable_script.md"
+    first_output = output_path.read_bytes()
+    assert first_output == rendered_pilot().encode("utf-8")
+    assert final_script_path.read_bytes() == final_script_bytes
+
+    assert run_cli(["render-broadcast-readable", str(project_path)]) == 0
+    assert output_path.read_bytes() == first_output
+    assert final_script_path.read_bytes() == final_script_bytes
 
 
-def test_readable_artifacts_are_not_required_for_legacy_mode() -> None:
-    """Legacy Project에는 Canonical Readable Artifact 추측 생성을 요구하지 않는다."""
-    graph = load_json_object(ROOT / "STANDARD/dependency_graph.json")
-    definitions = graph["artifacts"]
-    assert isinstance(definitions, dict)
+def test_legacy_mode_has_no_readable_fallback(tmp_path: Path) -> None:
+    """Legacy Project에는 readable view를 추측 생성하는 fallback을 두지 않는다."""
+    project_path = tmp_path / "PRJ-LEGACY"
     config = load_json_object(PILOT_ROOT / "00_PROJECT" / "production_config.json")
     config["script_source_mode"] = "LEGACY_MARKDOWN"
-    channel: dict[str, object] = {"capabilities": {}}
+    write_json_object(project_path / "00_PROJECT" / "production_config.json", config)
 
-    for artifact_name in (
-        "broadcast_readable_script",
-        "broadcast_readable_report",
-        "production_broadcast_readable_script",
-    ):
-        definition = definitions[artifact_name]
-        assert isinstance(definition, dict)
-        assert not artifact_required_for_project(definition, channel, config, {})
+    assert run_cli(["render-broadcast-readable", str(project_path)]) == 2
+    assert not (project_path / "07_SCRIPT" / "broadcast_readable_script.md").exists()
 
 
 def test_existing_broadcast_master_contract_and_bytes_are_unchanged() -> None:
-    """Readable Artifact 등록은 기존 Master 계약과 Pilot Byte를 바꾸지 않는다."""
+    """Readable companion view는 기존 Master 계약과 Pilot Byte를 바꾸지 않는다."""
     contracts = load_json_object(ROOT / "RUNTIME" / "contracts" / "artifact_contracts.json")
     artifacts = contracts["artifacts"]
     assert isinstance(artifacts, dict)
@@ -256,111 +243,14 @@ def test_existing_broadcast_master_contract_and_bytes_are_unchanged() -> None:
         "commit_policy": "ATOMIC_ON_PASS",
         "max_bytes": 2097152,
     }
-    assert artifacts["broadcast_readable_script"] == {
-        "media_type": "text/markdown",
-        "schema": None,
-        "validators": ["NON_EMPTY"],
-        "commit_policy": "ATOMIC_ON_PASS",
-        "max_bytes": 2097152,
-    }
-    assert artifacts["broadcast_readable_report"]["schema"] == (
-        "STANDARD/schemas/broadcast_readable_report.schema.json"
-    )
-    assert artifacts["production_broadcast_readable_script"]["commit_policy"] == (
-        "ATOMIC_ON_PASS"
-    )
+    assert "broadcast_readable_script" not in artifacts
     assert (
         sha256((PILOT_ROOT / "07_SCRIPT" / "final_script.md").read_bytes()).hexdigest()
         == FINAL_SCRIPT_SHA256
     )
 
 
-def test_tracked_pilot_chain_matches_current_canonical_json() -> None:
-    """Commit된 PRJ-006 View·QA Report·Production Copy가 Canonical 입력과 일치한다."""
-    screenplay, characters, panel_cast, reactions, plan = pilot_documents()
-    rendered = rendered_pilot()
+def test_tracked_pilot_view_matches_current_canonical_json() -> None:
+    """Commit된 PRJ-006 View가 현재 Canonical JSON의 재렌더 결과와 일치한다."""
     output_path = PILOT_ROOT / "07_SCRIPT" / "broadcast_readable_script.md"
-    report_path = PILOT_ROOT / "08_QA" / "broadcast_readable_report.json"
-    production_path = PILOT_ROOT / "09_PRODUCTION" / "broadcast_readable_script.md"
-
-    assert output_path.read_bytes() == rendered.encode("utf-8")
-    assert load_json_object(report_path) == build_broadcast_readable_report(
-        screenplay,
-        characters,
-        panel_cast,
-        reactions,
-        plan,
-        rendered,
-    )
-    assert production_path.read_bytes() == output_path.read_bytes()
-
-
-def test_stale_report_and_production_copy_are_rejected() -> None:
-    """입력·Report·Production Copy 중 하나라도 바뀌면 추적 체인이 실패한다."""
-    screenplay, characters, panel_cast, reactions, plan = pilot_documents()
-    rendered = rendered_pilot()
-    report = build_broadcast_readable_report(
-        screenplay,
-        characters,
-        panel_cast,
-        reactions,
-        plan,
-        rendered,
-    )
-    stale_report = deepcopy(report)
-    stale_report["output_markdown_sha256"] = "0" * 64
-
-    issues = validate_broadcast_readable_report(
-        stale_report,
-        screenplay,
-        characters,
-        panel_cast,
-        reactions,
-        plan,
-        rendered,
-    )
-
-    assert {issue["code"] for issue in issues} == {"BROADCAST_READABLE_REPORT_STALE"}
-    assert production_broadcast_readable_copy_issues(rendered, rendered) == []
-    assert {
-        issue["code"]
-        for issue in production_broadcast_readable_copy_issues(
-            rendered,
-            f"{rendered}\n변조",
-        )
-    } == {"PRODUCTION_BROADCAST_READABLE_COPY_MISMATCH"}
-
-
-def test_contract_chain_has_gate_owned_runtime_tasks() -> None:
-    """Artifact 세 개가 Dependency와 GATE-08·09·13 Runtime Task에 결속된다."""
-    graph = load_json_object(ROOT / "STANDARD/dependency_graph.json")
-    tasks = load_json_object(ROOT / "RUNTIME/contracts/runtime_tasks.json")["tasks"]
-    definitions = graph["artifacts"]
-    assert isinstance(definitions, dict)
-    assert isinstance(tasks, dict)
-
-    assert definitions["broadcast_readable_script"]["owner_agent"] == "script_writer"
-    assert definitions["broadcast_readable_report"]["depends_on"][-1] == (
-        "broadcast_readable_script"
-    )
-    assert definitions["production_broadcast_readable_script"]["depends_on"] == [
-        "broadcast_readable_script",
-        "broadcast_readable_report",
-        "validation_report",
-    ]
-    expected = {
-        "script.render_broadcast_readable": ("GATE-08", "broadcast_readable_script"),
-        "continuity.validate_broadcast_readable": (
-            "GATE-09",
-            "broadcast_readable_report",
-        ),
-        "production.package_broadcast_readable": (
-            "GATE-13",
-            "production_broadcast_readable_script",
-        ),
-    }
-    for task_id, (gate_id, output_name) in expected.items():
-        task = tasks[task_id]
-        assert task["executor"] == "CORE"
-        assert task["target_gate"] == gate_id
-        assert task["writes"] == [output_name]
+    assert output_path.read_bytes() == rendered_pilot().encode("utf-8")

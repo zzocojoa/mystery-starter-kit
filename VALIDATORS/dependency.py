@@ -111,23 +111,6 @@ def build_initial_project_state(
     )
 
 
-def reconcile_project_state_artifacts(
-    graph: Mapping[str, object],
-    state: ProjectState,
-) -> ProjectState:
-    """확장된 Artifact Contract를 기존 Project State에 MISSING으로 등록한다."""
-    validate_dependency_graph(graph)
-    next_state = deepcopy(state)
-    for artifact_name in dependency_artifacts(graph):
-        if artifact_name not in next_state["artifacts"]:
-            next_state["artifacts"][artifact_name] = ArtifactState(
-                status="MISSING",
-                content_hash=None,
-                invalidated_by=[],
-            )
-    return next_state
-
-
 def artifact_hash(content: bytes) -> str:
     """Artifact 변경 추적용 SHA-256을 계산한다."""
     return sha256(content).hexdigest()
