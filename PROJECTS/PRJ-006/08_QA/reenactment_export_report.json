@@ -5,7 +5,7 @@
   "project_id": "PRJ-006",
   "result": "NEEDS_REVIEW",
   "input_artifact_hashes": {
-    "production_config": "9ff6da97532f813fdcab1d545d3db6d50401e172c5962cc442f13764b3b6ad05",
+    "production_config": "0142db53ef13406ed2ab5422ce3c016c406dfd12edb5915edc1cd088507cc1c5",
     "screenplay_units": "7cd312e26e8d7d468cf0b64a1d125317edab7065f7e60ade8b78641c7679a1f5",
     "facts": "5d1e1fafd775f52f62a873608dbc00c826c8d8569c2a69d67eb5963dc752e08e",
     "characters": "c2cfd09e7c613f25b359ce520562ebcc1b30109fcad1db0d63aa7f0c7087c731",

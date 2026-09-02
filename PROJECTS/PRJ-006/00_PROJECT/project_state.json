@@ -4,14 +4,14 @@
   "project_id": "PRJ-006",
   "state": "EDITORIAL_REVIEW_REQUIRED",
   "current_gate": "GATE-13",
-  "updated_at": "2026-09-02T07:04:15.560355Z",
+  "updated_at": "2026-09-02T13:34:33.016020Z",
   "readiness": {
     "artifact_status": "ARTIFACT_COMPLETE",
     "contract_status": "CONTRACT_VALIDATED",
     "process_status": "PROCESS_CONFORMANT",
     "editorial_status": "EDITORIAL_REVIEW_REQUIRED",
-    "process_start_gate": "GATE-08",
-    "process_revision": 2
+    "process_start_gate": "GATE-01",
+    "process_revision": 4
   },
   "artifacts": {
     "project_manifest": {
@@ -26,7 +26,7 @@
     },
     "production_config": {
       "status": "CLEAN",
-      "content_hash": "5585319b034cb7f5cc45aa43815fffc11c5965b80bcc813619d1cf6b4f1f8aa0",
+      "content_hash": "4669e2ddc47fb428da3f03c4653dff9ef787745c28daeecef93f1c52b0820daa",
       "invalidated_by": []
     },
     "project_constraints": {
@@ -43,35 +43,105 @@
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "compatibility_report"
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
       ]
     },
     "verified_fact_ledger": {
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "compatibility_report"
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger"
       ]
     },
     "source_subjects": {
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "compatibility_report"
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
       ]
     },
     "verified_event_ledger": {
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "compatibility_report"
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_fact_ledger"
       ]
     },
     "source_truth_contract": {
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "compatibility_report"
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
       ]
     },
     "variation_candidates": {
@@ -86,12 +156,12 @@
     },
     "candidate_evaluation": {
       "status": "CLEAN",
-      "content_hash": "41a4e03f2a159f880b95ab90717c3a979b00fc282a6c088325990eb917a634ae",
+      "content_hash": "a321a13532675b564bee1b0b625f5a048fda1eaea86da7990cfdab9de353f226",
       "invalidated_by": []
     },
     "candidate_approval": {
       "status": "CLEAN",
-      "content_hash": "d8c708cc168a0f524868f0c4a2e7f70817b9f558068f4c74f7a40db2959e38e3",
+      "content_hash": "3b1dcaa15a3c7e98aa9075fbb24b7877877397e44ef5694b38ee6934b0031c42",
       "invalidated_by": []
     },
     "novelty_precheck": {
@@ -101,7 +171,7 @@
     },
     "candidate_eligibility": {
       "status": "CLEAN",
-      "content_hash": "f5279d14e112ee0cbe3995e40056f49b8af2db40325873da52e1daba1dbc8971",
+      "content_hash": "533a0cbecb33044cc0e19a36b747490552f4eec3eeb471db4fb66e20a3d6d170",
       "invalidated_by": []
     },
     "story_dna": {
@@ -137,12 +207,18 @@
         "candidate_eligibility",
         "candidate_evaluation",
         "candidate_event_briefs",
-        "case_input",
-        "compatibility_report",
-        "facts",
+        "claim_evidence",
+        "clinical_labels",
         "novelty_precheck",
-        "story_dna",
-        "variation_candidates"
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
       ]
     },
     "sources": {
@@ -164,7 +240,21 @@
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "compatibility_report"
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
       ]
     },
     "characters": {
@@ -226,24 +316,22 @@
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "actual_timeline",
-        "beat_sheet",
         "candidate_approval",
         "candidate_eligibility",
         "candidate_evaluation",
         "candidate_event_briefs",
-        "case_input",
-        "characters",
-        "clue_matrix",
-        "compatibility_report",
-        "crime_event_contract",
-        "facts",
-        "knowledge_matrix",
+        "claim_evidence",
+        "clinical_labels",
         "novelty_precheck",
-        "relationships",
-        "story_dna",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
         "variation_candidates",
-        "viewer_timeline"
+        "verified_event_ledger",
+        "verified_fact_ledger"
       ]
     },
     "character_state_transitions": {
@@ -280,32 +368,22 @@
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "actual_timeline",
-        "audience_belief",
-        "beat_sheet",
         "candidate_approval",
         "candidate_eligibility",
         "candidate_evaluation",
         "candidate_event_briefs",
-        "case_input",
-        "character_state_transitions",
-        "characters",
-        "clue_matrix",
-        "compatibility_report",
-        "crime_event_contract",
-        "facts",
-        "hypothesis_ledger",
-        "knowledge_matrix",
+        "claim_evidence",
+        "clinical_labels",
         "novelty_precheck",
-        "panel_cast",
-        "presentation_plan",
-        "reaction_segments",
-        "relationships",
-        "retention_plan",
-        "scene_cards",
-        "story_dna",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
         "variation_candidates",
-        "viewer_timeline"
+        "verified_event_ledger",
+        "verified_fact_ledger"
       ]
     },
     "drama_script": {
@@ -327,14 +405,22 @@
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "broadcast_readable_script",
-        "draft_script",
-        "drama_script",
-        "final_script",
-        "narration_script",
-        "panel_reaction_script",
-        "reenactment_character_script",
-        "screenplay_units"
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
       ]
     },
     "screenplay_units": {
@@ -359,7 +445,7 @@
     },
     "reenactment_export_report": {
       "status": "CLEAN",
-      "content_hash": "e0ef350dd14e8c60dbb42f98c63892238572e5438fb12db44be2d204ae3aee32",
+      "content_hash": "97aaca9b89a2bdcae4df4eeebe1b22047a3ef3b74fab9d35c819ef7e17b995ed",
       "invalidated_by": []
     },
     "script_realization_report": {
@@ -416,17 +502,23 @@
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "broadcast_readable_report",
-        "broadcast_readable_script",
-        "draft_script",
-        "drama_script",
-        "expert_analysis_script",
-        "final_script",
-        "narration_script",
-        "panel_reaction_script",
-        "reenactment_character_script",
-        "screenplay_units",
-        "validation_report"
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "validation_report",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
       ]
     },
     "subtitle_script": {
@@ -446,7 +538,7 @@
     },
     "editorial_review": {
       "status": "CLEAN",
-      "content_hash": "a92c38fb665d890ac22db23f336a1f0185c68f067d7ba48e404fe2ab65b1649b",
+      "content_hash": "7afa3716594e3ffbc55e089a8422528a19eec9c7958b4d6c0fc974e64bd353bf",
       "invalidated_by": []
     },
     "broadcast_readable_script": {
@@ -456,7 +548,7 @@
     },
     "broadcast_readable_report": {
       "status": "CLEAN",
-      "content_hash": "5941226ba3490c2885dfdfe47aa542921e1faa41f81f17eeb060c2baf6a295ce",
+      "content_hash": "713b1a1e733fabfd248863f41d5c804e57d3a57ce4e3ee889beccd2f4fd210c1",
       "invalidated_by": []
     },
     "production_broadcast_readable_script": {

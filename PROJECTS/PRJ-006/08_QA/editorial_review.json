@@ -7,7 +7,7 @@
     "reviewer_id": "agent:continuity_critic",
     "role": "CONTINUITY_CRITIC"
   },
-  "reviewed_at": "2026-09-02T02:41:29Z",
+  "reviewed_at": "2026-09-02T13:34:07Z",
   "artifact_hashes": {
     "character_state_transitions": "13974071ebe7fa7ed1832da69bbba05e6401e9fb3f54b2c8e557d23664fdab74",
     "crime_event_contract": "61657c98a4c6583d2fccc0ef255368c2aa9b4d3269ba948c09cfb7195c4144ee",
@@ -15,9 +15,9 @@
     "final_script": "df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602",
     "screenplay_units": "7cd312e26e8d7d468cf0b64a1d125317edab7065f7e60ade8b78641c7679a1f5",
     "broadcast_readable_script": "a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa",
-    "broadcast_readable_report": "9232e992fe2953dd20381f7f3cc51be0b3ad5d5226f5797decf8b200c0be47fb",
+    "broadcast_readable_report": "e49fd1b2be01ff49aa4fbf597f6db1f438b795f32e61e902c7af349ae91d74c4",
     "reenactment_character_script": "0a97c9702158a3f45b6613016fea5b9d67f85e6f3316f88ea9bd80b7bd9e5618",
-    "reenactment_export_report": "9d604821e11bc0fa5541b56b0a3aa09c8a5794bf4b426d1f00f4be4f84b373c9",
+    "reenactment_export_report": "106be0136cfc2d1839b7d0313efefdb26c14232dc3e96e722073825a8eea7e2c",
     "script_realization_report": "688b6f4e749389fee8f9a8812e931ec59a55f8f25a80d27d4bd72cddde4f41ff",
     "actual_timeline": "a1ce7cf147ac6073b31b911e280418a3b830a6b7f2adfeb244016375432a485b",
     "viewer_timeline": "d52f7287a6d1aec4f81c0dd8f0feb480a13347fdecbd19325291c33e6a9a0ba0",

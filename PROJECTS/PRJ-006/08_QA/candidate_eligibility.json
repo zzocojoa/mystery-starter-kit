@@ -4,7 +4,7 @@
   "schema_version": "1.1.0",
   "project_id": "PRJ-006",
   "input_hashes": {
-    "production_config": "9ff6da97532f813fdcab1d545d3db6d50401e172c5962cc442f13764b3b6ad05",
+    "production_config": "0142db53ef13406ed2ab5422ce3c016c406dfd12edb5915edc1cd088507cc1c5",
     "project_constraints": "e143bade999c5435e6ce7720e29a665b788be1c8b5dfda8f89312416e7146855",
     "channel_dna": "0e8c853f32d5c95a5bb235efc7da9d75e28c202d404e3ae04e0367a9b653c6d6",
     "variation_candidates": "f66980ec57f733ac940cfc3a0f9bd278990bd8d77689afaae54f8842a7fc401e",
