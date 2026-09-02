@@ -26,7 +26,10 @@ from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.editorial import editorial_artifact_hashes
 from VALIDATORS.gate_transaction import task_artifact_hashes
 from VALIDATORS.io import load_json_object, write_json_object
-from VALIDATORS.pipeline import load_existing_project_artifacts
+from VALIDATORS.pipeline import (
+    load_existing_project_artifacts,
+    run_production_validation,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 PILOT_ROOT = ROOT / "PROJECTS/PRJ-006"
@@ -42,10 +45,19 @@ def task_outputs(
     overlay: dict[str, object],
 ) -> dict[str, object]:
     """PRJ-006에서 지정 CORE Task의 Staging 출력만 반환한다."""
+    return project_task_outputs(task_id, PILOT_ROOT, overlay)
+
+
+def project_task_outputs(
+    task_id: str,
+    project_path: Path,
+    overlay: dict[str, object],
+) -> dict[str, object]:
+    """지정 Project에서 CORE Task의 Staging 출력만 반환한다."""
     return core_task_outputs(
         task_id,
         ROOT,
-        PILOT_ROOT,
+        project_path,
         overlay,
         load_json_object(ROOT / "STANDARD/dependency_graph.json"),
         None,
@@ -138,9 +150,16 @@ def test_v2_tasks_are_core_with_minimum_reads_and_single_writes() -> None:
         assert task["allowed_tools"] == []
 
 
-def test_runtime_v1_dispatch_keeps_registered_output_bytes() -> None:
+def test_runtime_v1_dispatch_keeps_registered_output_bytes(tmp_path: Path) -> None:
     """별도 Config가 없는 기존 PRJ-006 Runtime은 v1 Byte를 그대로 생성한다."""
-    outputs = task_outputs("script.render_broadcast_readable", {})
+    project_path = tmp_path / "PRJ-006"
+    copytree(PILOT_ROOT, project_path)
+    (project_path / "00_PROJECT/broadcast_readable_config.json").unlink()
+    outputs = project_task_outputs(
+        "script.render_broadcast_readable",
+        project_path,
+        {},
+    )
     readable = outputs["broadcast_readable_script"]
     assert isinstance(readable, str)
     assert sha256(readable.encode("utf-8")).hexdigest() == V1_READABLE_SHA256
@@ -251,6 +270,57 @@ def test_integrated_gate_08_09_12_13_validation_passes() -> None:
     assert validation["result"] == "PASS"
     for gate_id in ("GATE-08", "GATE-09", "GATE-12", "GATE-13"):
         assert validation["gate_results"][gate_id] == "PASS"
+
+
+def test_full_production_validation_dispatches_v2_profile() -> None:
+    """전체 validate 진입점도 Gate Validator와 동일한 v2 계약을 선택한다."""
+    fixture = pilot_fixture()
+    readable, report, production_readable, manifest = generated_v2_chain(fixture)
+    graph = load_json_object(ROOT / "STANDARD/dependency_graph.json")
+    artifacts = load_existing_project_artifacts(PILOT_ROOT, graph)
+    artifacts.update(
+        {
+            "broadcast_readable_config": fixture["config"],
+            "broadcast_readable_script": readable,
+            "broadcast_readable_report": report,
+            "production_broadcast_readable_script": production_readable,
+            "production_manifest": manifest,
+        }
+    )
+    editorial_review = deepcopy(artifacts["editorial_review"])
+    assert isinstance(editorial_review, dict)
+    editorial_review["artifact_hashes"] = editorial_artifact_hashes(artifacts)
+    artifacts["editorial_review"] = editorial_review
+    production_config = artifacts["production_config"]
+    assert isinstance(production_config, dict)
+    (
+        channel,
+        story_schema,
+        fingerprint_schema,
+        presentation_schemas,
+        reference_policy,
+        thresholds,
+    ) = runtime_validation_inputs_for_project(
+        ROOT,
+        production_config,
+        artifacts,
+        None,
+    )
+
+    validation = run_production_validation(
+        artifacts,
+        channel,
+        story_schema,
+        fingerprint_schema,
+        presentation_schemas,
+        reference_policy,
+        thresholds,
+        story_history(ROOT),
+        None,
+    )
+
+    assert validation["result"] == "PASS"
+    assert validation["gate_results"]["GATE-13"] == "PASS"
 
 
 def test_manifest_copy_or_report_hash_mutation_fails() -> None:

@@ -8,11 +8,19 @@ from typing import cast
 from VALIDATORS.broadcast_readable import (
     broadcast_readable_script_issues,
     production_broadcast_readable_copy_issues,
+    production_readable_deliverable_issues,
     validate_broadcast_readable_report,
+)
+from VALIDATORS.broadcast_readable_v2 import (
+    build_broadcast_readable_report_v2,
+    validate_broadcast_readable_report_v2,
 )
 from VALIDATORS.candidate_approval import validate_candidate_approval
 from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
-from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_evaluation import (
+    document_sha256,
+    validate_candidate_evaluation,
+)
 from VALIDATORS.candidate_event_briefs import (
     approved_event_brief,
     candidate_event_brief_hashes,
@@ -863,6 +871,10 @@ def run_production_validation(
     project_manifest = artifact_document(artifacts, "project_manifest")
     compatibility = artifact_document(artifacts, "compatibility_report")
     production_config = artifact_document(artifacts, "production_config")
+    broadcast_readable_config = optional_artifact_document(
+        artifacts,
+        "broadcast_readable_config",
+    )
     project_constraints = artifact_document(artifacts, "project_constraints")
     reference_profile = artifact_document(artifacts, "reference_profile")
     variation_candidates = artifact_document(artifacts, "variation_candidates")
@@ -1580,19 +1592,40 @@ def run_production_validation(
             validated_readable_output_profile is not None
             and validated_readable_profile_hash is not None
         ):
-            gate_08.extend(
-                broadcast_readable_script_issues(
-                    production_config,
+            if validated_readable_output_profile.get("profile_version") == "2.0.0":
+                readable_v2_report = build_broadcast_readable_report_v2(
+                    broadcast_readable_config,
                     screenplay_units,
                     characters,
+                    relationships,
                     panel_cast,
                     reaction_segments,
                     presentation_plan,
+                    final_script,
                     validated_readable_output_profile,
                     validated_readable_profile_hash,
                     broadcast_readable_script,
                 )
-            )
+                readable_v2_issues = readable_v2_report.get("issues")
+                if not isinstance(readable_v2_issues, list):
+                    raise ConfigurationError(
+                        "Broadcast Readable v2 Report issues 배열이 필요합니다."
+                    )
+                gate_08.extend(cast(list[ValidationIssue], readable_v2_issues))
+            else:
+                gate_08.extend(
+                    broadcast_readable_script_issues(
+                        production_config,
+                        screenplay_units,
+                        characters,
+                        panel_cast,
+                        reaction_segments,
+                        presentation_plan,
+                        validated_readable_output_profile,
+                        validated_readable_profile_hash,
+                        broadcast_readable_script,
+                    )
+                )
     continuity_report = validate_continuity(
         production_config,
         characters,
@@ -1694,20 +1727,38 @@ def run_production_validation(
                     "08_QA/broadcast_readable_report.json",
                 )
             )
-            gate_09.extend(
-                validate_broadcast_readable_report(
-                    broadcast_readable_report,
-                    production_config,
-                    screenplay_units,
-                    characters,
-                    panel_cast,
-                    reaction_segments,
-                    presentation_plan,
-                    validated_readable_output_profile,
-                    validated_readable_profile_hash,
-                    broadcast_readable_script,
+            if validated_readable_output_profile.get("profile_version") == "2.0.0":
+                gate_09.extend(
+                    validate_broadcast_readable_report_v2(
+                        broadcast_readable_report,
+                        broadcast_readable_config,
+                        screenplay_units,
+                        characters,
+                        relationships,
+                        panel_cast,
+                        reaction_segments,
+                        presentation_plan,
+                        final_script,
+                        validated_readable_output_profile,
+                        validated_readable_profile_hash,
+                        broadcast_readable_script,
+                    )
                 )
-            )
+            else:
+                gate_09.extend(
+                    validate_broadcast_readable_report(
+                        broadcast_readable_report,
+                        production_config,
+                        screenplay_units,
+                        characters,
+                        panel_cast,
+                        reaction_segments,
+                        presentation_plan,
+                        validated_readable_output_profile,
+                        validated_readable_profile_hash,
+                        broadcast_readable_script,
+                    )
+                )
     novelty_report = evaluate_novelty(fingerprint, story_history, novelty_thresholds)
     novelty_issues = novelty_report.get("issues")
     if not isinstance(novelty_issues, list):
@@ -1887,20 +1938,48 @@ def run_production_validation(
         validated_readable_output_profile is not None
         and validated_readable_profile_hash is not None
     ):
-        gate_13.extend(
-            validate_broadcast_readable_report(
-                broadcast_readable_report,
-                production_config,
-                screenplay_units,
-                characters,
-                panel_cast,
-                reaction_segments,
-                presentation_plan,
-                validated_readable_output_profile,
-                validated_readable_profile_hash,
-                broadcast_readable_script,
+        if validated_readable_output_profile.get("profile_version") == "2.0.0":
+            gate_13.extend(
+                validate_broadcast_readable_report_v2(
+                    broadcast_readable_report,
+                    broadcast_readable_config,
+                    screenplay_units,
+                    characters,
+                    relationships,
+                    panel_cast,
+                    reaction_segments,
+                    presentation_plan,
+                    final_script,
+                    validated_readable_output_profile,
+                    validated_readable_profile_hash,
+                    broadcast_readable_script,
+                )
             )
-        )
+            gate_13.extend(
+                production_readable_deliverable_issues(
+                    production_manifest,
+                    broadcast_readable_script,
+                    production_broadcast_readable_script,
+                    document_sha256(broadcast_readable_report),
+                    "BROADCAST_READABLE_SCRIPT",
+                    "2.0.0",
+                )
+            )
+        else:
+            gate_13.extend(
+                validate_broadcast_readable_report(
+                    broadcast_readable_report,
+                    production_config,
+                    screenplay_units,
+                    characters,
+                    panel_cast,
+                    reaction_segments,
+                    presentation_plan,
+                    validated_readable_output_profile,
+                    validated_readable_profile_hash,
+                    broadcast_readable_script,
+                )
+            )
         gate_13.extend(
             production_broadcast_readable_copy_issues(
                 broadcast_readable_script,
