@@ -1,0 +1,20 @@
+{
+  "project_id": "PRJ-006",
+  "hypotheses": [
+    {
+      "hypothesis_id": "HYP-01",
+      "status": "REJECTED",
+      "claim": "박도윤이 폐장 뒤 단독으로 두 피해자를 공격했다."
+    },
+    {
+      "hypothesis_id": "HYP-02",
+      "status": "REJECTED",
+      "claim": "박도윤과 오민재가 충돌했고 강태수는 은폐만 사후에 알았다."
+    },
+    {
+      "hypothesis_id": "HYP-03",
+      "status": "CONFIRMED",
+      "claim": "강태수가 지휘하고 오민재와 박도윤이 공격·분리·기록 변경을 나눈 공동 범행이다."
+    }
+  ]
+}

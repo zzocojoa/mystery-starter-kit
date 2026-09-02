@@ -1,0 +1,168 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_evaluation.schema.json",
+  "schema_family": "candidate-evaluation",
+  "schema_version": "1.3.0",
+  "project_id": "PRJ-006",
+  "weights": {
+    "crime_event_centrality_score": 25,
+    "character_risk_conflict_score": 25,
+    "scene_realizability_score": 20,
+    "reveal_persuasion_score": 15,
+    "production_score": 15
+  },
+  "input_hashes": {
+    "variation_candidates": "f66980ec57f733ac940cfc3a0f9bd278990bd8d77689afaae54f8842a7fc401e",
+    "novelty_precheck": "b2bf148a61e0696c050b93b725f039a038ed3ac99c7ae40316558e2f3b75a207",
+    "candidate_eligibility": "a3ced6c8da0f9c67239762a12c5b80e23b9080b5f5b279b7a8427e3755851467",
+    "candidate_event_briefs": "9c024b9e656df8c0e7a0beb34f3f9795b8f4c9b6f2f23eb854e637b5a64ec14d",
+    "candidate_event_brief_var_01": "6195e9f423892f94507e6a542f97326ceffbc4c0c48d5e43cccdc572fdbd45f0",
+    "candidate_event_brief_var_02": "05a9f4b75394a9640365cad4bb340e5858eeccb71a066349e24d66c3bd383737",
+    "candidate_event_brief_var_03": "035e5d69df82190c4b909cc6478e93e7078a4defa0aa4366a3a6560fcf92629c",
+    "candidate_event_brief_var_04": "2c1da50f91326e8ea865e9aeff779a2506fac934307521ea586b4bafac2fdb7a",
+    "candidate_event_brief_var_05": "d21b8f858a18e3e57ddad35caa6d4994bc4d4ef160427235b9f2f2cd2e95821b"
+  },
+  "novelty_report_hash": "b2bf148a61e0696c050b93b725f039a038ed3ac99c7ae40316558e2f3b75a207",
+  "recommended_candidate_id": "VAR-04",
+  "evaluations": [
+    {
+      "candidate_id": "VAR-01",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "반복 주거 침입과 안전 붕괴가 중심 사건으로 명시되어 있다."
+        ],
+        "character_risk_conflict_score": [
+          "피해자의 독립 의지와 연인의 통제 동기가 직접 충돌한다."
+        ],
+        "scene_realizability_score": [
+          "젖은 우산, 흙, 열쇠 자국을 두 장소에서 촬영해야 한다."
+        ],
+        "reveal_persuasion_score": [
+          "목격과 물리 흔적이 세 공범의 역할을 분리한다."
+        ],
+        "production_score": [
+          "공범 세 명과 꽃집·주거지의 반복 촬영 부담이 있다."
+        ]
+      },
+      "crime_event_centrality_score": 88,
+      "character_risk_conflict_score": 82,
+      "scene_realizability_score": 76,
+      "reveal_persuasion_score": 80,
+      "production_score": 68,
+      "total_score": 79.9,
+      "decision": "REJECTED",
+      "decision_reason": "침입 사건은 선명하지만 다중 장소·공범 촬영 부담과 최종 책임 설득력이 추천 후보보다 낮다."
+    },
+    {
+      "candidate_id": "VAR-02",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "두 피해자의 외부 감금과 연락 차단이 장면 행동으로 고정된다."
+        ],
+        "character_risk_conflict_score": [
+          "피해자 자매의 상호 보호가 두 가해자의 분리 전략과 충돌한다."
+        ],
+        "scene_realizability_score": [
+          "빈 아파트와 복도 중심으로 감금·탈출을 구현할 수 있다."
+        ],
+        "reveal_persuasion_score": [
+          "두 시점 진술과 이웃 목격이 역할 분담을 재구성한다."
+        ],
+        "production_score": [
+          "중간 규모 Cast와 한 건물 중심 동선으로 제작 가능하다."
+        ]
+      },
+      "crime_event_centrality_score": 92,
+      "character_risk_conflict_score": 94,
+      "scene_realizability_score": 78,
+      "reveal_persuasion_score": 88,
+      "production_score": 80,
+      "total_score": 87.3,
+      "decision": "REJECTED",
+      "decision_reason": "감금 사건과 피해자 대응은 강하지만 연인 관계의 감정 압력이 사건 재구성보다 앞설 위험이 있다."
+    },
+    {
+      "candidate_id": "VAR-03",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "세 숙소의 반복 접근과 위협 메시지가 명시적 스토킹 사건을 이룬다."
+        ],
+        "character_risk_conflict_score": [
+          "정착하려는 피해자와 이동을 강제하려는 가해자의 목표가 충돌한다."
+        ],
+        "scene_realizability_score": [
+          "종이학과 직원 인터뷰를 중심으로 반복 접근을 시각화할 수 있다."
+        ],
+        "reveal_persuasion_score": [
+          "계정 접속과 선행 방문 증언이 단일 책임자를 확정한다."
+        ],
+        "production_score": [
+          "숙소 세 곳을 제한된 세트 변형으로 구현할 수 있다."
+        ]
+      },
+      "crime_event_centrality_score": 88,
+      "character_risk_conflict_score": 86,
+      "scene_realizability_score": 82,
+      "reveal_persuasion_score": 84,
+      "production_score": 86,
+      "total_score": 85.4,
+      "decision": "REJECTED",
+      "decision_reason": "스토킹 상승은 명료하지만 물리적 피해와 후반 사건 재구성의 강도가 추천 후보보다 낮다."
+    },
+    {
+      "candidate_id": "VAR-04",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "살인, 생존자 상해, 사고 위장, 세 공범 책임이 모든 Reveal의 중심이다."
+        ],
+        "character_risk_conflict_score": [
+          "내부 고발을 지키려는 두 피해자와 이를 막는 관리팀의 행동 목표가 직접 충돌한다."
+        ],
+        "scene_realizability_score": [
+          "유리 반사, 작업복 단추, 폐장 음악을 두 공간과 재구성 장면으로 구현할 수 있다."
+        ],
+        "reveal_persuasion_score": [
+          "제한된 목격을 물리 흔적과 시간 기록이 보강해 세 공범의 공동 책임을 설득한다."
+        ],
+        "production_score": [
+          "주요 인물 네 명과 수영장·관리실 두 공간으로 복합 사건을 집중 제작할 수 있다."
+        ]
+      },
+      "crime_event_centrality_score": 98,
+      "character_risk_conflict_score": 94,
+      "scene_realizability_score": 92,
+      "reveal_persuasion_score": 96,
+      "production_score": 82,
+      "total_score": 93.1,
+      "decision": "RECOMMENDED",
+      "decision_reason": "심리 추정이 아니라 살인 행동, 두 피해 결과, 공범 역할과 물리적 재구성이 가장 강하게 결속된 최고 점수 후보다."
+    },
+    {
+      "candidate_id": "VAR-05",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "공동 납치와 자유 박탈이 피해자 수색의 중심 사건이다."
+        ],
+        "character_risk_conflict_score": [
+          "무심코 이용된 주인공의 구출 선택이 두 가해자의 은폐와 충돌한다."
+        ],
+        "scene_realizability_score": [
+          "작업실, 의상 가방, 빈 극장을 이용해 이동 경로를 재구성할 수 있다."
+        ],
+        "reveal_persuasion_score": [
+          "운반 기억과 관리인 목격이 공동 책임을 교차 확인한다."
+        ],
+        "production_score": [
+          "다섯 장소와 운반 동선을 축약해야 하는 제작 부담이 있다."
+        ]
+      },
+      "crime_event_centrality_score": 94,
+      "character_risk_conflict_score": 90,
+      "scene_realizability_score": 88,
+      "reveal_persuasion_score": 90,
+      "production_score": 76,
+      "total_score": 88.5,
+      "decision": "REJECTED",
+      "decision_reason": "납치 사건은 강하지만 다섯 장소의 이동과 우연한 참여 설정이 추천 후보보다 제작·인과 부담이 크다."
+    }
+  ]
+}

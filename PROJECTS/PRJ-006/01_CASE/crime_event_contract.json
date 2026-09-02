@@ -1,0 +1,197 @@
+{
+  "$schema": "../../../STANDARD/schemas/crime_event_contract.schema.json",
+  "schema_family": "crime-event-contract",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-006",
+  "approved_candidate_id": "VAR-04",
+  "candidate_selection_sha256": "c0ca29a21b1bf385e1063a254963616aa49f597477460e934d2f8a919b7cac83",
+  "candidate_event_brief_sha256": "2c1da50f91326e8ea865e9aeff779a2506fac934307521ea586b4bafac2fdb7a",
+  "event_id": "EVENT-01",
+  "primary_crime": "MURDER",
+  "related_crimes": [],
+  "core_action_type": "MURDER",
+  "responsible_agent_structure": "COMPLICIT_GROUP",
+  "victim_structure": "MULTIPLE_VICTIMS",
+  "offender_role_slots": [
+    "OFFENDER-01",
+    "OFFENDER-02",
+    "OFFENDER-03"
+  ],
+  "victim_role_slots": [
+    "VICTIM-01",
+    "VICTIM-02"
+  ],
+  "protagonist_role_slot": "PROTAGONIST-01",
+  "role_bindings": [
+    {
+      "role_slot": "OFFENDER-01",
+      "character_id": "CHAR-01",
+      "role_type": "OFFENDER"
+    },
+    {
+      "role_slot": "OFFENDER-02",
+      "character_id": "CHAR-02",
+      "role_type": "OFFENDER"
+    },
+    {
+      "role_slot": "OFFENDER-03",
+      "character_id": "CHAR-03",
+      "role_type": "OFFENDER"
+    },
+    {
+      "role_slot": "VICTIM-01",
+      "character_id": "CHAR-04",
+      "role_type": "VICTIM"
+    },
+    {
+      "role_slot": "VICTIM-02",
+      "character_id": "CHAR-05",
+      "role_type": "VICTIM"
+    },
+    {
+      "role_slot": "PROTAGONIST-01",
+      "character_id": "CHAR-06",
+      "role_type": "PROTAGONIST"
+    }
+  ],
+  "actor_ids": [
+    "CHAR-01",
+    "CHAR-02",
+    "CHAR-03"
+  ],
+  "victim_ids": [
+    "CHAR-04",
+    "CHAR-05"
+  ],
+  "protagonist_id": "CHAR-06",
+  "relationship_context": "WORKPLACE",
+  "target_selection_reason": "두 피해자는 안전 기록 조작을 발견했고 다음 날 감사팀에 공동 보고하기로 했다.",
+  "initiating_context": "폐장 음악이 끝난 뒤 비어 있어야 할 수영장에 젖은 작업복 하나가 남는다.",
+  "trigger_event": "생존 피해자가 보지 못한 얼굴 대신 유리 벽에 비친 세 작업복 소매를 기억해 낸다.",
+  "motive_category": "DOMINATION",
+  "motive_summary": "관리 책임자와 두 공범은 안전 기록 조작을 숨기고 내부 고발을 막기 위해 피해자들을 공격한다.",
+  "non_actionable_method_summary": "세 가해자는 폐장 구역의 접근 권한을 악용해 두 피해자를 분리하고 비선정적 치명 폭력을 가한다.",
+  "immediate_harm": "두 번째 피해자는 공격 과정에서 중대한 신체 손상을 입지만 현장을 벗어난다.",
+  "lasting_harm": "첫 번째 피해자는 가해자들의 공격으로 사망한다.",
+  "concealment_or_denial": "가해자들은 폐장 사고와 단독 침입으로 꾸미고 서로 다른 시각에 퇴근했다고 진술을 맞춘다.",
+  "discovery_path": "유리 벽 반사, 사라진 작업복 단추, 폐장 음악 중단 시각을 겹쳐 세 사람의 이동이 재구성된다.",
+  "responsibility_path": "생존자의 제한된 목격과 작업복 흔적, 조작 전 안전 기록이 세 공범의 공동 책임을 확정한다.",
+  "central_pursuit_question": "폐장 수영장에서 두 내부 고발자를 공격한 세 사람은 누구인가?",
+  "harm_ids": [
+    "HARM-01",
+    "HARM-02"
+  ],
+  "harm_classifications": [
+    "FATALITY",
+    "BODILY_INJURY"
+  ],
+  "protagonist_goal": "SURVIVE_OR_ESCAPE",
+  "protagonist_risk": "HOUSEHOLD_DANGER",
+  "depiction_mode": "AFTERMATH_CAUSAL",
+  "development_functions": [
+    {
+      "development_function_id": "CDEV-001",
+      "function_type": "HARM_OR_DANGER_RECOGNITION",
+      "summary": "젖은 작업복과 중단된 음악이 폐장 사고가 아닌 공격을 가리킨다.",
+      "required": true
+    },
+    {
+      "development_function_id": "CDEV-002",
+      "function_type": "INVOLVEMENT_OR_SUSPICION",
+      "summary": "유리 반사 속 세 소매가 야간 관리팀의 개입을 좁힌다.",
+      "required": true
+    },
+    {
+      "development_function_id": "CDEV-003",
+      "function_type": "MOTIVE_AND_RESPONSIBILITY",
+      "summary": "조작 전 안전 기록이 내부 고발을 막으려 한 공동 동기를 드러낸다.",
+      "required": true
+    },
+    {
+      "development_function_id": "CDEV-004",
+      "function_type": "EVENT_RECONSTRUCTION",
+      "summary": "음악 중단과 작업복 흔적이 공격과 은폐 순서를 재구성한다.",
+      "required": true
+    }
+  ],
+  "reveal_targets": [
+    {
+      "reveal_target_id": "REVEAL-TARGET-01",
+      "target_type": "CULPRIT",
+      "summary": "관리 책임자와 두 야간 직원의 공동 개입이 밝혀진다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-02",
+      "target_type": "MOTIVE",
+      "summary": "안전 기록 조작과 내부 고발 차단 동기가 공개된다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-03",
+      "target_type": "METHOD",
+      "summary": "폐장 권한을 이용한 분리 공격과 사고 위장 순서가 재구성된다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-04",
+      "target_type": "HARM_RESULT",
+      "summary": "한 피해자의 사망과 생존 피해자의 신체 손상이 확인된다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    }
+  ],
+  "method_detail_level": "NON_ACTIONABLE_SUMMARY_ONLY",
+  "truth_basis": {
+    "source_truth_classification": "ORIGINAL_FICTION",
+    "field_evidence": {
+      "PRIMARY_CRIME": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "CULPRIT": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "MOTIVE": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "METHOD": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "HARM_RESULT": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "LEGAL_OUTCOME": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      }
+    }
+  },
+  "harms": [
+    {
+      "harm_id": "HARM-01",
+      "classification": "FATALITY",
+      "timing": "OUTCOME",
+      "victim_ids": [
+        "CHAR-04"
+      ],
+      "summary": "첫 번째 피해자는 가해자들의 공격으로 사망한다."
+    },
+    {
+      "harm_id": "HARM-02",
+      "classification": "BODILY_INJURY",
+      "timing": "IMMEDIATE",
+      "victim_ids": [
+        "CHAR-05"
+      ],
+      "summary": "두 번째 피해자는 공격 과정에서 중대한 신체 손상을 입지만 현장을 벗어난다."
+    }
+  ]
+}

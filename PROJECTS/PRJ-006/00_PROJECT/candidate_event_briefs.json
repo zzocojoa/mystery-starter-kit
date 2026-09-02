@@ -1,0 +1,779 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_event_briefs.schema.json",
+  "schema_family": "candidate-event-briefs",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-006",
+  "briefs": [
+    {
+      "candidate_id": "VAR-01",
+      "candidate_selection_sha256": "0ede53a564d0b30bc5d454a5b86771cc277f5c258ce19165a1f3d3cee0793a1a",
+      "primary_crime": "HOME_INVASION",
+      "related_crimes": [],
+      "core_action_type": "HOME_INVASION",
+      "responsible_agent_structure": "COMPLICIT_GROUP",
+      "victim_structure": "SINGLE_VICTIM",
+      "offender_role_slots": [
+        "OFFENDER-01",
+        "OFFENDER-02",
+        "OFFENDER-03"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "relationship_context": "DATING_PARTNER",
+      "target_selection_reason": "혼자 야간 꽃집을 정리하는 피해자의 일정과 열쇠 위치를 연인이 알고 있었다.",
+      "initiating_context": "폐점 뒤 꽃집 안쪽에서 매번 다른 위치에 놓인 젖은 우산과 검은 흙이 발견된다.",
+      "trigger_event": "피해자가 현관 잠금 실린더의 긁힘과 사라진 예비 열쇠를 함께 확인한다.",
+      "motive_category": "CONTROL",
+      "motive_summary": "연인은 이별을 막기 위해 공범들에게 침입과 감시를 맡겨 피해자의 독립을 꺾으려 한다.",
+      "non_actionable_method_summary": "세 사람은 넘겨받은 접근 수단과 피해자의 부재 시간을 악용해 반복 침입한다.",
+      "immediate_harm": "반복 침입으로 꽃집과 집이 안전한 공간이라는 믿음이 즉시 무너진다.",
+      "lasting_harm": "보이지 않는 감시와 재침입 가능성 때문에 피해자는 일상 동선을 바꾸고 지속적인 공포를 겪는다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "SAFETY_COLLAPSE",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "반복 침입으로 꽃집과 집이 안전한 공간이라는 믿음이 즉시 무너진다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "보이지 않는 감시와 재침입 가능성 때문에 피해자는 일상 동선을 바꾸고 지속적인 공포를 겪는다."
+        }
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "SAFETY_COLLAPSE",
+        "THREAT_OR_TRAUMA"
+      ],
+      "concealment_or_denial": "연인과 공범들은 꽃 배달 착오와 건물 점검을 핑계로 각 침입을 서로 무관한 우연처럼 꾸민다.",
+      "discovery_path": "피해자는 우산의 흙, 열쇠고리 자국, 배달원 진술을 시간 순서로 겹쳐 세 사람의 역할을 분리한다.",
+      "responsibility_path": "목격 진술과 현관 손상, 공범 간 메시지가 연인의 지시와 세 사람의 반복 접근을 함께 입증한다.",
+      "central_pursuit_question": "누가 꽃집의 비상 열쇠를 이용해 반복 침입을 지휘했는가?",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "REPEATED_ACCESS_OR_INTRUSION",
+          "summary": "폐점 뒤 젖은 우산과 흙이 반복 침입의 간격을 드러낸다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "SAFETY_COLLAPSE",
+          "summary": "피해자는 꽃집과 집 양쪽에서 접근 흔적을 발견해 안전 기반을 잃는다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "SAFETY_RESPONSE",
+          "summary": "피해자는 배달원과 이웃의 기록을 모으고 혼자 폐점하지 않기로 결정한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "OFFENDER_RESPONSIBILITY",
+          "summary": "공범 메시지와 물리 흔적이 연인의 지시 책임까지 연결한다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "젖은 우산의 주인 세 명과 지시자인 연인의 역할이 공개된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "이별을 막고 피해자의 독립을 통제하려는 동기가 드러난다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "비상 열쇠와 폐점 일정을 나눠 쓴 반복 침입 구조가 밝혀진다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "피해자의 안전 기반 붕괴와 지속적 공포가 범죄 결과로 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      }
+    },
+    {
+      "candidate_id": "VAR-02",
+      "candidate_selection_sha256": "82b8ed0f4c406460c7c9cb23071e3c3ce406bd9c4ba914f3b39efeb2c480b13d",
+      "primary_crime": "DATING_VIOLENCE",
+      "related_crimes": [
+        "CONFINEMENT"
+      ],
+      "core_action_type": "CONFINEMENT",
+      "responsible_agent_structure": "DUAL_AGENTS",
+      "victim_structure": "MULTIPLE_VICTIMS",
+      "offender_role_slots": [
+        "OFFENDER-01",
+        "OFFENDER-02"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01",
+        "VICTIM-02"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "relationship_context": "DATING_PARTNER",
+      "target_selection_reason": "연인은 피해자의 동생을 미끼로 삼으면 두 사람이 함께 약속 장소에 올 것을 알고 있었다.",
+      "initiating_context": "화해를 위한 짐 정리 요청을 받고 자매가 비어 있는 아파트에 들어간다.",
+      "trigger_event": "현관이 외부에서 다시 잠기고 연인의 친구가 복도에서 휴대전화를 회수한다.",
+      "motive_category": "CONCEALMENT",
+      "motive_summary": "두 가해자는 이전 폭력의 녹음 파일을 지우고 신고를 막기 위해 피해자들을 분리·감금한다.",
+      "non_actionable_method_summary": "가해자들은 화해 요청과 접근 권한을 이용해 두 피해자의 퇴로와 연락을 차단한다.",
+      "immediate_harm": "두 피해자는 외부 잠금으로 이동의 자유를 즉시 박탈당한다.",
+      "lasting_harm": "한 피해자는 위협과 고립 이후 연인의 연락과 빈 집을 지속적으로 두려워한다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "LIBERTY_DEPRIVATION",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01",
+            "VICTIM-02"
+          ],
+          "summary": "두 피해자는 외부 잠금으로 이동의 자유를 즉시 박탈당한다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "한 피해자는 위협과 고립 이후 연인의 연락과 빈 집을 지속적으로 두려워한다."
+        }
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "LIBERTY_DEPRIVATION",
+        "THREAT_OR_TRAUMA"
+      ],
+      "concealment_or_denial": "두 가해자는 각자 상대가 문을 잠갔다고 주장하고 녹음 파일이 원래 없었다고 부인한다.",
+      "discovery_path": "두 피해자의 서로 다른 기억, 복도 우편함의 손자국, 이웃의 문 닫힘 시각이 하나의 감금 순서로 맞춰진다.",
+      "responsibility_path": "두 시점의 진술과 물리 흔적이 연인의 유인과 친구의 외부 잠금 역할을 각각 확정한다.",
+      "central_pursuit_question": "두 피해자를 가둔 계획에서 연인과 친구는 어떤 역할을 나눴는가?",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "LIBERTY_DEPRIVATION",
+          "summary": "외부 잠금과 휴대전화 회수로 두 피해자의 이동과 연락이 차단된다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "THREAT_AND_CHOICE_CONSTRAINT",
+          "summary": "녹음 삭제를 거부하면 동생을 해치겠다는 압박이 선택을 제한한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "RESPONSE_OR_DISCOVERY",
+          "summary": "자매가 벽 너머 소리로 행동 순서를 맞춰 탈출 신호를 만든다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "HARM_OUTCOME",
+          "summary": "구조 뒤에도 피해자의 공간 공포와 연락 회피가 지속된다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-005",
+          "function_type": "VIOLENCE_OR_THREAT",
+          "summary": "과거 폭력 녹음과 현재 위협이 연속된 범죄 행동으로 드러난다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-006",
+          "function_type": "RELATIONSHIP_AND_POWER",
+          "summary": "화해 요청과 친밀한 정보가 감금 권력으로 전환된다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-007",
+          "function_type": "RESPONSE_BARRIER",
+          "summary": "피해자 분리와 연락 차단이 신고와 상호 확인을 막는다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-008",
+          "function_type": "VIOLENCE_OUTCOME",
+          "summary": "구조 후 남은 공포와 신뢰 붕괴가 피해 결과로 확인된다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "연인과 친구가 유인과 잠금을 나눠 실행한 사실이 드러난다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "이전 폭력의 녹음을 없애 신고를 막으려 한 동기가 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "화해 요청, 피해자 분리, 외부 잠금의 역할 분담이 재구성된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "두 피해자의 자유 박탈과 한 피해자의 지속적 공포가 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      }
+    },
+    {
+      "candidate_id": "VAR-03",
+      "candidate_selection_sha256": "60008836f0850b3482074b56f185ef0f4bf9cda89ad24ac3bc91a4fd3d7f0966",
+      "primary_crime": "DOMESTIC_VIOLENCE",
+      "related_crimes": [
+        "STALKING"
+      ],
+      "core_action_type": "STALKING",
+      "responsible_agent_structure": "SINGLE_AGENT",
+      "victim_structure": "SINGLE_VICTIM",
+      "offender_role_slots": [
+        "OFFENDER-01"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "relationship_context": "FAMILY_OR_HOUSEHOLD",
+      "target_selection_reason": "가해자는 가족 계정과 지인의 안부 전화를 통해 피해자의 임시 숙소와 근무 시간을 알아낸다.",
+      "initiating_context": "피해자가 숙소를 옮길 때마다 같은 종이학이 문 앞에 놓인다.",
+      "trigger_event": "세 번째 숙소의 직원이 피해자보다 먼저 도착한 가해자가 객실 번호를 물었다고 증언한다.",
+      "motive_category": "RETALIATION",
+      "motive_summary": "가해자는 별거와 신고를 배신으로 여기고 피해자가 어디에도 정착하지 못하게 보복하려 한다.",
+      "non_actionable_method_summary": "가해자는 가족 연락망과 공개된 이동 단서를 악용해 숙소 접근과 위협 메시지를 반복한다.",
+      "immediate_harm": "숙소까지 반복 접근한 흔적으로 피해자의 현재 안전 기반이 즉시 붕괴한다.",
+      "lasting_harm": "피해자는 일상 이동과 가족 연락이 다시 위치 노출로 이어질 수 있다는 지속적인 위협을 겪는다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "SAFETY_COLLAPSE",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "숙소까지 반복 접근한 흔적으로 피해자의 현재 안전 기반이 즉시 붕괴한다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "피해자는 일상 이동과 가족 연락이 다시 위치 노출로 이어질 수 있다는 지속적인 위협을 겪는다."
+        }
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "SAFETY_COLLAPSE",
+        "THREAT_OR_TRAUMA"
+      ],
+      "concealment_or_denial": "가해자는 종이학을 가족의 안부 표시라고 주장하고 각 숙소 방문을 우연한 동선이라고 꾸민다.",
+      "discovery_path": "숙소 직원들의 진술과 종이학 접힌 방향, 가족 계정 접속 시각이 반복 접근의 경로를 만든다.",
+      "responsibility_path": "피해자의 이동 직후 발생한 계정 접속과 선행 방문 증언이 단일 가해자의 추적 책임을 입증한다.",
+      "central_pursuit_question": "피해자가 숙소를 바꿀 때마다 먼저 위치를 알아낸 사람은 누구인가?",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "REPEATED_ACCESS_OR_INTRUSION",
+          "summary": "세 숙소에 같은 종이학과 선행 방문이 반복된다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "SAFETY_COLLAPSE",
+          "summary": "피해자는 새로운 숙소도 노출됐음을 확인하고 즉시 떠난다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "SAFETY_RESPONSE",
+          "summary": "직원 진술과 계정 기록을 모아 가족 연락망을 차단한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "OFFENDER_RESPONSIBILITY",
+          "summary": "접속 시각과 방문 증언이 가해자의 반복 추적을 확정한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-005",
+          "function_type": "VIOLENCE_OR_THREAT",
+          "summary": "위치 노출을 알리는 종이학과 메시지가 명시적 위협으로 바뀐다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-006",
+          "function_type": "RELATIONSHIP_AND_POWER",
+          "summary": "가족 계정과 안부 연락이 위치 통제 수단으로 악용된다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-007",
+          "function_type": "RESPONSE_BARRIER",
+          "summary": "가족이 안부라며 반복 접근을 축소해 피해자의 대응을 늦춘다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-008",
+          "function_type": "VIOLENCE_OUTCOME",
+          "summary": "피해자의 주거 불안과 이동 제한이 범죄 결과로 남는다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "가족 계정을 쓴 별거 상대가 반복 방문자였음이 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "별거와 신고에 대한 보복으로 정착을 막으려 한 동기가 드러난다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "가족 연락망과 숙소 단서를 이은 반복 추적 경로가 재구성된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "안전 기반 붕괴와 지속적인 주거 공포가 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      }
+    },
+    {
+      "candidate_id": "VAR-04",
+      "candidate_selection_sha256": "c0ca29a21b1bf385e1063a254963616aa49f597477460e934d2f8a919b7cac83",
+      "primary_crime": "MURDER",
+      "related_crimes": [],
+      "core_action_type": "MURDER",
+      "responsible_agent_structure": "COMPLICIT_GROUP",
+      "victim_structure": "MULTIPLE_VICTIMS",
+      "offender_role_slots": [
+        "OFFENDER-01",
+        "OFFENDER-02",
+        "OFFENDER-03"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01",
+        "VICTIM-02"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "relationship_context": "WORKPLACE",
+      "target_selection_reason": "두 피해자는 안전 기록 조작을 발견했고 다음 날 감사팀에 공동 보고하기로 했다.",
+      "initiating_context": "폐장 음악이 끝난 뒤 비어 있어야 할 수영장에 젖은 작업복 하나가 남는다.",
+      "trigger_event": "생존 피해자가 보지 못한 얼굴 대신 유리 벽에 비친 세 작업복 소매를 기억해 낸다.",
+      "motive_category": "DOMINATION",
+      "motive_summary": "관리 책임자와 두 공범은 안전 기록 조작을 숨기고 내부 고발을 막기 위해 피해자들을 공격한다.",
+      "non_actionable_method_summary": "세 가해자는 폐장 구역의 접근 권한을 악용해 두 피해자를 분리하고 비선정적 치명 폭력을 가한다.",
+      "immediate_harm": "두 번째 피해자는 공격 과정에서 중대한 신체 손상을 입지만 현장을 벗어난다.",
+      "lasting_harm": "첫 번째 피해자는 가해자들의 공격으로 사망한다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "FATALITY",
+          "timing": "OUTCOME",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "첫 번째 피해자는 가해자들의 공격으로 사망한다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "BODILY_INJURY",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-02"
+          ],
+          "summary": "두 번째 피해자는 공격 과정에서 중대한 신체 손상을 입지만 현장을 벗어난다."
+        }
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "FATALITY",
+        "BODILY_INJURY"
+      ],
+      "concealment_or_denial": "가해자들은 폐장 사고와 단독 침입으로 꾸미고 서로 다른 시각에 퇴근했다고 진술을 맞춘다.",
+      "discovery_path": "유리 벽 반사, 사라진 작업복 단추, 폐장 음악 중단 시각을 겹쳐 세 사람의 이동이 재구성된다.",
+      "responsibility_path": "생존자의 제한된 목격과 작업복 흔적, 조작 전 안전 기록이 세 공범의 공동 책임을 확정한다.",
+      "central_pursuit_question": "폐장 수영장에서 두 내부 고발자를 공격한 세 사람은 누구인가?",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "HARM_OR_DANGER_RECOGNITION",
+          "summary": "젖은 작업복과 중단된 음악이 폐장 사고가 아닌 공격을 가리킨다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "INVOLVEMENT_OR_SUSPICION",
+          "summary": "유리 반사 속 세 소매가 야간 관리팀의 개입을 좁힌다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "MOTIVE_AND_RESPONSIBILITY",
+          "summary": "조작 전 안전 기록이 내부 고발을 막으려 한 공동 동기를 드러낸다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "EVENT_RECONSTRUCTION",
+          "summary": "음악 중단과 작업복 흔적이 공격과 은폐 순서를 재구성한다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "관리 책임자와 두 야간 직원의 공동 개입이 밝혀진다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "안전 기록 조작과 내부 고발 차단 동기가 공개된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "폐장 권한을 이용한 분리 공격과 사고 위장 순서가 재구성된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "한 피해자의 사망과 생존 피해자의 신체 손상이 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      }
+    },
+    {
+      "candidate_id": "VAR-05",
+      "candidate_selection_sha256": "05005baab646e58b4a8ddc09eb8efc66c160fb05349f2113a619dd6021c2db6b",
+      "primary_crime": "KIDNAPPING",
+      "related_crimes": [],
+      "core_action_type": "KIDNAPPING",
+      "responsible_agent_structure": "DUAL_AGENTS",
+      "victim_structure": "SINGLE_VICTIM",
+      "offender_role_slots": [
+        "OFFENDER-01",
+        "OFFENDER-02"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "relationship_context": "NEIGHBOR",
+      "target_selection_reason": "가해자들은 피해자가 가족과 연락이 뜸하고 작업실 열쇠를 혼자 관리한다는 사실을 안다.",
+      "initiating_context": "주인공은 이웃 부탁으로 밀봉된 의상 가방을 빈 극장 창고에 옮긴다.",
+      "trigger_event": "가방 안에서 피해자의 휴대전화 진동이 들리고 두 이웃의 설명이 서로 어긋난다.",
+      "motive_category": "POSSESSION",
+      "motive_summary": "두 가해자는 피해자의 작업 성과와 계약을 빼앗고 피해자를 자신들의 통제 아래 두려 한다.",
+      "non_actionable_method_summary": "가해자들은 작업실 신뢰와 운반 부탁을 악용해 피해자의 이동 자유와 외부 연락을 차단한다.",
+      "immediate_harm": "피해자는 두 가해자에게 이동의 자유를 빼앗기고 외부와 단절된다.",
+      "lasting_harm": "감금과 소유 위협으로 피해자는 이웃과 작업 공간에 대한 지속적인 공포를 겪는다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "LIBERTY_DEPRIVATION",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "피해자는 두 가해자에게 이동의 자유를 빼앗기고 외부와 단절된다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "감금과 소유 위협으로 피해자는 이웃과 작업 공간에 대한 지속적인 공포를 겪는다."
+        }
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "LIBERTY_DEPRIVATION",
+        "THREAT_OR_TRAUMA"
+      ],
+      "concealment_or_denial": "가해자들은 피해자가 계약 문제로 자발적으로 떠났고 가방에는 의상만 있었다고 주장한다.",
+      "discovery_path": "가방 속 진동, 작업실 달력 메모, 극장 관리인의 목격을 통해 피해자의 이동 경로가 확인된다.",
+      "responsibility_path": "주인공의 운반 기억과 관리인 진술, 두 가해자의 상반된 메시지가 공동 납치 책임을 확정한다.",
+      "central_pursuit_question": "자신도 모르게 납치 경로에 이용된 주인공은 피해자를 어디서 찾아야 하는가?",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "LIBERTY_DEPRIVATION",
+          "summary": "피해자의 휴대전화와 이동 흔적이 외부 단절 상태를 보여 준다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "THREAT_AND_CHOICE_CONSTRAINT",
+          "summary": "가해자들은 피해자의 계약과 안전을 빌미로 침묵을 강요한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "RESPONSE_OR_DISCOVERY",
+          "summary": "주인공이 운반 기억과 극장 목격을 연결해 수색 방향을 바꾼다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "HARM_OUTCOME",
+          "summary": "구조된 피해자에게 감금과 공간 공포가 지속됨이 확인된다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "공유 작업실의 두 이웃이 공동 납치자임이 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "피해자의 작업 성과와 계약을 빼앗으려는 소유 동기가 드러난다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "이웃의 신뢰와 운반 부탁을 악용한 이동 경로가 재구성된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "피해자의 자유 박탈과 지속적인 공간 공포가 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      }
+    }
+  ]
+}

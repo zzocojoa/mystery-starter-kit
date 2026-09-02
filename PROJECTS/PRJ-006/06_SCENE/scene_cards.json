@@ -1,0 +1,476 @@
+{
+  "project_id": "PRJ-006",
+  "scenes": [
+    {
+      "scene_id": "SCN-01",
+      "order": 1,
+      "beat_id": "BEAT-01",
+      "estimated_seconds": 184,
+      "clue_ids": [
+        "CLUE-01",
+        "CLUE-02"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-01"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-03"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-01"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-01"
+        },
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-02"
+        },
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-02"
+        }
+      ],
+      "crime_realization": [
+        {
+          "event_id": "EVENT-01",
+          "harm_ids": [
+            "HARM-02"
+          ],
+          "actor_ids": [
+            "CHAR-01",
+            "CHAR-02",
+            "CHAR-03"
+          ],
+          "victim_ids": [
+            "CHAR-05"
+          ],
+          "development_function_ids": [
+            "CDEV-001"
+          ],
+          "realization_mode": "AFTERMATH_CAUSAL",
+          "action_evidence": "정세린이 피묻은 손으로 관리 통로를 빠져나오고 직후 살인 현장의 단추가 발견된다.",
+          "dialogue_or_behavior_evidence": "생존자가 폐장 음악이 일찍 멈췈다고 말하자 야간 관리자들이 서로 시선을 피한다.",
+          "choice_or_emotion_change": "한서윤은 사고라는 초기 설명을 거부하고 살인 사건의 흔적을 추적한다.",
+          "result_change": "중상 피해와 물리 흔적이 폐장 사고 가설을 형사 사건 가설로 바꾸다.",
+          "planned_segment_ids": [
+            "SEG-001"
+          ],
+          "expected_excerpt_anchor": "배수구 각에서 짙은 색 단추 하나가 빛난다."
+        }
+      ],
+      "location_id": "LOC-POOL",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "LOW",
+      "graphic_violence": "NON_GRAPHIC",
+      "production_complexity": "MEDIUM",
+      "summary": "중상을 입은 정세린이 폐장 수영장을 빠져나오고 중단된 음악과 단추가 살인 사건을 예고한다."
+    },
+    {
+      "scene_id": "SCN-02",
+      "order": 2,
+      "beat_id": "BEAT-02",
+      "estimated_seconds": 144,
+      "clue_ids": [
+        "CLUE-04"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-08"
+        }
+      ],
+      "location_id": "LOC-CONTROL",
+      "cast_ids": [
+        "CHAR-04",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "한서윤이 오빠의 유품에서 조작 전 안전 점검표와 짧은 음성 메모를 훼손 없이 보존한다."
+    },
+    {
+      "scene_id": "SCN-03",
+      "order": 3,
+      "beat_id": "BEAT-03",
+      "estimated_seconds": 130,
+      "clue_ids": [
+        "CLUE-01",
+        "CLUE-05"
+      ],
+      "knowledge_claims": [],
+      "location_id": "LOC-CONTROL",
+      "cast_ids": [
+        "CHAR-03",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "제어실 기록과 박도윤의 젖은 작업복이 7분의 틈과 단독범 의심을 만든다."
+    },
+    {
+      "scene_id": "SCN-04",
+      "order": 4,
+      "beat_id": "BEAT-04",
+      "estimated_seconds": 184,
+      "clue_ids": [
+        "CLUE-03"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-05"
+        },
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-05"
+        }
+      ],
+      "crime_realization": [
+        {
+          "event_id": "EVENT-01",
+          "harm_ids": [
+            "HARM-01",
+            "HARM-02"
+          ],
+          "actor_ids": [
+            "CHAR-01",
+            "CHAR-02",
+            "CHAR-03"
+          ],
+          "victim_ids": [
+            "CHAR-04",
+            "CHAR-05"
+          ],
+          "development_function_ids": [
+            "CDEV-002"
+          ],
+          "realization_mode": "IMPLIED_ACTION",
+          "action_evidence": "정세린의 제한된 회상 안에서 세 소매가 서로 다른 방향으로 움직이며 두 피해자를 분리한다.",
+          "dialogue_or_behavior_evidence": "정세린은 얼굴을 봤다는 초기 진술을 정정하고 유리 반사 안의 소매만 봤다고 명시한다.",
+          "choice_or_emotion_change": "한서윤은 불완전한 목격을 무리하게 단정하지 않고 소매의 동선만 비교한다.",
+          "result_change": "단독 행위자 가설에 세 사람의 개입 가능성이 생긴다.",
+          "planned_segment_ids": [
+            "SEG-008"
+          ],
+          "expected_excerpt_anchor": "유리 벽에는 세 방향의 소매가 순서대로 스친다."
+        }
+      ],
+      "location_id": "LOC-CONTROL",
+      "cast_ids": [
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "LOW",
+      "graphic_violence": "IMPLIED",
+      "production_complexity": "MEDIUM",
+      "summary": "정세린이 자신의 목격을 바로잡고 유리 반사 속 세 소매를 단서로 남긴다."
+    },
+    {
+      "scene_id": "SCN-05",
+      "order": 5,
+      "beat_id": "BEAT-05",
+      "estimated_seconds": 130,
+      "clue_ids": [
+        "CLUE-04",
+        "CLUE-05"
+      ],
+      "knowledge_claims": [],
+      "location_id": "LOC-CONTROL",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-03",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "젖은 작업복이 박도윤을 단독범으로 보이게 하지만 점검 기록이 그 해결을 붕괴시킨다."
+    },
+    {
+      "scene_id": "SCN-06",
+      "order": 6,
+      "beat_id": "BEAT-06",
+      "estimated_seconds": 184,
+      "clue_ids": [
+        "CLUE-02",
+        "CLUE-03"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-06"
+        }
+      ],
+      "location_id": "LOC-CONTROL",
+      "cast_ids": [
+        "CHAR-02",
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "배수구 단추와 오민재의 작업복이 맞물려 두 번째 행위자의 동선을 드러낸다."
+    },
+    {
+      "scene_id": "SCN-07",
+      "order": 7,
+      "beat_id": "BEAT-07",
+      "estimated_seconds": 130,
+      "clue_ids": [
+        "CLUE-01"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-07"
+        }
+      ],
+      "location_id": "LOC-CONTROL",
+      "cast_ids": [
+        "CHAR-03",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "음악 중단이 기억 오류가 아니라 피해자 분리 신호였음이 드러난다."
+    },
+    {
+      "scene_id": "SCN-08",
+      "order": 8,
+      "beat_id": "BEAT-08",
+      "estimated_seconds": 130,
+      "clue_ids": [
+        "CLUE-01",
+        "CLUE-02"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-08"
+        }
+      ],
+      "location_id": "LOC-CONTROL",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "LOW",
+      "graphic_violence": "NONE",
+      "production_complexity": "MEDIUM",
+      "summary": "교차 재연이 세 직원의 접촉과 공모를 관객에게 먼저 드러낸다."
+    },
+    {
+      "scene_id": "SCN-09",
+      "order": 9,
+      "beat_id": "BEAT-09",
+      "estimated_seconds": 144,
+      "clue_ids": [
+        "CLUE-03"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-01"
+        }
+      ],
+      "crime_realization": [
+        {
+          "event_id": "EVENT-01",
+          "harm_ids": [
+            "HARM-01",
+            "HARM-02"
+          ],
+          "actor_ids": [
+            "CHAR-01",
+            "CHAR-02",
+            "CHAR-03"
+          ],
+          "victim_ids": [
+            "CHAR-04",
+            "CHAR-05"
+          ],
+          "development_function_ids": [
+            "CDEV-003"
+          ],
+          "realization_mode": "IMPLIED_ACTION",
+          "action_evidence": "공격 전 제어실 회의가 재연되며 강태수가 점검표 제출을 막기 위해 두 직원의 역할을 나눈 사실이 드러난다.",
+          "dialogue_or_behavior_evidence": "강태수가 원본이 나가면 모두 끝난다며 한지석과 정세린을 따로 붙잡으라고 지시한다.",
+          "choice_or_emotion_change": "정세린은 세 소매가 단순한 반사가 아니었음을 인정하고 자신이 본 동선을 다시 그린다.",
+          "result_change": "안전 기록 조작과 내부 고발 차단이 세 공범의 공통 동기로 확정된다.",
+          "planned_segment_ids": [
+            "SEG-020"
+          ],
+          "expected_excerpt_anchor": "원본이 나가면 우린 모두 끝나."
+        }
+      ],
+      "location_id": "LOC-CONTROL",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-05"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "LOW",
+      "graphic_violence": "IMPLIED",
+      "production_complexity": "MEDIUM",
+      "summary": "생존자의 정정된 목격과 공격 전 회의 재연이 세 사람의 공통 동기를 드러낸다."
+    },
+    {
+      "scene_id": "SCN-10",
+      "order": 10,
+      "beat_id": "BEAT-10",
+      "estimated_seconds": 90,
+      "clue_ids": [
+        "CLUE-04"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-03"
+        }
+      ],
+      "crime_realization": [
+        {
+          "event_id": "EVENT-01",
+          "harm_ids": [
+            "HARM-01",
+            "HARM-02"
+          ],
+          "actor_ids": [
+            "CHAR-01",
+            "CHAR-02",
+            "CHAR-03"
+          ],
+          "victim_ids": [
+            "CHAR-04",
+            "CHAR-05"
+          ],
+          "development_function_ids": [
+            "CDEV-004"
+          ],
+          "realization_mode": "DIRECT_ACTION",
+          "action_evidence": "폐장 음악 중단, 관리 통로 차단, 수영장 공격, 점검표 교체의 순서가 비선정적 재연으로 연결된다.",
+          "dialogue_or_behavior_evidence": "세 공범이 짧은 신호에 맞춰 피해자를 분리하고 이후 각자의 진술을 단독 사고로 맞춘다.",
+          "choice_or_emotion_change": "한서윤은 점검표를 오빠의 유품으로만 보지 않고 공모 순서를 확정하는 증거로 제출한다.",
+          "result_change": "지시·공격·은폐 역할이 모두 하나의 살인 사건 안에서 재구성된다.",
+          "planned_segment_ids": [
+            "SEG-022"
+          ],
+          "expected_excerpt_anchor": "음악이 멈춘 순간, 세 사람의 시계가 같이 움직였다."
+        }
+      ],
+      "location_id": "LOC-POOL",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "MEDIUM",
+      "graphic_violence": "NON_GRAPHIC",
+      "production_complexity": "HIGH",
+      "summary": "수영장 동선 재연이 세 공범의 지시·공격·은폐 순서를 최종 복원한다."
+    },
+    {
+      "scene_id": "SCN-11",
+      "order": 11,
+      "beat_id": "BEAT-11",
+      "estimated_seconds": 90,
+      "clue_ids": [
+        "CLUE-01",
+        "CLUE-02",
+        "CLUE-03",
+        "CLUE-04"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-04"
+        }
+      ],
+      "crime_realization": [
+        {
+          "event_id": "EVENT-01",
+          "harm_ids": [
+            "HARM-01",
+            "HARM-02"
+          ],
+          "actor_ids": [
+            "CHAR-01",
+            "CHAR-02",
+            "CHAR-03"
+          ],
+          "victim_ids": [
+            "CHAR-04",
+            "CHAR-05"
+          ],
+          "development_function_ids": [
+            "CDEV-001",
+            "CDEV-003"
+          ],
+          "realization_mode": "AFTERMATH_CAUSAL",
+          "action_evidence": "재구성된 공격 결과가 한지석의 사망과 정세린의 중상으로 나란히 제시된다.",
+          "dialogue_or_behavior_evidence": "한서윤이 세 사람의 역할과 두 피해를 하나의 사건 기록으로 읽어 내고 정세린이 확인한다.",
+          "choice_or_emotion_change": "한서윤은 개인적 복수 대신 검증된 기록으로 공모 책임을 남긴다.",
+          "result_change": "살인과 생존자 상해의 인과가 닫히고 세 공범의 책임이 확정된다.",
+          "planned_segment_ids": [
+            "SEG-023"
+          ],
+          "expected_excerpt_anchor": "한 사람은 돌아오지 못했고, 한 사람은 살아서 순서를 말했다."
+        }
+      ],
+      "location_id": "LOC-CONTROL",
+      "cast_ids": [
+        "CHAR-04",
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "두 피해 결과와 세 공범의 책임을 확정하고 사건을 창작 고지와 함께 닫는다."
+    }
+  ]
+}

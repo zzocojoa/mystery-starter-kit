@@ -1,0 +1,71 @@
+{
+  "project_id": "PRJ-006",
+  "characters": [
+    {
+      "character_id": "CHAR-01",
+      "name": "강태수",
+      "role": "수영장 관리 책임자",
+      "production_role": "MAJOR",
+      "crime_role_slots": [
+        "OFFENDER-01"
+      ],
+      "goal": "안전 기록 조작과 자신의 지시 책임을 폐장 사고 뒤에 숨긴다.",
+      "secret": "직원 안전을 책임지는 얼굴 뒤에서 공동 범행과 거짓 단독범 해답을 지휘했다."
+    },
+    {
+      "character_id": "CHAR-02",
+      "name": "오민재",
+      "role": "야간 시설 직원",
+      "production_role": "MAJOR",
+      "crime_role_slots": [
+        "OFFENDER-02"
+      ],
+      "goal": "자신이 맡은 분리 공격과 출입 차단을 박도윤의 단독 행동으로 돌린다.",
+      "secret": "유리 반사 속 짙은 소매와 사라진 단추의 주인이면서 단순 지시 복종을 주장한다."
+    },
+    {
+      "character_id": "CHAR-03",
+      "name": "박도윤",
+      "role": "야간 안전 요원",
+      "production_role": "SUPPORTING",
+      "crime_role_slots": [
+        "OFFENDER-03"
+      ],
+      "goal": "폐장 음악과 안전 점검표를 바꾼 뒤 현장에 없었다는 알리바이를 유지한다.",
+      "secret": "피해자를 도우려 했다고 말하지만 단독범 의심 뒤에 세 사람의 공모를 숨긴다."
+    },
+    {
+      "character_id": "CHAR-04",
+      "name": "한지석",
+      "role": "사망한 수영 안전 점검원",
+      "production_role": "SUPPORTING",
+      "crime_role_slots": [
+        "VICTIM-01"
+      ],
+      "goal": "조작 전 안전 점검표를 감사팀에 전달한다.",
+      "secret": "점검표 사본과 짧은 녹음으로 범행 동기와 공동 책임을 밝힐 단서를 남겼다."
+    },
+    {
+      "character_id": "CHAR-05",
+      "name": "정세린",
+      "role": "생존한 야간 구조요원",
+      "production_role": "MAJOR",
+      "crime_role_slots": [
+        "VICTIM-02"
+      ],
+      "goal": "보지 못한 얼굴을 꾸며내지 않고 세 소매와 공격 순서를 정확히 증언한다.",
+      "secret": "처음에는 소매 하나만 기억한다고 믿었으나 유리 반사 속 분리된 세 움직임을 되찾는다."
+    },
+    {
+      "character_id": "CHAR-06",
+      "name": "한서윤",
+      "role": "사망 피해자의 동생이자 기록 보존사",
+      "production_role": "MAJOR",
+      "crime_role_slots": [
+        "PROTAGONIST-01"
+      ],
+      "goal": "오빠의 죽음을 추측으로 소비하지 않고 남은 기록과 생존자의 증언으로 세 사람의 책임을 입증한다.",
+      "secret": "자료의 원형 보존을 우선하며 물리 흔적과 목격 범위를 분리해 사건을 재구성한다."
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "$schema": "../../../STANDARD/schemas/clue_matrix.schema.json",
+  "schema_family": "clue-matrix",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-006",
+  "final_proof_mechanism": "WITNESS_AND_PHYSICAL_CORROBORATION",
+  "technical_dependency_level": "LOW",
+  "clues": [
+    {
+      "clue_id": "CLUE-01",
+      "role": "CORE",
+      "evidence_class": "BEHAVIORAL",
+      "independent_ground_id": "GROUND-01",
+      "supports_final_reveal": true,
+      "introduced_scene_order": 1,
+      "introduced_scene_id": "SCN-01",
+      "resolved_scene_order": 7,
+      "resolved_scene_id": "SCN-07",
+      "description": "공식 시각보다 일찍 끊긴 폐장 음악",
+      "reveal_mode": "SEEDED_REINTERPRETATION",
+      "surface_meaning": "사건 충격으로 음악 종료 시각을 잘못 기억했다.",
+      "actual_meaning": "박도윤이 피해자 분리 신호로 음악을 끊고 기록 시각을 뒤로 옮겼다.",
+      "first_seen_scene_id": "SCN-01",
+      "reveal_scene_id": "SCN-07",
+      "recontextualized_scene_ids": [
+        "SCN-01",
+        "SCN-03"
+      ]
+    },
+    {
+      "clue_id": "CLUE-02",
+      "role": "CORE",
+      "evidence_class": "PHYSICAL_OBJECT",
+      "independent_ground_id": "GROUND-02",
+      "supports_final_reveal": true,
+      "introduced_scene_order": 1,
+      "introduced_scene_id": "SCN-01",
+      "resolved_scene_order": 6,
+      "resolved_scene_id": "SCN-06",
+      "description": "관리 통로 배수구 옆의 짙은 작업복 단추",
+      "reveal_mode": "SEEDED_REINTERPRETATION",
+      "surface_meaning": "폐장 작업 중 오래된 작업복에서 떨어진 단추다.",
+      "actual_meaning": "오민재가 정세린의 퇴로를 막은 관리 통로에 있었음을 보여 준다.",
+      "first_seen_scene_id": "SCN-01",
+      "reveal_scene_id": "SCN-06",
+      "recontextualized_scene_ids": [
+        "SCN-01"
+      ]
+    },
+    {
+      "clue_id": "CLUE-03",
+      "role": "CORE",
+      "evidence_class": "TESTIMONIAL",
+      "independent_ground_id": "GROUND-03",
+      "supports_final_reveal": true,
+      "introduced_scene_order": 4,
+      "introduced_scene_id": "SCN-04",
+      "resolved_scene_order": 9,
+      "resolved_scene_id": "SCN-09",
+      "description": "정세린이 유리 벽에서 본 분리된 세 작업복 소매",
+      "reveal_mode": "SEEDED_REINTERPRETATION",
+      "surface_meaning": "하나의 짙은 소매가 여러 유리 면에 반복 반사됐다.",
+      "actual_meaning": "서로 다른 방향으로 움직인 세 소매가 세 가해자의 역할 분담을 보여 준다.",
+      "first_seen_scene_id": "SCN-04",
+      "reveal_scene_id": "SCN-09",
+      "recontextualized_scene_ids": [
+        "SCN-04",
+        "SCN-06"
+      ]
+    },
+    {
+      "clue_id": "CLUE-04",
+      "role": "CORE",
+      "evidence_class": "DOCUMENTARY",
+      "independent_ground_id": "GROUND-04",
+      "supports_final_reveal": true,
+      "introduced_scene_order": 2,
+      "introduced_scene_id": "SCN-02",
+      "resolved_scene_order": 10,
+      "resolved_scene_id": "SCN-10",
+      "description": "한지석이 남긴 조작 전 안전 점검표 사본",
+      "reveal_mode": "SEEDED_REINTERPRETATION",
+      "surface_meaning": "폐장 전 고장 항목을 정리한 평범한 점검표다.",
+      "actual_meaning": "강태수가 숨긴 안전 기록 조작과 내부 고발 차단 동기를 증명한다.",
+      "first_seen_scene_id": "SCN-02",
+      "reveal_scene_id": "SCN-10",
+      "recontextualized_scene_ids": [
+        "SCN-02",
+        "SCN-05"
+      ]
+    },
+    {
+      "clue_id": "CLUE-05",
+      "role": "RED_HERRING",
+      "evidence_class": "PHYSICAL_OBJECT",
+      "independent_ground_id": "GROUND-05",
+      "supports_final_reveal": false,
+      "introduced_scene_order": 3,
+      "introduced_scene_id": "SCN-03",
+      "resolved_scene_order": 5,
+      "resolved_scene_id": "SCN-05",
+      "description": "박도윤 사물함에 남은 젖은 작업복",
+      "content": "단독범처럼 보이지만 정상 폐장 점검 때 젖은 작업복이다.",
+      "first_interpretation": "박도윤이 수영장 공격 현장에 혼자 있었다.",
+      "true_meaning": "강태수가 박도윤에게 단독 의심이 모이도록 작업복을 남겼다."
+    }
+  ]
+}

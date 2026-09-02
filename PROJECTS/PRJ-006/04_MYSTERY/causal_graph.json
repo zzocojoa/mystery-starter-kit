@@ -1,0 +1,202 @@
+{
+  "project_id": "PRJ-006",
+  "nodes": [
+    {
+      "node_id": "ROOT-01",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-01"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [],
+      "type": "ROOT_CAUSE"
+    },
+    {
+      "node_id": "MOTIVE-01",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [],
+      "type": "MOTIVE_OR_TRIGGER"
+    },
+    {
+      "node_id": "CRIME-01",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "type": "CRIME_EVENT"
+    },
+    {
+      "node_id": "HARMNODE-01",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "type": "HARM_RESULT"
+    },
+    {
+      "node_id": "DENIAL-01",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "type": "CONCEALMENT_OR_DENIAL"
+    },
+    {
+      "node_id": "DISCOVERY-01",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "type": "DISCOVERY_PATH"
+    },
+    {
+      "node_id": "RESPONSIBILITY-01",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "type": "RESPONSIBILITY_CONFIRMATION"
+    },
+    {
+      "node_id": "RESOLUTION-01",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "type": "RESOLUTION"
+    }
+  ],
+  "edges": [
+    {
+      "from": "ROOT-01",
+      "to": "MOTIVE-01"
+    },
+    {
+      "from": "MOTIVE-01",
+      "to": "CRIME-01"
+    },
+    {
+      "from": "CRIME-01",
+      "to": "HARMNODE-01"
+    },
+    {
+      "from": "HARMNODE-01",
+      "to": "DENIAL-01"
+    },
+    {
+      "from": "DENIAL-01",
+      "to": "DISCOVERY-01"
+    },
+    {
+      "from": "DISCOVERY-01",
+      "to": "RESPONSIBILITY-01"
+    },
+    {
+      "from": "RESPONSIBILITY-01",
+      "to": "RESOLUTION-01"
+    }
+  ],
+  "fingerprint": {
+    "root_cause": "관리 책임자가 안전 기록 조작과 내부 고발을 막으려 세 직원의 공모를 조직했다.",
+    "mechanism": "폐장 접근 권한을 악용해 두 피해자를 분리 공격하고 살인과 중상 피해를 만들었다.",
+    "concealment": "폐장 음악 시각과 점검표를 바꾸고 한 직원의 단독 사고처럼 진술을 맞췄다.",
+    "discovery_path": "유리 반사 목격을 소매 단추, 음악 중단 시각, 원본 점검표와 교차해 역할을 재구성했다.",
+    "resolution": "세 사람의 지시·공격·은폐 책임이 독립된 물리 흔적과 제한된 목격으로 확정됐다."
+  },
+  "semantic_normalization": {
+    "normalized_roles": [
+      "DIRECTING_OFFENDER",
+      "COMPLICIT_OFFENDERS",
+      "DECEASED_WHISTLEBLOWER",
+      "SURVIVING_WITNESS",
+      "FAMILY_INVESTIGATOR"
+    ],
+    "character_function_chain": [
+      "DISCOVERED_MANIPULATION",
+      "PLANNED_REPORT",
+      "SEPARATED_VICTIMS",
+      "COMMITTED_ATTACK",
+      "STAGED_ACCIDENT",
+      "PRESERVED_EVIDENCE",
+      "RECONSTRUCTED_ROLES"
+    ],
+    "audience_hypothesis_transitions": [
+      "SINGLE_OFFENDER",
+      "SECOND_ACTOR_DISCOVERED",
+      "MANAGER_COVERUP_ONLY",
+      "THREE_PERSON_COLLUSION_CONFIRMED"
+    ]
+  }
+}

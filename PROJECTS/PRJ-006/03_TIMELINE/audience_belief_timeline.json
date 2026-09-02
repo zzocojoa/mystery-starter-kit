@@ -1,0 +1,150 @@
+{
+  "project_id": "PRJ-006",
+  "belief_states": [
+    {
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "belief": "박도윤이 폐장 뒤 단독으로 두 피해자를 공격했을 수 있다.",
+      "confidence": 0.55,
+      "known_fact_ids": [
+        "FACT-02"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01"
+      ]
+    },
+    {
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "belief": "한지석이 남긴 원본 점검표는 사건의 표적을 설명할 수 있지만 행위자를 곧바로 특정하지는 못한다.",
+      "confidence": 0.58,
+      "known_fact_ids": [
+        "FACT-02",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01"
+      ]
+    },
+    {
+      "scene_id": "SCN-03",
+      "scene_order": 3,
+      "belief": "음악 기록의 7분 차이는 사건 시각이 인위적으로 바뀐 가능성을 연다.",
+      "confidence": 0.62,
+      "known_fact_ids": [
+        "FACT-02",
+        "FACT-07",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01"
+      ]
+    },
+    {
+      "scene_id": "SCN-04",
+      "scene_order": 4,
+      "belief": "소매 하나라는 기억은 얼굴 식별이 아니며 다른 행위자를 배제하지 못한다.",
+      "confidence": 0.45,
+      "known_fact_ids": [
+        "FACT-02",
+        "FACT-05",
+        "FACT-07",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-06",
+      "scene_order": 6,
+      "belief": "오민재의 단추가 발견되어 최소 두 명이 공격 동선에 있었다.",
+      "confidence": 0.72,
+      "known_fact_ids": [
+        "FACT-02",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02",
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-08",
+      "scene_order": 8,
+      "belief": "세 사람은 접근·분리·기록 변경 역할을 나눠 공동 범행을 실행했다.",
+      "confidence": 0.88,
+      "known_fact_ids": [
+        "FACT-02",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-09",
+      "scene_order": 9,
+      "belief": "원본 점검표의 유출을 막으려는 동기가 세 사람의 역할 분담을 하나의 공모로 묶는다.",
+      "confidence": 0.94,
+      "known_fact_ids": [
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "belief": "음악 중단부터 피해자 분리·공격·기록 교체까지의 순서가 계획된 공동 살인 행위를 확정한다.",
+      "confidence": 0.98,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-11",
+      "scene_order": 11,
+      "belief": "강태수가 지휘하고 오민재와 박도윤이 실행·은폐한 공동 살인 사건이다.",
+      "confidence": 1.0,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03"
+      ]
+    }
+  ]
+}

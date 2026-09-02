@@ -1,0 +1,34 @@
+{
+  "project_id": "PRJ-006",
+  "title_working": "폐장 음악이 멈춘 7분",
+  "source_type": "FICTION",
+  "central_mystery": "폐장 수영장에서 두 내부 고발자를 공격한 세 사람은 누구인가?",
+  "final_truth": "관리 책임자와 두 야간 직원은 안전 기록 조작을 숨기려고 두 내부 고발자를 분리 공격하고 폐장 사고로 위장했다.",
+  "causal_truth": "생존 피해자가 유리 벽에 비친 세 작업복 소매를 기억한 뒤, 폐장 구역 접근 권한을 악용한 세 사람의 분리 공격과 사고 위장이 드러난다.",
+  "incident_type": "MURDER",
+  "setting": "PUBLIC_SPACE",
+  "primary_crime": "MURDER",
+  "responsible_agent_structure": "COMPLICIT_GROUP",
+  "responsible_actor_ids": [
+    "CHAR-01",
+    "CHAR-02",
+    "CHAR-03"
+  ],
+  "victim_ids": [
+    "CHAR-04",
+    "CHAR-05"
+  ],
+  "motive_summary": "관리 책임자와 두 공범은 안전 기록 조작을 숨기고 내부 고발을 막기 위해 피해자들을 공격한다.",
+  "crime_method_summary": "세 가해자는 폐장 구역의 접근 권한을 악용해 두 피해자를 분리하고 비선정적 치명 폭력을 가한다.",
+  "harm_result": "두 번째 피해자는 공격 과정에서 중대한 신체 손상을 입지만 현장을 벗어난다. / 첫 번째 피해자는 가해자들의 공격으로 사망한다.",
+  "final_case_truth": "생존자의 제한된 목격과 작업복 흔적, 조작 전 안전 기록이 세 공범의 공동 책임을 확정한다.",
+  "culprit": "관리 책임자 강태수와 야간 직원 오민재·박도윤",
+  "culprit_motive": "안전 기록 조작과 내부 고발을 막아 지위와 계약을 지키려는 지배 욕구",
+  "legal_outcome": "세 가해자의 공동 책임이 수사기관에 제출되며 최종 법적 판단은 작품 밖에 남긴다.",
+  "restrictions": [
+    "범행 수법을 실행 가능한 단계로 설명하지 않는다.",
+    "사망과 상해를 선정적으로 묘사하지 않는다.",
+    "생존 피해자의 제한된 목격을 추정으로 보충하지 않는다.",
+    "심리 진단이나 외부 실화 출처를 사용하지 않는다."
+  ]
+}
