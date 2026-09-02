@@ -51,8 +51,6 @@ Runtime 시작 시 JSON Schema뿐 아니라 Task가 Agent Manifest 권한을 넓
 
 새 Scaffold는 `SCREENPLAY_UNITS` mode와 고정 Reenactment Output Profile을 사용한다. GATE-06의 LLM은 Character State Transition만, GATE-08의 LLM은 Canonical Screenplay Unit만 작성한다. 이후 `script.render_screenplay_layers → script.render_broadcast_master → script.render_reenactment_export`는 CORE이며, Trace Marker와 파생 Markdown을 LLM 권한 밖에서 생성한다. GATE-09의 `continuity.validate_reenactment`는 Unit·Cast·Relationship·Event/Harm·Clue/Reveal·Profile·Broadcast Hash로 Report를 재구성하고, GATE-13의 `production.package_reenactment`는 검증된 원문을 byte-identical 사본으로만 전달한다.
 
-`broadcast_readable_script.md`는 이 Gate 경로와 분리된 사람용 Companion View다. 명시적 `render-broadcast-readable` 명령이 같은 Canonical Screenplay Unit, Character, Panel, Reaction, Presentation JSON을 읽고 Source-style 장면 Context, 실제 인물 이름과 Canonical Panel 발화를 결정론적으로 표시한다. 이 View는 `artifact_contracts.json`, Dependency Graph, Runtime Task, Project State에 등록하지 않으며 Broadcast Master의 Marker 문법이나 기존 Renderer를 변경하지 않는다. 따라서 검토 편의 형식이 Production Artifact의 소유권·검증·Byte 동일성 경계를 넓히지 않는다.
-
 선택적인 재연극 Runtime target/tolerance는 방송 전체 Runtime과 독립적으로 검증한다. GATE-09 Report는 Output Profile에 포함된 Unit이 결속된 Segment와 제외 Segment, 계획시간을 기록하고, GATE-13 Editorial evidence는 Report 입력 Hash와 측정 방법에 결속된다. 추정은 `WORD_COUNT_ESTIMATE`, 실측은 `TABLE_READ` 또는 `RECORDED_AUDIO`로 구분하며 Unit 변경 뒤 기존 측정을 사용할 수 없다.
 
 기존 Production Config에 `script_source_mode`가 없으면 `LEGACY_MARKDOWN`으로 평가해 `script.write_layers → script.integrate`를 유지한다. 두 경로는 Task Condition으로 상호 배타적이며 같은 Gate 안의 LLM→CORE 전환도 하나의 Staging Overlay에 남아 Gate PASS 전에는 Canonical 중간 Artifact를 Commit하지 않는다.

@@ -6,12 +6,10 @@ import sys
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from datetime import UTC, datetime
-from hashlib import sha256
 from pathlib import Path
 from typing import cast
 from uuid import uuid4
 
-from RUNTIME.broadcast_readable_renderer import render_broadcast_readable_script
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.human_inputs import submit_evidence_input
 from RUNTIME.models import RuntimeApproval
@@ -57,7 +55,6 @@ from VALIDATORS.editorial import (
 from VALIDATORS.exceptions import (
     ConfigurationError,
     GateTransactionError,
-    OutputFileWriteError,
     StarterKitError,
 )
 from VALIDATORS.gate_transaction import (
@@ -306,12 +303,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Story와 Script를 보존하며 Legacy v1.1 Project 계약을 이전합니다.",
     )
     legacy_migrate_parser.add_argument("project_path", type=Path)
-
-    readable_parser = subparsers.add_parser(
-        "render-broadcast-readable",
-        help="Canonical JSON에서 사람이 읽는 방송 대본 View를 생성합니다.",
-    )
-    readable_parser.add_argument("project_path", type=Path)
     return parser
 
 
@@ -1973,90 +1964,6 @@ def run_production_finalize(args: argparse.Namespace) -> int:
     return 0
 
 
-def project_file_bytes(path: Path, label: str) -> bytes:
-    """불변성 검사용 Project 파일을 구체적인 오류와 함께 읽는다."""
-    try:
-        return path.read_bytes()
-    except FileNotFoundError as error:
-        raise ConfigurationError(
-            f"{label} 파일을 찾을 수 없습니다: path={path}"
-        ) from error
-    except PermissionError as error:
-        raise ConfigurationError(
-            f"{label} 파일 읽기 권한이 없습니다: path={path}"
-        ) from error
-    except OSError as error:
-        raise ConfigurationError(
-            f"{label} 파일을 읽지 못했습니다: path={path}, detail={error}"
-        ) from error
-
-
-def run_render_broadcast_readable(args: argparse.Namespace) -> int:
-    """Canonical JSON만 사용해 별도 사람용 Broadcast View를 기록한다."""
-    project_path = args.project_path
-    config = load_json_object(project_path / "00_PROJECT" / "production_config.json")
-    if config.get("script_source_mode") != "SCREENPLAY_UNITS":
-        raise ConfigurationError(
-            "render-broadcast-readable은 SCREENPLAY_UNITS Project만 지원합니다: "
-            f"project_path={project_path}, script_source_mode="
-            f"{config.get('script_source_mode')}"
-        )
-    config_project_id = config.get("project_id")
-    if not isinstance(config_project_id, str) or not config_project_id.strip():
-        raise ConfigurationError(
-            "production_config.project_id는 비어 있지 않은 문자열이어야 합니다: "
-            f"project_path={project_path}"
-        )
-    screenplay_units = load_json_object(
-        project_path / "07_SCRIPT" / "screenplay_units.json"
-    )
-    if screenplay_units.get("project_id") != config_project_id:
-        raise ConfigurationError(
-            "Readable Broadcast 입력의 Project ID가 Production Config와 다릅니다: "
-            f"config={config_project_id}, "
-            f"screenplay_units={screenplay_units.get('project_id')}"
-        )
-    final_script_path = project_path / "07_SCRIPT" / "final_script.md"
-    final_script_before = project_file_bytes(final_script_path, "Broadcast Master")
-    rendered = render_broadcast_readable_script(
-        screenplay_units,
-        load_json_object(project_path / "02_CHARACTER" / "characters.json"),
-        load_json_object(project_path / "06_SCENE" / "panel_cast.json"),
-        load_json_object(project_path / "06_SCENE" / "reaction_segments.json"),
-        load_json_object(project_path / "06_SCENE" / "presentation_plan.json"),
-    )
-    output_path = project_path / "07_SCRIPT" / "broadcast_readable_script.md"
-    try:
-        output_path.write_text(rendered, encoding="utf-8", newline="\n")
-    except PermissionError as error:
-        raise OutputFileWriteError(
-            f"Readable Broadcast 쓰기 권한이 없습니다: path={output_path}"
-        ) from error
-    except OSError as error:
-        raise OutputFileWriteError(
-            f"Readable Broadcast를 쓰지 못했습니다: path={output_path}, detail={error}"
-        ) from error
-    final_script_after = project_file_bytes(final_script_path, "Broadcast Master")
-    if final_script_after != final_script_before:
-        raise ConfigurationError(
-            "Readable Broadcast 생성 중 기존 Broadcast Master Byte가 변경되었습니다: "
-            f"path={final_script_path}"
-        )
-    print(
-        json.dumps(
-            {
-                "project_id": config_project_id,
-                "output": str(output_path),
-                "output_sha256": sha256(rendered.encode("utf-8")).hexdigest(),
-                "final_script_sha256": sha256(final_script_after).hexdigest(),
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-    )
-    return 0
-
-
 def run_cli(argv: Sequence[str]) -> int:
     """테스트 가능한 인자 배열로 통합 CLI를 실행한다."""
     parser = build_parser()
@@ -2104,8 +2011,6 @@ def run_cli(argv: Sequence[str]) -> int:
             return run_migrate_channel_pin(args)
         if args.command == "migrate-legacy-v1-1":
             return run_migrate_legacy_v1_1(args)
-        if args.command == "render-broadcast-readable":
-            return run_render_broadcast_readable(args)
         raise ConfigurationError(f"알 수 없는 명령입니다: command={args.command}")
     except StarterKitError as error:
         print(f"ERROR: {error}", file=sys.stderr)
