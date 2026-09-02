@@ -9,9 +9,22 @@ import pytest
 from jsonschema import Draft202012Validator
 
 from RUNTIME.broadcast_readable_renderer import render_broadcast_readable_script
+from RUNTIME.contracts import load_artifact_contracts, load_task_catalog
+from RUNTIME.planner import task_condition_matches
+from VALIDATORS.dependency import (
+    artifact_hash,
+    artifact_required_for_project,
+    build_initial_project_state,
+    dependency_artifacts,
+    invalidate_artifact_dependents,
+)
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object
-from VALIDATORS.output_profiles import resolve_broadcast_readable_output_profile
+from VALIDATORS.output_profiles import (
+    broadcast_readable_activation_mode,
+    resolve_active_broadcast_readable_output_profile,
+    resolve_broadcast_readable_output_profile,
+)
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.version_immutability import output_profile_version_mutations
 
@@ -42,6 +55,25 @@ V2_SCHEMA_PATH = ROOT / V2_SCHEMA_RELATIVE_PATH
 REENACTMENT_PROFILE_RELATIVE_PATH = (
     "CHANNELS/mystery_main/output_profiles/reenactment-character-script/1.0.0.json"
 )
+CONFIG_SCHEMA_PATH = ROOT / "STANDARD/schemas/broadcast_readable_config.schema.json"
+PRODUCTION_CONFIG_SCHEMA_PATH = ROOT / "STANDARD/schemas/production_config.schema.json"
+TEMPLATE_CONFIG_PATH = ROOT / "TEMPLATES/PROJECT/00_PROJECT/production_config.json"
+DEPENDENCY_GRAPH_PATH = ROOT / "STANDARD/dependency_graph.json"
+
+
+def readable_config(enabled: bool) -> dict[str, object]:
+    """활성 여부에 맞는 v2 Readable Config Fixture를 반환한다."""
+    document: dict[str, object] = {
+        "$schema": "../../../STANDARD/schemas/broadcast_readable_config.schema.json",
+        "schema_family": "broadcast-readable-config",
+        "schema_version": "1.0.0",
+        "project_id": "PRJ-006",
+        "enabled": enabled,
+    }
+    if enabled:
+        document["profile_id"] = "BROADCAST_READABLE_SCRIPT"
+        document["profile_version"] = "2.0.0"
+    return document
 
 
 def v2_production_config() -> dict[str, object]:
@@ -280,3 +312,222 @@ def test_v2_registry_entry_mutation_is_detected(tmp_path: Path) -> None:
         "CHANNELS/mystery_main/output_profiles/registry.json#profiles."
         "BROADCAST_READABLE_SCRIPT@2.0.0"
     ]
+
+
+def test_v2_config_schema_accepts_explicit_enable_and_disable() -> None:
+    """별도 Config는 v2 Opt-in 또는 명시적 비활성만 표현한다."""
+    schema = load_json_object(CONFIG_SCHEMA_PATH)
+    Draft202012Validator.check_schema(schema)
+
+    assert collect_schema_errors(readable_config(True), schema, "enabled") == []
+    assert collect_schema_errors(readable_config(False), schema, "disabled") == []
+    invalid = readable_config(True)
+    invalid["profile_version"] = "1.0.0"
+    assert collect_schema_errors(invalid, schema, "invalid version")
+
+
+def test_activation_priority_supports_v2_v1_and_inactive_paths() -> None:
+    """v2 Config가 우선하고 없을 때만 v1 Pin Pair를 사용한다."""
+    v1_config = load_json_object(PILOT_ROOT / "00_PROJECT/production_config.json")
+    no_pins = deepcopy(v1_config)
+    no_pins.pop("broadcast_readable_output_profile_id")
+    no_pins.pop("broadcast_readable_output_profile_version")
+
+    assert broadcast_readable_activation_mode(no_pins, {}) == "DISABLED"
+    assert broadcast_readable_activation_mode(v1_config, {}) == "V1_COMPATIBILITY"
+    legacy_with_pins = deepcopy(v1_config)
+    legacy_with_pins["script_source_mode"] = "LEGACY_MARKDOWN"
+    assert broadcast_readable_activation_mode(legacy_with_pins, {}) == "DISABLED"
+    assert broadcast_readable_activation_mode(
+        v1_config,
+        {"broadcast_readable_config": readable_config(True)},
+    ) == "V2_CONFIG"
+    assert broadcast_readable_activation_mode(
+        v1_config,
+        {"broadcast_readable_config": readable_config(False)},
+    ) == "DISABLED"
+    resolved = resolve_active_broadcast_readable_output_profile(
+        ROOT,
+        v1_config,
+        {"broadcast_readable_config": readable_config(True)},
+    )
+    assert resolved is not None
+    assert resolved["profile_version"] == "2.0.0"
+
+
+def test_runtime_tasks_follow_v2_v1_and_inactive_activation() -> None:
+    """GATE-08·09·13 Task가 동일한 명시적 활성화 규칙을 따른다."""
+    tasks = load_task_catalog(ROOT)
+    no_pins = load_json_object(TEMPLATE_CONFIG_PATH)
+    v1_config = deepcopy(no_pins)
+    v1_config["broadcast_readable_output_profile_id"] = (
+        "BROADCAST_READABLE_SCRIPT"
+    )
+    v1_config["broadcast_readable_output_profile_version"] = "1.0.0"
+    legacy_with_pins = deepcopy(v1_config)
+    legacy_with_pins["script_source_mode"] = "LEGACY_MARKDOWN"
+    enabled_artifacts = {"broadcast_readable_config": readable_config(True)}
+    disabled_artifacts = {"broadcast_readable_config": readable_config(False)}
+
+    for task_id in (
+        "script.render_broadcast_readable",
+        "continuity.validate_broadcast_readable",
+        "production.package_broadcast_readable",
+    ):
+        condition = tasks[task_id]["condition"]
+        assert not task_condition_matches(condition, no_pins, {}, {})
+        assert task_condition_matches(condition, v1_config, {}, {})
+        assert not task_condition_matches(condition, legacy_with_pins, {}, {})
+        assert task_condition_matches(condition, no_pins, {}, enabled_artifacts)
+        assert not task_condition_matches(condition, v1_config, {}, disabled_artifacts)
+
+
+def test_config_artifact_uses_strict_atomic_contract() -> None:
+    """별도 Config Artifact가 전용 Schema와 원자 Commit에 결속된다."""
+    contract = load_artifact_contracts(ROOT)["broadcast_readable_config"]
+
+    assert contract == {
+        "media_type": "application/json",
+        "schema": "STANDARD/schemas/broadcast_readable_config.schema.json",
+        "validators": [],
+        "commit_policy": "ATOMIC_ON_PASS",
+        "max_bytes": 262144,
+    }
+
+
+def test_disabled_v2_config_overrides_existing_v1_pins() -> None:
+    """명시적 비활성 Config는 기존 v1 Pin의 암묵적 실행을 차단한다."""
+    production_config = load_json_object(
+        PILOT_ROOT / "00_PROJECT/production_config.json"
+    )
+
+    assert resolve_active_broadcast_readable_output_profile(
+        ROOT,
+        production_config,
+        {"broadcast_readable_config": readable_config(False)},
+    ) is None
+
+
+def test_partial_v1_pin_pair_fails_activation() -> None:
+    """Config가 없을 때 불완전한 v1 Pair는 비활성으로 숨기지 않는다."""
+    config = load_json_object(PILOT_ROOT / "00_PROJECT/production_config.json")
+    config.pop("broadcast_readable_output_profile_version")
+
+    with pytest.raises(
+        ConfigurationError,
+        match="BROADCAST_READABLE_PROFILE_PIN_MISSING",
+    ):
+        broadcast_readable_activation_mode(config, {})
+
+
+def test_v2_config_project_mismatch_fails() -> None:
+    """별도 Config가 다른 Project를 가리키면 해석을 중단한다."""
+    production_config = load_json_object(
+        PILOT_ROOT / "00_PROJECT/production_config.json"
+    )
+    config = readable_config(True)
+    config["project_id"] = "PRJ-999"
+
+    with pytest.raises(ConfigurationError, match="BROADCAST_READABLE_CONFIG_INVALID"):
+        resolve_active_broadcast_readable_output_profile(
+            ROOT,
+            production_config,
+            {"broadcast_readable_config": config},
+        )
+
+
+def test_new_screenplay_template_does_not_enable_readable_v2() -> None:
+    """신규 Scaffold의 Screenplay mode는 Readable을 자동 활성화하지 않는다."""
+    template = load_json_object(TEMPLATE_CONFIG_PATH)
+    schema = load_json_object(PRODUCTION_CONFIG_SCHEMA_PATH)
+
+    assert collect_schema_errors(template, schema, str(TEMPLATE_CONFIG_PATH)) == []
+    assert "broadcast_readable_output_profile_id" not in template
+    assert "broadcast_readable_output_profile_version" not in template
+    assert broadcast_readable_activation_mode(template, {}) == "DISABLED"
+
+
+def test_production_config_allows_only_atomic_optional_v1_pin_pair() -> None:
+    """SCREENPLAY_UNITS에서 v1 Readable Pair는 선택 사항이지만 원자적이다."""
+    schema = load_json_object(PRODUCTION_CONFIG_SCHEMA_PATH)
+    without_pins = load_json_object(TEMPLATE_CONFIG_PATH)
+    partial = deepcopy(without_pins)
+    partial["broadcast_readable_output_profile_id"] = "BROADCAST_READABLE_SCRIPT"
+    complete = deepcopy(partial)
+    complete["broadcast_readable_output_profile_version"] = "1.0.0"
+
+    assert collect_schema_errors(without_pins, schema, "without pins") == []
+    assert collect_schema_errors(partial, schema, "partial pins")
+    assert collect_schema_errors(complete, schema, "complete pins") == []
+
+
+def test_readable_requiredness_uses_config_or_v1_compatibility_pair() -> None:
+    """Readable Artifact 필수성은 별도 Config와 v1 fallback만 따른다."""
+    graph = load_json_object(DEPENDENCY_GRAPH_PATH)
+    definition = dependency_artifacts(graph)["broadcast_readable_script"]
+    no_pins = load_json_object(TEMPLATE_CONFIG_PATH)
+    v1_config = deepcopy(no_pins)
+    v1_config["broadcast_readable_output_profile_id"] = "BROADCAST_READABLE_SCRIPT"
+    v1_config["broadcast_readable_output_profile_version"] = "1.0.0"
+
+    assert not artifact_required_for_project(definition, {}, no_pins, {})
+    assert artifact_required_for_project(definition, {}, v1_config, {})
+    assert artifact_required_for_project(
+        definition,
+        {},
+        v1_config,
+        {"broadcast_readable_config": readable_config(True)},
+    )
+    assert not artifact_required_for_project(
+        definition,
+        {},
+        v1_config,
+        {"broadcast_readable_config": readable_config(False)},
+    )
+
+
+def test_readable_config_change_invalidates_exact_readable_chain() -> None:
+    """v2 Config 변경은 Readable 파생 체인과 Editorial만 DIRTY로 만든다."""
+    graph = load_json_object(DEPENDENCY_GRAPH_PATH)
+    state = build_initial_project_state(graph, "PRJ-006", "2026-09-03T00:00:00Z")
+    for artifact_state in state["artifacts"].values():
+        artifact_state["status"] = "CLEAN"
+        artifact_state["content_hash"] = "0" * 64
+    changed = invalidate_artifact_dependents(
+        graph,
+        state,
+        "broadcast_readable_config",
+        artifact_hash(b"changed-readable-config"),
+        "2026-09-03T00:01:00Z",
+    )
+    expected_dirty = {
+        "broadcast_readable_config",
+        "broadcast_readable_script",
+        "broadcast_readable_report",
+        "production_broadcast_readable_script",
+        "production_manifest",
+        "editorial_review",
+    }
+
+    assert {
+        artifact_name
+        for artifact_name, artifact_state in changed["artifacts"].items()
+        if artifact_state["status"] == "DIRTY"
+    } == expected_dirty
+    for artifact_name in (
+        "variation_candidates",
+        "story_dna",
+        "case_input",
+        "characters",
+        "relationships",
+        "scene_cards",
+        "screenplay_units",
+        "drama_script",
+        "narration_script",
+        "panel_reaction_script",
+        "draft_script",
+        "final_script",
+        "reenactment_character_script",
+        "reenactment_export_report",
+    ):
+        assert changed["artifacts"][artifact_name]["status"] == "CLEAN"

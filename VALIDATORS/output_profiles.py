@@ -11,6 +11,11 @@ from VALIDATORS.io import load_json_object
 from VALIDATORS.schema_validation import collect_schema_errors
 
 ScriptSourceMode = Literal["LEGACY_MARKDOWN", "SCREENPLAY_UNITS"]
+BroadcastReadableActivationMode = Literal[
+    "DISABLED",
+    "V1_COMPATIBILITY",
+    "V2_CONFIG",
+]
 
 
 class ResolvedOutputProfile(TypedDict):
@@ -237,3 +242,93 @@ def resolve_broadcast_readable_output_profile(
         "broadcast_readable_output_profile.schema.json",
         "BROADCAST_READABLE_OUTPUT_PROFILE",
     )
+
+
+def broadcast_readable_activation_mode(
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, object],
+) -> BroadcastReadableActivationMode:
+    """별도 Config 우선순위와 기존 v1 Pin Pair로 활성화 경로를 판정한다."""
+    readable_config = artifacts.get("broadcast_readable_config")
+    if readable_config is not None:
+        if not isinstance(readable_config, Mapping):
+            raise ConfigurationError(
+                "BROADCAST_READABLE_CONFIG_INVALID: Config는 객체여야 합니다."
+            )
+        enabled = readable_config.get("enabled")
+        if not isinstance(enabled, bool):
+            raise ConfigurationError(
+                "BROADCAST_READABLE_CONFIG_INVALID: enabled는 boolean이어야 합니다."
+            )
+        if not enabled:
+            return "DISABLED"
+        if not isinstance(readable_config.get("profile_id"), str) or not isinstance(
+            readable_config.get("profile_version"),
+            str,
+        ):
+            raise ConfigurationError(
+                "BROADCAST_READABLE_PROFILE_PIN_MISSING: "
+                "활성 Config에는 profile_id와 profile_version이 필요합니다."
+            )
+        return "V2_CONFIG"
+    profile_id_present = "broadcast_readable_output_profile_id" in production_config
+    profile_version_present = (
+        "broadcast_readable_output_profile_version" in production_config
+    )
+    if profile_id_present != profile_version_present:
+        raise ConfigurationError(
+            "BROADCAST_READABLE_PROFILE_PIN_MISSING: "
+            "Production Config의 v1 Profile Pin Pair가 불완전합니다."
+        )
+    if not profile_id_present:
+        return "DISABLED"
+    if script_source_mode(production_config) != "SCREENPLAY_UNITS":
+        return "DISABLED"
+    return "V1_COMPATIBILITY"
+
+
+def resolve_active_broadcast_readable_output_profile(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, object],
+) -> ResolvedOutputProfile | None:
+    """별도 v2 Config 우선순위로 현재 Readable Output Profile을 해석한다."""
+    mode = broadcast_readable_activation_mode(production_config, artifacts)
+    if mode == "DISABLED":
+        return None
+    if mode == "V1_COMPATIBILITY":
+        return resolve_broadcast_readable_output_profile(
+            repository_root,
+            production_config,
+        )
+    readable_config = artifacts["broadcast_readable_config"]
+    if not isinstance(readable_config, Mapping):
+        raise ConfigurationError(
+            "BROADCAST_READABLE_CONFIG_INVALID: Config는 객체여야 합니다."
+        )
+    config_schema = load_json_object(
+        repository_root / "STANDARD/schemas/broadcast_readable_config.schema.json"
+    )
+    errors = collect_schema_errors(
+        readable_config,
+        config_schema,
+        "broadcast_readable_config",
+    )
+    if errors:
+        raise ConfigurationError(
+            f"BROADCAST_READABLE_CONFIG_INVALID: errors={errors}"
+        )
+    project_id = production_config.get("project_id")
+    if readable_config.get("project_id") != project_id:
+        raise ConfigurationError(
+            "BROADCAST_READABLE_CONFIG_INVALID: "
+            f"production_project_id={project_id!r}, "
+            f"config_project_id={readable_config.get('project_id')!r}"
+        )
+    next_config = dict(production_config)
+    next_config["script_source_mode"] = "SCREENPLAY_UNITS"
+    next_config["broadcast_readable_output_profile_id"] = readable_config["profile_id"]
+    next_config["broadcast_readable_output_profile_version"] = readable_config[
+        "profile_version"
+    ]
+    return resolve_broadcast_readable_output_profile(repository_root, next_config)

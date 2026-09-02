@@ -18,6 +18,12 @@
       "depends_on": ["project_manifest", "compatibility_report"],
       "owner_agent": "orchestrator"
     },
+    "broadcast_readable_config": {
+      "path": "00_PROJECT/broadcast_readable_config.json",
+      "depends_on": ["project_manifest", "compatibility_report"],
+      "owner_agent": "orchestrator",
+      "required_when": {"artifact_exists": "broadcast_readable_config"}
+    },
     "project_constraints": {
       "path": "00_PROJECT/project_constraints.json",
       "depends_on": ["project_manifest", "compatibility_report"],
@@ -281,9 +287,9 @@
     },
     "broadcast_readable_script": {
       "path": "07_SCRIPT/broadcast_readable_script.md",
-      "depends_on": ["production_config", "screenplay_units", "characters", "panel_cast", "reaction_segments", "presentation_plan"],
+      "depends_on": ["production_config", "broadcast_readable_config", "screenplay_units", "characters", "relationships", "panel_cast", "reaction_segments", "presentation_plan"],
       "owner_agent": "script_writer",
-      "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
+      "required_when": {"any": [{"artifact_field_equals": ["broadcast_readable_config", "enabled", true]}, {"all": [{"not": {"artifact_exists": "broadcast_readable_config"}}, {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}, {"config_fields_present": ["broadcast_readable_output_profile_id", "broadcast_readable_output_profile_version"]}]}]}
     },
     "reenactment_character_script": {
       "path": "07_SCRIPT/reenactment_character_script.md",
@@ -299,9 +305,9 @@
     },
     "broadcast_readable_report": {
       "path": "08_QA/broadcast_readable_report.json",
-      "depends_on": ["production_config", "screenplay_units", "characters", "panel_cast", "reaction_segments", "presentation_plan", "broadcast_readable_script"],
+      "depends_on": ["production_config", "broadcast_readable_config", "screenplay_units", "characters", "relationships", "panel_cast", "reaction_segments", "presentation_plan", "final_script", "broadcast_readable_script"],
       "owner_agent": "continuity_critic",
-      "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
+      "required_when": {"any": [{"artifact_field_equals": ["broadcast_readable_config", "enabled", true]}, {"all": [{"not": {"artifact_exists": "broadcast_readable_config"}}, {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}, {"config_fields_present": ["broadcast_readable_output_profile_id", "broadcast_readable_output_profile_version"]}]}]}
     },
     "script_realization_report": {
       "path": "08_QA/script_realization_report.json",
@@ -331,7 +337,7 @@
     },
     "validation_report": {
       "path": "08_QA/validation_report.json",
-      "depends_on": ["continuity_report", "novelty_report", "reference_collision_report", "channel_consistency_report", "reenactment_export_report", "broadcast_readable_report"],
+      "depends_on": ["continuity_report", "novelty_report", "reference_collision_report", "channel_consistency_report", "reenactment_export_report"],
       "owner_agent": "orchestrator"
     },
     "shooting_script": {
@@ -341,7 +347,7 @@
     },
     "production_manifest": {
       "path": "09_PRODUCTION/production_manifest.json",
-      "depends_on": ["production_footprint", "scene_cards", "shooting_script"],
+      "depends_on": ["production_footprint", "scene_cards", "shooting_script", "broadcast_readable_config", "broadcast_readable_script", "broadcast_readable_report", "production_broadcast_readable_script"],
       "owner_agent": "orchestrator",
       "required_when": {"production_footprint_enforced": true}
     },
@@ -379,9 +385,9 @@
     },
     "production_broadcast_readable_script": {
       "path": "09_PRODUCTION/broadcast_readable_script.md",
-      "depends_on": ["production_config", "broadcast_readable_script", "broadcast_readable_report", "validation_report"],
+      "depends_on": ["production_config", "broadcast_readable_config", "broadcast_readable_script", "broadcast_readable_report", "validation_report"],
       "owner_agent": "orchestrator",
-      "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
+      "required_when": {"any": [{"artifact_field_equals": ["broadcast_readable_config", "enabled", true]}, {"all": [{"not": {"artifact_exists": "broadcast_readable_config"}}, {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}, {"config_fields_present": ["broadcast_readable_output_profile_id", "broadcast_readable_output_profile_version"]}]}]}
     },
     "editorial_review": {
       "path": "08_QA/editorial_review.json",

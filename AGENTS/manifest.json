@@ -11,6 +11,7 @@
         "project_manifest",
         "compatibility_report",
         "production_config",
+        "broadcast_readable_config",
         "project_constraints",
         "reference_profile",
         "variation_candidates",
@@ -85,6 +86,7 @@
         "project_manifest",
         "compatibility_report",
         "production_config",
+        "broadcast_readable_config",
         "project_constraints",
         "variation_candidates",
         "candidate_eligibility",
@@ -298,6 +300,7 @@
       "stage": 7,
       "reads": [
         "production_config",
+        "broadcast_readable_config",
         "facts",
         "characters",
         "relationships",
@@ -347,6 +350,7 @@
       "stage": 8,
       "reads": [
         "production_config",
+        "broadcast_readable_config",
         "story_dna",
         "case_input",
         "crime_event_contract",

@@ -78,6 +78,14 @@
       "exclusiveMaximum": 1
     }
   },
+  "dependentRequired": {
+    "broadcast_readable_output_profile_id": [
+      "broadcast_readable_output_profile_version"
+    ],
+    "broadcast_readable_output_profile_version": [
+      "broadcast_readable_output_profile_id"
+    ]
+  },
   "allOf": [
     {
       "if": {
@@ -134,9 +142,7 @@
       "then": {
         "required": [
           "reenactment_output_profile_id",
-          "reenactment_output_profile_version",
-          "broadcast_readable_output_profile_id",
-          "broadcast_readable_output_profile_version"
+          "reenactment_output_profile_version"
         ]
       },
       "else": {

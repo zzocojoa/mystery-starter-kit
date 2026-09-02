@@ -48,6 +48,7 @@ PROFILE_REGISTRY_SCHEMA_PATH = (
     ROOT / "STANDARD/schemas/reenactment_output_profile_registry.schema.json"
 )
 PRODUCTION_CONFIG_PATH = ROOT / "TEMPLATES/PROJECT/00_PROJECT/production_config.json"
+PILOT_PRODUCTION_CONFIG_PATH = ROOT / "PROJECTS/PRJ-006/00_PROJECT/production_config.json"
 PRODUCTION_CONFIG_SCHEMA_PATH = ROOT / "STANDARD/schemas/production_config.schema.json"
 EXPORT_REPORT_SCHEMA_PATH = ROOT / "STANDARD/schemas/reenactment_export_report.schema.json"
 
@@ -295,7 +296,7 @@ def test_output_profile_and_registry_are_schema_valid_and_resolvable() -> None:
         load_json_object(PROFILE_REGISTRY_SCHEMA_PATH),
         str(PROFILE_REGISTRY_PATH),
     ) == []
-    config = load_json_object(PRODUCTION_CONFIG_PATH)
+    config = load_json_object(PILOT_PRODUCTION_CONFIG_PATH)
     config.update(
         {
             "script_source_mode": "SCREENPLAY_UNITS",
@@ -325,7 +326,7 @@ def test_broadcast_readable_profile_is_schema_valid_and_resolvable() -> None:
         load_json_object(READABLE_PROFILE_SCHEMA_PATH),
         str(READABLE_PROFILE_PATH),
     ) == []
-    config = load_json_object(PRODUCTION_CONFIG_PATH)
+    config = load_json_object(PILOT_PRODUCTION_CONFIG_PATH)
 
     resolved = resolve_broadcast_readable_output_profile(ROOT, config)
 
@@ -337,7 +338,7 @@ def test_broadcast_readable_profile_is_schema_valid_and_resolvable() -> None:
 
 def test_broadcast_readable_profile_missing_and_invalid_pins_fail() -> None:
     """Readable Pin 누락과 미등록 Version에는 암묵적 Profile 대체가 없다."""
-    missing = load_json_object(PRODUCTION_CONFIG_PATH)
+    missing = load_json_object(PILOT_PRODUCTION_CONFIG_PATH)
     missing.pop("broadcast_readable_output_profile_version")
     with pytest.raises(
         ConfigurationError,
@@ -345,7 +346,7 @@ def test_broadcast_readable_profile_missing_and_invalid_pins_fail() -> None:
     ):
         resolve_broadcast_readable_output_profile(ROOT, missing)
 
-    invalid = load_json_object(PRODUCTION_CONFIG_PATH)
+    invalid = load_json_object(PILOT_PRODUCTION_CONFIG_PATH)
     invalid["broadcast_readable_output_profile_version"] = "9.9.9"
     with pytest.raises(
         ConfigurationError,
@@ -380,7 +381,7 @@ def test_broadcast_readable_profile_hash_mismatch_fails(tmp_path: Path) -> None:
     ):
         resolve_broadcast_readable_output_profile(
             tmp_path,
-            load_json_object(PRODUCTION_CONFIG_PATH),
+            load_json_object(PILOT_PRODUCTION_CONFIG_PATH),
         )
 
 
@@ -472,7 +473,7 @@ def test_registered_broadcast_readable_profile_version_is_immutable(
 
 def test_invalid_output_profile_version_pin_fails_explicitly() -> None:
     """Registry에 없는 Profile Version Pin은 임의 fallback 없이 실패한다."""
-    config = load_json_object(PRODUCTION_CONFIG_PATH)
+    config = load_json_object(PILOT_PRODUCTION_CONFIG_PATH)
     config.update(
         {
             "script_source_mode": "SCREENPLAY_UNITS",
@@ -590,7 +591,7 @@ def test_registered_later_readable_profile_resolves_without_task_catalog_edit(
         json.dumps(registry, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
-    config = load_json_object(PRODUCTION_CONFIG_PATH)
+    config = load_json_object(PILOT_PRODUCTION_CONFIG_PATH)
     config["broadcast_readable_output_profile_version"] = "1.1.0"
 
     resolved = resolve_broadcast_readable_output_profile(tmp_path, config)
@@ -606,8 +607,8 @@ def test_legacy_production_config_remains_valid_without_profile_pin() -> None:
     config.pop("script_source_mode")
     config.pop("reenactment_output_profile_id")
     config.pop("reenactment_output_profile_version")
-    config.pop("broadcast_readable_output_profile_id")
-    config.pop("broadcast_readable_output_profile_version")
+    config.pop("broadcast_readable_output_profile_id", None)
+    config.pop("broadcast_readable_output_profile_version", None)
     schema = load_json_object(PRODUCTION_CONFIG_SCHEMA_PATH)
 
     assert collect_schema_errors(config, schema, str(PRODUCTION_CONFIG_PATH)) == []
@@ -673,8 +674,8 @@ def test_screenplay_artifacts_are_opt_in_and_invalidate_all_exports() -> None:
     legacy_config.pop("script_source_mode")
     legacy_config.pop("reenactment_output_profile_id")
     legacy_config.pop("reenactment_output_profile_version")
-    legacy_config.pop("broadcast_readable_output_profile_id")
-    legacy_config.pop("broadcast_readable_output_profile_version")
+    legacy_config.pop("broadcast_readable_output_profile_id", None)
+    legacy_config.pop("broadcast_readable_output_profile_version", None)
     screenplay_config = deepcopy(legacy_config)
     screenplay_config["script_source_mode"] = "SCREENPLAY_UNITS"
     screenplay_config["reenactment_output_profile_id"] = (

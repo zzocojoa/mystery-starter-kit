@@ -10,8 +10,6 @@
   "script_source_mode": "SCREENPLAY_UNITS",
   "reenactment_output_profile_id": "REENACTMENT_CHARACTER_SCRIPT",
   "reenactment_output_profile_version": "1.0.0",
-  "broadcast_readable_output_profile_id": "BROADCAST_READABLE_SCRIPT",
-  "broadcast_readable_output_profile_version": "1.0.0",
   "story_source_mode": "ORIGINAL",
   "source_truth_classification": "ORIGINAL_FICTION",
   "genre": "CRIME_EVENT_THRILLER",

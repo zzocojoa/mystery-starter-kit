@@ -4,6 +4,7 @@
   "schema_version": "1.0.0",
   "artifacts": {
     "compatibility_report": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/compatibilityReport", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},
+    "broadcast_readable_config": {"media_type": "application/json", "schema": "STANDARD/schemas/broadcast_readable_config.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},
     "project_constraints": {"media_type": "application/json", "schema": "STANDARD/schemas/project_constraints.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},
     "reference_profile": {"media_type": "application/json", "schema": "STANDARD/schemas/reference_profile.schema.json", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 262144},
     "source_case_brief": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/sourceCaseBrief", "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},

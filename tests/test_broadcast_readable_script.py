@@ -402,6 +402,7 @@ def test_contract_chain_has_gate_owned_runtime_tasks() -> None:
     )
     assert definitions["production_broadcast_readable_script"]["depends_on"] == [
         "production_config",
+        "broadcast_readable_config",
         "broadcast_readable_script",
         "broadcast_readable_report",
         "validation_report",
