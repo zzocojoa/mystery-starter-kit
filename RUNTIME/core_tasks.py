@@ -5,6 +5,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import TypeVar, cast
 
+from RUNTIME.broadcast_readable_renderer import render_broadcast_readable_script
 from RUNTIME.errors import RuntimeErrorCode, RuntimeExecutionError
 from RUNTIME.event_store import utc_now
 from RUNTIME.gate_control import validation_report_through
@@ -17,6 +18,10 @@ from RUNTIME.screenplay_renderers import (
     render_narration_layer,
     render_panel_layer,
     render_reenactment_character_script,
+)
+from VALIDATORS.broadcast_readable import (
+    build_broadcast_readable_report,
+    validate_broadcast_readable_report,
 )
 from VALIDATORS.candidate_approval import build_candidate_approval
 from VALIDATORS.candidate_eligibility import build_candidate_eligibility_bound
@@ -283,6 +288,12 @@ def runtime_validation_inputs(
                 / "STANDARD"
                 / "schemas"
                 / "reenactment_export_report.schema.json"
+            ),
+            "broadcast_readable_report": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "broadcast_readable_report.schema.json"
             ),
             "clue_matrix": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "clue_matrix.schema.json"
@@ -851,6 +862,38 @@ def reenactment_script_output(
     )
 
 
+def broadcast_readable_output(
+    task_id: str,
+    artifacts: Mapping[str, ArtifactContent],
+) -> str:
+    """동일 Canonical JSON에서 사람용 Broadcast Artifact를 만든다."""
+    return renderer_output(
+        task_id,
+        "broadcast_readable_script",
+        lambda: render_broadcast_readable_script(
+            mapping_artifact(artifacts, "screenplay_units"),
+            mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "panel_cast"),
+            mapping_artifact(artifacts, "reaction_segments"),
+            mapping_artifact(artifacts, "presentation_plan"),
+        ),
+    )
+
+
+def broadcast_readable_report_output(
+    artifacts: Mapping[str, ArtifactContent],
+) -> dict[str, object]:
+    """현재 Canonical 입력과 사람용 Broadcast에 결속된 QA Report를 만든다."""
+    return build_broadcast_readable_report(
+        mapping_artifact(artifacts, "screenplay_units"),
+        mapping_artifact(artifacts, "characters"),
+        mapping_artifact(artifacts, "panel_cast"),
+        mapping_artifact(artifacts, "reaction_segments"),
+        mapping_artifact(artifacts, "presentation_plan"),
+        text_artifact(artifacts, "broadcast_readable_script"),
+    )
+
+
 def reenactment_report_output(
     task_id: str,
     repository_root: Path,
@@ -938,6 +981,44 @@ def production_reenactment_output(
         "production_reenactment_character_script",
         lambda: package_production_reenactment_script(markdown),
     )
+
+
+def production_broadcast_readable_output(
+    task_id: str,
+    artifacts: Mapping[str, ArtifactContent],
+) -> str:
+    """검증된 사람용 Broadcast만 Production 경로에 byte 그대로 전달한다."""
+    validation_report = mapping_artifact(artifacts, "validation_report")
+    report = mapping_artifact(artifacts, "broadcast_readable_report")
+    readable_script = text_artifact(artifacts, "broadcast_readable_script")
+    report_issues = validate_broadcast_readable_report(
+        report,
+        mapping_artifact(artifacts, "screenplay_units"),
+        mapping_artifact(artifacts, "characters"),
+        mapping_artifact(artifacts, "panel_cast"),
+        mapping_artifact(artifacts, "reaction_segments"),
+        mapping_artifact(artifacts, "presentation_plan"),
+        readable_script,
+    )
+    if (
+        validation_report.get("result") != "PASS"
+        or report.get("result") != "PASS"
+        or report_issues
+    ):
+        raise RuntimeExecutionError(
+            "GATE_REJECTED",
+            False,
+            "TASK",
+            "현재 사람용 Broadcast와 결속된 PASS QA Report가 필요합니다.",
+            task_id,
+            "broadcast_readable_report",
+            {
+                "validation_result": validation_report.get("result"),
+                "report_result": report.get("result"),
+                "issue_codes": [issue["code"] for issue in report_issues],
+            },
+        )
+    return readable_script
 
 
 def core_task_outputs(
@@ -1187,6 +1268,13 @@ def core_task_outputs(
                 artifacts,
             )
         }
+    if task_id == "script.render_broadcast_readable":
+        return {
+            "broadcast_readable_script": broadcast_readable_output(
+                task_id,
+                artifacts,
+            )
+        }
     if task_id == "scene.compute_production_footprint":
         try:
             footprint = build_production_footprint(
@@ -1226,6 +1314,12 @@ def core_task_outputs(
                 artifacts,
             )
         }
+    if task_id == "production.package_broadcast_readable":
+        return {
+            "production_broadcast_readable_script": (
+                production_broadcast_readable_output(task_id, artifacts)
+            )
+        }
     if task_id == "continuity.realization":
         channel, _manifest, _channel_path = resolve_project_channel(
             repository_root,
@@ -1260,6 +1354,12 @@ def core_task_outputs(
                 repository_root,
                 production_config,
                 artifacts,
+            )
+        }
+    if task_id == "continuity.validate_broadcast_readable":
+        return {
+            "broadcast_readable_report": broadcast_readable_report_output(
+                artifacts
             )
         }
     if task_id == "continuity.deterministic":

@@ -338,11 +338,26 @@ def render_broadcast_readable_script(
         planned_segment_ids = [
             required_string(segment, "segment_id") for segment in planned_segments
         ]
-        if declared_segment_ids != planned_segment_ids:
+        declared_segment_id_set = set(declared_segment_ids)
+        ordered_declared_segment_ids = [
+            segment_id
+            for segment_id in planned_segment_ids
+            if segment_id in declared_segment_id_set
+        ]
+        unit_segment_ids = {
+            segment_id
+            for segment_id, records in records_by_segment.items()
+            if any(record_scene_id == scene_id for record_scene_id, _unit in records)
+        }
+        if (
+            declared_segment_ids != ordered_declared_segment_ids
+            or not unit_segment_ids.issubset(declared_segment_id_set)
+        ):
             raise fail(
                 "BROADCAST_READABLE_SCENE_SEGMENTS_MISMATCH",
                 f"{scene_id}의 Scene/Presentation Segment 순서가 다릅니다: "
-                f"declared={declared_segment_ids}, planned={planned_segment_ids}",
+                f"declared={declared_segment_ids}, planned={planned_segment_ids}, "
+                f"unit_segments={sorted(unit_segment_ids)}",
             )
         for segment in planned_segments:
             segment_id = required_string(segment, "segment_id")

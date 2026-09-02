@@ -8,8 +8,8 @@ Script와 모든 구조 Artifact 사이의 ID, Timeline, Knowledge, Clue, Runtim
 
 ## 입력과 출력
 
-- 입력: Screenplay Units, 재연용 Script, Layer Scripts, Final Script, Timelines, Audience Belief, Knowledge Matrix, Clue Matrix, Panel Cast, Reaction Segments, Presentation Plan, Production Package, Channel DNA
-- 출력: Script Realization Report, Reenactment Export Report, Continuity Report, Channel Consistency Report, Editorial Review
+- 입력: Screenplay Units, 재연용 Script, 사람용 Broadcast Script와 QA Report, Layer Scripts, Final Script, Timelines, Audience Belief, Knowledge Matrix, Clue Matrix, Panel Cast, Reaction Segments, Presentation Plan, Production Package, Channel DNA
+- 출력: Script Realization Report, Reenactment Export Report, Broadcast Readable Report, Continuity Report, Channel Consistency Report, Editorial Review
 
 ## Gate
 
@@ -20,6 +20,8 @@ ERROR가 0건이어야 하며 핵심 단서는 Introduced/Revealed/Resolved 상�
 `EXPLICIT_CRIME_EVENT_POLICY`가 활성화되면 `continuity.realization` Task가 Final Script의 실제 Drama Segment와 비가시 사건·행동·피해·Development Function 추적 정보, Reveal 배치를 다시 계산해 `script_realization_report.json`을 작성한다. CORE는 근거를 `NEEDS_REVIEW` 또는 `MISSING`으로만 표시하고 의미 충족을 PASS로 선언하지 않는다. Editorial Review는 사건 실현, 주관적 Narration, Panel 추적, Reveal Timing, 조기 공개 Scan, 단서·증거 정합성을 실제 발췌로 판정한다.
 
 `SCREENPLAY_UNITS` mode에서는 `continuity.validate_reenactment` CORE Task가 Unit·Cast·Relationship·Crime/Harm·Clue/Reveal·고정 Output Profile·Broadcast Master의 현재 Hash에서 Export Report를 재구성한다. `result`는 자동 Editorial PASS가 아니라 `NEEDS_REVIEW`, `FAIL`, `MISSING` 중 하나다. Critic은 Script나 Report Metadata를 직접 고쳐 통과시키지 않는다.
+
+같은 mode의 `continuity.validate_broadcast_readable` CORE Task는 Screenplay Unit, Character, Panel Cast, Reaction Segment, Presentation Plan과 Readable Script의 현재 Hash·Coverage를 Report로 만든다. GATE-09와 GATE-13은 이 Report를 현재 입력에서 재구성하므로 Critic이 Hash나 결과를 손으로 맞추지 않는다.
 
 재연극 Runtime 목표가 설정되면 Output Profile 포함 Segment의 계획시간과 제외 Segment를 Report에서 확인한다. Editorial Review의 별도 재연극 근거는 현재 Report와 입력 Hash에 결속하고 실제 방법을 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO` 중 하나로 기록한다. 예상값을 실측값으로 복제하거나 Unit 변경 전 측정을 재사용하지 않는다.
 

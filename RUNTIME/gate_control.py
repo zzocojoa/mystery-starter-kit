@@ -2,6 +2,11 @@
 
 from collections.abc import Mapping, Sequence
 
+from VALIDATORS.broadcast_readable import (
+    broadcast_readable_script_issues,
+    production_broadcast_readable_copy_issues,
+    validate_broadcast_readable_report,
+)
 from VALIDATORS.candidate_approval import validate_candidate_approval
 from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
@@ -789,7 +794,11 @@ def validate_gate(
                     artifacts,
                     production_config,
                     channel,
-                    ("screenplay_units", "reenactment_character_script"),
+                    (
+                        "screenplay_units",
+                        "reenactment_character_script",
+                        "broadcast_readable_script",
+                    ),
                 )
             )
             issues.extend(
@@ -823,6 +832,17 @@ def validate_gate(
                 )
             )
             issues.extend(reenactment_text_issues(artifacts))
+            issues.extend(
+                broadcast_readable_script_issues(
+                    screenplay_units,
+                    characters,
+                    panel_cast,
+                    reaction_segments,
+                    presentation,
+                    optional_artifact_text(artifacts, "broadcast_readable_script")
+                    or "",
+                )
+            )
         return issues
     if gate_id == "GATE-09":
         report = validate_continuity(
@@ -883,12 +903,16 @@ def validate_gate(
                 artifacts,
                 "reenactment_export_report",
             )
+            readable_report = optional_artifact_document(
+                artifacts,
+                "broadcast_readable_report",
+            )
             issues.extend(
                 required_channel_artifact_issues(
                     artifacts,
                     production_config,
                     channel,
-                    ("reenactment_export_report",),
+                    ("reenactment_export_report", "broadcast_readable_report"),
                 )
             )
             issues.extend(
@@ -913,6 +937,25 @@ def validate_gate(
                     presentation,
                     reaction_segments,
                     screenplay_derived_outputs(artifacts),
+                )
+            )
+            issues.extend(
+                schema_issues(
+                    readable_report,
+                    presentation_schemas["broadcast_readable_report"],
+                    "08_QA/broadcast_readable_report.json",
+                )
+            )
+            issues.extend(
+                validate_broadcast_readable_report(
+                    readable_report,
+                    screenplay_units,
+                    characters,
+                    panel_cast,
+                    reaction_segments,
+                    presentation,
+                    optional_artifact_text(artifacts, "broadcast_readable_script")
+                    or "",
                 )
             )
         return issues
@@ -1158,10 +1201,33 @@ def validate_gate(
                     artifacts,
                     production_config,
                     channel,
-                    ("production_reenactment_character_script",),
+                    (
+                        "production_reenactment_character_script",
+                        "production_broadcast_readable_script",
+                    ),
                 )
             )
             issues.extend(production_reenactment_copy_issues(artifacts))
+            issues.extend(
+                validate_broadcast_readable_report(
+                    artifact_document(artifacts, "broadcast_readable_report"),
+                    artifact_document(artifacts, "screenplay_units"),
+                    characters,
+                    panel_cast,
+                    reaction_segments,
+                    presentation,
+                    artifact_text(artifacts, "broadcast_readable_script"),
+                )
+            )
+            issues.extend(
+                production_broadcast_readable_copy_issues(
+                    optional_artifact_text(artifacts, "broadcast_readable_script"),
+                    optional_artifact_text(
+                        artifacts,
+                        "production_broadcast_readable_script",
+                    ),
+                )
+            )
             issues.extend(
                 reenactment_runtime_evidence_issues(
                     production_config,

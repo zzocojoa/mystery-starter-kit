@@ -45,6 +45,7 @@ from VALIDATORS.dependency import (
     artifact_hash,
     artifact_required_for_project,
     dependency_artifacts,
+    reconcile_project_state_artifacts,
 )
 from VALIDATORS.exceptions import ConfigurationError, GateTransactionError
 from VALIDATORS.io import load_json_object, write_json_object
@@ -538,10 +539,16 @@ def task_open_unlocked(
                 "gate_id": active["gate_id"],
             },
         )
-    state = project_state(project_path)
     dependency_graph = load_json_object(
         repository_root / "STANDARD" / "dependency_graph.json"
     )
+    stored_state = project_state(project_path)
+    state = reconcile_project_state_artifacts(dependency_graph, stored_state)
+    if state != stored_state:
+        write_json_object(
+            project_path / "00_PROJECT" / "project_state.json",
+            state,
+        )
     required_gate = expected_gate(state)["gate_id"]
     if gate_id != required_gate:
         raise GateTransactionError(
@@ -1685,11 +1692,12 @@ def revision_state(
     state: ProjectState,
     target_gate: str,
     catalog: Mapping[str, RuntimeTask],
+    dependency_graph: Mapping[str, object],
     updated_at: str,
 ) -> ProjectState:
     """Owner 재작업을 위해 목표 Gate 이후 상태를 무효화한다."""
     target_index = gate_index(target_gate)
-    next_state = deepcopy(state)
+    next_state = reconcile_project_state_artifacts(dependency_graph, state)
     next_state["schema_version"] = "1.2.0"
     next_state["current_gate"] = (
         "NONE" if target_index == 0 else GATES[target_index - 1]["gate_id"]
@@ -1745,7 +1753,13 @@ def return_task_to_owner_unlocked(
             "Owner 반환에는 owner_agent, actor, reason이 모두 필요합니다.",
             {"owner_agent": owner_agent, "actor": actor, "reason": reason},
         )
-    state = project_state(project_path)
+    dependency_graph = load_json_object(
+        repository_root / "STANDARD" / "dependency_graph.json"
+    )
+    state = reconcile_project_state_artifacts(
+        dependency_graph,
+        project_state(project_path),
+    )
     if state["state"] in {"EDITORIAL_APPROVED", "PRODUCTION_READY"}:
         raise GateTransactionError(
             "OWNER_RETURN_STATE_INVALID",
@@ -1779,7 +1793,13 @@ def return_task_to_owner_unlocked(
             task_record_path(project_path, cast(str, aborted["transaction_id"])),
             aborted,
         )
-    next_state = revision_state(state, target_gate, catalog, returned_at)
+    next_state = revision_state(
+        state,
+        target_gate,
+        catalog,
+        dependency_graph,
+        returned_at,
+    )
     write_json_object(
         project_path / "00_PROJECT" / "project_state.json",
         next_state,

@@ -44,6 +44,8 @@
         "scene_cards": {"$ref": "#/$defs/sha256"},
         "final_script": {"$ref": "#/$defs/sha256"},
         "screenplay_units": {"$ref": "#/$defs/sha256"},
+        "broadcast_readable_script": {"$ref": "#/$defs/sha256"},
+        "broadcast_readable_report": {"$ref": "#/$defs/sha256"},
         "reenactment_character_script": {"$ref": "#/$defs/sha256"},
         "reenactment_export_report": {"$ref": "#/$defs/sha256"},
         "script_realization_report": {"$ref": "#/$defs/sha256"},
@@ -64,7 +66,8 @@
         "production_expert_analysis_script": {"$ref": "#/$defs/sha256"},
         "subtitle_script": {"$ref": "#/$defs/sha256"},
         "edit_script": {"$ref": "#/$defs/sha256"},
-        "production_reenactment_character_script": {"$ref": "#/$defs/sha256"}
+        "production_reenactment_character_script": {"$ref": "#/$defs/sha256"},
+        "production_broadcast_readable_script": {"$ref": "#/$defs/sha256"}
       }
     },
     "runtime_evidence": {"$ref": "#/$defs/runtimeEvidence"},
@@ -148,6 +151,8 @@
             "scene_cards",
             "final_script",
             "screenplay_units",
+            "broadcast_readable_script",
+            "broadcast_readable_report",
             "reenactment_character_script",
             "reenactment_export_report",
             "script_realization_report",
@@ -168,7 +173,8 @@
             "production_expert_analysis_script",
             "subtitle_script",
             "edit_script",
-            "production_reenactment_character_script"
+            "production_reenactment_character_script",
+            "production_broadcast_readable_script"
           ]
         },
         "selector_type": {
