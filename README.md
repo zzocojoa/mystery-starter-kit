@@ -74,6 +74,10 @@ PYTHONPATH=. .venv/bin/mystery-kit validate PROJECTS/PRJ-002
 
 Legacy Project를 Screenplay Unit 경로로 일괄 변환하거나 진행 중 Project를 자동 Rollback하는 CLI는 제공하지 않는다. 전환은 별도 변경 승인 아래 `production_config`의 mode와 Reenactment·Broadcast Readable Output Profile Pin을 함께 바꾸고, State Transition·Script 이후 downstream Artifact를 새 Process Revision에서 재생성해야 한다. Rollback도 `LEGACY_MARKDOWN`을 명시한 새 Revision에서 같은 범위를 재생성하는 방식이며, 이전 Canonical Artifact와 Trace를 삭제하거나 다른 Version 계약을 암묵적으로 합치지 않는다. 가장 안전한 신규 도입 경로는 새 Scaffold다.
 
+Broadcast Readable v2는 기존 Production Config Pin을 바꾸지 않고 Project별 `00_PROJECT/broadcast_readable_config.json`으로 명시적으로 선택한다. `enabled=true`, `profile_id=BROADCAST_READABLE_SCRIPT`, `profile_version=2.0.0`의 완전한 조합만 v2를 활성화한다. Config가 없으면 기존 v1 Pin 경로를 그대로 사용하고, disabled Config는 기존 v1 Pin보다 우선해 Readable Chain을 비활성화한다. 부분 Pin이나 알 수 없는 Version에는 fallback하지 않고 오류를 반환한다.
+
+v2 전환은 Readable 전용 변경이다. `screenplay_units`, Character·Relationship·Panel·Presentation을 입력으로 새 사람용 Markdown을 만들지만, Machine `final_script.md`, Drama·Narration·Panel Layer와 Reenactment bytes는 수정하지 않는다. v2 QA Report의 정상 결과는 Human 검토 전 상태인 `NEEDS_REVIEW`이며, GATE-13은 동일 bytes의 Production Copy와 Report/Profile Hash가 결속된 Manifest만 만든다. Human `editorial-approve`, 사용자-facing `production-finalize`, `register`는 별도 절차다.
+
 완성 예시는 [PRJ-006](PROJECTS/PRJ-006/)이다. 이 Original Fiction Pilot은 GATE-00~13과 기술적 Editorial Review를 통과했지만 `WORD_COUNT_ESTIMATE`만 보유하므로 상태가 `EDITORIAL_REVIEW_REQUIRED`이며 Production Ready 예제가 아니다.
 
 ### 3. 감사, Editorial 승인과 등록

@@ -525,18 +525,29 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 
 | ID | 현재 상태 | 계약/구현 증거 | 독립 Negative Test | Gate/CI 증거 |
 |---|---|---|---|---|
-| BR-02 | OPEN | v2 Profile·전용 Schema·Version Dispatch 필요 | v1/v2 mutation·routing | 미실행 |
-| BR-03 | OPEN | Relationships read/hash/dependency 필요 | relationship stale·unknown·missing | 미실행 |
-| BR-04 | OPEN | 전역 마지막 Segment 뒤 retrospective 필요 | 시작 이동·중복·누락 | 미실행 |
-| BR-05 | OPEN | 네 Heading·3열 표·두 시작 Context·Unit Label 필요 | 구조/Label 누락 | 미실행 |
-| BR-06 | OPEN | Actual Markdown 기반 v2 Mapping Report 필요 | mapping/hash/stale mutation | 미실행 |
-| BR-07 | OPEN | ID Prefix·HTML·Original Fiction 불확실 Marker 차단 필요 | Prefix Family별 injection | 미실행 |
-| BR-08 | OPEN | Presentation Plan 전역 1회 순회·Scene 재진입 필요 | segment/reentry reorder | 미실행 |
-| BR-09 | OPEN | 별도 Config Opt-in·v1 fallback 필요 | inactive/disabled/partial pin | 미실행 |
-| BR-10 | OPEN | Production Manifest Readable Deliverable 결속 필요 | file/report/manifest hash drift | 미실행 |
-| BR-11 | OPEN | Raw Reference 없는 Original Fiction R1/R2 필요 | 기능별 독립 mutation | 미실행 |
-| BR-12 | OPEN | unsupported segment `FAIL` 필요 | expert/audience/unknown injection | 미실행 |
-| BR-13 | OPEN | v2 `NEEDS_REVIEW|MISSING|FAIL` 필요 | v2 PASS rejection | 미실행 |
-| BR-14 | OPEN | optional/conditional Readable-only invalidation 필요 | exact dirty/clean set | 미실행 |
+| BR-02 | CLOSED | `2.0.0.json`, 전용 Profile/Report Schema, `output_profiles.py`와 Renderer·전체 Pipeline Version Dispatch | `test_v1_and_v2_profiles_use_distinct_valid_schemas`, `test_v2_registry_entry_mutation_is_detected`, `test_runtime_v1_dispatch_keeps_registered_output_bytes` | Branch A/B 최종 Head Python 3.11·3.14 Required CI |
+| BR-03 | CLOSED | v2 Renderer·Report·Runtime Task·Dependency가 `relationships`를 읽고 document/file hash를 결속 | `test_unknown_relationship_character_fails`, `test_required_relationship_display_summary_missing_fails`, `test_character_or_relationship_text_mutation_fails` | Revision 5 GATE-08·09·13 Trace의 `relationships` Hash + 최종 Head CI |
+| BR-04 | CLOSED | 전역 마지막 Scene Segment 뒤에만 의미 있는 Retrospective를 배치하고 빈 값은 생략 | `test_retrospective_occurs_after_last_scene_segment_and_empty_is_omitted`, `test_retrospective_mutations_fail` | PRJ-006 Report expected/actual 8건 완전 Mapping + 최종 Head CI |
+| BR-05 | CLOSED | 제목·정리 기준·등장인물·패널·방송 대본 Heading, 3열 인물 표, Scene 시작 Context 두 개와 Unit Type Label을 실제 Markdown에 고정 | `test_v2_source_style_structure_relationships_and_exact_text`, `test_all_character_authored_special_unit_labels_preserve_text`, context/unit mutation parametrization | Revision 5 GATE-08 Script hash + 최종 Head CI |
+| BR-06 | CLOSED | 독립 `broadcast_readable_v2.py`가 Actual Markdown byte range와 Scene·Segment·Unit·Relationship·Panel Turn Mapping을 재계산 | mapping 삭제·중복·순서·text/hash·saved report stale mutation 전체 | Revision 5 GATE-09 Report `NEEDS_REVIEW`, issue 0 + 최종 Head CI |
+| BR-07 | CLOSED | ID Prefix Family, HTML Comment, Original Fiction 불확실성 Marker의 visible-output scan | `test_each_forbidden_id_prefix_in_visible_output_fails`, `test_each_html_comment_token_in_visible_output_fails`, `test_original_fiction_uncertainty_marker_fails` | PRJ-006 visibility scan 세 배열 0건 + 최종 Head CI |
+| BR-08 | CLOSED | Presentation Plan을 전역 1회 순회하고 Scene 재진입은 Continuation Heading으로 보존 | `test_global_reentry_order_context_once_and_continuation_heading`, `test_global_segment_order_mutation_fails`, `test_scene_reentry_heading_reorder_fails` | PRJ-006 GATE-08·09 Mapping Trace + 최종 Head CI |
+| BR-09 | CLOSED | strict optional Config Opt-in, disabled 우선, v1 Pin fallback과 알 수 없는 Version fail-closed | `test_runtime_conditions_keep_v1_v2_and_inactive_paths_distinct`, `test_disabled_v2_config_overrides_existing_v1_pins`, partial/unknown pin tests | Revision 5 Trace의 Config·Profile file hash + 최종 Head CI |
+| BR-10 | CLOSED | Manifest 1.1 Readable Deliverable가 Production Copy bytes, Report hash와 Profile Pin을 결속 | `test_manifest_copy_or_report_hash_mutation_fails`, `test_source_report_hash_mismatch_fails`, legacy Manifest 회귀 | Revision 5 GATE-13 Manifest/Copy Trace + 최종 Head CI |
+| BR-11 | CLOSED | `source_style_features.json`의 독립 Original Fiction R1/R2가 재진입·회고·Flashback·Message·관계·Panel 기능을 검증하며 Raw Reference를 포함하지 않음 | `test_r1_context_and_retrospective_negative_mutations_fail`, `test_r2_relationship_panel_and_unsupported_negative_mutations_fail`, distinct/master-external 검사 | 두 Fixture issue 0 + PRJ-006 Original Fiction Pilot + 최종 Head CI |
+| BR-12 | CLOSED | Renderer와 Report가 `EXPERT_ANALYSIS`, `AUDIENCE_INTERACTION`, unknown Segment를 fallback 없이 거부 | `test_unsupported_segment_type_fails_closed`, `test_unsupported_segment_type_is_reported_without_fallback`, R2 unsupported mutation | PRJ-006 `unsupported_segment_types=[]` + 최종 Head CI |
+| BR-13 | CLOSED | v2 Report Enum은 `NEEDS_REVIEW|MISSING|FAIL`뿐이고 issue-free 결과도 Human PASS를 선언하지 않음 | `test_v2_issue_free_report_requires_needs_review`, `test_v2_pass_report_is_rejected_before_production_copy` | PRJ-006 `NEEDS_REVIEW`, issue 0, State `EDITORIAL_REVIEW_REQUIRED` + 최종 Head CI |
+| BR-14 | CLOSED | Config Artifact의 optional/conditional Edge가 Readable Script·Report·Production Copy·Manifest·Editorial만 무효화 | `test_readable_config_change_invalidates_exact_readable_chain`, requiredness/disabled contract tests | Revision 5 GATE-08~13 순차 재생성, Machine/Reenactment 기준 Hash 불변 + 최종 Head CI |
 
 원장은 구현·테스트·Gate Trace·정확한 원격 CI를 대체하지 않는다. 각 행은 네 증거가 모두 확보된 뒤에만 `CLOSED`로 변경한다.
+
+### v2 Full Pilot 수용 증거
+
+- PRJ-006에 `broadcast-readable-config@1.0.0`을 활성화하고 `script_writer`의 GATE-08로 반환해 Process Revision 5에서 GATE-08, 09, 10, 11, 12, 13을 순서대로 새 Gate Transaction으로 Commit했다. 열린 Transaction은 0개이며 Trace는 127개다.
+- v2 Canonical Readable과 Production Copy의 byte SHA-256은 모두 `5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41`이다. Report 파일 SHA-256은 `4ffeeb983fc7ad33b78f14090646fcee7f2c7794e55ec3b58a491c473d3b363a`, Production Manifest 1.1 파일 SHA-256은 `aa3a277f9043c5b949881681cf28661d1b726ab247de4627724fe0438d765fb8`이다.
+- v2 Report는 `NEEDS_REVIEW`, issue 0, Expected/Actual byte-identical, Retrospective 8/8, 금지 Prefix·HTML·불확실성 Marker 0건, unsupported Segment 0건이다. GATE-13 Manifest는 Readable Copy SHA, Report canonical document SHA와 `BROADCAST_READABLE_SCRIPT@2.0.0`을 결속한다.
+- GATE-08·09·13 Task Trace는 Config raw SHA-256 `5d261391b973cdf8bbad0c1ef1020b1bf53b8656656edd764bfbe022a17b0803`과 v2 Profile file SHA-256 `d156c49f31a0ecee4563c7eb6347ff5973325a918eb1fae3281955a70ec07284`을 기록한다.
+- `screenplay_units`, Drama, Narration, Panel, Draft/Final Machine Master와 Reenactment 기준 Hash는 Phase 0과 동일하다. 등록된 v1 Profile 파일 SHA-256 `7c8b59c96af7a65f59faf7f4ed68d2ad7ffba10ef59fbbbb3189dd1445943667`과 v1 Renderer 기준 출력 SHA-256 `a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa`도 유지된다.
+- 저장소 소스 기준 `validate`와 `audit`는 GATE-00~13 PASS, issue 0, `state_unchanged: true`다. 검증 전후 Project State와 Process Trace SHA-256은 각각 `86634791f557dc0335314fe8f5a985e736e5bf9e70c23524d6c1f9dd12ade5cb`, `e20f90f334ed4db1cb9e9aa66eb048a0199c7374d547174e0a526897653a5476`로 동일했다.
+- 최종 상태는 GATE-13 `EDITORIAL_REVIEW_REQUIRED`, `ARTIFACT_COMPLETE`, `CONTRACT_VALIDATED`, `PROCESS_CONFORMANT`이다. Human Editorial은 미승인, Production Ready는 false, Story Library 항목은 0개다. 사용자-facing `production-finalize`, `register`, PR Merge/Close는 실행하지 않는다.
+- Branch A의 공개 Head는 `bc4aeb5d2867d17c34d0afb0f63c9cc9e6a2ce91`이다. Branch A와 Branch B의 최종 Commit SHA, PR 번호, 정확한 Head의 Python 3.11/3.14 Required CI Run은 각 PR 본문에 기록한다.
