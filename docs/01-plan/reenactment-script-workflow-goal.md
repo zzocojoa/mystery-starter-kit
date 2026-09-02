@@ -286,4 +286,48 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 - Full local: Ruff PASS, strict mypy PASS(134 source files), pytest PASS(386 tests), package 1.6.1 build PASS, dependency audit PASS, Runtime Doctor PASS, Foundation/origin-main Version Immutability PASS.
 - Test skip/xfail로 결함을 숨긴 항목: 없음.
 - 검증 시각: 2026-09-02 09:04–09:07 KST. 검증은 Canonical Project State를 변경하지 않았고 Build 산출물만 재생성했다.
-- 교정 Commit: `fix: close reenactment contract review gaps`로 기록하고 실제 SHA와 Remote CI Run은 Push 뒤 상위 Stack Ledger 및 PR 본문에 결속한다.
+- 교정 Commit: `92f41c7e7cebeab17dfa0c7b3faf2a84db998d4b` (`fix: close reenactment contract review gaps`). Remote CI Run `33574035850`의 Python 3.11/3.14 Matrix가 이 SHA에서 PASS했다.
+
+### PR #25 → PR #26 Stack 동기화 결과
+
+- From: `codex/reenactment-contracts-v1@92f41c7e7cebeab17dfa0c7b3faf2a84db998d4b`
+- Into: `codex/reenactment-runtime-v1`
+- 정상 Merge Commit: `09ec5eb03b8949c31a515b05c90907f686c493c2`
+- 충돌: 없음
+- 누락된 하위 변경: 없음
+- 동기화 직후 계약 표적 테스트 57개, Ruff, strict mypy 140 source files, build, audit, doctor와 양쪽 Version Immutability가 PASS했다.
+- 동기화 직후 전체 pytest의 7개 통합 실패는 GATE-07 이전 뒤 State Machine 필수 목록, 새 Reference 결속 Fixture와 정확 출력 결속을 아직 Runtime에 통합하지 않은 교정 전 기준점이었다. 아래 PR #26 교정에서 모두 회귀 테스트로 전환해 닫았다.
+
+### PR #26 Runtime 교정 결과
+
+- 시작 Published Head: `f79779b747a8ae5103159657ad9bcf997328156d`
+- 하위 Stack 동기화 Head: `09ec5eb03b8949c31a515b05c90907f686c493c2`
+- 교정 코드 Commit: `08168c20814a668a8c3082aca8e85e8a0b583995` (`fix: enforce exact screenplay-derived output integrity`)
+- C-04: `character_state_transitions`의 Task와 State Machine 필수 수명주기를 모두 GATE-07로 옮겼다. `scene.design → story.design_state_transitions → scene.compute_production_footprint/scene.design_reactions → script.compose_screenplay_units` 순서를 고정했고 Legacy Task 조건과 계획은 유지했다.
+- C-05: Drama, Narration, Panel, Draft, Final과 Reenactment Export를 현재 Unit·Reaction·Presentation·Profile에서 순수 재렌더해 실제 bytes와 비교한다. Report 1.1은 여섯 출력 SHA-256을 기록하며 모든 mismatch는 Artifact, expected hash와 actual hash를 제공한다. Layer와 Final 동시 변조를 포함한 요구된 8개 mutation을 모두 실패시킨다.
+- C-06: CORE Layer Renderer 전에 여섯 Unit Reference Family와 speaker/segment 결속을 검증한다. 같은 검증을 GATE-08과 GATE-09 Report 재구성에 반복하고, 여섯 Family 각각을 CORE Task와 GATE 경로에서 독립적으로 실패시켰다. Facts와 Reaction을 Report 입력 Hash 및 dependency invalidation에 포함했다.
+- C-09: `WORD_COUNT_ESTIMATE`는 양의 estimate와 null measurement만, `TABLE_READ`/`RECORDED_AUDIO`는 null estimate와 양의 measurement만 허용한다. 방송 Panel Aggregate·Segment와 별도 재연극 Runtime 모두 Schema와 의미 Validator에서 같은 배타성을 적용한다. 0, stale Hash와 tolerance 경계도 별도 검증한다.
+- C-11: Renderer 전체 `.rstrip()`을 제거하고 Renderer 소유 마지막 separator만 제거한다. final Unit trailing spaces, 의도적 blank line, multi-line Screen Text와 visible block hash를 보존한다.
+- C-12: 새 Runtime Task의 hard-coded Profile ID/Version 조건을 제거했다. Runtime은 Task 계획 전에 Config Pin과 Registry hash/schema를 Resolver로 검증한다. 등록 1.0.0, 임시 등록 후속 1.1.0, 미등록 Version, Pin 누락, Legacy 비활성화와 미지원 계약 실패를 검증했다.
+- C-13: Relationships 1.1의 `display_summary`를 Cast에 표시하고 Machine enum은 노출하지 않는다. Legacy는 이름 기반 결정론적 대체 문구를 사용하며 pipe/newline escaping과 알 수 없는 Character 참조 실패를 검증했다.
+- Output Profile의 필수 Heading, Scene Heading Template, Cast 열, 특수 Unit Label, 포함/제외 Layer와 Unit Type을 Renderer와 Report가 실제로 사용한다. Profile Version만 바뀌어도 Export bytes/hash와 Report stale 검증이 달라진다.
+- Report와 Editorial Schema의 변경 Version은 각각 `reenactment-export-report` 1.1과 기존 Editorial Review 1.2의 강화된 조건부 계약이다. 기존 Legacy Script Task와 Historical Project는 Profile Pin이나 새 Artifact를 요구받지 않는다.
+- Human Editorial Approval, 사용자-facing `production-finalize`, Story Library `register`, PR Merge/Close는 실행하지 않았다. Canonical Project State 변경도 없었고 build 산출물만 재생성했다.
+
+#### PR #26 검증 기록
+
+| 명령 | Branch | Head | 시작 시각(KST) | Exit | 결과 | State 영향 |
+|---|---|---|---|---:|---|---|
+| `.venv/bin/python -m pytest` | `codex/reenactment-runtime-v1` | `08168c20814a668a8c3082aca8e85e8a0b583995` | 2026-09-02 09:55:41 | 0 | 454 PASS, 0 skip/xfail | 없음 |
+| Renderer/Runtime/Gate/Transaction 표적 pytest 132개 | 동일 | 동일 | 2026-09-02 09:58 | 0 | 132 PASS | 없음 |
+| `.venv/bin/python -m ruff check .` | 동일 | 동일 | 2026-09-02 09:58 | 0 | PASS | 없음 |
+| `.venv/bin/python -m mypy VALIDATORS RUNTIME RUNTIME_ADAPTERS tests` | 동일 | 동일 | 2026-09-02 09:58 | 0 | 140 source files PASS | 없음 |
+| `.venv/bin/python -m build` | 동일 | 동일 | 2026-09-02 09:58 | 0 | package 1.6.1 sdist/wheel PASS | ignored build 산출물 재생성 |
+| `.venv/bin/python -m pip_audit` | 동일 | 동일 | 2026-09-02 09:58 | 0 | 알려진 취약점 없음; 로컬 Package만 제외 | 없음 |
+| `.venv/bin/mystery-runtime doctor` | 동일 | 동일 | 2026-09-02 09:58 | 0 | contracts/provider descriptors PASS | 없음 |
+| `version_immutability --base-ref origin/codex/reenactment-contracts-v1` | 동일 | 동일 | 2026-09-02 09:58 | 0 | PASS | 없음 |
+| `version_immutability --base-ref origin/main` | 동일 | 동일 | 2026-09-02 09:58 | 0 | PASS | 없음 |
+
+- 새 mode FakeProvider GATE-00→13과 Reference egress 회귀, Gate Transaction, drift/finalize/register 차단 회귀가 포함된 전체 454개 테스트가 PASS했다. FakeProvider 결과는 코드 흐름 증거일 뿐 창작 품질 증거가 아니다.
+- Test skip/xfail, Validator 완화, fallback 또는 false PASS로 결함을 숨긴 항목: 없음.
+- Remote CI와 최종 PR #26 Head는 Ledger 문서 Commit·Push 뒤 exact SHA Run으로 추가한다.
