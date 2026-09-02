@@ -9,13 +9,14 @@
   },
   "reviewed_at": "2026-09-02T13:34:07Z",
   "artifact_hashes": {
+    "broadcast_readable_config": "af27782a4a3e40beed1b483b51873c62f46808fda36ce01d3b019c4e8ff0d4d5",
     "character_state_transitions": "13974071ebe7fa7ed1832da69bbba05e6401e9fb3f54b2c8e557d23664fdab74",
     "crime_event_contract": "61657c98a4c6583d2fccc0ef255368c2aa9b4d3269ba948c09cfb7195c4144ee",
     "scene_cards": "25e5db33fdc3a67bc44a993240fc9b6e17f98a65963925a5d7c9c5a33f38a902",
     "final_script": "df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602",
     "screenplay_units": "7cd312e26e8d7d468cf0b64a1d125317edab7065f7e60ade8b78641c7679a1f5",
-    "broadcast_readable_script": "a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa",
-    "broadcast_readable_report": "e49fd1b2be01ff49aa4fbf597f6db1f438b795f32e61e902c7af349ae91d74c4",
+    "broadcast_readable_script": "5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41",
+    "broadcast_readable_report": "f81c1918a3cfeafc5ce3a039a61e54591cdd1da839ec19890c1c7cf8c4b01400",
     "reenactment_character_script": "0a97c9702158a3f45b6613016fea5b9d67f85e6f3316f88ea9bd80b7bd9e5618",
     "reenactment_export_report": "106be0136cfc2d1839b7d0313efefdb26c14232dc3e96e722073825a8eea7e2c",
     "script_realization_report": "688b6f4e749389fee8f9a8812e931ec59a55f8f25a80d27d4bd72cddde4f41ff",
@@ -28,13 +29,14 @@
     "panel_reaction_script": "46f2b81d521d0ff60cf0af41effb6ba0484320349128397029eff099fc72be86",
     "production_footprint": "da10a448f03e21488fdcb382830ddae588aff32692f211744fface7140211934",
     "shooting_script": "f140912435fa39b91e17bbdc9237080489fe043b808500ed1a8678b5ac5338ba",
-    "production_manifest": "c00dac74e25d792b6155f63a70354fcbd4ae10bc12815b1c4f8d7b32b1a73b3d",
+    "production_manifest": "4723704b48f45529c3eca076e204ac2e18f5e70b277ac51b0d2a9f8235d72baf",
     "narration": "316efbb7854f9f01ce19441bb7c9d6b19bb491a39674070b77a02de9068639d9",
     "production_panel_reaction_script": "42e344427fa5e4bde332a03597ed363f083038987482f5fab836aef9eb42f7cc",
     "subtitle_script": "b3f0805ece7afb6612703bc852686c9c4bc9ca8ebf80ba5f901a92def6c26417",
     "edit_script": "39f2d642a0d51cb3592de24758744083bcb81ff4d3db2ad870c75d5057bca652",
     "production_reenactment_character_script": "0a97c9702158a3f45b6613016fea5b9d67f85e6f3316f88ea9bd80b7bd9e5618",
-    "production_broadcast_readable_script": "a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa"
+    "production_broadcast_readable_script": "5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41",
+    "broadcast_readable_output_profile": "d156c49f31a0ecee4563c7eb6347ff5973325a918eb1fae3281955a70ec07284"
   },
   "runtime_evidence": {
     "language_unit": "KOREAN_EOJEOL",

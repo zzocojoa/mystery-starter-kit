@@ -1,7 +1,7 @@
 {
-  "$schema": "../../STANDARD/schemas/production_manifest.schema.json",
+  "$schema": "../../STANDARD/schemas/production_manifest_1_1.schema.json",
   "schema_family": "production-manifest",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "project_id": "PRJ-006",
   "source_footprint_sha256": "da10a448f03e21488fdcb382830ddae588aff32692f211744fface7140211934",
   "scenes": [
@@ -161,6 +161,16 @@
       "special_effect_level": "NONE",
       "graphic_violence": "NONE",
       "production_complexity": "LOW"
+    }
+  ],
+  "deliverables": [
+    {
+      "artifact_name": "production_broadcast_readable_script",
+      "path": "09_PRODUCTION/broadcast_readable_script.md",
+      "sha256": "5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41",
+      "source_report_sha256": "f81c1918a3cfeafc5ce3a039a61e54591cdd1da839ec19890c1c7cf8c4b01400",
+      "profile_id": "BROADCAST_READABLE_SCRIPT",
+      "profile_version": "2.0.0"
     }
   ]
 }

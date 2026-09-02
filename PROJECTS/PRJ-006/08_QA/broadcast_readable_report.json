@@ -1,46 +1,1729 @@
 {
-  "$schema": "../../../STANDARD/schemas/broadcast_readable_report.schema.json",
+  "$schema": "../../../STANDARD/schemas/broadcast_readable_report_2_0.schema.json",
   "schema_family": "broadcast-readable-report",
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "project_id": "PRJ-006",
-  "result": "PASS",
-  "output_profile": {
+  "result": "NEEDS_REVIEW",
+  "config_binding": {
+    "schema_version": "1.0.0",
+    "enabled": true,
     "profile_id": "BROADCAST_READABLE_SCRIPT",
-    "profile_version": "1.0.0",
-    "sha256": "7c8b59c96af7a65f59faf7f4ed68d2ad7ffba10ef59fbbbb3189dd1445943667"
+    "profile_version": "2.0.0",
+    "sha256": "af27782a4a3e40beed1b483b51873c62f46808fda36ce01d3b019c4e8ff0d4d5"
+  },
+  "output_profile_binding": {
+    "profile_id": "BROADCAST_READABLE_SCRIPT",
+    "profile_version": "2.0.0",
+    "profile_path": "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json",
+    "schema_path": "STANDARD/schemas/broadcast_readable_output_profile_2_0.schema.json",
+    "document_sha256": "79252067a29b8b5f1b3b418bb7682b86e6b9787bc204e6e556ea9b7cb7b7582a",
+    "file_sha256": "d156c49f31a0ecee4563c7eb6347ff5973325a918eb1fae3281955a70ec07284"
   },
   "input_artifact_hashes": {
-    "production_config": "0142db53ef13406ed2ab5422ce3c016c406dfd12edb5915edc1cd088507cc1c5",
+    "broadcast_readable_config": "af27782a4a3e40beed1b483b51873c62f46808fda36ce01d3b019c4e8ff0d4d5",
     "screenplay_units": "7cd312e26e8d7d468cf0b64a1d125317edab7065f7e60ade8b78641c7679a1f5",
     "characters": "c2cfd09e7c613f25b359ce520562ebcc1b30109fcad1db0d63aa7f0c7087c731",
+    "relationships": "2ab6624d4badbd114397da5f7cf5fcdc286cc0b9c477faf73b795e57e3f5c09b",
     "panel_cast": "31171e1bebf0cff55dba2433f2d37d564fd735fa39c0d33961e21c060eb4e976",
     "reaction_segments": "2cfd711127fe51fe47405a939b11032fa9bdc9c55c2632a9fb99acb336ab4674",
     "presentation_plan": "16abc7423999281f44ca265208538e5d7aa50272956fea09d67fdf5b5320e225",
-    "broadcast_readable_output_profile": "22b21d4591eb1990d11ddcbc776c0396aa1c703687fb1b90df274f2522751dca"
+    "final_script": "df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602"
   },
-  "output_markdown_sha256": "a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa",
-  "coverage": {
-    "scene_count": 11,
-    "unit_count": 95,
-    "character_count": 6,
-    "panelist_count": 3,
-    "panel_reaction_segment_count": 7,
-    "panel_turn_count": 14,
-    "presentation_segment_count": 23
+  "output_artifact_hashes": {
+    "canonical_readable_script": "5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41",
+    "expected_production_copy": "5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41"
   },
-  "source_style_evidence": {
-    "ordering_source": "PRESENTATION_PLAN",
-    "unit_text_policy": "CANONICAL_EXACT",
-    "character_name_source": "CHARACTERS_NAME",
-    "panel_name_source": "PANEL_CAST_DISPLAY_NAME",
-    "scene_context_position": "BEFORE_SCENE_CONTENT",
-    "internal_identifier_visibility": "HIDDEN",
-    "scene_context_count": 11,
-    "canonical_unit_count": 95,
-    "character_row_count": 6,
-    "panelist_row_count": 3,
-    "panel_turn_count": 14,
-    "forbidden_marker_matches": []
+  "scene_mappings": [
+    {
+      "scene_id": "SCN-01",
+      "first_global_segment_index": 0,
+      "last_global_segment_index": 2,
+      "heading_sha256": "9892a7e0eb198994164c9be9239094d9dd6bef1b3da2490f9e7fecf759a78eec",
+      "situation_context_sha256": "bc4603c854268d5e6d3c577ee686cd746395bbda4a2ebb35336218f7d6113f82",
+      "sound_action_context_sha256": "0908b1c7108cf3061299df17a1740db97006ce0f0ed429463b691e3d04180bd0",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 2720,
+        "byte_end": 5674
+      }
+    },
+    {
+      "scene_id": "SCN-02",
+      "first_global_segment_index": 3,
+      "last_global_segment_index": 4,
+      "heading_sha256": "148e83648938d006765c72fe42a170effb2b6ae9b4d70e8374d4454253698d34",
+      "situation_context_sha256": "283893899090de12d8008f0d04edb679695466d155d6c664d3196d86c7c44119",
+      "sound_action_context_sha256": "50a1b6db0250c619b85f14dd2b677b1e2cf301f13b557094a1eab3e1c1013135",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 5676,
+        "byte_end": 8197
+      }
+    },
+    {
+      "scene_id": "SCN-03",
+      "first_global_segment_index": 5,
+      "last_global_segment_index": 6,
+      "heading_sha256": "2c8f3a08558a5a110fa8b1378fb68db4503d5a54ad9296887893a2a1f01a778c",
+      "situation_context_sha256": "026f13691ef2f7713723a3db8484331d0c26096d7febba4f819a3102ca4ffcac",
+      "sound_action_context_sha256": "b1612be4d7f5d51ef72b226153fc08f93a2ead6fddec8e238276e4a979fb7352",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 8199,
+        "byte_end": 10640
+      }
+    },
+    {
+      "scene_id": "SCN-04",
+      "first_global_segment_index": 7,
+      "last_global_segment_index": 9,
+      "heading_sha256": "c000a7149a08de5f7219ae823bed85054cbed366041fc90ee6e0da70189cfa68",
+      "situation_context_sha256": "829c8d134bdb9c4b7b57b52f4916fa4f43804607177fc28e869f7d03d4d2297d",
+      "sound_action_context_sha256": "dfe7ccdc96a9d3590b846d5999dbeaa5c40aca5f95b2c4293b8fdc0122d446ca",
+      "retrospective_sha256": "fb173a022553566eb583c4cb4606cb36fa223c8d27fb0b11a854894f211cd94f",
+      "actual_byte_range": {
+        "byte_start": 10642,
+        "byte_end": 13910
+      }
+    },
+    {
+      "scene_id": "SCN-05",
+      "first_global_segment_index": 10,
+      "last_global_segment_index": 11,
+      "heading_sha256": "d079f7019ac2b319f384a89099c690e758a3ee56caf866407d0b4bcdc352e89a",
+      "situation_context_sha256": "df8f678bb8b83c3ef96fde1c0a56379ffb32890a80432df06a37cdb438061bc8",
+      "sound_action_context_sha256": "df93af2765815ef9f29078fc0624c0ec8c53284be882375640eaaa04d53f532a",
+      "retrospective_sha256": "7ceb9cda63e0dc579e2af13ab3480a17f78d72997f09054368b6facffc3b68d6",
+      "actual_byte_range": {
+        "byte_start": 13912,
+        "byte_end": 16677
+      }
+    },
+    {
+      "scene_id": "SCN-06",
+      "first_global_segment_index": 12,
+      "last_global_segment_index": 14,
+      "heading_sha256": "3b18341eb5910877f37ab05caae71bd957b97eb670ffae1bbbce5c113c146a27",
+      "situation_context_sha256": "bc6f7dd5d5f239db621bb56de610492e3c5484858254910d8504f1884bd675fa",
+      "sound_action_context_sha256": "09bc6eec170b99909b2c3ea31aef4f3f5ddc4b301b5c037df1aa1e37c7baa550",
+      "retrospective_sha256": "b42817f649a8d6ab443c54113642adf260a8fd89636e7bc8f7119cc87d7452f6",
+      "actual_byte_range": {
+        "byte_start": 16679,
+        "byte_end": 19933
+      }
+    },
+    {
+      "scene_id": "SCN-07",
+      "first_global_segment_index": 15,
+      "last_global_segment_index": 16,
+      "heading_sha256": "94baa9140370e1472999332b363f0ab129f76798ecc5edd538f39fa1eff56477",
+      "situation_context_sha256": "719985d59766b053b16a8c2e4da9192d6f1aed7d1db2b3f4f517343a5993a2dc",
+      "sound_action_context_sha256": "5d7bf95bb9389e6b83ab9ff3cf0abd6cc0775fd1737649a8953dfdeda38a1eaa",
+      "retrospective_sha256": "ca51d0b2715abd3717e951969d38d6cbe7dced0be31034fe9eb747da7abe6002",
+      "actual_byte_range": {
+        "byte_start": 19935,
+        "byte_end": 22635
+      }
+    },
+    {
+      "scene_id": "SCN-08",
+      "first_global_segment_index": 17,
+      "last_global_segment_index": 18,
+      "heading_sha256": "d862a06d5aab5e7b157764ab554576febab1606d3770d19a1898d597ad6781a1",
+      "situation_context_sha256": "b8bb069b8098b84b2e9fc0c7cb5b2a2bc0555c8c902488be8b4583098320aec6",
+      "sound_action_context_sha256": "6ce1e1e90965b5bcf04bcf82403dfe2b38ead49aefb2659201d1e1a607ffda4a",
+      "retrospective_sha256": "294faf4f1d65ad07da49757897469c73732cb0a758f4a7332af5e001c6d495b3",
+      "actual_byte_range": {
+        "byte_start": 22637,
+        "byte_end": 25696
+      }
+    },
+    {
+      "scene_id": "SCN-09",
+      "first_global_segment_index": 19,
+      "last_global_segment_index": 20,
+      "heading_sha256": "8922cbfa7da1790b999ced907c47be39e1c38913383d8b21cd4f344118d59ded",
+      "situation_context_sha256": "15d637d8acc28139e2fb42525763f14bcccf0307fbc9ccd91fe7914492f85717",
+      "sound_action_context_sha256": "52e20801701897a32a8997ce6fde12c4ee72314a97cc0ab6a2852f1f3e360d2e",
+      "retrospective_sha256": "2cd36741985c774509d841b3010726a634e7338a1a292e7e8dffe4f39e55a72d",
+      "actual_byte_range": {
+        "byte_start": 25698,
+        "byte_end": 28677
+      }
+    },
+    {
+      "scene_id": "SCN-10",
+      "first_global_segment_index": 21,
+      "last_global_segment_index": 21,
+      "heading_sha256": "34697c3bcb51a3f62d154e97114be32642620c3ac14de4da72f31d7d531a0708",
+      "situation_context_sha256": "1c1d3802e7c73e277a688dfe80d5a3e31db42b11f447f5a31d5b2adbcb4c4394",
+      "sound_action_context_sha256": "8d6bafa60c01c1becb91df757f2eb7593bc8def0d4a9e2f355c1c7fd3a65f508",
+      "retrospective_sha256": "addedc6fcb02cc504fd223ab5bf1660b279ddf5c232e428601d0dde54ccb6b6f",
+      "actual_byte_range": {
+        "byte_start": 28679,
+        "byte_end": 31645
+      }
+    },
+    {
+      "scene_id": "SCN-11",
+      "first_global_segment_index": 22,
+      "last_global_segment_index": 22,
+      "heading_sha256": "38a1fdb03e0660fcb202de4d46a6ea55431271a18321ef5d9cc4ff6cdd25a235",
+      "situation_context_sha256": "e20e0ef506d75b0543e0a385e887a51dfa7247c37da3c52081aa7e347d0973c1",
+      "sound_action_context_sha256": "f86bbe528128059936c89df7288401d477e578d4c1c8510d1628c438ee2b9e99",
+      "retrospective_sha256": "2e0541438e54310ee0d06eec45d09b05585abe25fe9ce6052815016197acd1ab",
+      "actual_byte_range": {
+        "byte_start": 31647,
+        "byte_end": 34414
+      }
+    }
+  ],
+  "segment_mappings": [
+    {
+      "segment_id": "SEG-001",
+      "type": "DRAMA",
+      "global_presentation_index": 0,
+      "scene_id": "SCN-01",
+      "actual_byte_range": {
+        "byte_start": 3716,
+        "byte_end": 4786
+      }
+    },
+    {
+      "segment_id": "SEG-002",
+      "type": "NARRATION",
+      "global_presentation_index": 1,
+      "scene_id": "SCN-01",
+      "actual_byte_range": {
+        "byte_start": 4788,
+        "byte_end": 5191
+      }
+    },
+    {
+      "segment_id": "SEG-003",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 2,
+      "scene_id": "SCN-01",
+      "actual_byte_range": {
+        "byte_start": 5214,
+        "byte_end": 5674
+      }
+    },
+    {
+      "segment_id": "SEG-004",
+      "type": "DRAMA",
+      "global_presentation_index": 3,
+      "scene_id": "SCN-02",
+      "actual_byte_range": {
+        "byte_start": 6685,
+        "byte_end": 7777
+      }
+    },
+    {
+      "segment_id": "SEG-005",
+      "type": "NARRATION",
+      "global_presentation_index": 4,
+      "scene_id": "SCN-02",
+      "actual_byte_range": {
+        "byte_start": 7779,
+        "byte_end": 8197
+      }
+    },
+    {
+      "segment_id": "SEG-006",
+      "type": "DRAMA",
+      "global_presentation_index": 5,
+      "scene_id": "SCN-03",
+      "actual_byte_range": {
+        "byte_start": 9103,
+        "byte_end": 10104
+      }
+    },
+    {
+      "segment_id": "SEG-007",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 6,
+      "scene_id": "SCN-03",
+      "actual_byte_range": {
+        "byte_start": 10127,
+        "byte_end": 10640
+      }
+    },
+    {
+      "segment_id": "SEG-008",
+      "type": "DRAMA",
+      "global_presentation_index": 7,
+      "scene_id": "SCN-04",
+      "actual_byte_range": {
+        "byte_start": 11629,
+        "byte_end": 12845
+      }
+    },
+    {
+      "segment_id": "SEG-009",
+      "type": "NARRATION",
+      "global_presentation_index": 8,
+      "scene_id": "SCN-04",
+      "actual_byte_range": {
+        "byte_start": 12847,
+        "byte_end": 13246
+      }
+    },
+    {
+      "segment_id": "SEG-010",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 9,
+      "scene_id": "SCN-04",
+      "actual_byte_range": {
+        "byte_start": 13269,
+        "byte_end": 13785
+      }
+    },
+    {
+      "segment_id": "SEG-011",
+      "type": "DRAMA",
+      "global_presentation_index": 10,
+      "scene_id": "SCN-05",
+      "actual_byte_range": {
+        "byte_start": 14920,
+        "byte_end": 15991
+      }
+    },
+    {
+      "segment_id": "SEG-012",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 11,
+      "scene_id": "SCN-05",
+      "actual_byte_range": {
+        "byte_start": 16014,
+        "byte_end": 16517
+      }
+    },
+    {
+      "segment_id": "SEG-013",
+      "type": "DRAMA",
+      "global_presentation_index": 12,
+      "scene_id": "SCN-06",
+      "actual_byte_range": {
+        "byte_start": 17695,
+        "byte_end": 18782
+      }
+    },
+    {
+      "segment_id": "SEG-014",
+      "type": "NARRATION",
+      "global_presentation_index": 13,
+      "scene_id": "SCN-06",
+      "actual_byte_range": {
+        "byte_start": 18784,
+        "byte_end": 19234
+      }
+    },
+    {
+      "segment_id": "SEG-015",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 14,
+      "scene_id": "SCN-06",
+      "actual_byte_range": {
+        "byte_start": 19257,
+        "byte_end": 19783
+      }
+    },
+    {
+      "segment_id": "SEG-016",
+      "type": "DRAMA",
+      "global_presentation_index": 15,
+      "scene_id": "SCN-07",
+      "actual_byte_range": {
+        "byte_start": 20996,
+        "byte_end": 21975
+      }
+    },
+    {
+      "segment_id": "SEG-017",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 16,
+      "scene_id": "SCN-07",
+      "actual_byte_range": {
+        "byte_start": 21998,
+        "byte_end": 22499
+      }
+    },
+    {
+      "segment_id": "SEG-018",
+      "type": "DRAMA",
+      "global_presentation_index": 17,
+      "scene_id": "SCN-08",
+      "actual_byte_range": {
+        "byte_start": 23746,
+        "byte_end": 24962
+      }
+    },
+    {
+      "segment_id": "SEG-019",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 18,
+      "scene_id": "SCN-08",
+      "actual_byte_range": {
+        "byte_start": 24985,
+        "byte_end": 25521
+      }
+    },
+    {
+      "segment_id": "SEG-020",
+      "type": "DRAMA",
+      "global_presentation_index": 19,
+      "scene_id": "SCN-09",
+      "actual_byte_range": {
+        "byte_start": 26737,
+        "byte_end": 28037
+      }
+    },
+    {
+      "segment_id": "SEG-021",
+      "type": "NARRATION",
+      "global_presentation_index": 20,
+      "scene_id": "SCN-09",
+      "actual_byte_range": {
+        "byte_start": 28039,
+        "byte_end": 28495
+      }
+    },
+    {
+      "segment_id": "SEG-022",
+      "type": "DRAMA",
+      "global_presentation_index": 21,
+      "scene_id": "SCN-10",
+      "actual_byte_range": {
+        "byte_start": 29966,
+        "byte_end": 31466
+      }
+    },
+    {
+      "segment_id": "SEG-023",
+      "type": "DRAMA",
+      "global_presentation_index": 22,
+      "scene_id": "SCN-11",
+      "actual_byte_range": {
+        "byte_start": 32845,
+        "byte_end": 34244
+      }
+    }
+  ],
+  "unit_mappings": [
+    {
+      "unit_id": "UNIT-001",
+      "segment_id": "SEG-001",
+      "canonical_order": 1,
+      "text_sha256": "cdf57ceb9465c64903f242ec545d226ae08be9feffed3e145a0abf3718c14af5",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 3716,
+        "byte_end": 3779
+      }
+    },
+    {
+      "unit_id": "UNIT-002",
+      "segment_id": "SEG-001",
+      "canonical_order": 2,
+      "text_sha256": "2485d0544e2af66b01b6bb8dd188fd18cb3de130bb74de2efaae172049f1d33c",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 3781,
+        "byte_end": 3951
+      }
+    },
+    {
+      "unit_id": "UNIT-003",
+      "segment_id": "SEG-001",
+      "canonical_order": 3,
+      "text_sha256": "3e64f5be9fac6eb51a86b8fecbed273d2843825d915f34026b8c494ede6e48d1",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 3953,
+        "byte_end": 4103
+      }
+    },
+    {
+      "unit_id": "UNIT-004",
+      "segment_id": "SEG-001",
+      "canonical_order": 4,
+      "text_sha256": "ec7de310d86aaa4fd49809dedd46dbd8be95e46776db4cc3d64bb9ff4e054a02",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 4105,
+        "byte_end": 4277
+      }
+    },
+    {
+      "unit_id": "UNIT-005",
+      "segment_id": "SEG-001",
+      "canonical_order": 5,
+      "text_sha256": "a9df7234477e032b74c7fdf3e992648ea05c799059e45b1ef138ff02feedd16e",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 4279,
+        "byte_end": 4349
+      }
+    },
+    {
+      "unit_id": "UNIT-006",
+      "segment_id": "SEG-001",
+      "canonical_order": 6,
+      "text_sha256": "45e79c8fbec9e82f768152aeed7371d74527701c3af3dd0a89d9c29c908c21be",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 4351,
+        "byte_end": 4510
+      }
+    },
+    {
+      "unit_id": "UNIT-007",
+      "segment_id": "SEG-001",
+      "canonical_order": 7,
+      "text_sha256": "3c57c5d828299eaa3d6c735af8ce52d18b156f688105c4e44c3d36bda5620839",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 4512,
+        "byte_end": 4710
+      }
+    },
+    {
+      "unit_id": "UNIT-008",
+      "segment_id": "SEG-001",
+      "canonical_order": 8,
+      "text_sha256": "e541b63e6498c53df60bd517111284ddeea7fbcfab343b5d18831248ecabd223",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 4712,
+        "byte_end": 4786
+      }
+    },
+    {
+      "unit_id": "UNIT-009",
+      "segment_id": "SEG-002",
+      "canonical_order": 9,
+      "text_sha256": "58857301de1c4e787192be7e10db40a54eb046fb729ee54ec53054a355c55ed3",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 4788,
+        "byte_end": 5023
+      }
+    },
+    {
+      "unit_id": "UNIT-010",
+      "segment_id": "SEG-002",
+      "canonical_order": 10,
+      "text_sha256": "02ef26bae7693ac1d97483184f3610b3acfb38f40d849c697333b158567fcef4",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 5025,
+        "byte_end": 5191
+      }
+    },
+    {
+      "unit_id": "UNIT-011",
+      "segment_id": "SEG-004",
+      "canonical_order": 1,
+      "text_sha256": "f607a7e7c4659c1ba2a94d93e78c076605c5fb5d96f319b539ad3184102e0187",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 6685,
+        "byte_end": 6845
+      }
+    },
+    {
+      "unit_id": "UNIT-012",
+      "segment_id": "SEG-004",
+      "canonical_order": 2,
+      "text_sha256": "66d7247c74fcfec40d22f59e4c90c2ed8e075c7512e5bfbceb1b662511513eb4",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 6847,
+        "byte_end": 6970
+      }
+    },
+    {
+      "unit_id": "UNIT-013",
+      "segment_id": "SEG-004",
+      "canonical_order": 3,
+      "text_sha256": "35c711f45c61071585275f453cc25c64b48c7b4d73671f4dff57c1c7b694e7c3",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 6972,
+        "byte_end": 7134
+      }
+    },
+    {
+      "unit_id": "UNIT-014",
+      "segment_id": "SEG-004",
+      "canonical_order": 4,
+      "text_sha256": "0cd54f6defc376e83e925dd83cd89dbd80f374c69cd300b9d1282321d77d5974",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 7136,
+        "byte_end": 7389
+      }
+    },
+    {
+      "unit_id": "UNIT-015",
+      "segment_id": "SEG-004",
+      "canonical_order": 5,
+      "text_sha256": "f727838a9e6b54423e22b282614d393c34b29d76a5d40193665c4c6f9622e920",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 7391,
+        "byte_end": 7494
+      }
+    },
+    {
+      "unit_id": "UNIT-016",
+      "segment_id": "SEG-004",
+      "canonical_order": 6,
+      "text_sha256": "944be660317ed06431e8a5f1c351aacae6895bcdd181a8613c2fd12d897b7398",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 7496,
+        "byte_end": 7693
+      }
+    },
+    {
+      "unit_id": "UNIT-017",
+      "segment_id": "SEG-004",
+      "canonical_order": 7,
+      "text_sha256": "01f873e73070cd31509a195e7216d43d80e008ea1ed5288f782f721331d01e67",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 7695,
+        "byte_end": 7777
+      }
+    },
+    {
+      "unit_id": "UNIT-018",
+      "segment_id": "SEG-005",
+      "canonical_order": 8,
+      "text_sha256": "2bd786de7375bb61845979b662f6414f72d11648ee9bf00bf89a9bf25b39433e",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 7779,
+        "byte_end": 7986
+      }
+    },
+    {
+      "unit_id": "UNIT-019",
+      "segment_id": "SEG-005",
+      "canonical_order": 9,
+      "text_sha256": "84de62e9c5a2e10630cd037de39541650eb5685ff3e9ed6c63a176eac54d5494",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 7988,
+        "byte_end": 8197
+      }
+    },
+    {
+      "unit_id": "UNIT-020",
+      "segment_id": "SEG-006",
+      "canonical_order": 1,
+      "text_sha256": "39d7da0771e72fe37345f7daa0c42a60bdda2a4dc9226f2822a9c9f0c78d11a9",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 9103,
+        "byte_end": 9179
+      }
+    },
+    {
+      "unit_id": "UNIT-021",
+      "segment_id": "SEG-006",
+      "canonical_order": 2,
+      "text_sha256": "6e2466b1b3728f899776fe766e4f7dd90817d3010bddf93887d3c2253ffd4469",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 9181,
+        "byte_end": 9309
+      }
+    },
+    {
+      "unit_id": "UNIT-022",
+      "segment_id": "SEG-006",
+      "canonical_order": 3,
+      "text_sha256": "b39c0923be78a80b65ca17b9b38de4a7214190dbefb0cb9662855da2de3957e1",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 9311,
+        "byte_end": 9494
+      }
+    },
+    {
+      "unit_id": "UNIT-023",
+      "segment_id": "SEG-006",
+      "canonical_order": 4,
+      "text_sha256": "d80fa45f09eb75614f221d09dde3621b5c2b7bd369a7f401ded9c21001f3d06a",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 9496,
+        "byte_end": 9590
+      }
+    },
+    {
+      "unit_id": "UNIT-024",
+      "segment_id": "SEG-006",
+      "canonical_order": 5,
+      "text_sha256": "e7106d418abc8f4f821552ab806fbc8a61830363adb7ba15466c178c7bdb40c8",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 9592,
+        "byte_end": 9758
+      }
+    },
+    {
+      "unit_id": "UNIT-025",
+      "segment_id": "SEG-006",
+      "canonical_order": 6,
+      "text_sha256": "16c5c8ef4c7bf4d352e2f3500c8498fc133ee6334c6ac5284d7a20b77a59f383",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 9760,
+        "byte_end": 9959
+      }
+    },
+    {
+      "unit_id": "UNIT-026",
+      "segment_id": "SEG-006",
+      "canonical_order": 7,
+      "text_sha256": "ce2f5cb8cd86b46f3361ea526aa8407b900a7ee2026f2effb598cb6cda695139",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 9961,
+        "byte_end": 10104
+      }
+    },
+    {
+      "unit_id": "UNIT-027",
+      "segment_id": "SEG-008",
+      "canonical_order": 1,
+      "text_sha256": "881d30349caa98ad55e5a16de1a34f78dc981dc0668e72891126974f2c8efe23",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 11629,
+        "byte_end": 11794
+      }
+    },
+    {
+      "unit_id": "UNIT-028",
+      "segment_id": "SEG-008",
+      "canonical_order": 2,
+      "text_sha256": "d200001103f31d7b8df1d0f09ead77061f7d311d2b5947f0db3fea90e09526d8",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 11796,
+        "byte_end": 11872
+      }
+    },
+    {
+      "unit_id": "UNIT-029",
+      "segment_id": "SEG-008",
+      "canonical_order": 3,
+      "text_sha256": "b4c7b6b8a635f4e1ab50c117a819d1631de4a4f1b81dd218596cc467cc657c42",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 11874,
+        "byte_end": 12089
+      }
+    },
+    {
+      "unit_id": "UNIT-030",
+      "segment_id": "SEG-008",
+      "canonical_order": 4,
+      "text_sha256": "fc86ff8958a730e6e44e25d7b7bcf6c80669a15990a9a791dbecb8a7600f22a2",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 12091,
+        "byte_end": 12270
+      }
+    },
+    {
+      "unit_id": "UNIT-031",
+      "segment_id": "SEG-008",
+      "canonical_order": 5,
+      "text_sha256": "9242a5915b836b950d6fb2e131995061dddee17a0ee220d5159bea9eb434ce78",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 12272,
+        "byte_end": 12464
+      }
+    },
+    {
+      "unit_id": "UNIT-032",
+      "segment_id": "SEG-008",
+      "canonical_order": 6,
+      "text_sha256": "463b86644343a3113c751aad45aa7502dad670b2603f737bf96f989c56ea0b9b",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 12466,
+        "byte_end": 12583
+      }
+    },
+    {
+      "unit_id": "UNIT-033",
+      "segment_id": "SEG-008",
+      "canonical_order": 7,
+      "text_sha256": "02a1722f4d788d19b8368f3d96bca0e0746f8a87b176cfaefb43bcdb9ea56405",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 12585,
+        "byte_end": 12774
+      }
+    },
+    {
+      "unit_id": "UNIT-034",
+      "segment_id": "SEG-008",
+      "canonical_order": 8,
+      "text_sha256": "9e027110c07ac9cfc6321de2c0e6275550815526b588d2a79db328def89e9be0",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 12776,
+        "byte_end": 12845
+      }
+    },
+    {
+      "unit_id": "UNIT-035",
+      "segment_id": "SEG-009",
+      "canonical_order": 9,
+      "text_sha256": "cd279cc173aa75e01908889789a9e4c889a188413df13bbf672ceecacf3ca0f9",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 12847,
+        "byte_end": 13054
+      }
+    },
+    {
+      "unit_id": "UNIT-036",
+      "segment_id": "SEG-009",
+      "canonical_order": 10,
+      "text_sha256": "27f7370667a11412196d4f7db91aee4f5b267283265fd5e03a3f52a2bb9a5499",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 13056,
+        "byte_end": 13246
+      }
+    },
+    {
+      "unit_id": "UNIT-037",
+      "segment_id": "SEG-011",
+      "canonical_order": 1,
+      "text_sha256": "bf4c95d4a42f8ef83354f808853daa849e2acd6698091e5bd6a54ea5cd9c533b",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 14920,
+        "byte_end": 15051
+      }
+    },
+    {
+      "unit_id": "UNIT-038",
+      "segment_id": "SEG-011",
+      "canonical_order": 2,
+      "text_sha256": "1bcf3b9ddf9dc3fc2f3145db2bb2d81eedc710e5a53038d20435a66ebc5224ae",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15053,
+        "byte_end": 15236
+      }
+    },
+    {
+      "unit_id": "UNIT-039",
+      "segment_id": "SEG-011",
+      "canonical_order": 3,
+      "text_sha256": "992eff47a818566a0c4e7928102aa077541d19e43434ec49b93d0b767dfaf78d",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15238,
+        "byte_end": 15414
+      }
+    },
+    {
+      "unit_id": "UNIT-040",
+      "segment_id": "SEG-011",
+      "canonical_order": 4,
+      "text_sha256": "33a30908fe7e71df94f53fec8b6014a81136ab4da200717e6aee7578154b9650",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15416,
+        "byte_end": 15581
+      }
+    },
+    {
+      "unit_id": "UNIT-041",
+      "segment_id": "SEG-011",
+      "canonical_order": 5,
+      "text_sha256": "6b1403ca5d86bafc60b4d7470a661d5dcdbdb9a9869b83baf284a17cfabfdf04",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15583,
+        "byte_end": 15803
+      }
+    },
+    {
+      "unit_id": "UNIT-042",
+      "segment_id": "SEG-011",
+      "canonical_order": 6,
+      "text_sha256": "04b355a0880f827f31f0535059c972532adede271934ff144a0300d6fd500e1b",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15805,
+        "byte_end": 15913
+      }
+    },
+    {
+      "unit_id": "UNIT-043",
+      "segment_id": "SEG-011",
+      "canonical_order": 7,
+      "text_sha256": "684d6efca3e1aa0d1c57c5cb8227bdb060f0c84811accf4830a425b4527dff27",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15915,
+        "byte_end": 15991
+      }
+    },
+    {
+      "unit_id": "UNIT-044",
+      "segment_id": "SEG-013",
+      "canonical_order": 1,
+      "text_sha256": "0fe710bc190d8bedc259a95e0cdd15974739e0b55bc477e88ee598dd90bc57b8",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 17695,
+        "byte_end": 17863
+      }
+    },
+    {
+      "unit_id": "UNIT-045",
+      "segment_id": "SEG-013",
+      "canonical_order": 2,
+      "text_sha256": "84eb6ea346bbb0ac16aa5d0b0f5720e8c878e5c2d29ea6851884fe237e5180b0",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 17865,
+        "byte_end": 17942
+      }
+    },
+    {
+      "unit_id": "UNIT-046",
+      "segment_id": "SEG-013",
+      "canonical_order": 3,
+      "text_sha256": "762bae2ef87f7b3f84f264687992341052abab1740f71c398a404d563c7d3105",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 17944,
+        "byte_end": 18135
+      }
+    },
+    {
+      "unit_id": "UNIT-047",
+      "segment_id": "SEG-013",
+      "canonical_order": 4,
+      "text_sha256": "218a1c15e0cb5923e607712b1086f3823df69d77aa322ec04c841f8134a66a57",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18137,
+        "byte_end": 18335
+      }
+    },
+    {
+      "unit_id": "UNIT-048",
+      "segment_id": "SEG-013",
+      "canonical_order": 5,
+      "text_sha256": "a4039913bef52b1af41d2bc55fdd993787c1c2adca7e8c01b71cae77d3afe8f2",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18337,
+        "byte_end": 18564
+      }
+    },
+    {
+      "unit_id": "UNIT-049",
+      "segment_id": "SEG-013",
+      "canonical_order": 6,
+      "text_sha256": "ca68beddb3ac21975dffd973a155a753844b45075c8d5e7b757fd9f4379b4760",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18566,
+        "byte_end": 18711
+      }
+    },
+    {
+      "unit_id": "UNIT-050",
+      "segment_id": "SEG-013",
+      "canonical_order": 7,
+      "text_sha256": "e91fb059247d1db7c65f461dd2d51a1d853592a9090bd70e71cbae919650fb31",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18713,
+        "byte_end": 18782
+      }
+    },
+    {
+      "unit_id": "UNIT-051",
+      "segment_id": "SEG-014",
+      "canonical_order": 8,
+      "text_sha256": "3e8b6c729de88f55acb291b5d82c39a3a154e587d38a7695a8b8cfd89982dd39",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18784,
+        "byte_end": 19011
+      }
+    },
+    {
+      "unit_id": "UNIT-052",
+      "segment_id": "SEG-014",
+      "canonical_order": 9,
+      "text_sha256": "ca97934c1a4ce3953453829663f5817238c93d1135643c180458787fefa6b669",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 19013,
+        "byte_end": 19234
+      }
+    },
+    {
+      "unit_id": "UNIT-053",
+      "segment_id": "SEG-016",
+      "canonical_order": 1,
+      "text_sha256": "cdf57ceb9465c64903f242ec545d226ae08be9feffed3e145a0abf3718c14af5",
+      "exact_occurrence_index": 2,
+      "actual_byte_range": {
+        "byte_start": 20996,
+        "byte_end": 21059
+      }
+    },
+    {
+      "unit_id": "UNIT-054",
+      "segment_id": "SEG-016",
+      "canonical_order": 2,
+      "text_sha256": "c8bfb603e2f01e2c96eded4051f2e9b99f80a4edefb38a9ea470b4caeea82854",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21061,
+        "byte_end": 21181
+      }
+    },
+    {
+      "unit_id": "UNIT-055",
+      "segment_id": "SEG-016",
+      "canonical_order": 3,
+      "text_sha256": "959774c0119514662d33b5e4317a44c897ec0568885dcf1c37850f0865ee5567",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21183,
+        "byte_end": 21359
+      }
+    },
+    {
+      "unit_id": "UNIT-056",
+      "segment_id": "SEG-016",
+      "canonical_order": 4,
+      "text_sha256": "b55583eeb7bc5f0e67e7b75efd86c75eb1a386d6ea24a8b6a9a929ad34c54aca",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21361,
+        "byte_end": 21578
+      }
+    },
+    {
+      "unit_id": "UNIT-057",
+      "segment_id": "SEG-016",
+      "canonical_order": 5,
+      "text_sha256": "55c0cb13283750ad998a7d0451ae8d1486f3b2e1b6fde98a96aa9e7929349cc1",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21580,
+        "byte_end": 21750
+      }
+    },
+    {
+      "unit_id": "UNIT-058",
+      "segment_id": "SEG-016",
+      "canonical_order": 6,
+      "text_sha256": "3d8f706025ffc72537126536793a82c5895e4ac3acd6865143cb84b3b0df1745",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21752,
+        "byte_end": 21818
+      }
+    },
+    {
+      "unit_id": "UNIT-059",
+      "segment_id": "SEG-016",
+      "canonical_order": 7,
+      "text_sha256": "d316aa2790b0a1805ed9c5f6ac1381c6439a922e545ccf280b2820a6c7985f01",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21820,
+        "byte_end": 21975
+      }
+    },
+    {
+      "unit_id": "UNIT-060",
+      "segment_id": "SEG-018",
+      "canonical_order": 1,
+      "text_sha256": "bb3b0ad0109ffea387661516834d56ad2aec544095153ce5d69c73e477df6352",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 23746,
+        "byte_end": 23940
+      }
+    },
+    {
+      "unit_id": "UNIT-061",
+      "segment_id": "SEG-018",
+      "canonical_order": 2,
+      "text_sha256": "8dbdea4a0e193dc9966af3eca4acc41e7a87a95ce4eee89aa1763a9447c288a6",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 23942,
+        "byte_end": 24034
+      }
+    },
+    {
+      "unit_id": "UNIT-062",
+      "segment_id": "SEG-018",
+      "canonical_order": 3,
+      "text_sha256": "cc09b83b9f2d108ff09051613604a79883708dddd4bfe615653b8fab19a24edc",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 24036,
+        "byte_end": 24223
+      }
+    },
+    {
+      "unit_id": "UNIT-063",
+      "segment_id": "SEG-018",
+      "canonical_order": 4,
+      "text_sha256": "5a7d5191ba80dff8b02af35a303f4d295213320601542423b038bc897d47e82b",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 24225,
+        "byte_end": 24373
+      }
+    },
+    {
+      "unit_id": "UNIT-064",
+      "segment_id": "SEG-018",
+      "canonical_order": 5,
+      "text_sha256": "889ededd64937fc3368f428a6b183a5611fb5230766ab06a8bb646cea77dce6f",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 24375,
+        "byte_end": 24560
+      }
+    },
+    {
+      "unit_id": "UNIT-065",
+      "segment_id": "SEG-018",
+      "canonical_order": 6,
+      "text_sha256": "bc89d8a7bccffb3cede39bc3a4441a7983c1609ced0f029cc28629e88c384f56",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 24562,
+        "byte_end": 24733
+      }
+    },
+    {
+      "unit_id": "UNIT-066",
+      "segment_id": "SEG-018",
+      "canonical_order": 7,
+      "text_sha256": "a531561a843974871afd8beb6e42432d952f8a0ce5e1615c47d7bfc1653445f2",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 24735,
+        "byte_end": 24885
+      }
+    },
+    {
+      "unit_id": "UNIT-067",
+      "segment_id": "SEG-018",
+      "canonical_order": 8,
+      "text_sha256": "47d1084c97fb73e0b88133d84ab745c0e1fd7bb9eeb9141832671b3b3bc69e1b",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 24887,
+        "byte_end": 24962
+      }
+    },
+    {
+      "unit_id": "UNIT-068",
+      "segment_id": "SEG-020",
+      "canonical_order": 1,
+      "text_sha256": "4a86444e297a4351c8a6692de6120e18229e62be4b1f37091e34066d1f446fb4",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 26737,
+        "byte_end": 26898
+      }
+    },
+    {
+      "unit_id": "UNIT-069",
+      "segment_id": "SEG-020",
+      "canonical_order": 2,
+      "text_sha256": "998cc2af3210133d521692a79ecfc3b868d1b34177a11a459c38f11a3593592b",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 26900,
+        "byte_end": 27054
+      }
+    },
+    {
+      "unit_id": "UNIT-070",
+      "segment_id": "SEG-020",
+      "canonical_order": 3,
+      "text_sha256": "30a9c0999d9a3a7d5b396da3ebd097a2dad4a29189dd56f93ccd1e71cbb2ac03",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 27056,
+        "byte_end": 27217
+      }
+    },
+    {
+      "unit_id": "UNIT-071",
+      "segment_id": "SEG-020",
+      "canonical_order": 4,
+      "text_sha256": "527db181b11606691bba9b5e571934d8184d9aa6a51f19f7d283cf917fda9896",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 27219,
+        "byte_end": 27427
+      }
+    },
+    {
+      "unit_id": "UNIT-072",
+      "segment_id": "SEG-020",
+      "canonical_order": 5,
+      "text_sha256": "96ea39e68197147658487d86cabf4f40ee6d29b524a52b0e4a5aa19748e3d95d",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 27429,
+        "byte_end": 27592
+      }
+    },
+    {
+      "unit_id": "UNIT-073",
+      "segment_id": "SEG-020",
+      "canonical_order": 6,
+      "text_sha256": "6db8657719064bcf3c57df89b632f202a1d3883b2623303dd32fbcee7903c8c7",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 27594,
+        "byte_end": 27807
+      }
+    },
+    {
+      "unit_id": "UNIT-074",
+      "segment_id": "SEG-020",
+      "canonical_order": 7,
+      "text_sha256": "b76dddb71b551ac2fc705ff57836700cffd35908efec2ab53c2b53f3b3e006f9",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 27809,
+        "byte_end": 27951
+      }
+    },
+    {
+      "unit_id": "UNIT-075",
+      "segment_id": "SEG-020",
+      "canonical_order": 8,
+      "text_sha256": "0e51eaf6d72e89d639bd6a492708dab4d313b893653fc753aa02c7d791cd1e94",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 27953,
+        "byte_end": 28037
+      }
+    },
+    {
+      "unit_id": "UNIT-076",
+      "segment_id": "SEG-021",
+      "canonical_order": 9,
+      "text_sha256": "0f7f1cf13e7ac6afcd6ec1767b06f64e5c7975f6a409360629358f09bfe14251",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 28039,
+        "byte_end": 28289
+      }
+    },
+    {
+      "unit_id": "UNIT-077",
+      "segment_id": "SEG-021",
+      "canonical_order": 10,
+      "text_sha256": "bc8607763d2c724f9daa0f9f6d2bc1fdc017b417283bee1a71b173f994ec9849",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 28291,
+        "byte_end": 28495
+      }
+    },
+    {
+      "unit_id": "UNIT-078",
+      "segment_id": "SEG-022",
+      "canonical_order": 1,
+      "text_sha256": "70c122e3f95f44c0d537ba4ab5f72bdb2177aee97cf1ad7b75c4baff8ac021ab",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 29966,
+        "byte_end": 30047
+      }
+    },
+    {
+      "unit_id": "UNIT-079",
+      "segment_id": "SEG-022",
+      "canonical_order": 2,
+      "text_sha256": "d200001103f31d7b8df1d0f09ead77061f7d311d2b5947f0db3fea90e09526d8",
+      "exact_occurrence_index": 2,
+      "actual_byte_range": {
+        "byte_start": 30049,
+        "byte_end": 30125
+      }
+    },
+    {
+      "unit_id": "UNIT-080",
+      "segment_id": "SEG-022",
+      "canonical_order": 3,
+      "text_sha256": "b32afb6f5fecefd42e4d356d6ef21d119521e34650319992e26634d88ac83e8f",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 30127,
+        "byte_end": 30320
+      }
+    },
+    {
+      "unit_id": "UNIT-081",
+      "segment_id": "SEG-022",
+      "canonical_order": 4,
+      "text_sha256": "d3d2322b02ed797f8363ee2e92c1b446a4489c44d89259d99f9695b12efe44c9",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 30322,
+        "byte_end": 30515
+      }
+    },
+    {
+      "unit_id": "UNIT-082",
+      "segment_id": "SEG-022",
+      "canonical_order": 5,
+      "text_sha256": "664f58c5d1d6cb02db8b8cc3ff47bfe6bff139caa06779d732b559026c2cfe65",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 30517,
+        "byte_end": 30717
+      }
+    },
+    {
+      "unit_id": "UNIT-083",
+      "segment_id": "SEG-022",
+      "canonical_order": 6,
+      "text_sha256": "ca009e55abad62311d4aa1a29eac22440f23b460bd1a3f5c88a39bf5a86fb3bb",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 30719,
+        "byte_end": 30957
+      }
+    },
+    {
+      "unit_id": "UNIT-084",
+      "segment_id": "SEG-022",
+      "canonical_order": 7,
+      "text_sha256": "67825c25bcb688947badad6b2ac87cf22f2b8fe7e5aa171ee5de67ba595b391f",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 30959,
+        "byte_end": 31209
+      }
+    },
+    {
+      "unit_id": "UNIT-085",
+      "segment_id": "SEG-022",
+      "canonical_order": 8,
+      "text_sha256": "586175370a29163bbdbb6f666e3c2a857bece06833c662f610025aefb03872bc",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 31211,
+        "byte_end": 31317
+      }
+    },
+    {
+      "unit_id": "UNIT-086",
+      "segment_id": "SEG-022",
+      "canonical_order": 9,
+      "text_sha256": "ea874d099a776237dcfdaeae23bfe52842ef938ad23b911f652cebc48dcf6fba",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 31319,
+        "byte_end": 31466
+      }
+    },
+    {
+      "unit_id": "UNIT-087",
+      "segment_id": "SEG-023",
+      "canonical_order": 1,
+      "text_sha256": "c739f4148533d53d29979809eb9e3a3b08bde4b24af02ff7098f88df7aae3844",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 32845,
+        "byte_end": 32993
+      }
+    },
+    {
+      "unit_id": "UNIT-088",
+      "segment_id": "SEG-023",
+      "canonical_order": 2,
+      "text_sha256": "453f231fafafc1aa132497780353a12022f146668c435aa44ac37b056f385079",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 32995,
+        "byte_end": 33089
+      }
+    },
+    {
+      "unit_id": "UNIT-089",
+      "segment_id": "SEG-023",
+      "canonical_order": 3,
+      "text_sha256": "970ccc9ae99788a30dbc838c6a013f97a06339e39e9fb127afa2108b426d710a",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33091,
+        "byte_end": 33181
+      }
+    },
+    {
+      "unit_id": "UNIT-090",
+      "segment_id": "SEG-023",
+      "canonical_order": 4,
+      "text_sha256": "d80b4d038cde3d118aa469d58da265328b8f9ce516dc80719bccabcefe4c9550",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33183,
+        "byte_end": 33486
+      }
+    },
+    {
+      "unit_id": "UNIT-091",
+      "segment_id": "SEG-023",
+      "canonical_order": 5,
+      "text_sha256": "c3e5a88c6fe783d83861ddb8ceec2134b112b650898d4d9cc6095936ee53fbce",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33488,
+        "byte_end": 33693
+      }
+    },
+    {
+      "unit_id": "UNIT-092",
+      "segment_id": "SEG-023",
+      "canonical_order": 6,
+      "text_sha256": "f6c3b0aceddab5f7cf4b33406f9f4398d3e9007f8f8c16e81f7c8b17c32da196",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33695,
+        "byte_end": 33838
+      }
+    },
+    {
+      "unit_id": "UNIT-093",
+      "segment_id": "SEG-023",
+      "canonical_order": 7,
+      "text_sha256": "e57e042718cc3cac8fd4e25bdf6759e3080718729c1493b29b967a15aa7e1c3d",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33840,
+        "byte_end": 34034
+      }
+    },
+    {
+      "unit_id": "UNIT-094",
+      "segment_id": "SEG-023",
+      "canonical_order": 8,
+      "text_sha256": "e5020f0976736baded0dc6749321bf13b4e3acb1a4b7e811fee7d7765d0e701c",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 34036,
+        "byte_end": 34149
+      }
+    },
+    {
+      "unit_id": "UNIT-095",
+      "segment_id": "SEG-023",
+      "canonical_order": 9,
+      "text_sha256": "524423965fb7da0d53ed95ac2cde788bb77e3c5910d6f38d0b5ddc3673741730",
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 34151,
+        "byte_end": 34244
+      }
+    }
+  ],
+  "relationship_mappings": [
+    {
+      "relationship_id": "REL-01",
+      "affected_character_rows": [
+        "CHAR-01",
+        "CHAR-04"
+      ],
+      "display_summary_sha256": "0bf68dc690fed33ad72f2564052e68ac323ee64cd8ce01e813ebd400ab18b59d"
+    },
+    {
+      "relationship_id": "REL-02",
+      "affected_character_rows": [
+        "CHAR-02",
+        "CHAR-05"
+      ],
+      "display_summary_sha256": "9bec548679861c785907b9f27183f710b10c506c28f373c6ca1ee1fc662ca492"
+    },
+    {
+      "relationship_id": "REL-03",
+      "affected_character_rows": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "display_summary_sha256": "24a50805cb50fd207cb520d29cf6ac425443f47e0c6a663147713448b30d9972"
+    },
+    {
+      "relationship_id": "REL-04",
+      "affected_character_rows": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "display_summary_sha256": "893b41c0ce7ffd5577212731139b105f45551a49c5271e691af37a7cc5143d2d"
+    },
+    {
+      "relationship_id": "REL-05",
+      "affected_character_rows": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "display_summary_sha256": "caa61561f2b2e6e40676a335d83424f182d1e689490b9504653dc049b895ad85"
+    },
+    {
+      "relationship_id": "REL-06",
+      "affected_character_rows": [
+        "CHAR-04",
+        "CHAR-06"
+      ],
+      "display_summary_sha256": "ff9c8cd403d1f108f555b90d5edc3d85dcfd298558ef0d82036e589be2a126e1"
+    },
+    {
+      "relationship_id": "REL-07",
+      "affected_character_rows": [
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "display_summary_sha256": "2aada158dd87b8c9a4f68f0a60695b8e1f95e2fea1622fc5a7a48ce588c4d215"
+    }
+  ],
+  "panel_turn_mappings": [
+    {
+      "reaction_segment_id": "RSEG-001",
+      "turn_id": "TURN-001-01",
+      "global_order": 0,
+      "spoken_line_sha256": "09e5d4660c4b0d71daa1e388ca5cee5b16d53a21db958dc410184c7a617fd25e",
+      "actual_byte_range": {
+        "byte_start": 5214,
+        "byte_end": 5444
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-001",
+      "turn_id": "TURN-001-02",
+      "global_order": 1,
+      "spoken_line_sha256": "22d9867fa927222309d31fcfdff0a48e17a04e3a70a478f1b841d756d8c6b7bb",
+      "actual_byte_range": {
+        "byte_start": 5446,
+        "byte_end": 5674
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-002",
+      "turn_id": "TURN-002-01",
+      "global_order": 2,
+      "spoken_line_sha256": "74b07fe4abbe209408fbb1f941e17349f8f113106fca081851ca63319e414bc5",
+      "actual_byte_range": {
+        "byte_start": 10127,
+        "byte_end": 10379
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-002",
+      "turn_id": "TURN-002-02",
+      "global_order": 3,
+      "spoken_line_sha256": "15c70a1f7f6f9469f7152f5ca634418c8c8e9120e706a42a390ee6b6945cf03d",
+      "actual_byte_range": {
+        "byte_start": 10381,
+        "byte_end": 10640
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-003",
+      "turn_id": "TURN-003-01",
+      "global_order": 4,
+      "spoken_line_sha256": "1ca75f200e40aee36f2fe68d6bdcdb8aa3eb54d7cb1840c3afa4aa6ba388107f",
+      "actual_byte_range": {
+        "byte_start": 13269,
+        "byte_end": 13517
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-003",
+      "turn_id": "TURN-003-02",
+      "global_order": 5,
+      "spoken_line_sha256": "1eb4a6f8a2d799d8fad9be92625543996ba9abf2361ed94262e63b2cf9b412e7",
+      "actual_byte_range": {
+        "byte_start": 13519,
+        "byte_end": 13785
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-004",
+      "turn_id": "TURN-004-01",
+      "global_order": 6,
+      "spoken_line_sha256": "5e16d2f4467e37a76847ba37b93f1f3e93be848aeebda562f188548df3f36e42",
+      "actual_byte_range": {
+        "byte_start": 16014,
+        "byte_end": 16275
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-004",
+      "turn_id": "TURN-004-02",
+      "global_order": 7,
+      "spoken_line_sha256": "4e8735fe1e9efc17ffde22b1c1c728a25dec7f764f11a015c76117b1aec13896",
+      "actual_byte_range": {
+        "byte_start": 16277,
+        "byte_end": 16517
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-005",
+      "turn_id": "TURN-005-01",
+      "global_order": 8,
+      "spoken_line_sha256": "c667595d41a655931d39884380417b90438b156318cc49198a5a572cbadcf3f2",
+      "actual_byte_range": {
+        "byte_start": 19257,
+        "byte_end": 19527
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-005",
+      "turn_id": "TURN-005-02",
+      "global_order": 9,
+      "spoken_line_sha256": "22ca630d809ad07ef4ef11326b18b3242b6ac451233e0b2fa993d2c153087c12",
+      "actual_byte_range": {
+        "byte_start": 19529,
+        "byte_end": 19783
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-006",
+      "turn_id": "TURN-006-01",
+      "global_order": 10,
+      "spoken_line_sha256": "e69eacb1c5c430f6387af4544a5707a386d85d2c0364b6477b3964b505a64335",
+      "actual_byte_range": {
+        "byte_start": 21998,
+        "byte_end": 22258
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-006",
+      "turn_id": "TURN-006-02",
+      "global_order": 11,
+      "spoken_line_sha256": "51fa662f85763947db6d4858951898c02716c927ea59cf95a076c615be6dc2dc",
+      "actual_byte_range": {
+        "byte_start": 22260,
+        "byte_end": 22499
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-007",
+      "turn_id": "TURN-007-01",
+      "global_order": 12,
+      "spoken_line_sha256": "0130a941a958e2cf28b03151d8652de23fb65d4d035254496111ec7d86c2ac85",
+      "actual_byte_range": {
+        "byte_start": 24985,
+        "byte_end": 25246
+      }
+    },
+    {
+      "reaction_segment_id": "RSEG-007",
+      "turn_id": "TURN-007-02",
+      "global_order": 13,
+      "spoken_line_sha256": "08ebfc236f3dfd9df43f99310cb7565e0f156e3de2c2e73d81c3208aa990c3a0",
+      "actual_byte_range": {
+        "byte_start": 25248,
+        "byte_end": 25521
+      }
+    }
+  ],
+  "special_unit_type_coverage": [
+    {
+      "unit_type": "ACTION",
+      "canonical_count": 34,
+      "actual_count": 34
+    },
+    {
+      "unit_type": "CHAT",
+      "canonical_count": 1,
+      "actual_count": 1
+    },
+    {
+      "unit_type": "DIALOGUE",
+      "canonical_count": 28,
+      "actual_count": 28
+    },
+    {
+      "unit_type": "INNER_MONOLOGUE",
+      "canonical_count": 1,
+      "actual_count": 1
+    },
+    {
+      "unit_type": "MESSAGE",
+      "canonical_count": 1,
+      "actual_count": 1
+    },
+    {
+      "unit_type": "NARRATION",
+      "canonical_count": 10,
+      "actual_count": 10
+    },
+    {
+      "unit_type": "NOTE",
+      "canonical_count": 1,
+      "actual_count": 1
+    },
+    {
+      "unit_type": "RECORDING",
+      "canonical_count": 2,
+      "actual_count": 2
+    },
+    {
+      "unit_type": "SCREEN_TEXT",
+      "canonical_count": 15,
+      "actual_count": 15
+    },
+    {
+      "unit_type": "SOUND",
+      "canonical_count": 2,
+      "actual_count": 2
+    }
+  ],
+  "reconstruction_coverage": {
+    "expected_sha256": "5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41",
+    "actual_sha256": "5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41",
+    "byte_identical": true
   },
+  "retrospective_meaning_coverage": {
+    "expected_count": 8,
+    "actual_count": 8,
+    "mappings_complete": true
+  },
+  "visibility_scan": {
+    "forbidden_prefix_matches": [],
+    "html_comment_matches": [],
+    "uncertainty_marker_matches": []
+  },
+  "unsupported_segment_types": [],
   "issues": []
 }
