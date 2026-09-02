@@ -273,24 +273,9 @@ def test_integrated_gate_08_09_12_13_validation_passes() -> None:
 
 
 def test_full_production_validation_dispatches_v2_profile() -> None:
-    """전체 validate 진입점도 Gate Validator와 동일한 v2 계약을 선택한다."""
-    fixture = pilot_fixture()
-    readable, report, production_readable, manifest = generated_v2_chain(fixture)
+    """전체 validate 진입점이 추적 Pilot의 현재 v2 계약을 검증한다."""
     graph = load_json_object(ROOT / "STANDARD/dependency_graph.json")
     artifacts = load_existing_project_artifacts(PILOT_ROOT, graph)
-    artifacts.update(
-        {
-            "broadcast_readable_config": fixture["config"],
-            "broadcast_readable_script": readable,
-            "broadcast_readable_report": report,
-            "production_broadcast_readable_script": production_readable,
-            "production_manifest": manifest,
-        }
-    )
-    editorial_review = deepcopy(artifacts["editorial_review"])
-    assert isinstance(editorial_review, dict)
-    editorial_review["artifact_hashes"] = editorial_artifact_hashes(artifacts)
-    artifacts["editorial_review"] = editorial_review
     production_config = artifacts["production_config"]
     assert isinstance(production_config, dict)
     (
@@ -321,6 +306,14 @@ def test_full_production_validation_dispatches_v2_profile() -> None:
 
     assert validation["result"] == "PASS"
     assert validation["gate_results"]["GATE-13"] == "PASS"
+    tracked_report = artifacts["broadcast_readable_report"]
+    tracked_readable = artifacts["broadcast_readable_script"]
+    tracked_production_readable = artifacts["production_broadcast_readable_script"]
+    assert isinstance(tracked_report, dict)
+    assert isinstance(tracked_readable, str)
+    assert isinstance(tracked_production_readable, str)
+    assert tracked_report["result"] == "NEEDS_REVIEW"
+    assert tracked_readable == tracked_production_readable
 
 
 def test_manifest_copy_or_report_hash_mutation_fails() -> None:

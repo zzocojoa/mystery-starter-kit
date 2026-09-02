@@ -26,6 +26,7 @@ from VALIDATORS.schema_validation import collect_schema_errors
 ROOT = Path(__file__).resolve().parents[1]
 PILOT_ROOT = ROOT / "PROJECTS" / "PRJ-006"
 FINAL_SCRIPT_SHA256 = "df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602"
+V1_READABLE_SHA256 = "a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa"
 
 
 def pilot_documents() -> tuple[
@@ -321,17 +322,12 @@ def test_existing_broadcast_master_contract_and_bytes_are_unchanged() -> None:
     )
 
 
-def test_tracked_pilot_chain_matches_current_canonical_json() -> None:
-    """Commit된 PRJ-006 View·QA Report·Production Copy가 Canonical 입력과 일치한다."""
+def test_v1_compatibility_chain_matches_current_canonical_json() -> None:
+    """현재 Canonical 입력에서도 기존 v1 View·Report 의미와 bytes를 유지한다."""
     screenplay, characters, panel_cast, reactions, plan = pilot_documents()
     config, output_profile, profile_hash = pilot_profile()
     rendered = rendered_pilot()
-    output_path = PILOT_ROOT / "07_SCRIPT" / "broadcast_readable_script.md"
-    report_path = PILOT_ROOT / "08_QA" / "broadcast_readable_report.json"
-    production_path = PILOT_ROOT / "09_PRODUCTION" / "broadcast_readable_script.md"
-
-    assert output_path.read_bytes() == rendered.encode("utf-8")
-    assert load_json_object(report_path) == build_broadcast_readable_report(
+    report = build_broadcast_readable_report(
         config,
         screenplay,
         characters,
@@ -342,7 +338,22 @@ def test_tracked_pilot_chain_matches_current_canonical_json() -> None:
         profile_hash,
         rendered,
     )
-    assert production_path.read_bytes() == output_path.read_bytes()
+
+    assert sha256(rendered.encode("utf-8")).hexdigest() == V1_READABLE_SHA256
+    assert report["result"] == "PASS"
+    assert validate_broadcast_readable_report(
+        report,
+        config,
+        screenplay,
+        characters,
+        panel_cast,
+        reactions,
+        plan,
+        output_profile,
+        profile_hash,
+        rendered,
+    ) == []
+    assert production_broadcast_readable_copy_issues(rendered, rendered) == []
 
 
 def test_stale_report_and_production_copy_are_rejected() -> None:
