@@ -40,6 +40,9 @@ READABLE_PROFILE_PATH = (
 READABLE_PROFILE_SCHEMA_PATH = (
     ROOT / "STANDARD/schemas/broadcast_readable_output_profile.schema.json"
 )
+READABLE_V2_PROFILE_PATH = (
+    ROOT / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
+)
 PROFILE_REGISTRY_PATH = ROOT / "CHANNELS/mystery_main/output_profiles/registry.json"
 PROFILE_REGISTRY_SCHEMA_PATH = (
     ROOT / "STANDARD/schemas/reenactment_output_profile_registry.schema.json"
@@ -406,14 +409,20 @@ def test_registered_output_profile_version_is_immutable(tmp_path: Path) -> None:
     temporary_readable_profile_path.parent.mkdir(parents=True)
     original_readable_profile = READABLE_PROFILE_PATH.read_bytes()
     temporary_readable_profile_path.write_bytes(original_readable_profile)
+    relative_readable_v2_profile_path = (
+        "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
+    )
+    temporary_readable_v2_profile_path = tmp_path / relative_readable_v2_profile_path
+    temporary_readable_v2_profile_path.write_bytes(READABLE_V2_PROFILE_PATH.read_bytes())
     temporary_profile_path.write_bytes(original_profile + b"\n")
 
     mutations = output_profile_version_mutations(
         tmp_path,
         {
-            relative_profile_path: original_profile,
-            relative_readable_profile_path: original_readable_profile,
-        },
+                relative_profile_path: original_profile,
+                relative_readable_profile_path: original_readable_profile,
+                relative_readable_v2_profile_path: READABLE_V2_PROFILE_PATH.read_bytes(),
+            },
         load_json_object(PROFILE_REGISTRY_PATH),
     )
 
@@ -433,20 +442,27 @@ def test_registered_broadcast_readable_profile_version_is_immutable(
     registry_path = tmp_path / "CHANNELS/mystery_main/output_profiles/registry.json"
     reenactment_path = tmp_path / reenactment_relative_path
     readable_path = tmp_path / readable_relative_path
+    readable_v2_relative_path = (
+        "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
+    )
+    readable_v2_path = tmp_path / readable_v2_relative_path
     registry_path.parent.mkdir(parents=True)
     reenactment_path.parent.mkdir(parents=True)
     readable_path.parent.mkdir(parents=True)
+    readable_v2_path.parent.mkdir(parents=True, exist_ok=True)
     registry_path.write_bytes(PROFILE_REGISTRY_PATH.read_bytes())
     reenactment_bytes = PROFILE_PATH.read_bytes()
     readable_bytes = READABLE_PROFILE_PATH.read_bytes()
     reenactment_path.write_bytes(reenactment_bytes)
     readable_path.write_bytes(readable_bytes + b"\n")
+    readable_v2_path.write_bytes(READABLE_V2_PROFILE_PATH.read_bytes())
 
     mutations = output_profile_version_mutations(
         tmp_path,
         {
             reenactment_relative_path: reenactment_bytes,
             readable_relative_path: readable_bytes,
+            readable_v2_relative_path: READABLE_V2_PROFILE_PATH.read_bytes(),
         },
         load_json_object(PROFILE_REGISTRY_PATH),
     )

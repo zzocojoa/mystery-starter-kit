@@ -16,6 +16,11 @@
         "1.0.0": {
           "path": "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/1.0.0.json",
           "sha256": "7c8b59c96af7a65f59faf7f4ed68d2ad7ffba10ef59fbbbb3189dd1445943667"
+        },
+        "2.0.0": {
+          "path": "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json",
+          "sha256": "d156c49f31a0ecee4563c7eb6347ff5973325a918eb1fae3281955a70ec07284",
+          "schema_path": "STANDARD/schemas/broadcast_readable_output_profile_2_0.schema.json"
         }
       }
     }

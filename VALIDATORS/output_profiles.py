@@ -20,6 +20,7 @@ class ResolvedOutputProfile(TypedDict):
     profile_version: str
     sha256: str
     relative_path: str
+    schema_relative_path: str
     document: dict[str, object]
 
 
@@ -52,6 +53,41 @@ def repository_profile_path(
             f"{error_prefix}_PATH_INVALID: path={relative_path}"
         )
     return resolved
+
+
+def registered_profile_schema_path(
+    repository_root: Path,
+    version_entry: Mapping[str, object],
+    fallback_schema_name: str,
+    error_prefix: str,
+) -> tuple[str, Path]:
+    """Version Entry가 지정한 Schema를 Repository의 표준 Schema로 제한한다."""
+    configured = version_entry.get("schema_path")
+    if configured is None:
+        relative_path = f"STANDARD/schemas/{fallback_schema_name}"
+    elif isinstance(configured, str):
+        relative_path = configured
+    else:
+        raise ConfigurationError(
+            f"{error_prefix}_SCHEMA_UNSUPPORTED: schema_path={configured!r}"
+        )
+    candidate = Path(relative_path)
+    repository = repository_root.resolve()
+    if (
+        candidate.is_absolute()
+        or ".." in candidate.parts
+        or candidate.suffix != ".json"
+        or candidate.parts[:2] != ("STANDARD", "schemas")
+    ):
+        raise ConfigurationError(
+            f"{error_prefix}_SCHEMA_UNSUPPORTED: schema_path={relative_path}"
+        )
+    schema_path = (repository / candidate).resolve()
+    if not schema_path.is_relative_to(repository) or not schema_path.is_file():
+        raise ConfigurationError(
+            f"{error_prefix}_SCHEMA_UNSUPPORTED: schema_path={relative_path}"
+        )
+    return relative_path, schema_path
 
 
 def schema_valid_document(
@@ -142,9 +178,15 @@ def resolve_registered_output_profile(
             f"{error_prefix}_HASH_MISMATCH: "
             f"path={relative_path}, expected={expected_hash}, actual={actual_hash}"
         )
+    schema_relative_path, profile_schema_path = registered_profile_schema_path(
+        repository_root,
+        version_entry,
+        profile_schema_name,
+        error_prefix,
+    )
     document = schema_valid_document(
         profile_path,
-        repository_root / "STANDARD/schemas" / profile_schema_name,
+        profile_schema_path,
         f"{error_prefix}_INVALID",
     )
     identity_matches = (
@@ -162,6 +204,7 @@ def resolve_registered_output_profile(
         profile_version=profile_version,
         sha256=actual_hash,
         relative_path=relative_path,
+        schema_relative_path=schema_relative_path,
         document=document,
     )
 
