@@ -6,6 +6,10 @@ from pathlib import Path
 from shutil import copytree
 
 import pytest
+from test_broadcast_readable_v2_validation import (
+    PilotFixture,
+    pilot_fixture,
+)
 
 from RUNTIME.contracts import load_artifact_contracts, load_task_catalog
 from RUNTIME.core_tasks import (
@@ -17,10 +21,6 @@ from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.gate_control import validation_report_through
 from RUNTIME.output_gateway import validate_artifact_content, validate_core_outputs
 from RUNTIME.planner import task_condition_matches
-from tests.test_broadcast_readable_v2_validation import (
-    PilotFixture,
-    pilot_fixture,
-)
 from VALIDATORS.broadcast_readable import production_readable_deliverable_issues
 from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.editorial import editorial_artifact_hashes

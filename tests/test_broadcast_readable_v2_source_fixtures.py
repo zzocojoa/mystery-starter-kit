@@ -6,8 +6,7 @@ from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator
-
-from tests.test_broadcast_readable_v2_validation import (
+from test_broadcast_readable_v2_validation import (
     PilotFixture,
     build_report,
     byte_fragment,
@@ -17,6 +16,7 @@ from tests.test_broadcast_readable_v2_validation import (
     render_fixture,
     replace_once,
 )
+
 from VALIDATORS.io import load_json_object
 
 ROOT = Path(__file__).resolve().parents[1]
