@@ -131,6 +131,27 @@ def test_complete_presentation_contract_passes() -> None:
     assert ratio == 0.2
 
 
+def test_state_transition_is_required_only_after_scene_design() -> None:
+    """GATE-06은 빈 Scene 참조를 검사하지 않고 GATE-07에서 Transition을 요구한다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    config = document(artifacts, "production_config")
+    config["script_source_mode"] = "SCREENPLAY_UNITS"
+
+    gate_six_issues = direct_gate_issues(artifacts, "GATE-06")
+    gate_seven_issues = direct_gate_issues(artifacts, "GATE-07")
+
+    assert not any(
+        issue["artifact"] == "character_state_transitions"
+        or issue["artifact"] == "05_STORY/character_state_transitions.json"
+        for issue in gate_six_issues
+    )
+    assert any(
+        issue["code"] == "REQUIRED_CHANNEL_ARTIFACT_MISSING"
+        and issue["artifact"] == "character_state_transitions"
+        for issue in gate_seven_issues
+    )
+
+
 def test_panel_cast_speaker_function_and_ratio_failures_are_reported() -> None:
     """Cast·화자·기능·실제 시간 비율 위반을 각각 보고한다."""
     artifacts = deepcopy(make_complete_project_artifacts())

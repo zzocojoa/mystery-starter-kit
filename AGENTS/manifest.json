@@ -162,7 +162,8 @@
         "crime_psychology",
         "beat_sheet",
         "psychological_arc",
-        "character_state_transitions"
+        "character_state_transitions",
+        "scene_cards"
       ],
       "writes": [
         "story_dna",
@@ -179,7 +180,8 @@
         "GATE-02",
         "GATE-03",
         "GATE-04",
-        "GATE-06"
+        "GATE-06",
+        "GATE-07"
       ],
       "requires_agents": [
         "variation_designer"

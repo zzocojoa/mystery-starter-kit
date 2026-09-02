@@ -1289,7 +1289,7 @@ def run_production_validation(
             artifacts,
             production_config,
             channel,
-            ("psychological_arc", "character_state_transitions"),
+            ("psychological_arc",),
         ),
         *optional_schema_issues(
             artifacts,
@@ -1298,27 +1298,6 @@ def run_production_validation(
             "05_STORY/psychological_arc.json",
         ),
         *validate_psychological_arc(channel, psychological_arc),
-        *(
-            optional_schema_issues(
-                artifacts,
-                "character_state_transitions",
-                character_state_transition_schema,
-                "05_STORY/character_state_transitions.json",
-            )
-            if character_state_transition_schema is not None
-            else []
-        ),
-        *validate_character_state_transitions(
-            production_config,
-            channel,
-            character_state_transitions,
-            characters,
-            facts,
-            clue_matrix,
-            crime_event_contract,
-            beat_sheet,
-            {},
-        ),
     ]
     gate_07 = [
         *nonempty_list_issues(scene_cards, "scenes", "06_SCENE/scene_cards.json"),
@@ -1341,7 +1320,17 @@ def run_production_validation(
             artifacts,
             production_config,
             channel,
-            ("expert_segments",),
+            ("character_state_transitions", "expert_segments"),
+        ),
+        *(
+            optional_schema_issues(
+                artifacts,
+                "character_state_transitions",
+                character_state_transition_schema,
+                "05_STORY/character_state_transitions.json",
+            )
+            if character_state_transition_schema is not None
+            else []
         ),
         *optional_schema_issues(
             artifacts,

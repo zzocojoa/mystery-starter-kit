@@ -664,7 +664,9 @@ def build_bound_crime_event_contract(
         ]
     primary = brief.get("primary_crime")
     action = brief.get("core_action_type")
-    related = [action] if primary != action else []
+    related = string_values(brief, "related_crimes")
+    if primary != action and isinstance(action, str) and action not in related:
+        related.append(action)
     harm_classification = selection.get("harm_classification")
     brief_harms = harm_records(brief, "harms")
     bound_harms = bind_harm_records(brief_harms, slot_map)

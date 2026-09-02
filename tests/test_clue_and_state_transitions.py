@@ -7,7 +7,11 @@ from VALIDATORS.character_state_transitions import (
     validate_character_state_transitions,
 )
 from VALIDATORS.clue_recontextualization import validate_clue_recontextualization
-from VALIDATORS.dependency import artifact_required_for_project, dependency_artifacts
+from VALIDATORS.dependency import (
+    artifact_required_for_project,
+    dependency_artifacts,
+    validate_dependency_graph,
+)
 from VALIDATORS.io import load_json_object
 from VALIDATORS.schema_validation import collect_schema_errors
 
@@ -246,6 +250,66 @@ def test_fatality_path_passes_without_agency_recovery() -> None:
         isinstance(transition, dict) and "recovery_function" not in transition
         for transition in transitions
     )
+
+
+def test_witness_path_passes_without_agency_recovery() -> None:
+    """목격자 중심 구조도 회복 Stage를 강제하지 않는다."""
+    document = transition_document("WITNESS_CENTERED")
+
+    assert transition_issue_codes(document) == set()
+
+
+def test_beat_transition_validates_before_scene_set_is_available() -> None:
+    """BEAT Scope 검증은 Scene Card가 없어도 독립적으로 성립한다."""
+    document = transition_document("NON_RECOVERY")
+    characters, facts, clues, event, beats, _scenes = transition_inputs()
+
+    issues = validate_character_state_transitions(
+        production_config(),
+        CHANNEL,
+        document,
+        characters,
+        facts,
+        clues,
+        event,
+        beats,
+        {},
+    )
+
+    assert issues == []
+
+
+def test_scene_transition_validates_only_against_realized_scene() -> None:
+    """SCENE Scope는 Scene Card 생성 뒤 실제 Scene ID에 결속된다."""
+    document = transition_document("NON_RECOVERY")
+    transitions = document["transitions"]
+    assert isinstance(transitions, list)
+    first = transitions[0]
+    assert isinstance(first, dict)
+    first["scope_type"] = "SCENE"
+    first["scope_id"] = "SCN-01"
+
+    assert transition_issue_codes(document) == set()
+
+    first["scope_id"] = "SCN-99"
+    assert "CHARACTER_STATE_REFERENCE_INVALID" in transition_issue_codes(document)
+
+
+def test_transition_dependency_order_is_cycle_free() -> None:
+    """Scene이 먼저, Transition과 Presentation이 그 뒤에 오는 DAG를 고정한다."""
+    graph = load_json_object(ROOT / "STANDARD/dependency_graph.json")
+    definitions = dependency_artifacts(graph)
+
+    validate_dependency_graph(graph)
+    scene_dependencies = definitions["scene_cards"]["depends_on"]
+    transition_dependencies = definitions["character_state_transitions"]["depends_on"]
+    presentation_dependencies = definitions["presentation_plan"]["depends_on"]
+    assert isinstance(scene_dependencies, list)
+    assert isinstance(transition_dependencies, list)
+    assert isinstance(presentation_dependencies, list)
+    assert "character_state_transitions" not in scene_dependencies
+    assert "scene_cards" in transition_dependencies
+    assert "character_state_transitions" in presentation_dependencies
 
 
 def test_transition_rejects_broken_state_chain_and_unknown_trigger() -> None:

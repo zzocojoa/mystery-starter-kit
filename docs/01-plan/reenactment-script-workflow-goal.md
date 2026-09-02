@@ -168,3 +168,78 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 ## Final Acceptance Evidence
 
 Phase 9에서 요구사항별 명령, SHA, PR, Pilot Artifact 경로와 결과를 기록한다. Human Editorial Approval, `production-finalize`, `register`, PR Merge는 의도적으로 수행하지 않는다.
+
+## Correction Review — 2026-09-02
+
+### 독립 검토 기준과 증거 상태
+
+- 교정 기준: C-01부터 C-13까지의 독립 검토 Backlog와 기존 Goal의 기능·권한·호환성 불변식을 함께 적용한다.
+- 기존 Phase 1의 multi-harm, Phase 2의 Screenplay Unit, Phase 3의 State Transition 수용 증거는 `SUPERSEDED_BY_CORRECTION_REVIEW`다. 역사 기록은 삭제하지 않고 교정 Commit과 새 검증 증거로 대체한다.
+- Source-style 원문은 저장소나 Runtime Context에 반입하지 않으며 추상 기능 요구만 사용한다.
+
+### 검토 Head와 교정 시작 Head
+
+| Stack | 검토 Head | 교정 시작 실제 Head | 선조 관계 | 시작 상태 |
+|---|---|---|---|---|
+| Foundation PR #24 | `b24b47456003057cfebbecf9e156551cc51369f2` | `b24b47456003057cfebbecf9e156551cc51369f2` | PASS | OPEN, Python 3.11/3.14 PASS |
+| Contracts PR #25 | `d12e9823e27c788762efc49f2b8b787f33c5f635` | `d12e9823e27c788762efc49f2b8b787f33c5f635` | PASS | OPEN, Remote Check Run 없음 |
+| Runtime PR #26 | `f79779b747a8ae5103159657ad9bcf997328156d` | `f79779b747a8ae5103159657ad9bcf997328156d` | PASS | OPEN, Remote Check Run 없음 |
+| Pilot PR #27 | `d6a56cd9d0890570f01603bd37d1f9bdaaf4a77e` | `d6a56cd9d0890570f01603bd37d1f9bdaaf4a77e` | PASS | OPEN, Remote Check Run 없음 |
+
+Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit으로 교정한 뒤 PR #26에 정상 Merge Commit으로 동기화하고, PR #26 교정 뒤 PR #27에 정상 Merge Commit으로 동기화한다.
+
+### 재개된 결함
+
+| ID | 교정 시작 상태 | 대상 Stack |
+|---|---|---|
+| C-01 LINUX_FIXTURE_PATH | OPEN | PR #27 |
+| C-02 PILOT_PROJECT_ID_COLLISION | OPEN | PR #27 |
+| C-03 REMOTE_CI_EVIDENCE_MISSING | OPEN | PR #25/#26/#27 |
+| C-04 STATE_TRANSITION_LIFECYCLE | OPEN | PR #25/#26 |
+| C-05 BROADCAST_VISIBLE_TEXT_BINDING | OPEN | PR #26 |
+| C-06 SCREENPLAY_REFERENCE_INTEGRITY | OPEN | PR #25/#26 |
+| C-07 FIXTURE_CONTRACT_REALISM | OPEN | PR #27 |
+| C-08 MULTI_HARM_COMPOUND_COMPATIBILITY | OPEN | PR #25 |
+| C-09 RUNTIME_METHOD_EXCLUSIVITY | OPEN | PR #26 |
+| C-10 RECONSTRUCTION_VISIBLE_IDENTITY | OPEN | PR #25 |
+| C-11 FINAL_UNIT_TEXT_PRESERVATION | OPEN | PR #26 |
+| C-12 OUTPUT_PROFILE_VERSION_DECOUPLING | OPEN | PR #26 |
+| C-13 HUMAN_READABLE_CAST_RELATIONSHIP | OPEN | PR #25/#26/#27 |
+
+### 교정 시작 Baseline
+
+- Branch/Head: `codex/reenactment-contracts-v1@d12e9823e27c788762efc49f2b8b787f33c5f635`
+- 검증 시각: 2026-09-02 08:49–08:57 KST
+- Ruff PASS
+- strict mypy PASS, 133 source files
+- pytest PASS, 350 tests collected
+- package `1.6.1` sdist/wheel build PASS
+- dependency audit PASS; PyPI에 없는 로컬 Package만 제외
+- Runtime Doctor PASS
+- Version Immutability against Foundation branch와 `origin/main` PASS
+- Baseline 명령은 Canonical Project State를 변경하지 않았다. Build 산출물만 재생성됐다.
+
+### Project ID 예약 결과
+
+- PR #22와 PR #27이 모두 `PROJECTS/PRJ-005/**`를 변경하므로 C-02 충돌이 확인됐다.
+- `PRJ-006`은 현재 Repository Project, Story Library, 열린 PR 변경 경로와 관련 원격 Stack에 존재하지 않는다. `tests/test_production_cli.py`의 임시 테스트 ID 사용은 Project 예약이 아니다.
+- PR #27 교정 Pilot ID는 `PRJ-006`으로 예약한다. 기존 PRJ-005의 Hash·State·Trace를 경로 변경이나 전역 치환으로 재사용하지 않는다.
+
+### 교정 증거 갱신 대기
+
+- 교정 Commit, Targeted/Full local validation, exact Remote CI Run ID, 새 Pilot State와 잔여 위험은 각 Stack 교정 뒤 이 절에 추가한다.
+- Human Editorial Approval, 사용자-facing `production-finalize`, Story Library `register`, PR Merge/Close는 수행하지 않는다.
+
+### PR #25 계약 교정 결과
+
+- 수명주기 결정: `character_state_transitions` 전체 작성을 GATE-07의 `scene.design` 뒤로 이동한다. GATE-06은 Beat/Retention만 확정하고 빈 Scene 집합을 검증하지 않는다. `scene_cards → character_state_transitions → presentation_plan` 의존 방향으로 고정해 순환을 제거한다.
+- C-08: 새 구조화 피해는 Core Action과 직접 호환되는 Harm을 최소 하나 요구한다. 추가 Harm은 Core, Primary 또는 명시 Related Crime의 유한 정책 집합과 호환돼야 하며 `COMPOUND` timing을 결과로 인정하되 `COMPOUND_HARM`의 무효 timing을 거부한다. Legacy 단일 피해 Version은 유지한다.
+- C-06: Fact, Clue, Crime Event, Harm, Development Function, Reveal Target, Speaker와 Presentation Segment의 현재 상위 Artifact 결속을 검사하는 순수 Unit Reference Validator를 추가했다.
+- C-10: 재구성 반복은 text뿐 아니라 type, speaker와 delivery를 보존한다. 참조 변화는 `ALLOW_RECONTEXTUALIZATION`을 명시한 Binding에서만 허용한다.
+- C-13: 기존 Runtime Project Artifact 1.0 Schema는 변경하지 않고 `relationships` 1.1 계약을 추가했다. Legacy 무버전 문서는 계속 허용하며 1.1 문서는 Machine `engine`과 별도 Human-readable `display_summary`를 요구한다.
+- C-03 계약 부분: CI의 `pull_request` Base 제한을 제거해 Stacked PR synchronize Event가 동일 Python Matrix를 실행할 수 있게 했다.
+- Targeted: 계약 교정 묶음 119 tests PASS, Ruff PASS, strict mypy PASS.
+- Full local: Ruff PASS, strict mypy PASS(134 source files), pytest PASS(386 tests), package 1.6.1 build PASS, dependency audit PASS, Runtime Doctor PASS, Foundation/origin-main Version Immutability PASS.
+- Test skip/xfail로 결함을 숨긴 항목: 없음.
+- 검증 시각: 2026-09-02 09:04–09:07 KST. 검증은 Canonical Project State를 변경하지 않았고 Build 산출물만 재생성했다.
+- 교정 Commit: `fix: close reenactment contract review gaps`로 기록하고 실제 SHA와 Remote CI Run은 Push 뒤 상위 Stack Ledger 및 PR 본문에 결속한다.

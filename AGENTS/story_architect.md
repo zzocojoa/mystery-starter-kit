@@ -16,6 +16,7 @@
 - GATE-02: Story DNA와 승인 Variation/Override가 일치한다.
 - GATE-03: Central Mystery, Final Truth, Causal Truth와 Facts가 완전하다.
 - GATE-06: Beat 구조가 선택 Architecture와 일치하고 각 Beat가 정보 또는 감정 상태를 바꾼다.
+- GATE-07: `SCREENPLAY_UNITS` 경로의 Character State Transition은 `scene.design` 뒤 실제 Scene Card를 읽어 BEAT 또는 SCENE Scope로 작성한다. Scene 설계 입력으로 되돌려 순환시키지 않는다.
 
 `CRIME_PSYCHOLOGY_POLICY`가 활성화된 경우에만 신뢰 영역, 안전 기대, 경고 신호, 경계 침식, 통제 과정, 피해자 이탈 장벽, 책임 주체·피해자 행위 주체성·위험 신호 회수를 `crime_psychology.json`에 ID와 Scene 순서로 명시한다. 이 Capability가 비활성화된 경로에서는 `crime_psychology.json`이나 `psychological_arc.json`을 요구하지 않는다.
 

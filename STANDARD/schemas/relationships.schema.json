@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/relationships-1.0-1.1.json",
+  "title": "Character Relationships",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["project_id", "relationships"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "relationships"},
+    "schema_version": {"enum": ["1.0.0", "1.1.0"]},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "relationships": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/relationship"}
+    }
+  },
+  "dependentRequired": {
+    "schema_family": ["schema_version"],
+    "schema_version": ["schema_family"]
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"schema_version": {"const": "1.1.0"}},
+        "required": ["schema_version"]
+      },
+      "then": {
+        "properties": {
+          "relationships": {
+            "items": {"required": ["display_summary"]}
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1, "pattern": ".*\\S.*"},
+    "canonicalId": {"type": "string", "pattern": "^[A-Z]+-[0-9]{2,}$"},
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relationship_id", "from", "to", "engine"],
+      "properties": {
+        "relationship_id": {"$ref": "#/$defs/canonicalId"},
+        "from": {"$ref": "#/$defs/canonicalId"},
+        "to": {"$ref": "#/$defs/canonicalId"},
+        "engine": {"$ref": "#/$defs/nonEmpty"},
+        "display_summary": {"$ref": "#/$defs/nonEmpty"}
+      }
+    }
+  }
+}
