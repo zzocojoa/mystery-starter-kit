@@ -55,7 +55,10 @@ from VALIDATORS.novelty import (
     evaluate_novelty,
     evaluate_variation_precheck_bound,
 )
-from VALIDATORS.output_profiles import resolve_reenactment_output_profile
+from VALIDATORS.output_profiles import (
+    resolve_broadcast_readable_output_profile,
+    resolve_reenactment_output_profile,
+)
 from VALIDATORS.pipeline import ArtifactContent, load_existing_project_artifacts
 from VALIDATORS.production_footprint import (
     build_production_footprint,
@@ -187,6 +190,36 @@ def reenactment_output_profile(
             False,
             "TASK",
             "Screenplay Unit Task에는 고정 Reenactment Output Profile이 필요합니다.",
+            task_id,
+            "production_config",
+            {},
+        )
+    return resolved["document"], resolved["sha256"]
+
+
+def broadcast_readable_output_profile(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    task_id: str,
+) -> tuple[Mapping[str, object], str]:
+    """고정 사람용 Broadcast Profile을 Runtime 오류 경계에서 해석한다."""
+    try:
+        resolved = resolve_broadcast_readable_output_profile(
+            repository_root,
+            production_config,
+        )
+    except ConfigurationError as error:
+        raise production_configuration_error(
+            error,
+            task_id,
+            "production_config",
+        ) from error
+    if resolved is None:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Screenplay Unit Task에는 고정 Broadcast Readable Output Profile이 필요합니다.",
             task_id,
             "production_config",
             {},
@@ -363,14 +396,25 @@ def runtime_validation_inputs_for_project(
     )
     selected_schemas["variation_catalog"] = variation_runtime["catalog"]
     selected_schemas["variation_runtime"] = dict(variation_runtime)
-    output_profile = resolve_reenactment_output_profile(
+    reenactment_profile = resolve_reenactment_output_profile(
         repository_root,
         production_config,
     )
-    if output_profile is not None:
-        selected_schemas["reenactment_output_profile"] = output_profile["document"]
+    if reenactment_profile is not None:
+        selected_schemas["reenactment_output_profile"] = reenactment_profile["document"]
         selected_schemas["reenactment_output_profile_binding"] = {
-            "sha256": output_profile["sha256"],
+            "sha256": reenactment_profile["sha256"],
+        }
+    readable_profile = resolve_broadcast_readable_output_profile(
+        repository_root,
+        production_config,
+    )
+    if readable_profile is not None:
+        selected_schemas["broadcast_readable_output_profile"] = readable_profile[
+            "document"
+        ]
+        selected_schemas["broadcast_readable_output_profile_binding"] = {
+            "sha256": readable_profile["sha256"],
         }
     return (
         channel,
@@ -864,9 +908,16 @@ def reenactment_script_output(
 
 def broadcast_readable_output(
     task_id: str,
+    repository_root: Path,
+    production_config: Mapping[str, object],
     artifacts: Mapping[str, ArtifactContent],
 ) -> str:
     """동일 Canonical JSON에서 사람용 Broadcast Artifact를 만든다."""
+    output_profile, _profile_hash = broadcast_readable_output_profile(
+        repository_root,
+        production_config,
+        task_id,
+    )
     return renderer_output(
         task_id,
         "broadcast_readable_script",
@@ -876,20 +927,32 @@ def broadcast_readable_output(
             mapping_artifact(artifacts, "panel_cast"),
             mapping_artifact(artifacts, "reaction_segments"),
             mapping_artifact(artifacts, "presentation_plan"),
+            output_profile,
         ),
     )
 
 
 def broadcast_readable_report_output(
+    task_id: str,
+    repository_root: Path,
+    production_config: Mapping[str, object],
     artifacts: Mapping[str, ArtifactContent],
 ) -> dict[str, object]:
     """현재 Canonical 입력과 사람용 Broadcast에 결속된 QA Report를 만든다."""
+    output_profile, profile_hash = broadcast_readable_output_profile(
+        repository_root,
+        production_config,
+        task_id,
+    )
     return build_broadcast_readable_report(
+        production_config,
         mapping_artifact(artifacts, "screenplay_units"),
         mapping_artifact(artifacts, "characters"),
         mapping_artifact(artifacts, "panel_cast"),
         mapping_artifact(artifacts, "reaction_segments"),
         mapping_artifact(artifacts, "presentation_plan"),
+        output_profile,
+        profile_hash,
         text_artifact(artifacts, "broadcast_readable_script"),
     )
 
@@ -985,19 +1048,29 @@ def production_reenactment_output(
 
 def production_broadcast_readable_output(
     task_id: str,
+    repository_root: Path,
+    production_config: Mapping[str, object],
     artifacts: Mapping[str, ArtifactContent],
 ) -> str:
     """검증된 사람용 Broadcast만 Production 경로에 byte 그대로 전달한다."""
     validation_report = mapping_artifact(artifacts, "validation_report")
     report = mapping_artifact(artifacts, "broadcast_readable_report")
     readable_script = text_artifact(artifacts, "broadcast_readable_script")
+    output_profile, profile_hash = broadcast_readable_output_profile(
+        repository_root,
+        production_config,
+        task_id,
+    )
     report_issues = validate_broadcast_readable_report(
         report,
+        production_config,
         mapping_artifact(artifacts, "screenplay_units"),
         mapping_artifact(artifacts, "characters"),
         mapping_artifact(artifacts, "panel_cast"),
         mapping_artifact(artifacts, "reaction_segments"),
         mapping_artifact(artifacts, "presentation_plan"),
+        output_profile,
+        profile_hash,
         readable_script,
     )
     if (
@@ -1272,6 +1345,8 @@ def core_task_outputs(
         return {
             "broadcast_readable_script": broadcast_readable_output(
                 task_id,
+                repository_root,
+                production_config,
                 artifacts,
             )
         }
@@ -1317,7 +1392,12 @@ def core_task_outputs(
     if task_id == "production.package_broadcast_readable":
         return {
             "production_broadcast_readable_script": (
-                production_broadcast_readable_output(task_id, artifacts)
+                production_broadcast_readable_output(
+                    task_id,
+                    repository_root,
+                    production_config,
+                    artifacts,
+                )
             )
         }
     if task_id == "continuity.realization":
@@ -1359,7 +1439,10 @@ def core_task_outputs(
     if task_id == "continuity.validate_broadcast_readable":
         return {
             "broadcast_readable_report": broadcast_readable_report_output(
-                artifacts
+                task_id,
+                repository_root,
+                production_config,
+                artifacts,
             )
         }
     if task_id == "continuity.deterministic":

@@ -1475,8 +1475,30 @@ def run_production_validation(
     ]
     if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
         output_profile = presentation_schemas.get("reenactment_output_profile")
+        readable_output_profile = presentation_schemas.get(
+            "broadcast_readable_output_profile"
+        )
+        readable_output_profile_binding = presentation_schemas.get(
+            "broadcast_readable_output_profile_binding"
+        )
+        readable_profile_hash = (
+            readable_output_profile_binding.get("sha256")
+            if isinstance(readable_output_profile_binding, Mapping)
+            else None
+        )
         if not isinstance(output_profile, Mapping):
             raise ConfigurationError("검증된 Reenactment Output Profile 입력이 필요합니다.")
+        if not isinstance(readable_output_profile, Mapping) or not isinstance(
+            readable_profile_hash,
+            str,
+        ):
+            raise ConfigurationError(
+                "검증된 Broadcast Readable Output Profile 입력이 필요합니다."
+            )
+        validated_readable_output_profile: Mapping[str, object] = (
+            readable_output_profile
+        )
+        validated_readable_profile_hash: str = readable_profile_hash
         derived_outputs = ScreenplayDerivedOutputs(
             drama_script=drama_script,
             narration_script=narration_script,
@@ -1540,11 +1562,14 @@ def run_production_validation(
             )
         gate_08.extend(
             broadcast_readable_script_issues(
+                production_config,
                 screenplay_units,
                 characters,
                 panel_cast,
                 reaction_segments,
                 presentation_plan,
+                validated_readable_output_profile,
+                validated_readable_profile_hash,
                 broadcast_readable_script,
             )
         )
@@ -1648,11 +1673,14 @@ def run_production_validation(
         gate_09.extend(
             validate_broadcast_readable_report(
                 broadcast_readable_report,
+                production_config,
                 screenplay_units,
                 characters,
                 panel_cast,
                 reaction_segments,
                 presentation_plan,
+                validated_readable_output_profile,
+                validated_readable_profile_hash,
                 broadcast_readable_script,
             )
         )
@@ -1821,11 +1849,14 @@ def run_production_validation(
         gate_13.extend(
             validate_broadcast_readable_report(
                 broadcast_readable_report,
+                production_config,
                 screenplay_units,
                 characters,
                 panel_cast,
                 reaction_segments,
                 presentation_plan,
+                validated_readable_output_profile,
+                validated_readable_profile_hash,
                 broadcast_readable_script,
             )
         )

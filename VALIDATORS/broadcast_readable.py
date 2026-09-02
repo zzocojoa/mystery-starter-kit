@@ -31,19 +31,23 @@ def readable_issue(
 
 
 def readable_input_hashes(
+    production_config: Mapping[str, object],
     screenplay_units: Mapping[str, object],
     characters: Mapping[str, object],
     panel_cast: Mapping[str, object],
     reaction_segments: Mapping[str, object],
     presentation_plan: Mapping[str, object],
+    output_profile: Mapping[str, object],
 ) -> dict[str, str]:
     """Readable Artifact의 모든 Canonical JSON 입력 Hash를 계산한다."""
     return {
+        "production_config": document_sha256(production_config),
         "screenplay_units": document_sha256(screenplay_units),
         "characters": document_sha256(characters),
         "panel_cast": document_sha256(panel_cast),
         "reaction_segments": document_sha256(reaction_segments),
         "presentation_plan": document_sha256(presentation_plan),
+        "broadcast_readable_output_profile": document_sha256(output_profile),
     }
 
 
@@ -78,12 +82,82 @@ def readable_coverage(
     }
 
 
+def readable_output_profile_binding(
+    output_profile: Mapping[str, object],
+    output_profile_sha256: str,
+) -> dict[str, str]:
+    """QA Report에 Registry로 검증한 Profile Pin과 원본 파일 Hash를 결속한다."""
+    profile_id = output_profile.get("profile_id")
+    profile_version = output_profile.get("profile_version")
+    if not isinstance(profile_id, str) or not isinstance(profile_version, str):
+        raise ConfigurationError(
+            "BROADCAST_READABLE_OUTPUT_PROFILE_IDENTITY_INVALID: "
+            "profile_id와 profile_version이 문자열이어야 합니다."
+        )
+    return {
+        "profile_id": profile_id,
+        "profile_version": profile_version,
+        "sha256": output_profile_sha256,
+    }
+
+
+def readable_source_style_evidence(
+    output_profile: Mapping[str, object],
+    coverage: Mapping[str, int],
+    readable_script: str,
+    source_truth_classification: object,
+) -> dict[str, object]:
+    """Source-style 불변식과 Canonical 표시 수량을 검증 증거로 고정한다."""
+    source_style = output_profile.get("source_style_contract")
+    filter_contract = output_profile.get("filter_contract")
+    if not isinstance(source_style, Mapping) or not isinstance(filter_contract, Mapping):
+        raise ConfigurationError(
+            "BROADCAST_READABLE_OUTPUT_PROFILE_INVALID: "
+            "source_style_contract와 filter_contract가 필요합니다."
+        )
+    raw_markers = filter_contract.get("forbidden_internal_markers")
+    raw_uncertainty = filter_contract.get(
+        "original_fiction_forbidden_uncertainty_markers"
+    )
+    if not isinstance(raw_markers, list) or not isinstance(raw_uncertainty, list):
+        raise ConfigurationError(
+            "BROADCAST_READABLE_OUTPUT_PROFILE_INVALID: "
+            "금지 Marker 배열이 필요합니다."
+        )
+    forbidden_markers = [marker for marker in raw_markers if isinstance(marker, str)]
+    if source_truth_classification == "ORIGINAL_FICTION":
+        forbidden_markers.extend(
+            marker for marker in raw_uncertainty if isinstance(marker, str)
+        )
+    return {
+        "ordering_source": source_style.get("ordering_source"),
+        "unit_text_policy": source_style.get("unit_text_policy"),
+        "character_name_source": source_style.get("character_name_source"),
+        "panel_name_source": source_style.get("panel_name_source"),
+        "scene_context_position": source_style.get("scene_context_position"),
+        "internal_identifier_visibility": source_style.get(
+            "internal_identifier_visibility"
+        ),
+        "scene_context_count": coverage["scene_count"],
+        "canonical_unit_count": coverage["unit_count"],
+        "character_row_count": coverage["character_count"],
+        "panelist_row_count": coverage["panelist_count"],
+        "panel_turn_count": coverage["panel_turn_count"],
+        "forbidden_marker_matches": sorted(
+            marker for marker in forbidden_markers if marker in readable_script
+        ),
+    }
+
+
 def build_broadcast_readable_report(
+    production_config: Mapping[str, object],
     screenplay_units: Mapping[str, object],
     characters: Mapping[str, object],
     panel_cast: Mapping[str, object],
     reaction_segments: Mapping[str, object],
     presentation_plan: Mapping[str, object],
+    output_profile: Mapping[str, object],
+    output_profile_sha256: str,
     readable_script: str,
 ) -> dict[str, object]:
     """현재 Canonical 입력과 Readable bytes에 결속된 결정론적 QA Report를 만든다."""
@@ -97,6 +171,7 @@ def build_broadcast_readable_report(
             panel_cast,
             reaction_segments,
             presentation_plan,
+            output_profile,
         )
         coverage = readable_coverage(
             screenplay_units,
@@ -127,48 +202,79 @@ def build_broadcast_readable_report(
             )
         )
     result = "MISSING" if not readable_script.strip() else "FAIL" if issues else "PASS"
+    effective_coverage = coverage or {
+        "scene_count": 0,
+        "unit_count": 0,
+        "character_count": 0,
+        "panelist_count": 0,
+        "panel_reaction_segment_count": 0,
+        "panel_turn_count": 0,
+        "presentation_segment_count": 0,
+    }
+    source_style_evidence = readable_source_style_evidence(
+        output_profile,
+        effective_coverage,
+        readable_script,
+        screenplay_units.get("source_truth_classification"),
+    )
+    marker_matches = source_style_evidence["forbidden_marker_matches"]
+    if isinstance(marker_matches, list) and marker_matches:
+        issues.append(
+            readable_issue(
+                "BROADCAST_READABLE_INTERNAL_MARKER_EXPOSED",
+                "사람용 Broadcast에 내부 식별자 또는 불확실성 Marker가 노출되었습니다.",
+                READABLE_ARTIFACT_PATH,
+                {"matches": marker_matches},
+            )
+        )
+        result = "FAIL"
     return {
         "$schema": "../../../STANDARD/schemas/broadcast_readable_report.schema.json",
         "schema_family": "broadcast-readable-report",
         "schema_version": "1.0.0",
         "project_id": screenplay_units.get("project_id"),
         "result": result,
+        "output_profile": readable_output_profile_binding(
+            output_profile,
+            output_profile_sha256,
+        ),
         "input_artifact_hashes": readable_input_hashes(
+            production_config,
             screenplay_units,
             characters,
             panel_cast,
             reaction_segments,
             presentation_plan,
+            output_profile,
         ),
         "output_markdown_sha256": sha256(readable_script.encode("utf-8")).hexdigest(),
-        "coverage": coverage or {
-            "scene_count": 0,
-            "unit_count": 0,
-            "character_count": 0,
-            "panelist_count": 0,
-            "panel_reaction_segment_count": 0,
-            "panel_turn_count": 0,
-            "presentation_segment_count": 0,
-        },
+        "coverage": effective_coverage,
+        "source_style_evidence": source_style_evidence,
         "issues": issues,
     }
 
 
 def broadcast_readable_script_issues(
+    production_config: Mapping[str, object],
     screenplay_units: Mapping[str, object],
     characters: Mapping[str, object],
     panel_cast: Mapping[str, object],
     reaction_segments: Mapping[str, object],
     presentation_plan: Mapping[str, object],
+    output_profile: Mapping[str, object],
+    output_profile_sha256: str,
     readable_script: str,
 ) -> list[ValidationIssue]:
     """GATE-08에서 Canonical Readable Artifact를 현재 입력과 대조한다."""
     report = build_broadcast_readable_report(
+        production_config,
         screenplay_units,
         characters,
         panel_cast,
         reaction_segments,
         presentation_plan,
+        output_profile,
+        output_profile_sha256,
         readable_script,
     )
     raw_issues = report["issues"]
@@ -177,20 +283,26 @@ def broadcast_readable_script_issues(
 
 def validate_broadcast_readable_report(
     report: Mapping[str, object],
+    production_config: Mapping[str, object],
     screenplay_units: Mapping[str, object],
     characters: Mapping[str, object],
     panel_cast: Mapping[str, object],
     reaction_segments: Mapping[str, object],
     presentation_plan: Mapping[str, object],
+    output_profile: Mapping[str, object],
+    output_profile_sha256: str,
     readable_script: str,
 ) -> list[ValidationIssue]:
     """GATE-09에서 QA Report를 현재 입력과 재구성해 stale 위조를 차단한다."""
     expected = build_broadcast_readable_report(
+        production_config,
         screenplay_units,
         characters,
         panel_cast,
         reaction_segments,
         presentation_plan,
+        output_profile,
+        output_profile_sha256,
         readable_script,
     )
     expected_issues = expected["issues"]

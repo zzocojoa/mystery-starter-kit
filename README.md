@@ -4,6 +4,7 @@
 - Production Standard: `1.3.3`
 - Active Channel Content: `2.1.0`
 - Reenactment Output Profile: `REENACTMENT_CHARACTER_SCRIPT 1.0.0`
+- Broadcast Readable Output Profile: `BROADCAST_READABLE_SCRIPT 1.0.0`
 - Runtime Interface: `1.0.0`
 
 [![CI](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml)
@@ -54,9 +55,9 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 
 각 제출은 현재 Task의 writes Allowlist, Artifact Owner, Future Gate 수정, 입력 Hash Drift와 Schema를 검사한다. 통과하면 같은 Workspace에서 후속 CORE를 실행하고, 다음 LLM Task가 있으면 Canonical 중간 Commit 없이 새 `current_task_id`와 최소 권한을 반환한다. Gate의 모든 Task와 Gate Validator가 PASS한 경우에만 Artifact·Project State·`00_PROJECT/process_trace.jsonl`을 기존 Write-ahead Transaction으로 함께 Commit한다. 다음 Gate를 열기 전에는 이미 통과한 Canonical Artifact를 Project State Hash와 대조한다. 작업을 폐기하려면 `task-abort`를 사용한다. Critic Issue는 `task-return`으로 Owner Agent Gate에 반환하며, 새 `process_revision`의 Trace만 재작업 적합성에 사용한다. `AUTO_CONTINUE`는 정상 Task 통과 뒤 의존 가능한 CORE 또는 다음 LLM Task로 진행할 수 있다는 뜻이며 여러 Gate를 한꺼번에 작성한다는 뜻이 아니다.
 
-새 Scaffold는 `script_source_mode: SCREENPLAY_UNITS`와 `REENACTMENT_CHARACTER_SCRIPT 1.0.0` Output Profile을 고정한다. GATE-08에서 Codex가 작성하는 유일한 새 창작 출력은 `screenplay_units.json`이다. 제출 뒤 CORE가 Layer Script, Broadcast Master, `reenactment_character_script.md`와 사람이 읽는 `broadcast_readable_script.md`를 만든다. Readable Script는 같은 Canonical Screenplay Unit, Character, Panel Cast, Reaction Segment, Presentation Plan만 사용하며 장면 Context, 실제 인물 이름과 Canonical Panel 발화를 표시한다.
+새 Scaffold는 `script_source_mode: SCREENPLAY_UNITS`, `REENACTMENT_CHARACTER_SCRIPT 1.0.0`, `BROADCAST_READABLE_SCRIPT 1.0.0`을 각각 고정한다. GATE-08에서 Codex가 작성하는 유일한 새 창작 출력은 `screenplay_units.json`이다. 제출 뒤 CORE가 Layer Script, Broadcast Master, `reenactment_character_script.md`와 사람이 읽는 `broadcast_readable_script.md`를 만든다. Readable Script는 같은 Canonical Screenplay Unit, Character, Panel Cast, Reaction Segment, Presentation Plan만 사용하며 독립 Profile이 정한 제목·표·Scene Context·발화·Panel 표시 형식으로 실제 이름과 Canonical 원문을 방송 순서대로 표시한다.
 
-GATE-09는 Readable Script와 다섯 입력의 Hash·Coverage를 `broadcast_readable_report.json`에 결속하고, 현재 입력에서 Report를 재구성해 stale 또는 위조를 거부한다. GATE-12 통합 Validation은 이 Report에 의존한다. GATE-13은 검증된 Readable bytes만 `09_PRODUCTION/broadcast_readable_script.md`에 그대로 복사하고 Editorial Review가 원본·Report·Production Copy Hash를 모두 검토한다. 이 세 파일은 Artifact Contract, Dependency Graph, Runtime Task, Project State와 Gate Transaction의 관리 대상이며 Gate 밖에서 직접 다시 쓰는 보조 CLI는 제공하지 않는다. 기존 `final_script.md`의 Contract·Marker·Renderer·bytes는 유지하고, `LEGACY_MARKDOWN` Project에는 이 경로를 요구하지 않는다.
+GATE-09는 Readable Script, Production Config, 다섯 Canonical 입력, Profile 문서 Hash와 Registry 원본 Hash, Source-style Coverage를 `broadcast_readable_report.json`에 결속하고 현재 입력에서 Report를 재구성해 stale 또는 위조를 거부한다. GATE-12 통합 Validation은 이 Report에 의존한다. GATE-13은 검증된 Readable bytes만 `09_PRODUCTION/broadcast_readable_script.md`에 그대로 복사하고 Editorial Review가 원본·Report·Production Copy Hash를 모두 검토한다. 이 세 파일은 Artifact Contract, Dependency Graph, Runtime Task, Project State와 Gate Transaction의 관리 대상이며 Gate 밖에서 직접 다시 쓰는 보조 CLI는 제공하지 않는다. 기존 `final_script.md`의 Contract·Marker·Renderer·bytes는 유지하고, `LEGACY_MARKDOWN` Project에는 이 경로를 요구하지 않는다.
 
 재연극 목표시간이 필요하면 `target_reenactment_minutes`와 `reenactment_runtime_tolerance_ratio`를 함께 설정한다. 이 값은 방송 전체의 `target_runtime_minutes`와 별도이며 방송 목표를 넘을 수 없다. CORE는 Output Profile이 포함한 Unit이 결속된 Drama·Narration Segment만 합산하고 Panel 등 제외 Segment를 Report에 따로 기록한다. Editorial evidence는 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO`를 구분하며, Unit·Profile·Presentation 입력이 바뀌면 기존 측정 Hash를 거부한다.
 
@@ -71,7 +72,7 @@ PYTHONPATH=. .venv/bin/mystery-kit compat PROJECTS/PRJ-002
 PYTHONPATH=. .venv/bin/mystery-kit validate PROJECTS/PRJ-002
 ```
 
-Legacy Project를 Screenplay Unit 경로로 일괄 변환하거나 진행 중 Project를 자동 Rollback하는 CLI는 제공하지 않는다. 전환은 별도 변경 승인 아래 `production_config`의 mode와 Output Profile Pin을 함께 바꾸고, State Transition·Script 이후 downstream Artifact를 새 Process Revision에서 재생성해야 한다. Rollback도 `LEGACY_MARKDOWN`을 명시한 새 Revision에서 같은 범위를 재생성하는 방식이며, 이전 Canonical Artifact와 Trace를 삭제하거나 다른 Version 계약을 암묵적으로 합치지 않는다. 가장 안전한 신규 도입 경로는 새 Scaffold다.
+Legacy Project를 Screenplay Unit 경로로 일괄 변환하거나 진행 중 Project를 자동 Rollback하는 CLI는 제공하지 않는다. 전환은 별도 변경 승인 아래 `production_config`의 mode와 Reenactment·Broadcast Readable Output Profile Pin을 함께 바꾸고, State Transition·Script 이후 downstream Artifact를 새 Process Revision에서 재생성해야 한다. Rollback도 `LEGACY_MARKDOWN`을 명시한 새 Revision에서 같은 범위를 재생성하는 방식이며, 이전 Canonical Artifact와 Trace를 삭제하거나 다른 Version 계약을 암묵적으로 합치지 않는다. 가장 안전한 신규 도입 경로는 새 Scaffold다.
 
 완성 예시는 [PRJ-006](PROJECTS/PRJ-006/)이다. 이 Original Fiction Pilot은 GATE-00~13과 기술적 Editorial Review를 통과했지만 `WORD_COUNT_ESTIMATE`만 보유하므로 상태가 `EDITORIAL_REVIEW_REQUIRED`이며 Production Ready 예제가 아니다.
 

@@ -12,9 +12,15 @@ from VALIDATORS.broadcast_readable import (
     production_broadcast_readable_copy_issues,
     validate_broadcast_readable_report,
 )
-from VALIDATORS.dependency import artifact_required_for_project
+from VALIDATORS.dependency import (
+    artifact_hash,
+    artifact_required_for_project,
+    build_initial_project_state,
+    invalidate_artifact_dependents,
+)
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object
+from VALIDATORS.output_profiles import resolve_broadcast_readable_output_profile
 from VALIDATORS.schema_validation import collect_schema_errors
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,13 +48,23 @@ def pilot_documents() -> tuple[
 def rendered_pilot() -> str:
     """PRJ-006 Canonical JSON에서 readable view를 렌더링한다."""
     screenplay, characters, panel_cast, reactions, plan = pilot_documents()
+    _config, output_profile, _profile_hash = pilot_profile()
     return render_broadcast_readable_script(
         screenplay,
         characters,
         panel_cast,
         reactions,
         plan,
+        output_profile,
     )
+
+
+def pilot_profile() -> tuple[dict[str, object], dict[str, object], str]:
+    """PRJ-006 Config로 Registry 검증된 Readable Profile을 읽는다."""
+    config = load_json_object(PILOT_ROOT / "00_PROJECT" / "production_config.json")
+    resolved = resolve_broadcast_readable_output_profile(ROOT, config)
+    assert resolved is not None
+    return config, resolved["document"], resolved["sha256"]
 
 
 def mapping_list(document: dict[str, object], field: str) -> list[dict[str, object]]:
@@ -125,6 +141,7 @@ def test_readable_broadcast_is_deterministic_and_human_named() -> None:
 def test_readable_broadcast_rejects_unknown_character_and_panelist() -> None:
     """실제 이름으로 해석할 수 없는 Speaker와 Panelist를 명시적으로 거부한다."""
     screenplay, characters, panel_cast, reactions, plan = pilot_documents()
+    _config, output_profile, _profile_hash = pilot_profile()
     mutated_screenplay = deepcopy(screenplay)
     scenes = mapping_list(mutated_screenplay, "scenes")
     units = mapping_list(scenes[0], "units")
@@ -138,6 +155,7 @@ def test_readable_broadcast_rejects_unknown_character_and_panelist() -> None:
             panel_cast,
             reactions,
             plan,
+            output_profile,
         )
 
     mutated_reactions = deepcopy(reactions)
@@ -152,12 +170,14 @@ def test_readable_broadcast_rejects_unknown_character_and_panelist() -> None:
             panel_cast,
             mutated_reactions,
             plan,
+            output_profile,
         )
 
 
 def test_readable_broadcast_rejects_scene_segment_drift() -> None:
     """Scene과 Presentation의 Segment 순서가 달라지면 stale view 생성을 막는다."""
     screenplay, characters, panel_cast, reactions, plan = pilot_documents()
+    _config, output_profile, _profile_hash = pilot_profile()
     mutated_screenplay = deepcopy(screenplay)
     scene = mapping_list(mutated_screenplay, "scenes")[0]
     segment_ids = scene["segment_ids"]
@@ -174,12 +194,14 @@ def test_readable_broadcast_rejects_scene_segment_drift() -> None:
             panel_cast,
             reactions,
             plan,
+            output_profile,
         )
 
 
 def test_readable_broadcast_rejects_canonical_project_mismatch() -> None:
     """서로 다른 Project의 Canonical JSON을 섞어 렌더링하지 않는다."""
     screenplay, characters, panel_cast, reactions, plan = pilot_documents()
+    _config, output_profile, _profile_hash = pilot_profile()
     mutated_panel_cast = deepcopy(panel_cast)
     mutated_panel_cast["project_id"] = "PRJ-OTHER"
 
@@ -190,19 +212,24 @@ def test_readable_broadcast_rejects_canonical_project_mismatch() -> None:
             mutated_panel_cast,
             reactions,
             plan,
+            output_profile,
         )
 
 
 def test_readable_report_binds_inputs_output_and_schema() -> None:
     """QA Report는 모든 입력과 출력 Hash 및 Coverage를 결정론적으로 결속한다."""
     screenplay, characters, panel_cast, reactions, plan = pilot_documents()
+    config, output_profile, profile_hash = pilot_profile()
     rendered = rendered_pilot()
     report = build_broadcast_readable_report(
+        config,
         screenplay,
         characters,
         panel_cast,
         reactions,
         plan,
+        output_profile,
+        profile_hash,
         rendered,
     )
     schema = load_json_object(
@@ -211,6 +238,11 @@ def test_readable_report_binds_inputs_output_and_schema() -> None:
 
     assert collect_schema_errors(report, schema, "broadcast readable report") == []
     assert report["result"] == "PASS"
+    assert report["output_profile"] == {
+        "profile_id": "BROADCAST_READABLE_SCRIPT",
+        "profile_version": "1.0.0",
+        "sha256": profile_hash,
+    }
     assert report["output_markdown_sha256"] == sha256(
         rendered.encode("utf-8")
     ).hexdigest()
@@ -222,6 +254,20 @@ def test_readable_report_binds_inputs_output_and_schema() -> None:
         "panel_reaction_segment_count": 7,
         "panel_turn_count": 14,
         "presentation_segment_count": 23,
+    }
+    assert report["source_style_evidence"] == {
+        "ordering_source": "PRESENTATION_PLAN",
+        "unit_text_policy": "CANONICAL_EXACT",
+        "character_name_source": "CHARACTERS_NAME",
+        "panel_name_source": "PANEL_CAST_DISPLAY_NAME",
+        "scene_context_position": "BEFORE_SCENE_CONTENT",
+        "internal_identifier_visibility": "HIDDEN",
+        "scene_context_count": 11,
+        "canonical_unit_count": 95,
+        "character_row_count": 6,
+        "panelist_row_count": 3,
+        "panel_turn_count": 14,
+        "forbidden_marker_matches": [],
     }
 
 
@@ -278,6 +324,7 @@ def test_existing_broadcast_master_contract_and_bytes_are_unchanged() -> None:
 def test_tracked_pilot_chain_matches_current_canonical_json() -> None:
     """Commit된 PRJ-006 View·QA Report·Production Copy가 Canonical 입력과 일치한다."""
     screenplay, characters, panel_cast, reactions, plan = pilot_documents()
+    config, output_profile, profile_hash = pilot_profile()
     rendered = rendered_pilot()
     output_path = PILOT_ROOT / "07_SCRIPT" / "broadcast_readable_script.md"
     report_path = PILOT_ROOT / "08_QA" / "broadcast_readable_report.json"
@@ -285,11 +332,14 @@ def test_tracked_pilot_chain_matches_current_canonical_json() -> None:
 
     assert output_path.read_bytes() == rendered.encode("utf-8")
     assert load_json_object(report_path) == build_broadcast_readable_report(
+        config,
         screenplay,
         characters,
         panel_cast,
         reactions,
         plan,
+        output_profile,
+        profile_hash,
         rendered,
     )
     assert production_path.read_bytes() == output_path.read_bytes()
@@ -298,13 +348,17 @@ def test_tracked_pilot_chain_matches_current_canonical_json() -> None:
 def test_stale_report_and_production_copy_are_rejected() -> None:
     """입력·Report·Production Copy 중 하나라도 바뀌면 추적 체인이 실패한다."""
     screenplay, characters, panel_cast, reactions, plan = pilot_documents()
+    config, output_profile, profile_hash = pilot_profile()
     rendered = rendered_pilot()
     report = build_broadcast_readable_report(
+        config,
         screenplay,
         characters,
         panel_cast,
         reactions,
         plan,
+        output_profile,
+        profile_hash,
         rendered,
     )
     stale_report = deepcopy(report)
@@ -312,11 +366,14 @@ def test_stale_report_and_production_copy_are_rejected() -> None:
 
     issues = validate_broadcast_readable_report(
         stale_report,
+        config,
         screenplay,
         characters,
         panel_cast,
         reactions,
         plan,
+        output_profile,
+        profile_hash,
         rendered,
     )
 
@@ -344,6 +401,7 @@ def test_contract_chain_has_gate_owned_runtime_tasks() -> None:
         "broadcast_readable_script"
     )
     assert definitions["production_broadcast_readable_script"]["depends_on"] == [
+        "production_config",
         "broadcast_readable_script",
         "broadcast_readable_report",
         "validation_report",
@@ -364,3 +422,112 @@ def test_contract_chain_has_gate_owned_runtime_tasks() -> None:
         assert task["executor"] == "CORE"
         assert task["target_gate"] == gate_id
         assert task["writes"] == [output_name]
+        assert "production_config" in task["reads"]
+        assert (
+            "STANDARD/schemas/broadcast_readable_output_profile.schema.json"
+            in task["standard_resources"]
+        )
+
+
+def test_output_profile_field_change_changes_rendered_bytes() -> None:
+    """Profile 표시 규칙만 바꿔도 Task Catalog 수정 없이 출력 Byte가 달라진다."""
+    screenplay, characters, panel_cast, reactions, plan = pilot_documents()
+    _config, output_profile, _profile_hash = pilot_profile()
+    changed_profile = deepcopy(output_profile)
+    document_contract = changed_profile["document_contract"]
+    assert isinstance(document_contract, dict)
+    document_contract["title_template"] = "# {title} — 읽기용"
+
+    rendered = render_broadcast_readable_script(
+        screenplay,
+        characters,
+        panel_cast,
+        reactions,
+        plan,
+        changed_profile,
+    )
+
+    assert rendered != rendered_pilot()
+    assert rendered.startswith("# 폐장 음악이 멈춘 7분 — 읽기용\n")
+
+
+def test_internal_identifier_leakage_is_rejected() -> None:
+    """Canonical 가시 Text에 내부 식별자가 섞이면 사람용 출력 생성을 거부한다."""
+    screenplay, characters, panel_cast, reactions, plan = pilot_documents()
+    _config, output_profile, _profile_hash = pilot_profile()
+    changed_screenplay = deepcopy(screenplay)
+    first_scene = mapping_list(changed_screenplay, "scenes")[0]
+    first_unit = mapping_list(first_scene, "units")[0]
+    first_unit["text"] = "내부 참조 SCN-999가 노출되었다."
+
+    with pytest.raises(
+        ConfigurationError,
+        match="BROADCAST_READABLE_FORBIDDEN_MARKER",
+    ):
+        render_broadcast_readable_script(
+            changed_screenplay,
+            characters,
+            panel_cast,
+            reactions,
+            plan,
+            output_profile,
+        )
+
+
+def test_profile_or_config_change_makes_report_stale() -> None:
+    """Profile 문서와 Config Pin 결속 중 하나만 바뀌어도 기존 Report를 거부한다."""
+    screenplay, characters, panel_cast, reactions, plan = pilot_documents()
+    config, output_profile, profile_hash = pilot_profile()
+    rendered = rendered_pilot()
+    report = build_broadcast_readable_report(
+        config,
+        screenplay,
+        characters,
+        panel_cast,
+        reactions,
+        plan,
+        output_profile,
+        profile_hash,
+        rendered,
+    )
+    changed_config = deepcopy(config)
+    changed_config["broadcast_readable_output_profile_version"] = "1.0.1"
+
+    issues = validate_broadcast_readable_report(
+        report,
+        changed_config,
+        screenplay,
+        characters,
+        panel_cast,
+        reactions,
+        plan,
+        output_profile,
+        profile_hash,
+        rendered,
+    )
+
+    assert "BROADCAST_READABLE_REPORT_STALE" in {
+        issue["code"] for issue in issues
+    }
+
+
+def test_profile_pin_change_invalidates_entire_readable_chain() -> None:
+    """Production Config Pin 변경은 Source·QA·Production·Editorial을 모두 무효화한다."""
+    graph = load_json_object(ROOT / "STANDARD/dependency_graph.json")
+    state = build_initial_project_state(graph, "PRJ-006", "2026-09-02T00:00:00Z")
+
+    changed = invalidate_artifact_dependents(
+        graph,
+        state,
+        "production_config",
+        artifact_hash(b"readable-profile-pin-changed"),
+        "2026-09-02T00:01:00Z",
+    )
+
+    for artifact_name in (
+        "broadcast_readable_script",
+        "broadcast_readable_report",
+        "production_broadcast_readable_script",
+        "editorial_review",
+    ):
+        assert changed["artifacts"][artifact_name]["status"] == "DIRTY"

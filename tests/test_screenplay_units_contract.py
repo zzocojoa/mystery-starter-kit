@@ -18,6 +18,7 @@ from VALIDATORS.dependency import (
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object
 from VALIDATORS.output_profiles import (
+    resolve_broadcast_readable_output_profile,
     resolve_reenactment_output_profile,
     script_source_mode,
 )
@@ -33,6 +34,12 @@ PROFILE_PATH = (
     / "CHANNELS/mystery_main/output_profiles/reenactment-character-script/1.0.0.json"
 )
 PROFILE_SCHEMA_PATH = ROOT / "STANDARD/schemas/reenactment_output_profile.schema.json"
+READABLE_PROFILE_PATH = (
+    ROOT / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/1.0.0.json"
+)
+READABLE_PROFILE_SCHEMA_PATH = (
+    ROOT / "STANDARD/schemas/broadcast_readable_output_profile.schema.json"
+)
 PROFILE_REGISTRY_PATH = ROOT / "CHANNELS/mystery_main/output_profiles/registry.json"
 PROFILE_REGISTRY_SCHEMA_PATH = (
     ROOT / "STANDARD/schemas/reenactment_output_profile_registry.schema.json"
@@ -307,6 +314,73 @@ def test_output_profile_and_registry_are_schema_valid_and_resolvable() -> None:
     assert len(resolved["sha256"]) == 64
 
 
+def test_broadcast_readable_profile_is_schema_valid_and_resolvable() -> None:
+    """사람용 Broadcast Profile은 별도 Schema와 Config Pin으로 고정된다."""
+    profile = load_json_object(READABLE_PROFILE_PATH)
+    assert collect_schema_errors(
+        profile,
+        load_json_object(READABLE_PROFILE_SCHEMA_PATH),
+        str(READABLE_PROFILE_PATH),
+    ) == []
+    config = load_json_object(PRODUCTION_CONFIG_PATH)
+
+    resolved = resolve_broadcast_readable_output_profile(ROOT, config)
+
+    assert resolved is not None
+    assert resolved["profile_id"] == "BROADCAST_READABLE_SCRIPT"
+    assert resolved["profile_version"] == "1.0.0"
+    assert resolved["sha256"] == sha256(READABLE_PROFILE_PATH.read_bytes()).hexdigest()
+
+
+def test_broadcast_readable_profile_missing_and_invalid_pins_fail() -> None:
+    """Readable Pin 누락과 미등록 Version에는 암묵적 Profile 대체가 없다."""
+    missing = load_json_object(PRODUCTION_CONFIG_PATH)
+    missing.pop("broadcast_readable_output_profile_version")
+    with pytest.raises(
+        ConfigurationError,
+        match="BROADCAST_READABLE_OUTPUT_PROFILE_PIN_MISSING",
+    ):
+        resolve_broadcast_readable_output_profile(ROOT, missing)
+
+    invalid = load_json_object(PRODUCTION_CONFIG_PATH)
+    invalid["broadcast_readable_output_profile_version"] = "9.9.9"
+    with pytest.raises(
+        ConfigurationError,
+        match="BROADCAST_READABLE_OUTPUT_PROFILE_PIN_INVALID",
+    ):
+        resolve_broadcast_readable_output_profile(ROOT, invalid)
+
+
+def test_broadcast_readable_profile_hash_mismatch_fails(tmp_path: Path) -> None:
+    """등록된 Readable Profile 파일 변조는 Registry Hash 단계에서 중단된다."""
+    schema_directory = tmp_path / "STANDARD/schemas"
+    registry_path = tmp_path / "CHANNELS/mystery_main/output_profiles/registry.json"
+    profile_path = (
+        tmp_path
+        / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/1.0.0.json"
+    )
+    schema_directory.mkdir(parents=True)
+    registry_path.parent.mkdir(parents=True)
+    profile_path.parent.mkdir(parents=True)
+    (schema_directory / "broadcast_readable_output_profile.schema.json").write_bytes(
+        READABLE_PROFILE_SCHEMA_PATH.read_bytes()
+    )
+    (schema_directory / "reenactment_output_profile_registry.schema.json").write_bytes(
+        PROFILE_REGISTRY_SCHEMA_PATH.read_bytes()
+    )
+    registry_path.write_bytes(PROFILE_REGISTRY_PATH.read_bytes())
+    profile_path.write_bytes(READABLE_PROFILE_PATH.read_bytes() + b"\n")
+
+    with pytest.raises(
+        ConfigurationError,
+        match="BROADCAST_READABLE_OUTPUT_PROFILE_HASH_MISMATCH",
+    ):
+        resolve_broadcast_readable_output_profile(
+            tmp_path,
+            load_json_object(PRODUCTION_CONFIG_PATH),
+        )
+
+
 def test_reenactment_export_report_schema_compiles() -> None:
     """향후 CORE Report Artifact가 사용할 JSON Schema는 Draft 2020-12로 유효하다."""
     Draft202012Validator.check_schema(load_json_object(EXPORT_REPORT_SCHEMA_PATH))
@@ -325,15 +399,59 @@ def test_registered_output_profile_version_is_immutable(tmp_path: Path) -> None:
     temporary_profile_path.parent.mkdir(parents=True)
     temporary_registry_path.write_bytes(PROFILE_REGISTRY_PATH.read_bytes())
     original_profile = PROFILE_PATH.read_bytes()
+    relative_readable_profile_path = (
+        "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/1.0.0.json"
+    )
+    temporary_readable_profile_path = tmp_path / relative_readable_profile_path
+    temporary_readable_profile_path.parent.mkdir(parents=True)
+    original_readable_profile = READABLE_PROFILE_PATH.read_bytes()
+    temporary_readable_profile_path.write_bytes(original_readable_profile)
     temporary_profile_path.write_bytes(original_profile + b"\n")
 
     mutations = output_profile_version_mutations(
         tmp_path,
-        {relative_profile_path: original_profile},
+        {
+            relative_profile_path: original_profile,
+            relative_readable_profile_path: original_readable_profile,
+        },
         load_json_object(PROFILE_REGISTRY_PATH),
     )
 
     assert mutations == [relative_profile_path]
+
+
+def test_registered_broadcast_readable_profile_version_is_immutable(
+    tmp_path: Path,
+) -> None:
+    """등록된 Readable Profile도 같은 Version의 내용 변경을 거부한다."""
+    reenactment_relative_path = (
+        "CHANNELS/mystery_main/output_profiles/reenactment-character-script/1.0.0.json"
+    )
+    readable_relative_path = (
+        "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/1.0.0.json"
+    )
+    registry_path = tmp_path / "CHANNELS/mystery_main/output_profiles/registry.json"
+    reenactment_path = tmp_path / reenactment_relative_path
+    readable_path = tmp_path / readable_relative_path
+    registry_path.parent.mkdir(parents=True)
+    reenactment_path.parent.mkdir(parents=True)
+    readable_path.parent.mkdir(parents=True)
+    registry_path.write_bytes(PROFILE_REGISTRY_PATH.read_bytes())
+    reenactment_bytes = PROFILE_PATH.read_bytes()
+    readable_bytes = READABLE_PROFILE_PATH.read_bytes()
+    reenactment_path.write_bytes(reenactment_bytes)
+    readable_path.write_bytes(readable_bytes + b"\n")
+
+    mutations = output_profile_version_mutations(
+        tmp_path,
+        {
+            reenactment_relative_path: reenactment_bytes,
+            readable_relative_path: readable_bytes,
+        },
+        load_json_object(PROFILE_REGISTRY_PATH),
+    )
+
+    assert mutations == [readable_relative_path]
 
 
 def test_invalid_output_profile_version_pin_fails_explicitly() -> None:
@@ -410,17 +528,76 @@ def test_temporary_registered_later_profile_version_resolves_without_catalog_edi
     assert resolved["sha256"] == sha256(profile_bytes).hexdigest()
 
 
+def test_registered_later_readable_profile_resolves_without_task_catalog_edit(
+    tmp_path: Path,
+) -> None:
+    """Readable 후속 Version은 Registry 추가만으로 같은 Runtime Task에서 해석된다."""
+    schema_directory = tmp_path / "STANDARD/schemas"
+    registry_path = tmp_path / "CHANNELS/mystery_main/output_profiles/registry.json"
+    profile_path = (
+        tmp_path
+        / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/1.1.0.json"
+    )
+    schema_directory.mkdir(parents=True)
+    registry_path.parent.mkdir(parents=True)
+    profile_path.parent.mkdir(parents=True)
+    (schema_directory / "broadcast_readable_output_profile.schema.json").write_bytes(
+        READABLE_PROFILE_SCHEMA_PATH.read_bytes()
+    )
+    (schema_directory / "reenactment_output_profile_registry.schema.json").write_bytes(
+        PROFILE_REGISTRY_SCHEMA_PATH.read_bytes()
+    )
+    profile = load_json_object(READABLE_PROFILE_PATH)
+    profile["profile_version"] = "1.1.0"
+    document_contract = profile["document_contract"]
+    assert isinstance(document_contract, dict)
+    document_contract["title_template"] = "# {title} — Readable 1.1"
+    profile_bytes = (
+        json.dumps(profile, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+    profile_path.write_bytes(profile_bytes)
+    registry = load_json_object(PROFILE_REGISTRY_PATH)
+    profiles = registry["profiles"]
+    assert isinstance(profiles, dict)
+    entry = profiles["BROADCAST_READABLE_SCRIPT"]
+    assert isinstance(entry, dict)
+    versions = entry["versions"]
+    assert isinstance(versions, dict)
+    versions["1.1.0"] = {
+        "path": (
+            "CHANNELS/mystery_main/output_profiles/"
+            "broadcast-readable-script/1.1.0.json"
+        ),
+        "sha256": sha256(profile_bytes).hexdigest(),
+    }
+    registry_path.write_text(
+        json.dumps(registry, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    config = load_json_object(PRODUCTION_CONFIG_PATH)
+    config["broadcast_readable_output_profile_version"] = "1.1.0"
+
+    resolved = resolve_broadcast_readable_output_profile(tmp_path, config)
+
+    assert resolved is not None
+    assert resolved["profile_version"] == "1.1.0"
+    assert resolved["document"]["document_contract"] == document_contract
+
+
 def test_legacy_production_config_remains_valid_without_profile_pin() -> None:
     """기존 Production Config는 자동 Migration 없이 Legacy mode로 남는다."""
     config = load_json_object(PRODUCTION_CONFIG_PATH)
     config.pop("script_source_mode")
     config.pop("reenactment_output_profile_id")
     config.pop("reenactment_output_profile_version")
+    config.pop("broadcast_readable_output_profile_id")
+    config.pop("broadcast_readable_output_profile_version")
     schema = load_json_object(PRODUCTION_CONFIG_SCHEMA_PATH)
 
     assert collect_schema_errors(config, schema, str(PRODUCTION_CONFIG_PATH)) == []
     assert script_source_mode(config) == "LEGACY_MARKDOWN"
     assert resolve_reenactment_output_profile(ROOT, config) is None
+    assert resolve_broadcast_readable_output_profile(ROOT, config) is None
     assert not requirement_matches(
         {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]},
         config,
@@ -480,12 +657,18 @@ def test_screenplay_artifacts_are_opt_in_and_invalidate_all_exports() -> None:
     legacy_config.pop("script_source_mode")
     legacy_config.pop("reenactment_output_profile_id")
     legacy_config.pop("reenactment_output_profile_version")
+    legacy_config.pop("broadcast_readable_output_profile_id")
+    legacy_config.pop("broadcast_readable_output_profile_version")
     screenplay_config = deepcopy(legacy_config)
     screenplay_config["script_source_mode"] = "SCREENPLAY_UNITS"
     screenplay_config["reenactment_output_profile_id"] = (
         "REENACTMENT_CHARACTER_SCRIPT"
     )
     screenplay_config["reenactment_output_profile_version"] = "1.0.0"
+    screenplay_config["broadcast_readable_output_profile_id"] = (
+        "BROADCAST_READABLE_SCRIPT"
+    )
+    screenplay_config["broadcast_readable_output_profile_version"] = "1.0.0"
     channel: dict[str, object] = {"capabilities": {}}
 
     assert not artifact_required_for_project(

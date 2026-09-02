@@ -1,4 +1,4 @@
-"""재연극 Output Profile Pin, Registry와 파일 무결성을 검증한다."""
+"""Versioned Output Profile Pin, Registry와 파일 무결성을 검증한다."""
 
 from collections.abc import Mapping
 from hashlib import sha256
@@ -14,7 +14,7 @@ ScriptSourceMode = Literal["LEGACY_MARKDOWN", "SCREENPLAY_UNITS"]
 
 
 class ResolvedOutputProfile(TypedDict):
-    """검증된 재연극 Output Profile과 고정 식별 정보."""
+    """검증된 Output Profile과 고정 식별 정보."""
 
     profile_id: str
     profile_version: str
@@ -34,18 +34,22 @@ def script_source_mode(production_config: Mapping[str, object]) -> ScriptSourceM
     return cast(ScriptSourceMode, value)
 
 
-def repository_profile_path(repository_root: Path, relative_path: str) -> Path:
+def repository_profile_path(
+    repository_root: Path,
+    relative_path: str,
+    error_prefix: str,
+) -> Path:
     """Registry 경로를 Repository 내부 JSON 파일로 제한한다."""
     candidate = Path(relative_path)
     if candidate.is_absolute() or ".." in candidate.parts or candidate.suffix != ".json":
         raise ConfigurationError(
-            f"REENACTMENT_OUTPUT_PROFILE_PATH_INVALID: path={relative_path}"
+            f"{error_prefix}_PATH_INVALID: path={relative_path}"
         )
     root = repository_root.resolve()
     resolved = (root / candidate).resolve()
     if not resolved.is_relative_to(root):
         raise ConfigurationError(
-            f"REENACTMENT_OUTPUT_PROFILE_PATH_INVALID: path={relative_path}"
+            f"{error_prefix}_PATH_INVALID: path={relative_path}"
         )
     return resolved
 
@@ -64,34 +68,47 @@ def schema_valid_document(
     return document
 
 
-def required_profile_pin(production_config: Mapping[str, object], field: str) -> str:
+def required_profile_pin(
+    production_config: Mapping[str, object],
+    field: str,
+    error_prefix: str,
+) -> str:
     """SCREENPLAY_UNITS mode에서 필수 Profile Pin 문자열을 읽는다."""
     value = production_config.get(field)
     if not isinstance(value, str):
         raise ConfigurationError(
-            f"REENACTMENT_OUTPUT_PROFILE_PIN_MISSING: production_config.{field}가 없습니다."
+            f"{error_prefix}_PIN_MISSING: production_config.{field}가 없습니다."
         )
     return value
 
 
-def resolve_reenactment_output_profile(
+def resolve_registered_output_profile(
     repository_root: Path,
     production_config: Mapping[str, object],
+    profile_id_field: str,
+    profile_version_field: str,
+    profile_schema_name: str,
+    error_prefix: str,
 ) -> ResolvedOutputProfile | None:
-    """Production Config Pin으로 Hash 검증된 Output Profile을 해석한다."""
+    """공용 Registry에서 명시적으로 고정한 Output Profile을 해석한다."""
     if script_source_mode(production_config) == "LEGACY_MARKDOWN":
         return None
-    profile_id = required_profile_pin(production_config, "reenactment_output_profile_id")
+    profile_id = required_profile_pin(
+        production_config,
+        profile_id_field,
+        error_prefix,
+    )
     profile_version = required_profile_pin(
         production_config,
-        "reenactment_output_profile_version",
+        profile_version_field,
+        error_prefix,
     )
     parse_semantic_version(profile_version)
     registry = schema_valid_document(
         repository_root / "CHANNELS/mystery_main/output_profiles/registry.json",
         repository_root
         / "STANDARD/schemas/reenactment_output_profile_registry.schema.json",
-        "REENACTMENT_OUTPUT_PROFILE_REGISTRY_INVALID",
+        f"{error_prefix}_REGISTRY_INVALID",
     )
     profiles = registry.get("profiles")
     profile_entry = profiles.get(profile_id) if isinstance(profiles, Mapping) else None
@@ -99,32 +116,36 @@ def resolve_reenactment_output_profile(
     version_entry = versions.get(profile_version) if isinstance(versions, Mapping) else None
     if not isinstance(version_entry, Mapping):
         raise ConfigurationError(
-            "REENACTMENT_OUTPUT_PROFILE_PIN_INVALID: "
+            f"{error_prefix}_PIN_INVALID: "
             f"profile_id={profile_id}, profile_version={profile_version}"
         )
     relative_path = version_entry.get("path")
     expected_hash = version_entry.get("sha256")
     if not isinstance(relative_path, str) or not isinstance(expected_hash, str):
         raise ConfigurationError(
-            "REENACTMENT_OUTPUT_PROFILE_REGISTRY_INVALID: "
+            f"{error_prefix}_REGISTRY_INVALID: "
             f"profile_id={profile_id}, profile_version={profile_version}"
         )
-    profile_path = repository_profile_path(repository_root, relative_path)
+    profile_path = repository_profile_path(
+        repository_root,
+        relative_path,
+        error_prefix,
+    )
     try:
         actual_hash = sha256(profile_path.read_bytes()).hexdigest()
     except OSError as error:
         raise ConfigurationError(
-            f"REENACTMENT_OUTPUT_PROFILE_MISSING: path={relative_path}"
+            f"{error_prefix}_MISSING: path={relative_path}"
         ) from error
     if actual_hash != expected_hash:
         raise ConfigurationError(
-            "REENACTMENT_OUTPUT_PROFILE_HASH_MISMATCH: "
+            f"{error_prefix}_HASH_MISMATCH: "
             f"path={relative_path}, expected={expected_hash}, actual={actual_hash}"
         )
     document = schema_valid_document(
         profile_path,
-        repository_root / "STANDARD/schemas/reenactment_output_profile.schema.json",
-        "REENACTMENT_OUTPUT_PROFILE_INVALID",
+        repository_root / "STANDARD/schemas" / profile_schema_name,
+        f"{error_prefix}_INVALID",
     )
     identity_matches = (
         document.get("profile_id") == profile_id
@@ -132,8 +153,9 @@ def resolve_reenactment_output_profile(
     )
     if not identity_matches:
         raise ConfigurationError(
-            "REENACTMENT_OUTPUT_PROFILE_IDENTITY_MISMATCH: "
-            f"profile_id={profile_id}, profile_version={profile_version}, path={relative_path}"
+            f"{error_prefix}_IDENTITY_MISMATCH: "
+            f"profile_id={profile_id}, profile_version={profile_version}, "
+            f"path={relative_path}"
         )
     return ResolvedOutputProfile(
         profile_id=profile_id,
@@ -141,4 +163,34 @@ def resolve_reenactment_output_profile(
         sha256=actual_hash,
         relative_path=relative_path,
         document=document,
+    )
+
+
+def resolve_reenactment_output_profile(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+) -> ResolvedOutputProfile | None:
+    """Production Config Pin으로 Hash 검증된 Output Profile을 해석한다."""
+    return resolve_registered_output_profile(
+        repository_root,
+        production_config,
+        "reenactment_output_profile_id",
+        "reenactment_output_profile_version",
+        "reenactment_output_profile.schema.json",
+        "REENACTMENT_OUTPUT_PROFILE",
+    )
+
+
+def resolve_broadcast_readable_output_profile(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+) -> ResolvedOutputProfile | None:
+    """Production Config Pin으로 사람용 Broadcast Profile을 해석한다."""
+    return resolve_registered_output_profile(
+        repository_root,
+        production_config,
+        "broadcast_readable_output_profile_id",
+        "broadcast_readable_output_profile_version",
+        "broadcast_readable_output_profile.schema.json",
+        "BROADCAST_READABLE_OUTPUT_PROFILE",
     )

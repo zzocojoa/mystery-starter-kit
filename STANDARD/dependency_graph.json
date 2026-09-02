@@ -281,7 +281,7 @@
     },
     "broadcast_readable_script": {
       "path": "07_SCRIPT/broadcast_readable_script.md",
-      "depends_on": ["screenplay_units", "characters", "panel_cast", "reaction_segments", "presentation_plan"],
+      "depends_on": ["production_config", "screenplay_units", "characters", "panel_cast", "reaction_segments", "presentation_plan"],
       "owner_agent": "script_writer",
       "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
     },
@@ -299,7 +299,7 @@
     },
     "broadcast_readable_report": {
       "path": "08_QA/broadcast_readable_report.json",
-      "depends_on": ["screenplay_units", "characters", "panel_cast", "reaction_segments", "presentation_plan", "broadcast_readable_script"],
+      "depends_on": ["production_config", "screenplay_units", "characters", "panel_cast", "reaction_segments", "presentation_plan", "broadcast_readable_script"],
       "owner_agent": "continuity_critic",
       "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
     },
@@ -379,7 +379,7 @@
     },
     "production_broadcast_readable_script": {
       "path": "09_PRODUCTION/broadcast_readable_script.md",
-      "depends_on": ["broadcast_readable_script", "broadcast_readable_report", "validation_report"],
+      "depends_on": ["production_config", "broadcast_readable_script", "broadcast_readable_report", "validation_report"],
       "owner_agent": "orchestrator",
       "required_when": {"config_equals": ["script_source_mode", "SCREENPLAY_UNITS"]}
     },

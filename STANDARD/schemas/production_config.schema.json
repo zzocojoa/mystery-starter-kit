@@ -37,6 +37,13 @@
       "pattern": "^[A-Z][A-Z0-9_]*$"
     },
     "reenactment_output_profile_version": {"$ref": "#/$defs/semanticVersion"},
+    "broadcast_readable_output_profile_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "broadcast_readable_output_profile_version": {
+      "$ref": "#/$defs/semanticVersion"
+    },
     "story_source_mode": {
       "enum": ["ORIGINAL", "USER_CASE", "REFERENCE_INSPIRED", "TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"]
     },
@@ -127,14 +134,18 @@
       "then": {
         "required": [
           "reenactment_output_profile_id",
-          "reenactment_output_profile_version"
+          "reenactment_output_profile_version",
+          "broadcast_readable_output_profile_id",
+          "broadcast_readable_output_profile_version"
         ]
       },
       "else": {
         "not": {
           "anyOf": [
             {"required": ["reenactment_output_profile_id"]},
-            {"required": ["reenactment_output_profile_version"]}
+            {"required": ["reenactment_output_profile_version"]},
+            {"required": ["broadcast_readable_output_profile_id"]},
+            {"required": ["broadcast_readable_output_profile_version"]}
           ]
         }
       }

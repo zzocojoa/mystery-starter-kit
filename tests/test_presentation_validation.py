@@ -17,6 +17,7 @@ from test_screenplay_renderers import (
     screenplay_document,
 )
 
+from RUNTIME.broadcast_readable_renderer import render_broadcast_readable_script
 from RUNTIME.core_tasks import runtime_validation_inputs
 from RUNTIME.gate_control import validate_gate
 from RUNTIME.screenplay_renderers import (
@@ -28,7 +29,10 @@ from RUNTIME.screenplay_renderers import (
 )
 from VALIDATORS.io import load_json_object
 from VALIDATORS.models import ValidationIssue
-from VALIDATORS.output_profiles import resolve_reenactment_output_profile
+from VALIDATORS.output_profiles import (
+    resolve_broadcast_readable_output_profile,
+    resolve_reenactment_output_profile,
+)
 from VALIDATORS.pipeline import ArtifactContent
 from VALIDATORS.presentation_validation import (
     absolute_time_issues,
@@ -140,6 +144,23 @@ def direct_gate_issues(
         presentation_schemas["reenactment_output_profile_binding"] = {
             "sha256": resolved_profile["sha256"]
         }
+    resolved_readable_profile = (
+        resolve_broadcast_readable_output_profile(ROOT, config)
+        if isinstance(config.get("broadcast_readable_output_profile_id"), str)
+        and isinstance(
+            config.get("broadcast_readable_output_profile_version"),
+            str,
+        )
+        else None
+    )
+    if resolved_readable_profile is not None:
+        presentation_schemas = dict(presentation_schemas)
+        presentation_schemas["broadcast_readable_output_profile"] = (
+            resolved_readable_profile["document"]
+        )
+        presentation_schemas["broadcast_readable_output_profile_binding"] = {
+            "sha256": resolved_readable_profile["sha256"]
+        }
     return validate_gate(
         gate_id,
         artifacts,
@@ -163,6 +184,8 @@ def new_mode_gate_artifacts() -> dict[str, ArtifactContent]:
             "script_source_mode": "SCREENPLAY_UNITS",
             "reenactment_output_profile_id": "REENACTMENT_CHARACTER_SCRIPT",
             "reenactment_output_profile_version": "1.0.0",
+            "broadcast_readable_output_profile_id": "BROADCAST_READABLE_SCRIPT",
+            "broadcast_readable_output_profile_version": "1.0.0",
         }
     )
     project_id = cast(str, config["project_id"])
@@ -185,7 +208,10 @@ def new_mode_gate_artifacts() -> dict[str, ArtifactContent]:
     reactions = document(artifacts, "reaction_segments")
     characters = document(artifacts, "characters")
     relationships = document(artifacts, "relationships")
+    panel_cast = document(artifacts, "panel_cast")
     profile = output_profile()
+    readable_profile = resolve_broadcast_readable_output_profile(ROOT, config)
+    assert readable_profile is not None
     drama = render_drama_layer(screenplay, plan, crime_contract)
     narration = render_narration_layer(screenplay, plan, crime_contract)
     panel = render_panel_layer(reactions, plan)
@@ -209,6 +235,14 @@ def new_mode_gate_artifacts() -> dict[str, ArtifactContent]:
                 characters,
                 relationships,
                 profile,
+            ),
+            "broadcast_readable_script": render_broadcast_readable_script(
+                screenplay,
+                characters,
+                panel_cast,
+                reactions,
+                plan,
+                readable_profile["document"],
             ),
         }
     )

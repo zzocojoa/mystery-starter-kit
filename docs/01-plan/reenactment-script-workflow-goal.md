@@ -226,7 +226,7 @@ Unit, Character name, Scene context, Event/Harm, Clue, Output Profile 또는 run
 
 ### Version과 Workflow 선택
 
-- Package `1.6.1`, Production Standard `1.3.3`, 활성 Channel Content `2.1.0`, Reenactment Output Profile `REENACTMENT_CHARACTER_SCRIPT 1.0.0`, Runtime Interface `1.0.0`을 서로 독립 Version으로 문서화했다.
+- Package `1.6.1`, Production Standard `1.3.3`, 활성 Channel Content `2.1.0`, Reenactment Output Profile `REENACTMENT_CHARACTER_SCRIPT 1.0.0`, Broadcast Readable Output Profile `BROADCAST_READABLE_SCRIPT 1.0.0`, Runtime Interface `1.0.0`을 서로 독립 Version으로 문서화했다.
 - 신규 Scaffold는 `SCREENPLAY_UNITS`와 Profile Pin을 사용한다. 필드가 없는 기존 Project는 `LEGACY_MARKDOWN`으로 남으며 자동 Migration하지 않는다.
 - Channel Pin 전용 Migration은 `migrate-channel-pin`을 사용한다. Script mode 전환·Rollback은 명시적 변경 승인과 새 Process Revision에서 downstream 재생성을 요구하며 Canonical Artifact나 Trace를 삭제하지 않는다.
 - Runtime은 ASR·전사를 제공하지 않는다. `WORD_COUNT_ESTIMATE`는 측정이 아니며 창작 품질은 Editorial과 Human 판단 대상으로 남는다.
@@ -494,8 +494,8 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 
 ### 구현과 Coverage
 
-- `broadcast_readable_renderer.py`는 동일 Project의 Canonical Screenplay Unit, Character, Panel Cast, Reaction Segment, Presentation Plan만 입력받는 순수 결정론적 Renderer다. 11개 장면의 Source-style Context, 95개 Unit, 실제 Character 이름, 7개 Panel 구간과 Canonical Panel Turn 14개를 방송 순서대로 표시한다.
-- GATE-08 `script.render_broadcast_readable`이 `07_SCRIPT/broadcast_readable_script.md`를 만들고, GATE-09 `continuity.validate_broadcast_readable`이 다섯 입력과 출력 Hash·Coverage를 `08_QA/broadcast_readable_report.json`에 결속한다. Validator는 현재 입력에서 Script와 Report를 모두 재구성해 stale 또는 위조를 거부한다.
+- `broadcast_readable_renderer.py`는 동일 Project의 Canonical Screenplay Unit, Character, Panel Cast, Reaction Segment, Presentation Plan과 Versioned `BROADCAST_READABLE_SCRIPT` Profile만 입력받는 순수 결정론적 Renderer다. Profile이 제목·표·Context·Unit·Panel Template을 실제로 결정하고 11개 장면의 Source-style Context, 95개 Unit, 실제 Character 이름, 7개 Panel 구간과 Canonical Panel Turn 14개를 방송 순서대로 표시한다.
+- GATE-08 `script.render_broadcast_readable`이 `07_SCRIPT/broadcast_readable_script.md`를 만들고, GATE-09 `continuity.validate_broadcast_readable`이 Production Config, 다섯 Canonical 입력, Profile 문서·Registry 파일 Hash, 출력 Hash·Source-style Coverage를 `08_QA/broadcast_readable_report.json`에 결속한다. Validator는 현재 입력에서 Script와 Report를 모두 재구성해 Profile Pin 변경, stale 또는 위조를 거부한다.
 - Dependency Graph는 Screenplay Unit 변경을 Readable Source, QA Report, 통합 Validation, Production Copy와 Editorial Review까지 전파한다. GATE-13 `production.package_broadcast_readable`은 PASS Report가 가리키는 Source bytes만 `09_PRODUCTION/broadcast_readable_script.md`로 복사한다. 세 Artifact는 Contract, Agent 권한, Runtime Task, Project State Hash, Gate Transaction과 Process Trace에 등록하며 Gate 밖 직접 쓰기 CLI는 제공하지 않는다.
 
 ### 검증과 상태

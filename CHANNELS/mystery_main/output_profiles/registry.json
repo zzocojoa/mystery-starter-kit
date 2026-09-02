@@ -10,6 +10,14 @@
           "sha256": "8383f2c9598d51b86369789c6119321584a089f61b5ab0e7ddc5dee29aeb60b9"
         }
       }
+    },
+    "BROADCAST_READABLE_SCRIPT": {
+      "versions": {
+        "1.0.0": {
+          "path": "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/1.0.0.json",
+          "sha256": "7c8b59c96af7a65f59faf7f4ed68d2ad7ffba10ef59fbbbb3189dd1445943667"
+        }
+      }
     }
   }
 }
