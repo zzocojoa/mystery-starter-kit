@@ -56,6 +56,14 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 
 새 Scaffold는 `script_source_mode: SCREENPLAY_UNITS`와 `REENACTMENT_CHARACTER_SCRIPT 1.0.0` Output Profile을 고정한다. GATE-08에서 Codex가 작성하는 유일한 새 창작 출력은 `screenplay_units.json`이다. 제출 뒤 CORE가 Layer Script, Broadcast Master와 `reenactment_character_script.md`를 만들고, GATE-09가 현재 입력 Hash에 결속된 `reenactment_export_report.json`을 계산한다. GATE-13은 이 Report가 오류 없는 `NEEDS_REVIEW`일 때만 동일 bytes를 Production 경로로 전달한다. `script_source_mode` 필드가 없는 기존 Project는 `LEGACY_MARKDOWN` Task 순서와 Artifact를 그대로 사용한다.
 
+기계형 Broadcast Master를 사람이 읽기 쉬운 형식으로 확인하려면 Screenplay Unit Project에서 명시적 보조 명령을 실행한다.
+
+```bash
+PYTHONPATH=. .venv/bin/mystery-kit render-broadcast-readable PROJECTS/PRJ-006
+```
+
+이 명령은 동일한 Canonical `screenplay_units.json`, Character, Panel, Reaction, Presentation JSON만 읽어 `07_SCRIPT/broadcast_readable_script.md`를 결정론적으로 다시 만든다. 출력에는 장면 Context, 실제 인물 이름과 Canonical Panel 발화가 표시된다. 이 파일은 Gate Artifact나 Project State가 아닌 검토용 Companion View이며, 기존 `final_script.md`의 Contract·Marker·Renderer·bytes를 대체하거나 수정하지 않는다. `LEGACY_MARKDOWN` Project를 추측 변환하는 fallback도 제공하지 않는다.
+
 재연극 목표시간이 필요하면 `target_reenactment_minutes`와 `reenactment_runtime_tolerance_ratio`를 함께 설정한다. 이 값은 방송 전체의 `target_runtime_minutes`와 별도이며 방송 목표를 넘을 수 없다. CORE는 Output Profile이 포함한 Unit이 결속된 Drama·Narration Segment만 합산하고 Panel 등 제외 Segment를 Report에 따로 기록한다. Editorial evidence는 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO`를 구분하며, Unit·Profile·Presentation 입력이 바뀌면 기존 측정 Hash를 거부한다.
 
 #### Workflow 선택, Migration과 Rollback
@@ -71,7 +79,7 @@ PYTHONPATH=. .venv/bin/mystery-kit validate PROJECTS/PRJ-002
 
 Legacy Project를 Screenplay Unit 경로로 일괄 변환하거나 진행 중 Project를 자동 Rollback하는 CLI는 제공하지 않는다. 전환은 별도 변경 승인 아래 `production_config`의 mode와 Output Profile Pin을 함께 바꾸고, State Transition·Script 이후 downstream Artifact를 새 Process Revision에서 재생성해야 한다. Rollback도 `LEGACY_MARKDOWN`을 명시한 새 Revision에서 같은 범위를 재생성하는 방식이며, 이전 Canonical Artifact와 Trace를 삭제하거나 다른 Version 계약을 암묵적으로 합치지 않는다. 가장 안전한 신규 도입 경로는 새 Scaffold다.
 
-완성 예시는 [PRJ-005](PROJECTS/PRJ-005/)다. 이 Original Fiction Pilot은 GATE-00~13과 기술적 Editorial Review를 통과했지만 `WORD_COUNT_ESTIMATE`만 보유하므로 상태가 `EDITORIAL_REVIEW_REQUIRED`이며 Production Ready 예제가 아니다.
+완성 예시는 [PRJ-006](PROJECTS/PRJ-006/)이다. 이 Original Fiction Pilot은 GATE-00~13과 기술적 Editorial Review를 통과했지만 `WORD_COUNT_ESTIMATE`만 보유하므로 상태가 `EDITORIAL_REVIEW_REQUIRED`이며 Production Ready 예제가 아니다.
 
 ### 3. 감사, Editorial 승인과 등록
 
