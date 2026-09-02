@@ -504,3 +504,39 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 - Readable Source와 Production Copy의 byte SHA-256은 모두 `a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa`이고, QA Report 파일 SHA-256은 `713b1a1e733fabfd248863f41d5c804e57d3a57ce4e3ee889beccd2f4fd210c1`다. 세 State Entry는 모두 `CLEAN`이며 QA Report는 Production Config, 다섯 Canonical JSON, Canonical Profile 문서와 Registry Profile 파일 Hash, Source bytes Hash, Source-style Evidence와 11 Scene·95 Unit·7 Reaction Segment·14 Panel Turn Coverage를 보존한다.
 - 저장소 소스 기준 `validate`와 `audit`는 GATE-00~13 PASS, Issue 0, `state_unchanged: true`, Process Conformant다. 검증 전후 Project State와 Process Trace SHA-256은 각각 `76e020098e3d29680291be698834140417004a9187d4bdc27d500987150e348b`, `c70255bdbce8335f6a77d1bad81374e99e1d6e17ad29fd4d9542b3b7c4df388b`로 동일했다. 전체 pytest, Ruff, strict mypy 144개 파일, package build, dependency audit와 Runtime Doctor가 통과했다.
 - 최종 상태는 `EDITORIAL_REVIEW_REQUIRED`이고 Human Editorial은 미승인, Production Ready는 false, Story Library 항목은 0개다. 사용자-facing `production-finalize`, Story Library `register`, PR Merge/Close는 수행하지 않는다. 최종 Commit SHA와 정확한 Head의 Python 3.11/3.14 원격 CI 증거는 PR 본문에 기록한다.
+
+## Broadcast Readable v2 Final Correction
+
+### Phase 0 기준선
+
+- 2026-09-02에 Fetch한 `origin/codex/broadcast-readable-profile-v1`의 Head는 `a6b43591639239f2bc926268535430aa76358525`이며, Goal 기준 SHA와 정확히 같다. Branch A `codex/broadcast-readable-v2-contracts`는 이 Remote Head에서 분기했고 PR #28 Branch를 직접 수정하지 않는다.
+- 고정된 `BROADCAST_READABLE_SCRIPT@1.0.0` 파일은 `CHANNELS/mystery_main/output_profiles/broadcast-readable-script/1.0.0.json`, SHA-256은 `7c8b59c96af7a65f59faf7f4ed68d2ad7ffba10ef59fbbbb3189dd1445943667`이다. Registry의 1.0.0 Entry는 같은 경로와 Hash를 가진다. 두 값과 v1 Schema·Renderer·Report 의미는 변경하지 않는다.
+- PRJ-006 기준 Hash는 `screenplay_units` `c478aff60b0af9adba79e20dcc01622dd282460e93e0037e9f70e078910163ad`, `drama_script` `da3e02203c8e7b6a480fb90d607501f3a2e850e4f3e3c0c0ac35efc6f98bfe1b`, `narration_script` `5c532952b199d06a1bc7582d7dbd0b7453a55a3eba63977b89e8088ad4b2acc5`, `panel_reaction_script` `46f2b81d521d0ff60cf0af41effb6ba0484320349128397029eff099fc72be86`, `draft_v01` `df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602`, Machine `final_script` `df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602`, `reenactment_character_script` `0a97c9702158a3f45b6613016fea5b9d67f85e6f3316f88ea9bd80b7bd9e5618`, v1 `broadcast_readable_script` `a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa`다.
+- 변경 전 기준선은 Ruff, strict mypy 144개 파일, 전체 pytest, package 1.6.1 build, dependency audit, Runtime Doctor와 `origin/main`·PR #28 Head 대비 Registered Version Immutability를 모두 통과했다.
+
+### Version·Activation·Dispatch 결정
+
+- v1은 기존 공용 Profile Schema와 기존 Renderer/Report 경로를 그대로 사용한다. v2만 `BROADCAST_READABLE_SCRIPT@2.0.0`, 전용 Profile Schema 2.0.0, Report Schema 2.0.0과 `broadcast-readable-config@1.0.0`을 사용하며 Resolver는 선택된 Version으로 Schema와 Renderer를 명시적으로 Dispatch한다.
+- v2는 optional `00_PROJECT/broadcast_readable_config.json`의 `enabled=true`로만 활성화한다. Config가 없고 기존 Production Config v1 Pin Pair가 있으면 v1 Compatibility 경로, 둘 다 없거나 Config가 disabled면 비활성, 둘 다 있으면 v2 Config가 우선한다.
+- Branch A는 Profile·Schema·Registry·Config·Artifact·Requirement·Dependency·Report·Production Manifest 계약만 포함한다. Branch B `codex/broadcast-readable-v2-runtime`은 Branch A의 공개 Head에서 분기해 Renderer, 독립 QA Mapping, Gate, Fixture와 PRJ-006 Backfill을 포함한다.
+- Readable Config 변경의 목표 무효화 집합은 `broadcast_readable_script`, `broadcast_readable_report`, `production_broadcast_readable_script`, Production Manifest의 Readable Deliverable Evidence와 `editorial_review`뿐이다. Story, Character, Relationship, Screenplay, Machine Master와 Reenactment Chain은 Readable 전용 Edge 때문에 무효화하지 않는다.
+
+### BR-02~BR-14 보정 원장
+
+| ID | 현재 상태 | 계약/구현 증거 | 독립 Negative Test | Gate/CI 증거 |
+|---|---|---|---|---|
+| BR-02 | OPEN | v2 Profile·전용 Schema·Version Dispatch 필요 | v1/v2 mutation·routing | 미실행 |
+| BR-03 | OPEN | Relationships read/hash/dependency 필요 | relationship stale·unknown·missing | 미실행 |
+| BR-04 | OPEN | 전역 마지막 Segment 뒤 retrospective 필요 | 시작 이동·중복·누락 | 미실행 |
+| BR-05 | OPEN | 네 Heading·3열 표·두 시작 Context·Unit Label 필요 | 구조/Label 누락 | 미실행 |
+| BR-06 | OPEN | Actual Markdown 기반 v2 Mapping Report 필요 | mapping/hash/stale mutation | 미실행 |
+| BR-07 | OPEN | ID Prefix·HTML·Original Fiction 불확실 Marker 차단 필요 | Prefix Family별 injection | 미실행 |
+| BR-08 | OPEN | Presentation Plan 전역 1회 순회·Scene 재진입 필요 | segment/reentry reorder | 미실행 |
+| BR-09 | OPEN | 별도 Config Opt-in·v1 fallback 필요 | inactive/disabled/partial pin | 미실행 |
+| BR-10 | OPEN | Production Manifest Readable Deliverable 결속 필요 | file/report/manifest hash drift | 미실행 |
+| BR-11 | OPEN | Raw Reference 없는 Original Fiction R1/R2 필요 | 기능별 독립 mutation | 미실행 |
+| BR-12 | OPEN | unsupported segment `FAIL` 필요 | expert/audience/unknown injection | 미실행 |
+| BR-13 | OPEN | v2 `NEEDS_REVIEW|MISSING|FAIL` 필요 | v2 PASS rejection | 미실행 |
+| BR-14 | OPEN | optional/conditional Readable-only invalidation 필요 | exact dirty/clean set | 미실행 |
+
+원장은 구현·테스트·Gate Trace·정확한 원격 CI를 대체하지 않는다. 각 행은 네 증거가 모두 확보된 뒤에만 `CLOSED`로 변경한다.
