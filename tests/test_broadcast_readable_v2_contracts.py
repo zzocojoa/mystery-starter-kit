@@ -10,7 +10,13 @@ from jsonschema import Draft202012Validator
 
 from RUNTIME.broadcast_readable_renderer import render_broadcast_readable_script
 from RUNTIME.contracts import load_artifact_contracts, load_task_catalog
+from RUNTIME.errors import RuntimeExecutionError
+from RUNTIME.output_gateway import validate_artifact_content
 from RUNTIME.planner import task_condition_matches
+from VALIDATORS.broadcast_readable import (
+    production_readable_deliverable_issues,
+    production_readable_deliverable_record,
+)
 from VALIDATORS.dependency import (
     artifact_hash,
     artifact_required_for_project,
@@ -59,6 +65,14 @@ CONFIG_SCHEMA_PATH = ROOT / "STANDARD/schemas/broadcast_readable_config.schema.j
 PRODUCTION_CONFIG_SCHEMA_PATH = ROOT / "STANDARD/schemas/production_config.schema.json"
 TEMPLATE_CONFIG_PATH = ROOT / "TEMPLATES/PROJECT/00_PROJECT/production_config.json"
 DEPENDENCY_GRAPH_PATH = ROOT / "STANDARD/dependency_graph.json"
+V1_REPORT_SCHEMA_PATH = ROOT / "STANDARD/schemas/broadcast_readable_report.schema.json"
+V2_REPORT_SCHEMA_PATH = (
+    ROOT / "STANDARD/schemas/broadcast_readable_report_2_0.schema.json"
+)
+V1_MANIFEST_SCHEMA_PATH = ROOT / "STANDARD/schemas/production_manifest.schema.json"
+V11_MANIFEST_SCHEMA_PATH = ROOT / "STANDARD/schemas/production_manifest_1_1.schema.json"
+SHA256_A = "a" * 64
+SHA256_B = "b" * 64
 
 
 def readable_config(enabled: bool) -> dict[str, object]:
@@ -74,6 +88,143 @@ def readable_config(enabled: bool) -> dict[str, object]:
         document["profile_id"] = "BROADCAST_READABLE_SCRIPT"
         document["profile_version"] = "2.0.0"
     return document
+
+
+def v2_readable_report(result: str) -> dict[str, object]:
+    """v2 Report Schema의 최소 완전 Fixture를 반환한다."""
+    issues: list[dict[str, object]] = []
+    if result != "NEEDS_REVIEW":
+        issues.append(
+            {
+                "severity": "ERROR",
+                "code": "BROADCAST_READABLE_TEST_FAILURE",
+                "message": "독립 실패 Fixture",
+                "artifact": "07_SCRIPT/broadcast_readable_script.md",
+                "context": {},
+            }
+        )
+    return {
+        "$schema": "../../../STANDARD/schemas/broadcast_readable_report_2_0.schema.json",
+        "schema_family": "broadcast-readable-report",
+        "schema_version": "2.0.0",
+        "project_id": "PRJ-006",
+        "result": result,
+        "config_binding": {
+            "schema_version": "1.0.0",
+            "enabled": True,
+            "profile_id": "BROADCAST_READABLE_SCRIPT",
+            "profile_version": "2.0.0",
+            "sha256": SHA256_A,
+        },
+        "output_profile_binding": {
+            "profile_id": "BROADCAST_READABLE_SCRIPT",
+            "profile_version": "2.0.0",
+            "profile_path": V2_PROFILE_RELATIVE_PATH,
+            "schema_path": V2_SCHEMA_RELATIVE_PATH,
+            "document_sha256": SHA256_A,
+            "file_sha256": SHA256_A,
+        },
+        "input_artifact_hashes": {
+            "broadcast_readable_config": SHA256_A,
+            "screenplay_units": SHA256_A,
+            "characters": SHA256_A,
+            "relationships": SHA256_A,
+            "panel_cast": SHA256_A,
+            "reaction_segments": SHA256_A,
+            "presentation_plan": SHA256_A,
+            "final_script": SHA256_A,
+        },
+        "output_artifact_hashes": {
+            "canonical_readable_script": SHA256_A,
+            "expected_production_copy": SHA256_A,
+        },
+        "scene_mappings": [
+            {
+                "scene_id": "SCN-01",
+                "first_global_segment_index": 0,
+                "last_global_segment_index": 0,
+                "heading_sha256": SHA256_A,
+                "situation_context_sha256": SHA256_A,
+                "sound_action_context_sha256": SHA256_A,
+                "retrospective_sha256": None,
+                "actual_byte_range": {"byte_start": 0, "byte_end": 1},
+            }
+        ],
+        "segment_mappings": [
+            {
+                "segment_id": "SEG-01",
+                "type": "DRAMA",
+                "global_presentation_index": 0,
+                "scene_id": "SCN-01",
+                "actual_byte_range": {"byte_start": 0, "byte_end": 1},
+            }
+        ],
+        "unit_mappings": [
+            {
+                "unit_id": "UNIT-01",
+                "segment_id": "SEG-01",
+                "canonical_order": 0,
+                "text_sha256": SHA256_A,
+                "exact_occurrence_index": 1,
+                "actual_byte_range": {"byte_start": 0, "byte_end": 1},
+            }
+        ],
+        "relationship_mappings": [
+            {
+                "relationship_id": "REL-01",
+                "affected_character_rows": ["CHAR-01"],
+                "display_summary_sha256": SHA256_A,
+            }
+        ],
+        "panel_turn_mappings": [
+            {
+                "reaction_segment_id": "RSEG-01",
+                "turn_id": "TURN-01",
+                "global_order": 0,
+                "spoken_line_sha256": SHA256_A,
+                "actual_byte_range": {"byte_start": 0, "byte_end": 1},
+            }
+        ],
+        "special_unit_type_coverage": [
+            {"unit_type": "DIALOGUE", "canonical_count": 1, "actual_count": 1}
+        ],
+        "reconstruction_coverage": {
+            "expected_sha256": SHA256_A,
+            "actual_sha256": SHA256_A,
+            "byte_identical": True,
+        },
+        "retrospective_meaning_coverage": {
+            "expected_count": 0,
+            "actual_count": 0,
+            "mappings_complete": True,
+        },
+        "visibility_scan": {
+            "forbidden_prefix_matches": [],
+            "html_comment_matches": [],
+            "uncertainty_marker_matches": [],
+        },
+        "unsupported_segment_types": [],
+        "issues": issues,
+    }
+
+
+def v11_production_manifest(
+    production_script: str,
+    report_sha256: str,
+) -> dict[str, object]:
+    """v1 Scene Manifest에 v2 Readable Deliverable을 추가한다."""
+    manifest = load_json_object(PILOT_ROOT / "09_PRODUCTION/production_manifest.json")
+    manifest["$schema"] = "../../STANDARD/schemas/production_manifest_1_1.schema.json"
+    manifest["schema_version"] = "1.1.0"
+    manifest["deliverables"] = [
+        production_readable_deliverable_record(
+            production_script,
+            report_sha256,
+            "BROADCAST_READABLE_SCRIPT",
+            "2.0.0",
+        )
+    ]
+    return manifest
 
 
 def v2_production_config() -> dict[str, object]:
@@ -531,3 +682,147 @@ def test_readable_config_change_invalidates_exact_readable_chain() -> None:
         "reenactment_export_report",
     ):
         assert changed["artifacts"][artifact_name]["status"] == "CLEAN"
+
+
+def test_v1_and_v2_reports_route_to_distinct_schemas() -> None:
+    """같은 Artifact 이름에서 v1·v2 Report Schema를 Version으로 분리한다."""
+    contracts = load_artifact_contracts(ROOT)
+    contract = contracts["broadcast_readable_report"]
+    v1_report = load_json_object(
+        PILOT_ROOT / "08_QA/broadcast_readable_report.json"
+    )
+    v2_report = v2_readable_report("NEEDS_REVIEW")
+
+    Draft202012Validator.check_schema(load_json_object(V1_REPORT_SCHEMA_PATH))
+    Draft202012Validator.check_schema(load_json_object(V2_REPORT_SCHEMA_PATH))
+    validate_artifact_content(
+        ROOT,
+        "test.v1_report",
+        "broadcast_readable_report",
+        "application/json",
+        v1_report,
+        contract,
+    )
+    validate_artifact_content(
+        ROOT,
+        "test.v2_report",
+        "broadcast_readable_report",
+        "application/json",
+        v2_report,
+        contract,
+    )
+
+
+def test_v2_issue_free_report_requires_needs_review() -> None:
+    """Issue 없는 v2 기계 Report는 Human 검토 필요 상태만 허용한다."""
+    schema = load_json_object(V2_REPORT_SCHEMA_PATH)
+    report = v2_readable_report("NEEDS_REVIEW")
+
+    assert collect_schema_errors(report, schema, "v2 report") == []
+    rejected = deepcopy(report)
+    rejected["result"] = "PASS"
+    assert collect_schema_errors(rejected, schema, "v2 PASS report")
+
+
+@pytest.mark.parametrize(
+    "missing_field",
+    [
+        "scene_mappings",
+        "segment_mappings",
+        "unit_mappings",
+        "relationship_mappings",
+        "panel_turn_mappings",
+    ],
+)
+def test_v2_required_mapping_family_missing_fails(missing_field: str) -> None:
+    """Actual Output Mapping 계열은 하나라도 누락되면 Schema에서 거부한다."""
+    schema = load_json_object(V2_REPORT_SCHEMA_PATH)
+    report = v2_readable_report("NEEDS_REVIEW")
+    report.pop(missing_field)
+
+    assert collect_schema_errors(report, schema, f"missing {missing_field}")
+
+
+def test_unknown_report_schema_version_fails_without_fallback() -> None:
+    """등록하지 않은 Report Version은 v1 Schema로 대체하지 않는다."""
+    contract = load_artifact_contracts(ROOT)["broadcast_readable_report"]
+    report = v2_readable_report("NEEDS_REVIEW")
+    report["schema_version"] = "2.0.1"
+
+    with pytest.raises(
+        RuntimeExecutionError,
+        match="schema_version에 등록된 Schema가 없습니다",
+    ):
+        validate_artifact_content(
+            ROOT,
+            "test.unknown_report",
+            "broadcast_readable_report",
+            "application/json",
+            report,
+            contract,
+        )
+
+
+def test_v1_and_v11_production_manifests_remain_valid() -> None:
+    """기존 v1 Manifest와 v2 Deliverable을 가진 1.1 Manifest를 모두 검증한다."""
+    contracts = load_artifact_contracts(ROOT)
+    contract = contracts["production_manifest"]
+    v1_manifest = load_json_object(
+        PILOT_ROOT / "09_PRODUCTION/production_manifest.json"
+    )
+    v11_manifest = v11_production_manifest("제작용 원문\n", SHA256_A)
+
+    Draft202012Validator.check_schema(load_json_object(V1_MANIFEST_SCHEMA_PATH))
+    Draft202012Validator.check_schema(load_json_object(V11_MANIFEST_SCHEMA_PATH))
+    validate_artifact_content(
+        ROOT,
+        "test.v1_manifest",
+        "production_manifest",
+        "application/json",
+        v1_manifest,
+        contract,
+    )
+    validate_artifact_content(
+        ROOT,
+        "test.v11_manifest",
+        "production_manifest",
+        "application/json",
+        v11_manifest,
+        contract,
+    )
+
+
+def test_actual_production_file_hash_mismatch_fails() -> None:
+    """Manifest 생성 뒤 Production Byte가 바뀌면 실제 파일 Hash 검증이 실패한다."""
+    manifest = v11_production_manifest("원래 제작본\n", SHA256_A)
+
+    issues = production_readable_deliverable_issues(
+        manifest,
+        "변경된 제작본\n",
+        "변경된 제작본\n",
+        SHA256_A,
+        "BROADCAST_READABLE_SCRIPT",
+        "2.0.0",
+    )
+
+    assert {issue["code"] for issue in issues} == {
+        "PRODUCTION_READABLE_DELIVERABLE_STALE"
+    }
+
+
+def test_source_report_hash_mismatch_fails() -> None:
+    """Manifest가 기록한 Report Hash가 현재 Report와 다르면 실패한다."""
+    manifest = v11_production_manifest("제작본\n", SHA256_A)
+
+    issues = production_readable_deliverable_issues(
+        manifest,
+        "제작본\n",
+        "제작본\n",
+        SHA256_B,
+        "BROADCAST_READABLE_SCRIPT",
+        "2.0.0",
+    )
+
+    assert {issue["code"] for issue in issues} == {
+        "PRODUCTION_READABLE_DELIVERABLE_STALE"
+    }

@@ -12,6 +12,7 @@ from VALIDATORS.models import ValidationIssue
 READABLE_ARTIFACT_PATH = "07_SCRIPT/broadcast_readable_script.md"
 READABLE_REPORT_PATH = "08_QA/broadcast_readable_report.json"
 PRODUCTION_READABLE_ARTIFACT_PATH = "09_PRODUCTION/broadcast_readable_script.md"
+PRODUCTION_MANIFEST_PATH = "09_PRODUCTION/production_manifest.json"
 
 
 def readable_issue(
@@ -341,3 +342,84 @@ def production_broadcast_readable_copy_issues(
             {},
         )
     ]
+
+
+def production_readable_deliverable_record(
+    production_readable_script: str,
+    source_report_sha256: str,
+    profile_id: str,
+    profile_version: str,
+) -> dict[str, str]:
+    """실제 Production Copy Byte와 Report Hash를 Manifest Record로 만든다."""
+    return {
+        "artifact_name": "production_broadcast_readable_script",
+        "path": PRODUCTION_READABLE_ARTIFACT_PATH,
+        "sha256": sha256(production_readable_script.encode("utf-8")).hexdigest(),
+        "source_report_sha256": source_report_sha256,
+        "profile_id": profile_id,
+        "profile_version": profile_version,
+    }
+
+
+def production_readable_deliverable_issues(
+    production_manifest: Mapping[str, object] | None,
+    readable_script: str | None,
+    production_readable_script: str | None,
+    source_report_sha256: str,
+    profile_id: str,
+    profile_version: str,
+) -> list[ValidationIssue]:
+    """Manifest의 v2 Readable 경로·실제 Copy Hash·Report Hash를 검증한다."""
+    issues = production_broadcast_readable_copy_issues(
+        readable_script,
+        production_readable_script,
+    )
+    if production_manifest is None:
+        return [
+            *issues,
+            readable_issue(
+                "PRODUCTION_READABLE_DELIVERABLE_MISSING",
+                "Production Manifest에 v2 Readable Deliverable이 없습니다.",
+                PRODUCTION_MANIFEST_PATH,
+                {},
+            ),
+        ]
+    deliverables = production_manifest.get("deliverables")
+    matches = (
+        [
+            item
+            for item in deliverables
+            if isinstance(item, Mapping)
+            and item.get("artifact_name")
+            == "production_broadcast_readable_script"
+        ]
+        if isinstance(deliverables, list)
+        else []
+    )
+    if production_readable_script is None or len(matches) != 1:
+        issues.append(
+            readable_issue(
+                "PRODUCTION_READABLE_DELIVERABLE_MISSING",
+                "Production Manifest의 v2 Readable Deliverable은 정확히 하나여야 합니다.",
+                PRODUCTION_MANIFEST_PATH,
+                {"matching_deliverable_count": len(matches)},
+            )
+        )
+        return issues
+    expected = production_readable_deliverable_record(
+        production_readable_script,
+        source_report_sha256,
+        profile_id,
+        profile_version,
+    )
+    actual = dict(matches[0])
+    if actual != expected:
+        issues.append(
+            readable_issue(
+                "PRODUCTION_READABLE_DELIVERABLE_STALE",
+                "Production Manifest의 v2 Readable Path 또는 Hash 결속이 현재 파일과 다릅니다.",
+                PRODUCTION_MANIFEST_PATH,
+                {"expected": expected, "actual": actual},
+            )
+        )
+    return issues

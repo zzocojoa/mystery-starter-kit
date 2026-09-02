@@ -522,11 +522,6 @@ def task_open_unlocked(
     production_config = load_json_object(
         project_path / "00_PROJECT" / "production_config.json"
     )
-    runtime_validation_inputs_for_project(
-        repository_root,
-        production_config,
-        None,
-    )
     active = open_task_record(repository_root, project_path)
     if active is not None:
         if active["gate_id"] == gate_id:
@@ -541,6 +536,12 @@ def task_open_unlocked(
         )
     dependency_graph = load_json_object(
         repository_root / "STANDARD" / "dependency_graph.json"
+    )
+    runtime_validation_inputs_for_project(
+        repository_root,
+        production_config,
+        load_existing_project_artifacts(project_path, dependency_graph),
+        None,
     )
     stored_state = project_state(project_path)
     state = reconcile_project_state_artifacts(dependency_graph, stored_state)
@@ -1289,6 +1290,7 @@ def validate_gate_overlay(
     ) = runtime_validation_inputs_for_project(
         repository_root,
         production_config,
+        existing_artifacts,
         None,
     )
     reference_material = (
@@ -1888,6 +1890,7 @@ def full_validation_report(
     ) = runtime_validation_inputs_for_project(
         repository_root,
         production_config,
+        load_existing_project_artifacts(project_path, dependency_graph),
         channel_path,
     )
     artifacts = load_project_artifacts(project_path, dependency_graph, channel)

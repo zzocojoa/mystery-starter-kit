@@ -56,6 +56,7 @@ from RUNTIME.models import (
     TokenUsage,
 )
 from RUNTIME.output_gateway import (
+    artifact_schema_reference,
     encoded_artifact,
     validate_agent_result,
     validate_core_outputs,
@@ -713,6 +714,7 @@ async def execute_existing_run(
     runtime_validation_inputs_for_project(
         repository_root,
         production_config,
+        load_existing_project_artifacts(project_path, dependency_graph),
         None,
     )
     source_mode = production_config.get("story_source_mode")
@@ -807,6 +809,7 @@ async def execute_existing_run(
         ) = runtime_validation_inputs_for_project(
             repository_root,
             production_config,
+            load_existing_project_artifacts(project_path, dependency_graph),
             None,
         )
         for gate_id in gate_ids(from_gate, current_run["to_gate"]):
@@ -1231,7 +1234,12 @@ async def execute_existing_run(
                 for artifact_name, content in gate_outputs.items():
                     provenance = output_provenance[artifact_name]
                     contract = artifact_contracts[artifact_name]
-                    schema_reference = contract["schema"]
+                    schema_reference = artifact_schema_reference(
+                        contract,
+                        content if isinstance(content, Mapping) else {},
+                        cast(str, provenance["task_id"]),
+                        artifact_name,
+                    ) if contract["media_type"] == "application/json" else None
                     schema_hash = None
                     if schema_reference is not None:
                         schema_path = repository_root / schema_reference.split("#", maxsplit=1)[0]

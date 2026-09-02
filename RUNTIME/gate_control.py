@@ -192,6 +192,13 @@ def broadcast_readable_profile_inputs(
     return profile, profile_hash
 
 
+def broadcast_readable_profile_enabled(
+    presentation_schemas: Mapping[str, Mapping[str, object]],
+) -> bool:
+    """현재 Project에서 검증된 Readable Profile이 활성인지 반환한다."""
+    return "broadcast_readable_output_profile" in presentation_schemas
+
+
 def reenactment_text_issues(
     artifacts: Mapping[str, ArtifactContent],
 ) -> list[ValidationIssue]:
@@ -803,9 +810,6 @@ def validate_gate(
             output_profile, _profile_hash = reenactment_profile_inputs(
                 presentation_schemas,
             )
-            readable_profile, readable_profile_hash = (
-                broadcast_readable_profile_inputs(presentation_schemas)
-            )
             screenplay_units = optional_artifact_document(artifacts, "screenplay_units")
             issues.extend(
                 required_channel_artifact_issues(
@@ -850,20 +854,27 @@ def validate_gate(
                 )
             )
             issues.extend(reenactment_text_issues(artifacts))
-            issues.extend(
-                broadcast_readable_script_issues(
-                    production_config,
-                    screenplay_units,
-                    characters,
-                    panel_cast,
-                    reaction_segments,
-                    presentation,
-                    readable_profile,
-                    readable_profile_hash,
-                    optional_artifact_text(artifacts, "broadcast_readable_script")
-                    or "",
+            if broadcast_readable_profile_enabled(presentation_schemas):
+                readable_profile, readable_profile_hash = (
+                    broadcast_readable_profile_inputs(presentation_schemas)
                 )
-            )
+                issues.extend(
+                    broadcast_readable_script_issues(
+                        production_config,
+                        screenplay_units,
+                        characters,
+                        panel_cast,
+                        reaction_segments,
+                        presentation,
+                        readable_profile,
+                        readable_profile_hash,
+                        optional_artifact_text(
+                            artifacts,
+                            "broadcast_readable_script",
+                        )
+                        or "",
+                    )
+                )
         return issues
     if gate_id == "GATE-09":
         report = validate_continuity(
@@ -919,9 +930,6 @@ def validate_gate(
             output_profile, profile_hash = reenactment_profile_inputs(
                 presentation_schemas,
             )
-            readable_profile, readable_profile_hash = (
-                broadcast_readable_profile_inputs(presentation_schemas)
-            )
             screenplay_units = optional_artifact_document(artifacts, "screenplay_units")
             reenactment_report = optional_artifact_document(
                 artifacts,
@@ -963,28 +971,35 @@ def validate_gate(
                     screenplay_derived_outputs(artifacts),
                 )
             )
-            issues.extend(
-                schema_issues(
-                    readable_report,
-                    presentation_schemas["broadcast_readable_report"],
-                    "08_QA/broadcast_readable_report.json",
+            if broadcast_readable_profile_enabled(presentation_schemas):
+                readable_profile, readable_profile_hash = (
+                    broadcast_readable_profile_inputs(presentation_schemas)
                 )
-            )
-            issues.extend(
-                validate_broadcast_readable_report(
-                    readable_report,
-                    production_config,
-                    screenplay_units,
-                    characters,
-                    panel_cast,
-                    reaction_segments,
-                    presentation,
-                    readable_profile,
-                    readable_profile_hash,
-                    optional_artifact_text(artifacts, "broadcast_readable_script")
-                    or "",
+                issues.extend(
+                    schema_issues(
+                        readable_report,
+                        presentation_schemas["broadcast_readable_report"],
+                        "08_QA/broadcast_readable_report.json",
+                    )
                 )
-            )
+                issues.extend(
+                    validate_broadcast_readable_report(
+                        readable_report,
+                        production_config,
+                        screenplay_units,
+                        characters,
+                        panel_cast,
+                        reaction_segments,
+                        presentation,
+                        readable_profile,
+                        readable_profile_hash,
+                        optional_artifact_text(
+                            artifacts,
+                            "broadcast_readable_script",
+                        )
+                        or "",
+                    )
+                )
         return issues
     fingerprint = artifact_document(artifacts, "story_fingerprint")
     if gate_id == "GATE-10":
@@ -1223,9 +1238,6 @@ def validate_gate(
             ),
         ]
         if screenplay_unit_mode(production_config):
-            readable_profile, readable_profile_hash = (
-                broadcast_readable_profile_inputs(presentation_schemas)
-            )
             issues.extend(
                 required_channel_artifact_issues(
                     artifacts,
@@ -1238,6 +1250,17 @@ def validate_gate(
                 )
             )
             issues.extend(production_reenactment_copy_issues(artifacts))
+            issues.extend(
+                reenactment_runtime_evidence_issues(
+                    production_config,
+                    artifact_document(artifacts, "reenactment_export_report"),
+                    artifact_document(artifacts, "editorial_review"),
+                )
+            )
+        if broadcast_readable_profile_enabled(presentation_schemas):
+            readable_profile, readable_profile_hash = (
+                broadcast_readable_profile_inputs(presentation_schemas)
+            )
             issues.extend(
                 validate_broadcast_readable_report(
                     artifact_document(artifacts, "broadcast_readable_report"),
@@ -1259,13 +1282,6 @@ def validate_gate(
                         artifacts,
                         "production_broadcast_readable_script",
                     ),
-                )
-            )
-            issues.extend(
-                reenactment_runtime_evidence_issues(
-                    production_config,
-                    artifact_document(artifacts, "reenactment_export_report"),
-                    artifact_document(artifacts, "editorial_review"),
                 )
             )
         return issues

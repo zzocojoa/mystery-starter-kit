@@ -18,6 +18,12 @@
         "properties": {
           "media_type": {"enum": ["application/json", "text/markdown"]},
           "schema": {"type": ["string", "null"]},
+          "schema_versions": {
+            "type": "object",
+            "minProperties": 1,
+            "propertyNames": {"pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+            "additionalProperties": {"type": "string", "minLength": 1}
+          },
           "validators": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
           "commit_policy": {"enum": ["ATOMIC_ON_PASS", "ALWAYS_DIAGNOSTIC", "EPHEMERAL"]},
           "max_bytes": {"type": "integer", "minimum": 1}

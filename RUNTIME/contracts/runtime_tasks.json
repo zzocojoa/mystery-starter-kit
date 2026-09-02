@@ -706,7 +706,7 @@
       "commit_policy": "ALWAYS_DIAGNOSTIC",
       "retry_policy": "CORE",
       "budget_profile": "SMALL",
-      "standard_resources": ["STANDARD/schemas/broadcast_readable_report.schema.json", "STANDARD/schemas/broadcast_readable_output_profile.schema.json", "STANDARD/schemas/broadcast_readable_output_profile_2_0.schema.json", "STANDARD/schemas/broadcast_readable_config.schema.json"],
+      "standard_resources": ["STANDARD/schemas/broadcast_readable_report.schema.json", "STANDARD/schemas/broadcast_readable_report_2_0.schema.json", "STANDARD/schemas/broadcast_readable_output_profile.schema.json", "STANDARD/schemas/broadcast_readable_output_profile_2_0.schema.json", "STANDARD/schemas/broadcast_readable_config.schema.json"],
       "allowed_tools": [],
       "required_data_classes": ["INTERNAL"],
       "approval_required": false
@@ -837,7 +837,7 @@
       "commit_policy": "ATOMIC_ON_PASS",
       "retry_policy": "CORE",
       "budget_profile": "SMALL",
-      "standard_resources": ["STANDARD/schemas/production_manifest.schema.json"],
+      "standard_resources": ["STANDARD/schemas/production_manifest.schema.json", "STANDARD/schemas/production_manifest_1_1.schema.json"],
       "allowed_tools": [],
       "required_data_classes": ["INTERNAL"],
       "approval_required": false
@@ -874,7 +874,7 @@
       "commit_policy": "ATOMIC_ON_PASS",
       "retry_policy": "CORE",
       "budget_profile": "SMALL",
-      "standard_resources": ["STANDARD/schemas/broadcast_readable_report.schema.json", "STANDARD/schemas/broadcast_readable_output_profile.schema.json", "STANDARD/schemas/broadcast_readable_output_profile_2_0.schema.json", "STANDARD/schemas/broadcast_readable_config.schema.json"],
+      "standard_resources": ["STANDARD/schemas/broadcast_readable_report.schema.json", "STANDARD/schemas/broadcast_readable_report_2_0.schema.json", "STANDARD/schemas/broadcast_readable_output_profile.schema.json", "STANDARD/schemas/broadcast_readable_output_profile_2_0.schema.json", "STANDARD/schemas/broadcast_readable_config.schema.json", "STANDARD/schemas/production_manifest_1_1.schema.json"],
       "allowed_tools": [],
       "required_data_classes": ["INTERNAL"],
       "approval_required": false

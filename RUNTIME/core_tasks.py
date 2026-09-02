@@ -56,6 +56,7 @@ from VALIDATORS.novelty import (
     evaluate_variation_precheck_bound,
 )
 from VALIDATORS.output_profiles import (
+    resolve_active_broadcast_readable_output_profile,
     resolve_broadcast_readable_output_profile,
     resolve_reenactment_output_profile,
 )
@@ -366,6 +367,7 @@ def runtime_validation_inputs(
 def runtime_validation_inputs_for_project(
     repository_root: Path,
     production_config: Mapping[str, object],
+    artifacts: Mapping[str, object],
     channel_override: Path | None,
 ) -> tuple[
     Mapping[str, object],
@@ -405,9 +407,10 @@ def runtime_validation_inputs_for_project(
         selected_schemas["reenactment_output_profile_binding"] = {
             "sha256": reenactment_profile["sha256"],
         }
-    readable_profile = resolve_broadcast_readable_output_profile(
+    readable_profile = resolve_active_broadcast_readable_output_profile(
         repository_root,
         production_config,
+        artifacts,
     )
     if readable_profile is not None:
         selected_schemas["broadcast_readable_output_profile"] = readable_profile[
@@ -416,6 +419,13 @@ def runtime_validation_inputs_for_project(
         selected_schemas["broadcast_readable_output_profile_binding"] = {
             "sha256": readable_profile["sha256"],
         }
+        if readable_profile["profile_version"] == "2.0.0":
+            selected_schemas["broadcast_readable_report"] = load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "broadcast_readable_report_2_0.schema.json"
+            )
     return (
         channel,
         story_schema,
@@ -1520,6 +1530,7 @@ def core_task_outputs(
         ) = runtime_validation_inputs_for_project(
             repository_root,
             production_config,
+            artifacts,
             None,
         )
         target_gate = "GATE-12" if task_id == "orchestrator.validation" else "GATE-13"

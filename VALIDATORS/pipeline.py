@@ -815,7 +815,18 @@ def production_text_issues(
         or "production_expert_analysis_script" in artifacts
     ):
         artifact_names.append("production_expert_analysis_script")
-    if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
+    readable_definition = dependency_artifacts(graph)[
+        "production_broadcast_readable_script"
+    ]
+    if (
+        artifact_required_for_project(
+            readable_definition,
+            channel,
+            production_config,
+            artifacts,
+        )
+        or "production_broadcast_readable_script" in artifacts
+    ):
         artifact_names.append("production_broadcast_readable_script")
     issues: list[ValidationIssue] = []
     for artifact_name in artifact_names:
@@ -1473,6 +1484,8 @@ def run_production_validation(
             panel_reaction_script,
         ),
     ]
+    validated_readable_output_profile: Mapping[str, object] | None = None
+    validated_readable_profile_hash: str | None = None
     if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
         output_profile = presentation_schemas.get("reenactment_output_profile")
         readable_output_profile = presentation_schemas.get(
@@ -1488,17 +1501,20 @@ def run_production_validation(
         )
         if not isinstance(output_profile, Mapping):
             raise ConfigurationError("검증된 Reenactment Output Profile 입력이 필요합니다.")
-        if not isinstance(readable_output_profile, Mapping) or not isinstance(
-            readable_profile_hash,
-            str,
-        ):
+        if (readable_output_profile is None) != (readable_profile_hash is None):
             raise ConfigurationError(
-                "검증된 Broadcast Readable Output Profile 입력이 필요합니다."
+                "Broadcast Readable Output Profile과 Hash 결속이 불완전합니다."
             )
-        validated_readable_output_profile: Mapping[str, object] = (
-            readable_output_profile
-        )
-        validated_readable_profile_hash: str = readable_profile_hash
+        if readable_output_profile is not None:
+            if not isinstance(readable_output_profile, Mapping) or not isinstance(
+                readable_profile_hash,
+                str,
+            ):
+                raise ConfigurationError(
+                    "검증된 Broadcast Readable Output Profile 입력이 필요합니다."
+                )
+            validated_readable_output_profile = readable_output_profile
+            validated_readable_profile_hash = readable_profile_hash
         derived_outputs = ScreenplayDerivedOutputs(
             drama_script=drama_script,
             narration_script=narration_script,
@@ -1560,19 +1576,23 @@ def run_production_validation(
                     {},
                 )
             )
-        gate_08.extend(
-            broadcast_readable_script_issues(
-                production_config,
-                screenplay_units,
-                characters,
-                panel_cast,
-                reaction_segments,
-                presentation_plan,
-                validated_readable_output_profile,
-                validated_readable_profile_hash,
-                broadcast_readable_script,
+        if (
+            validated_readable_output_profile is not None
+            and validated_readable_profile_hash is not None
+        ):
+            gate_08.extend(
+                broadcast_readable_script_issues(
+                    production_config,
+                    screenplay_units,
+                    characters,
+                    panel_cast,
+                    reaction_segments,
+                    presentation_plan,
+                    validated_readable_output_profile,
+                    validated_readable_profile_hash,
+                    broadcast_readable_script,
+                )
             )
-        )
     continuity_report = validate_continuity(
         production_config,
         characters,
@@ -1663,27 +1683,31 @@ def run_production_validation(
                 derived_outputs,
             )
         )
-        gate_09.extend(
-            schema_issues(
-                broadcast_readable_report,
-                presentation_schemas["broadcast_readable_report"],
-                "08_QA/broadcast_readable_report.json",
+        if (
+            validated_readable_output_profile is not None
+            and validated_readable_profile_hash is not None
+        ):
+            gate_09.extend(
+                schema_issues(
+                    broadcast_readable_report,
+                    presentation_schemas["broadcast_readable_report"],
+                    "08_QA/broadcast_readable_report.json",
+                )
             )
-        )
-        gate_09.extend(
-            validate_broadcast_readable_report(
-                broadcast_readable_report,
-                production_config,
-                screenplay_units,
-                characters,
-                panel_cast,
-                reaction_segments,
-                presentation_plan,
-                validated_readable_output_profile,
-                validated_readable_profile_hash,
-                broadcast_readable_script,
+            gate_09.extend(
+                validate_broadcast_readable_report(
+                    broadcast_readable_report,
+                    production_config,
+                    screenplay_units,
+                    characters,
+                    panel_cast,
+                    reaction_segments,
+                    presentation_plan,
+                    validated_readable_output_profile,
+                    validated_readable_profile_hash,
+                    broadcast_readable_script,
+                )
             )
-        )
     novelty_report = evaluate_novelty(fingerprint, story_history, novelty_thresholds)
     novelty_issues = novelty_report.get("issues")
     if not isinstance(novelty_issues, list):
@@ -1846,6 +1870,23 @@ def run_production_validation(
                 ),
             )
         )
+        if (
+            not reenactment_character_script
+            or not production_reenactment_character_script
+            or reenactment_character_script != production_reenactment_character_script
+        ):
+            gate_13.append(
+                make_pipeline_issue(
+                    "PRODUCTION_REENACTMENT_COPY_MISMATCH",
+                    "Production 재연 Script가 검증된 Canonical 재연 Script와 다릅니다.",
+                    "09_PRODUCTION/reenactment_character_script.md",
+                    {},
+                )
+            )
+    if (
+        validated_readable_output_profile is not None
+        and validated_readable_profile_hash is not None
+    ):
         gate_13.extend(
             validate_broadcast_readable_report(
                 broadcast_readable_report,
@@ -1866,19 +1907,6 @@ def run_production_validation(
                 production_broadcast_readable_script,
             )
         )
-        if (
-            not reenactment_character_script
-            or not production_reenactment_character_script
-            or reenactment_character_script != production_reenactment_character_script
-        ):
-            gate_13.append(
-                make_pipeline_issue(
-                    "PRODUCTION_REENACTMENT_COPY_MISMATCH",
-                    "Production 재연 Script가 검증된 Canonical 재연 Script와 다릅니다.",
-                    "09_PRODUCTION/reenactment_character_script.md",
-                    {},
-                )
-            )
     gate_groups = (
         gate_00,
         gate_01,
