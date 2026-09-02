@@ -1,0 +1,25 @@
+{
+  "$schema": "../../../STANDARD/schemas/broadcast_readable_report.schema.json",
+  "schema_family": "broadcast-readable-report",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-006",
+  "result": "PASS",
+  "input_artifact_hashes": {
+    "screenplay_units": "7cd312e26e8d7d468cf0b64a1d125317edab7065f7e60ade8b78641c7679a1f5",
+    "characters": "c2cfd09e7c613f25b359ce520562ebcc1b30109fcad1db0d63aa7f0c7087c731",
+    "panel_cast": "31171e1bebf0cff55dba2433f2d37d564fd735fa39c0d33961e21c060eb4e976",
+    "reaction_segments": "2cfd711127fe51fe47405a939b11032fa9bdc9c55c2632a9fb99acb336ab4674",
+    "presentation_plan": "16abc7423999281f44ca265208538e5d7aa50272956fea09d67fdf5b5320e225"
+  },
+  "output_markdown_sha256": "a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa",
+  "coverage": {
+    "scene_count": 11,
+    "unit_count": 95,
+    "character_count": 6,
+    "panelist_count": 3,
+    "panel_reaction_segment_count": 7,
+    "panel_turn_count": 14,
+    "presentation_segment_count": 23
+  },
+  "issues": []
+}

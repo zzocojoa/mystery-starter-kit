@@ -54,15 +54,9 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 
 각 제출은 현재 Task의 writes Allowlist, Artifact Owner, Future Gate 수정, 입력 Hash Drift와 Schema를 검사한다. 통과하면 같은 Workspace에서 후속 CORE를 실행하고, 다음 LLM Task가 있으면 Canonical 중간 Commit 없이 새 `current_task_id`와 최소 권한을 반환한다. Gate의 모든 Task와 Gate Validator가 PASS한 경우에만 Artifact·Project State·`00_PROJECT/process_trace.jsonl`을 기존 Write-ahead Transaction으로 함께 Commit한다. 다음 Gate를 열기 전에는 이미 통과한 Canonical Artifact를 Project State Hash와 대조한다. 작업을 폐기하려면 `task-abort`를 사용한다. Critic Issue는 `task-return`으로 Owner Agent Gate에 반환하며, 새 `process_revision`의 Trace만 재작업 적합성에 사용한다. `AUTO_CONTINUE`는 정상 Task 통과 뒤 의존 가능한 CORE 또는 다음 LLM Task로 진행할 수 있다는 뜻이며 여러 Gate를 한꺼번에 작성한다는 뜻이 아니다.
 
-새 Scaffold는 `script_source_mode: SCREENPLAY_UNITS`와 `REENACTMENT_CHARACTER_SCRIPT 1.0.0` Output Profile을 고정한다. GATE-08에서 Codex가 작성하는 유일한 새 창작 출력은 `screenplay_units.json`이다. 제출 뒤 CORE가 Layer Script, Broadcast Master와 `reenactment_character_script.md`를 만들고, GATE-09가 현재 입력 Hash에 결속된 `reenactment_export_report.json`을 계산한다. GATE-13은 이 Report가 오류 없는 `NEEDS_REVIEW`일 때만 동일 bytes를 Production 경로로 전달한다. `script_source_mode` 필드가 없는 기존 Project는 `LEGACY_MARKDOWN` Task 순서와 Artifact를 그대로 사용한다.
+새 Scaffold는 `script_source_mode: SCREENPLAY_UNITS`와 `REENACTMENT_CHARACTER_SCRIPT 1.0.0` Output Profile을 고정한다. GATE-08에서 Codex가 작성하는 유일한 새 창작 출력은 `screenplay_units.json`이다. 제출 뒤 CORE가 Layer Script, Broadcast Master, `reenactment_character_script.md`와 사람이 읽는 `broadcast_readable_script.md`를 만든다. Readable Script는 같은 Canonical Screenplay Unit, Character, Panel Cast, Reaction Segment, Presentation Plan만 사용하며 장면 Context, 실제 인물 이름과 Canonical Panel 발화를 표시한다.
 
-기계형 Broadcast Master를 사람이 읽기 쉬운 형식으로 확인하려면 Screenplay Unit Project에서 명시적 보조 명령을 실행한다.
-
-```bash
-PYTHONPATH=. .venv/bin/mystery-kit render-broadcast-readable PROJECTS/PRJ-006
-```
-
-이 명령은 동일한 Canonical `screenplay_units.json`, Character, Panel, Reaction, Presentation JSON만 읽어 `07_SCRIPT/broadcast_readable_script.md`를 결정론적으로 다시 만든다. 출력에는 장면 Context, 실제 인물 이름과 Canonical Panel 발화가 표시된다. 이 파일은 Gate Artifact나 Project State가 아닌 검토용 Companion View이며, 기존 `final_script.md`의 Contract·Marker·Renderer·bytes를 대체하거나 수정하지 않는다. `LEGACY_MARKDOWN` Project를 추측 변환하는 fallback도 제공하지 않는다.
+GATE-09는 Readable Script와 다섯 입력의 Hash·Coverage를 `broadcast_readable_report.json`에 결속하고, 현재 입력에서 Report를 재구성해 stale 또는 위조를 거부한다. GATE-12 통합 Validation은 이 Report에 의존한다. GATE-13은 검증된 Readable bytes만 `09_PRODUCTION/broadcast_readable_script.md`에 그대로 복사하고 Editorial Review가 원본·Report·Production Copy Hash를 모두 검토한다. 이 세 파일은 Artifact Contract, Dependency Graph, Runtime Task, Project State와 Gate Transaction의 관리 대상이며 Gate 밖에서 직접 다시 쓰는 보조 CLI는 제공하지 않는다. 기존 `final_script.md`의 Contract·Marker·Renderer·bytes는 유지하고, `LEGACY_MARKDOWN` Project에는 이 경로를 요구하지 않는다.
 
 재연극 목표시간이 필요하면 `target_reenactment_minutes`와 `reenactment_runtime_tolerance_ratio`를 함께 설정한다. 이 값은 방송 전체의 `target_runtime_minutes`와 별도이며 방송 목표를 넘을 수 없다. CORE는 Output Profile이 포함한 Unit이 결속된 Drama·Narration Segment만 합산하고 Panel 등 제외 Segment를 Report에 따로 기록한다. Editorial evidence는 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO`를 구분하며, Unit·Profile·Presentation 입력이 바뀌면 기존 측정 Hash를 거부한다.
 

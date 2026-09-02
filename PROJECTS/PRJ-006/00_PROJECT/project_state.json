@@ -4,14 +4,14 @@
   "project_id": "PRJ-006",
   "state": "EDITORIAL_REVIEW_REQUIRED",
   "current_gate": "GATE-13",
-  "updated_at": "2026-09-02T02:59:51.949817Z",
+  "updated_at": "2026-09-02T07:04:15.560355Z",
   "readiness": {
     "artifact_status": "ARTIFACT_COMPLETE",
     "contract_status": "CONTRACT_VALIDATED",
     "process_status": "PROCESS_CONFORMANT",
     "editorial_status": "EDITORIAL_REVIEW_REQUIRED",
-    "process_start_gate": "GATE-00",
-    "process_revision": 1
+    "process_start_gate": "GATE-08",
+    "process_revision": 2
   },
   "artifacts": {
     "project_manifest": {
@@ -327,32 +327,14 @@
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "actual_timeline",
-        "audience_belief",
-        "beat_sheet",
-        "candidate_approval",
-        "candidate_eligibility",
-        "candidate_evaluation",
-        "candidate_event_briefs",
-        "case_input",
-        "character_state_transitions",
-        "characters",
-        "clue_matrix",
-        "compatibility_report",
-        "crime_event_contract",
-        "facts",
-        "hypothesis_ledger",
-        "knowledge_matrix",
-        "novelty_precheck",
-        "panel_cast",
-        "presentation_plan",
-        "reaction_segments",
-        "relationships",
-        "retention_plan",
-        "scene_cards",
-        "story_dna",
-        "variation_candidates",
-        "viewer_timeline"
+        "broadcast_readable_script",
+        "draft_script",
+        "drama_script",
+        "final_script",
+        "narration_script",
+        "panel_reaction_script",
+        "reenactment_character_script",
+        "screenplay_units"
       ]
     },
     "screenplay_units": {
@@ -434,50 +416,17 @@
       "status": "DIRTY",
       "content_hash": null,
       "invalidated_by": [
-        "actual_timeline",
-        "audience_belief",
-        "beat_sheet",
-        "candidate_approval",
-        "candidate_eligibility",
-        "candidate_evaluation",
-        "candidate_event_briefs",
-        "case_input",
-        "causal_graph",
-        "channel_consistency_report",
-        "character_state_transitions",
-        "characters",
-        "clue_matrix",
-        "compatibility_report",
-        "continuity_report",
-        "crime_event_contract",
+        "broadcast_readable_report",
+        "broadcast_readable_script",
         "draft_script",
         "drama_script",
-        "facts",
+        "expert_analysis_script",
         "final_script",
-        "hypothesis_ledger",
-        "knowledge_matrix",
         "narration_script",
-        "novelty_precheck",
-        "novelty_report",
-        "panel_cast",
         "panel_reaction_script",
-        "presentation_plan",
-        "reaction_segments",
         "reenactment_character_script",
-        "reenactment_export_report",
-        "reference_collision_report",
-        "relationships",
-        "retention_plan",
-        "scene_cards",
         "screenplay_units",
-        "script_realization_report",
-        "shooting_script",
-        "source_disclosure",
-        "story_dna",
-        "story_fingerprint",
-        "validation_report",
-        "variation_candidates",
-        "viewer_timeline"
+        "validation_report"
       ]
     },
     "subtitle_script": {
@@ -497,7 +446,22 @@
     },
     "editorial_review": {
       "status": "CLEAN",
-      "content_hash": "2ab7a684c621e5fd93eb5bf9926bd2264381a89579231a7f8e738303182ea4e1",
+      "content_hash": "a92c38fb665d890ac22db23f336a1f0185c68f067d7ba48e404fe2ab65b1649b",
+      "invalidated_by": []
+    },
+    "broadcast_readable_script": {
+      "status": "CLEAN",
+      "content_hash": "a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa",
+      "invalidated_by": []
+    },
+    "broadcast_readable_report": {
+      "status": "CLEAN",
+      "content_hash": "5941226ba3490c2885dfdfe47aa542921e1faa41f81f17eeb060c2baf6a295ce",
+      "invalidated_by": []
+    },
+    "production_broadcast_readable_script": {
+      "status": "CLEAN",
+      "content_hash": "a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa",
       "invalidated_by": []
     }
   }

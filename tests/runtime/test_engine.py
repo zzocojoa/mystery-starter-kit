@@ -259,7 +259,7 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
         .read_text(encoding="utf-8")
         .splitlines()
     )
-    assert len(trace_lines) == 37
+    assert len(trace_lines) == 40
     novelty_entries = novelty_index["entries"]
     assert isinstance(novelty_entries, list)
     runtime_entry = next(

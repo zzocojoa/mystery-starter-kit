@@ -81,7 +81,7 @@ def test_runtime_contracts_cross_validate_all_authorities() -> None:
 
     assert result["result"] == "PASS"
     assert result["runtime_version"] == "1.0.0"
-    assert result["task_count"] == 47
+    assert result["task_count"] == 50
 
 
 def test_runtime_task_contract_has_no_duplicate_json_keys() -> None:
@@ -117,8 +117,11 @@ def test_screenplay_unit_tasks_preserve_minimum_authority_and_executor_order() -
         "script.render_screenplay_layers",
         "script.render_broadcast_master",
         "script.render_reenactment_export",
+        "script.render_broadcast_readable",
         "continuity.validate_reenactment",
+        "continuity.validate_broadcast_readable",
         "production.package_reenactment",
+        "production.package_broadcast_readable",
     )
     assert all(tasks[task_id]["executor"] == "CORE" for task_id in core_task_ids)
     assert all(tasks[task_id]["model_profile"] is None for task_id in core_task_ids)
@@ -138,8 +141,14 @@ def test_screenplay_unit_tasks_preserve_minimum_authority_and_executor_order() -
     assert ordered.index("script.render_reenactment_export") < ordered.index(
         "continuity.validate_reenactment"
     )
+    assert ordered.index("script.render_broadcast_readable") < ordered.index(
+        "continuity.validate_broadcast_readable"
+    )
     assert ordered.index("continuity.validate_reenactment") < ordered.index(
         "production.package_reenactment"
+    )
+    assert ordered.index("continuity.validate_broadcast_readable") < ordered.index(
+        "production.package_broadcast_readable"
     )
 
 

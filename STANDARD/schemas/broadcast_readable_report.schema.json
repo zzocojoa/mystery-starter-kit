@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/broadcast-readable-report-1.0.0.json",
+  "title": "Broadcast Readable Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "result",
+    "input_artifact_hashes",
+    "output_markdown_sha256",
+    "coverage",
+    "issues"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "broadcast-readable-report"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "result": {"enum": ["PASS", "FAIL", "MISSING"]},
+    "input_artifact_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "screenplay_units",
+        "characters",
+        "panel_cast",
+        "reaction_segments",
+        "presentation_plan"
+      ],
+      "properties": {
+        "screenplay_units": {"$ref": "#/$defs/sha256"},
+        "characters": {"$ref": "#/$defs/sha256"},
+        "panel_cast": {"$ref": "#/$defs/sha256"},
+        "reaction_segments": {"$ref": "#/$defs/sha256"},
+        "presentation_plan": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "output_markdown_sha256": {"$ref": "#/$defs/sha256"},
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scene_count",
+        "unit_count",
+        "character_count",
+        "panelist_count",
+        "panel_reaction_segment_count",
+        "panel_turn_count",
+        "presentation_segment_count"
+      ],
+      "properties": {
+        "scene_count": {"type": "integer", "minimum": 0},
+        "unit_count": {"type": "integer", "minimum": 0},
+        "character_count": {"type": "integer", "minimum": 0},
+        "panelist_count": {"type": "integer", "minimum": 0},
+        "panel_reaction_segment_count": {"type": "integer", "minimum": 0},
+        "panel_turn_count": {"type": "integer", "minimum": 0},
+        "presentation_segment_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/issue"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "code", "message", "artifact", "context"],
+      "properties": {
+        "severity": {"enum": ["ERROR", "WARN", "INFO"]},
+        "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "message": {"type": "string", "minLength": 1},
+        "artifact": {"type": "string", "minLength": 1},
+        "context": {"type": "object"}
+      }
+    }
+  }
+}

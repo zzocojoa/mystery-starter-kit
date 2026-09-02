@@ -60,6 +60,8 @@
         "draft_script",
         "final_script",
         "screenplay_units",
+        "broadcast_readable_script",
+        "broadcast_readable_report",
         "reenactment_character_script",
         "reenactment_export_report",
         "script_realization_report",
@@ -76,6 +78,7 @@
         "subtitle_script",
         "edit_script",
         "production_reenactment_character_script",
+        "production_broadcast_readable_script",
         "editorial_review"
       ],
       "writes": [
@@ -94,7 +97,8 @@
         "production_expert_analysis_script",
         "subtitle_script",
         "edit_script",
-        "production_reenactment_character_script"
+        "production_reenactment_character_script",
+        "production_broadcast_readable_script"
       ],
       "gates": [
         "GATE-00",
@@ -326,7 +330,8 @@
         "expert_analysis_script",
         "draft_script",
         "final_script",
-        "reenactment_character_script"
+        "reenactment_character_script",
+        "broadcast_readable_script"
       ],
       "gates": [
         "GATE-08"
@@ -353,6 +358,8 @@
         "clinical_labels",
         "final_script",
         "screenplay_units",
+        "broadcast_readable_script",
+        "broadcast_readable_report",
         "reenactment_character_script",
         "reenactment_export_report",
         "script_realization_report",
@@ -384,11 +391,13 @@
         "production_expert_analysis_script",
         "subtitle_script",
         "edit_script",
-        "production_reenactment_character_script"
+        "production_reenactment_character_script",
+        "production_broadcast_readable_script"
       ],
       "writes": [
         "script_realization_report",
         "reenactment_export_report",
+        "broadcast_readable_report",
         "continuity_report",
         "channel_consistency_report",
         "editorial_review"
