@@ -40,6 +40,7 @@ from RUNTIME.transactions import (
 from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
 from VALIDATORS.candidate_event_briefs import validate_candidate_event_briefs
 from VALIDATORS.channel_registry import resolve_project_channel
+from VALIDATORS.config_admission import broadcast_readable_config_admission_issues
 from VALIDATORS.crime_event import explicit_crime_policy
 from VALIDATORS.dependency import (
     artifact_hash,
@@ -47,6 +48,7 @@ from VALIDATORS.dependency import (
     dependency_artifacts,
     reconcile_project_state_artifacts,
 )
+from VALIDATORS.editorial import editorial_artifact_hashes
 from VALIDATORS.exceptions import ConfigurationError, GateTransactionError
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.models import ProductionValidationReport, ProjectState
@@ -578,6 +580,13 @@ def task_open_unlocked(
         state,
         completed_artifacts,
     )
+    drift.extend(
+        broadcast_readable_config_admission_issues(
+            repository_root,
+            project_path,
+            state,
+        )
+    )
     if drift:
         raise GateTransactionError(
             "GATE_TRANSACTION_INPUT_DRIFT",
@@ -614,6 +623,8 @@ def task_open_unlocked(
         "task_statuses": {task_id: "PENDING" for task_id in tasks},
         "task_input_hashes": {},
         "task_changed_paths": {},
+        "task_execution_modes": {},
+        "reused_trace_ids": {},
         "gate_phase": "RUNNING_CORE",
         "agent_ids": sorted({task["agent_id"] for task in tasks.values()}),
         "allowed_reads": [],
@@ -989,6 +1000,120 @@ def validate_llm_task_outputs(
         )
 
 
+def task_inputs_support_validated_reuse(
+    task_id: str,
+    prior_inputs: Mapping[str, object],
+    current_input_hashes: Mapping[str, str],
+    workspace: Path,
+    dependency_graph: Mapping[str, object],
+) -> bool:
+    """동일 입력 또는 검토 결과가 결속한 신규 선언 입력의 재사용을 판정한다."""
+    normalized_prior = {str(key): str(value) for key, value in prior_inputs.items()}
+    if normalized_prior == dict(current_input_hashes):
+        return True
+    if task_id != "editorial.review":
+        return False
+    prior_names = set(normalized_prior)
+    current_names = set(current_input_hashes)
+    newly_declared_inputs = {
+        "broadcast_readable_config",
+        "broadcast_readable_output_profile",
+    }
+    if (
+        current_names - prior_names != newly_declared_inputs
+        or prior_names - current_names
+        or any(
+            normalized_prior[name] != current_input_hashes[name]
+            for name in prior_names
+        )
+    ):
+        return False
+    artifacts = load_existing_project_artifacts(workspace, dependency_graph)
+    review = artifacts.get("editorial_review")
+    if not isinstance(review, Mapping):
+        return False
+    raw_hashes = review.get("artifact_hashes")
+    if not isinstance(raw_hashes, Mapping):
+        return False
+    actual_hashes = {str(key): str(value) for key, value in raw_hashes.items()}
+    return actual_hashes == editorial_artifact_hashes(artifacts)
+
+
+def matching_validated_reuse_trace_id(
+    repository_root: Path,
+    project_path: Path,
+    workspace: Path,
+    task_id: str,
+    task: RuntimeTask,
+    current_input_hashes: Mapping[str, str],
+    dependency_graph: Mapping[str, object],
+) -> str | None:
+    """동일 입력·출력 Byte를 가진 과거 실제 LLM 실행 Trace를 찾는다."""
+    definitions = dependency_artifacts(dependency_graph)
+    for record in reversed(all_task_records(repository_root, project_path)):
+        if record.get("status") != "COMMITTED":
+            continue
+        completed = record.get("completed_task_ids")
+        if not isinstance(completed, list) or task_id not in completed:
+            continue
+        input_hashes = record.get("task_input_hashes")
+        prior_inputs = (
+            input_hashes.get(task_id)
+            if isinstance(input_hashes, Mapping)
+            else None
+        )
+        if not isinstance(prior_inputs, Mapping) or not task_inputs_support_validated_reuse(
+            task_id,
+            prior_inputs,
+            current_input_hashes,
+            workspace,
+            dependency_graph,
+        ):
+            continue
+        raw_workspace = record.get("workspace")
+        if not isinstance(raw_workspace, str):
+            continue
+        prior_workspace = Path(raw_workspace)
+        if not prior_workspace.is_absolute():
+            prior_workspace = repository_root / prior_workspace
+        outputs_match = True
+        for artifact_name in task["writes"]:
+            definition = definitions.get(artifact_name)
+            relative_path = (
+                definition.get("path")
+                if isinstance(definition, Mapping)
+                else None
+            )
+            if not isinstance(relative_path, str):
+                outputs_match = False
+                break
+            try:
+                current_bytes = (workspace / relative_path).read_bytes()
+                prior_bytes = (prior_workspace / relative_path).read_bytes()
+            except OSError:
+                outputs_match = False
+                break
+            if current_bytes != prior_bytes:
+                outputs_match = False
+                break
+        if not outputs_match:
+            continue
+        prior_revision = record.get("process_revision")
+        prior_commit_sha = record.get("commit_sha")
+        matching_traces = [
+            trace
+            for trace in trace_records(repository_root, project_path)
+            if trace.get("task_id") == task_id
+            and trace.get("process_revision") == prior_revision
+            and trace.get("commit_sha") == prior_commit_sha
+            and trace.get("input_hashes") == dict(prior_inputs)
+            and trace.get("execution_mode") != "VALIDATED_REUSE"
+        ]
+        if matching_traces:
+            return cast(str, matching_traces[-1]["trace_id"])
+    return None
+
+
 def advance_gate_tasks(
     repository_root: Path,
     project_path: Path,
@@ -1007,6 +1132,12 @@ def advance_gate_tasks(
         cast(Mapping[str, Mapping[str, str]], updated["task_input_hashes"])
     )
     task_changes = dict(cast(Mapping[str, list[str]], updated["task_changed_paths"]))
+    execution_modes = dict(
+        cast(Mapping[str, str], updated.get("task_execution_modes", {}))
+    )
+    reused_trace_ids = dict(
+        cast(Mapping[str, str], updated.get("reused_trace_ids", {}))
+    )
     transaction_id = cast(str, updated["transaction_id"])
     for task_id, task in tasks.items():
         if task_id in completed_set:
@@ -1026,6 +1157,36 @@ def advance_gate_tasks(
         )
         task_hashes[task_id] = current_hashes
         if task["executor"] == "LLM":
+            reused_trace_id = matching_validated_reuse_trace_id(
+                repository_root,
+                project_path,
+                workspace,
+                task_id,
+                task,
+                current_hashes,
+                dependency_graph,
+            )
+            if reused_trace_id is not None:
+                read_workspace_outputs(
+                    repository_root,
+                    workspace,
+                    task["writes"],
+                    {task_id: task},
+                    dependency_graph,
+                )
+                validate_llm_task_outputs(
+                    repository_root,
+                    workspace,
+                    task_id,
+                    dependency_graph,
+                )
+                statuses[task_id] = "COMPLETED"
+                completed.append(task_id)
+                completed_set.add(task_id)
+                task_changes[task_id] = []
+                execution_modes[task_id] = "VALIDATED_REUSE"
+                reused_trace_ids[task_id] = reused_trace_id
+                continue
             statuses[task_id] = "AWAITING_LLM"
             updated.update(
                 {
@@ -1034,6 +1195,8 @@ def advance_gate_tasks(
                     "task_statuses": statuses,
                     "task_input_hashes": task_hashes,
                     "task_changed_paths": task_changes,
+                    "task_execution_modes": execution_modes,
+                    "reused_trace_ids": reused_trace_ids,
                     "gate_phase": "AWAITING_LLM",
                     "allowed_reads": task_available_reads(
                         workspace,
@@ -1091,6 +1254,7 @@ def advance_gate_tasks(
         completed.append(task_id)
         completed_set.add(task_id)
         task_changes[task_id] = sorted(generated_paths)
+        execution_modes[task_id] = "EXECUTED"
     updated.update(
         {
             "current_task_id": None,
@@ -1098,6 +1262,8 @@ def advance_gate_tasks(
             "task_statuses": statuses,
             "task_input_hashes": task_hashes,
             "task_changed_paths": task_changes,
+            "task_execution_modes": execution_modes,
+            "reused_trace_ids": reused_trace_ids,
             "gate_phase": "READY_TO_COMMIT",
             "allowed_reads": [],
             "allowed_writes": [],
@@ -1213,10 +1379,17 @@ def build_gate_traces(
         Mapping[str, list[str]],
         record.get("task_changed_paths", {}),
     )
+    execution_modes = cast(
+        Mapping[str, str],
+        record.get("task_execution_modes", {}),
+    )
+    reused_trace_ids = cast(
+        Mapping[str, str],
+        record.get("reused_trace_ids", {}),
+    )
     traces: list[dict[str, object]] = []
     for task_id, task in tasks.items():
-        traces.append(
-            {
+        trace = {
                 "trace_id": f"TRACE-{uuid4().hex[:16].upper()}",
                 "project_id": record["project_id"],
                 "task_id": task_id,
@@ -1234,13 +1407,17 @@ def build_gate_traces(
                         ],
                     )
                 ),
+                "execution_mode": execution_modes.get(task_id, "EXECUTED"),
                 "validator_version": VALIDATOR_VERSION,
                 "gate_result": "PASS",
                 "commit_sha": commit_sha,
                 "started_at": record["started_at"],
                 "completed_at": completed_at,
             }
-        )
+        reused_trace_id = reused_trace_ids.get(task_id)
+        if reused_trace_id is not None:
+            trace["reused_trace_id"] = reused_trace_id
+        traces.append(trace)
     return traces
 
 
@@ -1459,11 +1636,16 @@ def task_submit(
                 cast(Mapping[str, list[str]], progressed["task_changed_paths"])
             )
             changed_by_task[current_task_id] = task_changed_paths
+            execution_modes = dict(
+                cast(Mapping[str, str], progressed.get("task_execution_modes", {}))
+            )
+            execution_modes[current_task_id] = "EXECUTED"
             progressed.update(
                 {
                     "completed_task_ids": completed_task_ids,
                     "task_statuses": statuses,
                     "task_changed_paths": changed_by_task,
+                    "task_execution_modes": execution_modes,
                     "current_task_id": None,
                     "gate_phase": "RUNNING_CORE",
                     "allowed_reads": [],
@@ -1952,6 +2134,13 @@ def audit_project(
         dependency_graph,
         state,
         audit_artifact_names(repository_root, project_path, dependency_graph),
+    )
+    drift.extend(
+        broadcast_readable_config_admission_issues(
+            repository_root,
+            project_path,
+            state,
+        )
     )
     validation = full_validation_report(
         repository_root,

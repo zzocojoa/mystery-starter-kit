@@ -84,6 +84,19 @@
         "items": {"type": "string", "minLength": 1}
       }
     },
+    "task_execution_modes": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": ["EXECUTED", "VALIDATED_REUSE"]
+      }
+    },
+    "reused_trace_ids": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^TRACE-[A-F0-9]{16}$"
+      }
+    },
     "gate_phase": {
       "enum": ["RUNNING_CORE", "AWAITING_LLM", "WAITING_HUMAN", "READY_TO_COMMIT", "COMMITTED", "ABORTED"]
     },

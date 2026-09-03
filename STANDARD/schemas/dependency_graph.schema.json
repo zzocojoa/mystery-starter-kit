@@ -68,7 +68,8 @@
         {"type": "object", "additionalProperties": false, "required": ["artifact_status"], "properties": {"artifact_status": {"type": "array", "prefixItems": [{"type": "string"}, {"type": "string"}], "items": false}}},
         {"type": "object", "additionalProperties": false, "required": ["artifact_exists"], "properties": {"artifact_exists": {"type": "string"}}},
         {"type": "object", "additionalProperties": false, "required": ["artifact_field_equals"], "properties": {"artifact_field_equals": {"type": "array", "prefixItems": [{"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}, {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}, {"type": ["string", "number", "boolean", "null"]}], "items": false}}},
-        {"type": "object", "additionalProperties": false, "required": ["production_footprint_enforced"], "properties": {"production_footprint_enforced": {"const": true}}}
+        {"type": "object", "additionalProperties": false, "required": ["production_footprint_enforced"], "properties": {"production_footprint_enforced": {"const": true}}},
+        {"type": "object", "additionalProperties": false, "required": ["production_manifest_required"], "properties": {"production_manifest_required": {"const": true}}}
       ]
     }
   }

@@ -349,7 +349,7 @@
       "path": "09_PRODUCTION/production_manifest.json",
       "depends_on": ["production_footprint", "scene_cards", "shooting_script", "broadcast_readable_config", "broadcast_readable_script", "broadcast_readable_report", "production_broadcast_readable_script"],
       "owner_agent": "orchestrator",
-      "required_when": {"production_footprint_enforced": true}
+      "required_when": {"production_manifest_required": true}
     },
     "narration": {
       "path": "09_PRODUCTION/narration.md",

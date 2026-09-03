@@ -589,3 +589,31 @@ def test_final_script_drift_and_saved_report_mutation_fail_stale_check() -> None
     assert "BROADCAST_READABLE_V2_REPORT_STALE" in validation_issue_codes(
         validate_report(stale_report, fixture, actual)
     )
+
+
+@pytest.mark.parametrize("mutation", ["offset", "occurrence", "membership"])
+def test_saved_report_mapping_mutations_fail_stale_check(mutation: str) -> None:
+    """저장 Report의 Offset·발생 번호·Segment Membership 조작을 탐지한다."""
+    fixture = pilot_fixture()
+    actual = render_fixture(fixture)
+    report = build_report(fixture, actual)
+    mappings = mapping_records(report, "unit_mappings")
+    first = mappings[0]
+    if mutation == "offset":
+        byte_range = first["actual_byte_range"]
+        assert isinstance(byte_range, dict)
+        byte_start = byte_range["byte_start"]
+        assert isinstance(byte_start, int)
+        byte_range["byte_start"] = byte_start + 1
+    elif mutation == "occurrence":
+        occurrence = first["exact_occurrence_index"]
+        assert isinstance(occurrence, int)
+        first["exact_occurrence_index"] = occurrence + 1
+    elif mutation == "membership":
+        first["segment_id"] = "SEG-999"
+    else:
+        raise AssertionError(f"알 수 없는 Mapping Mutation입니다: {mutation}")
+
+    assert "BROADCAST_READABLE_V2_REPORT_STALE" in validation_issue_codes(
+        validate_report(report, fixture, actual)
+    )

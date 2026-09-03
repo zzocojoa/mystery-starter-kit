@@ -551,3 +551,29 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 - 저장소 소스 기준 `validate`와 `audit`는 GATE-00~13 PASS, issue 0, `state_unchanged: true`다. 검증 전후 Project State와 Process Trace SHA-256은 각각 `86634791f557dc0335314fe8f5a985e736e5bf9e70c23524d6c1f9dd12ade5cb`, `e20f90f334ed4db1cb9e9aa66eb048a0199c7374d547174e0a526897653a5476`로 동일했다.
 - 최종 상태는 GATE-13 `EDITORIAL_REVIEW_REQUIRED`, `ARTIFACT_COMPLETE`, `CONTRACT_VALIDATED`, `PROCESS_CONFORMANT`이다. Human Editorial은 미승인, Production Ready는 false, Story Library 항목은 0개다. 사용자-facing `production-finalize`, `register`, PR Merge/Close는 실행하지 않는다.
 - Branch A의 공개 Head는 `bc4aeb5d2867d17c34d0afb0f63c9cc9e6a2ce91`이다. Branch A와 Branch B의 최종 Commit SHA, PR 번호, 정확한 Head의 Python 3.11/3.14 Required CI Run은 각 PR 본문에 기록한다.
+
+## Broadcast Readable v2 BR-15~BR-18 Closure
+
+### Source와 실행 경계
+
+- Source Commit과 고정 기준 Ref는 `ef7df444b62ecafc86470ecfa17603d5debce6ef`, `refs/codex/closure-baseline`이다. 검증 계보는 `origin/main` → PR #28 → PR #29 → PR #30 → `codex/broadcast-readable-v2-closure`다.
+- PRJ-006의 실제 Config 파일이 존재하지만 State가 MISSING/null인 상태와 저장된 Audit의 잘못된 PASS를 BR-15 기준 실패로 재현했다. 전역 occurrence Mapping, R1/R2 Timing·재구성 불일치, v2+Footprint-off Manifest Requiredness도 독립 Fixture로 재현했다.
+- 상세 Phase 결과, 함수·계약, Transaction ID, 해시, 전체 명령은 저장소 루트 `BR15_BR18_Closure_Report.md`에 단일 기록한다. 정확한 Acceptance Head와 Python 3.11/3.14 CI Run/Job ID는 Head 순환을 피하기 위해 Closure PR 본문에 기록한다.
+
+### Closure 원장
+
+| ID | 구현·계약 | Positive/Negative 증거 | 실제 Gate 증거 | 상태 |
+|---|---|---|---|---|
+| BR-15 | `config_admission.py`, CLI, Config State/Audit/Gate 결속, Journal Recovery | Admission/No-op과 Schema·Project·Profile·경로·Lock·Stale·쓰기 경계·Recovery·Drift Test | `CONFIG-ADMISSION-0ED93C4B20894E83`, Revision 6 GATE-08~13 | CLOSED |
+| BR-16 | Presentation 순서의 Segment-bounded cursor와 UTF-8 range | A→B→A, 반복 Unit/Turn, Prefix·다중 행 Oracle, offset/occurrence/membership 변조 | PRJ-006 11 Scene·23 Segment·95 Unit·7 관계·14 Turn, issue 0 | CLOSED |
+| BR-17 | R1/R2 누적 Timing, Reaction/Scene/재구성 결속, Fixture별 Master | R1/R2 Schema·Presentation·GATE Transaction과 의미 Mutation | 두 Fixture GATE-04~09 COMMITTED | CLOSED |
+| BR-18 | 공통 Manifest Requiredness와 Footprint-free Manifest 1.2 | 6개 Requiredness 조합, 8개 Manifest Mutation, 파일 없는 Full Integration | v2+Footprint-off GATE-00~13 COMMITTED | CLOSED |
+
+### PRJ-006 Acceptance
+
+- 공식 Config Admission 뒤 Config State와 실제 파일 Hash는 `5d261391b973cdf8bbad0c1ef1020b1bf53b8656656edd764bfbe022a17b0803`으로 CLEAN 결속됐다. Readable Script, Report, Production Copy, Manifest, Editorial만 DIRTY가 됐고 보호 Story·Screenplay·Machine Master·Reenactment·제작 문서는 변하지 않았다.
+- Revision 6은 GATE-08, 09, 10, 11, 12, 13을 순서대로 Commit했다. 과거 LLM 결과는 현재 입력·출력·원래 Trace가 모두 맞을 때만 `VALIDATED_REUSE`로 기록했고 새 LLM 실행으로 가장하지 않았다.
+- 최종 Readable과 Production Copy는 SHA-256 `5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41`로 byte-identical하다. v2 Report SHA-256은 `4ffeeb983fc7ad33b78f14090646fcee7f2c7794e55ec3b58a491c473d3b363a`, 결과는 `NEEDS_REVIEW`, issue 0이다.
+- 최종 State는 GATE-13 `EDITORIAL_REVIEW_REQUIRED`, Artifact/Contract/Process는 COMPLETE/VALIDATED/CONFORMANT, Human Editorial은 미승인, Production Ready는 false다.
+- `validate`와 `audit`는 GATE-00~13 PASS, issue 0, State 불변이다. 전체 검증은 Ruff PASS, strict mypy PASS(153 source files), pytest PASS(652 tests), package 1.6.1 build PASS, 외부 의존성 audit PASS, Runtime Doctor PASS, `origin/main`과 고정 기준 Ref 대비 Version Immutability PASS다.
+- Novelty Index의 전후 SHA-256은 `95a24dd2c3373765a24d21238cfd843befb80f539cf63d78ff1822c1c30c01ee`이며 `entries=[]`다. Human `editorial-approve`, 사용자용 `production-finalize`, Story Library `register`, PR Merge/Close는 실행하지 않았다.

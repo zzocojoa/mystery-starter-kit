@@ -14,9 +14,16 @@ from test_broadcast_readable_v2_validation import (
     mapping_records,
     pilot_fixture,
     render_fixture,
+    replace_mapped_fragment,
     replace_once,
 )
 
+from RUNTIME.screenplay_renderers import (
+    render_broadcast_master,
+    render_drama_layer,
+    render_narration_layer,
+    render_panel_layer,
+)
 from VALIDATORS.io import load_json_object
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -105,6 +112,91 @@ def replace_named_values(
         records_by_id[record_id][value_field] = replacement
 
 
+def align_presentation_timing(fixture: PilotFixture) -> None:
+    """재배치된 Segment와 Reaction의 누적 시간을 함께 정합화한다."""
+    reactions = {
+        str(reaction["reaction_segment_id"]): reaction
+        for reaction in mapping_list(
+            fixture["reaction_segments"],
+            "reaction_segments",
+        )
+    }
+    cursor = 0
+    for segment in mapping_list(fixture["presentation_plan"], "segments"):
+        duration = segment["duration_sec"]
+        assert isinstance(duration, int)
+        segment["start_sec"] = cursor
+        reaction_id = segment.get("reaction_segment_id")
+        if isinstance(reaction_id, str):
+            reaction = reactions[reaction_id]
+            reaction["start_sec"] = cursor
+            reaction["duration_sec"] = duration
+            reaction["after_scene_id"] = segment["scene_id"]
+        cursor += duration
+
+
+def align_reconstruction_units(fixture: PilotFixture) -> None:
+    """재구성 반복 Unit의 가시 정체성을 원본 Unit과 일치시킨다."""
+    scenes = mapping_list(fixture["screenplay_units"], "scenes")
+    scenes_by_id = {str(scene["scene_id"]): scene for scene in scenes}
+    visible_fields = ("type", "text", "speaker_id", "delivery")
+    for scene in scenes:
+        source_scene_id = scene.get("reconstruction_of_scene_id")
+        if not isinstance(source_scene_id, str):
+            continue
+        source_units = {
+            str(unit["unit_id"]): unit
+            for unit in mapping_list(scenes_by_id[source_scene_id], "units")
+        }
+        repeated_units = {
+            str(unit["unit_id"]): unit
+            for unit in mapping_list(scene, "units")
+        }
+        raw_bindings = scene.get("reconstruction_bindings")
+        if raw_bindings is None:
+            continue
+        assert isinstance(raw_bindings, list)
+        assert all(isinstance(binding, dict) for binding in raw_bindings)
+        bindings = [binding for binding in raw_bindings if isinstance(binding, dict)]
+        for binding in bindings:
+            source_unit = source_units[str(binding["source_unit_id"])]
+            repeated_unit = repeated_units[str(binding["repeated_unit_id"])]
+            for field in visible_fields:
+                if field in source_unit:
+                    repeated_unit[field] = deepcopy(source_unit[field])
+                else:
+                    repeated_unit.pop(field, None)
+
+
+def render_fixture_machine_master(fixture: PilotFixture) -> str:
+    """각 Fixture의 Canonical Source에서 Machine Master를 생성한다."""
+    crime_event_contract = load_json_object(
+        ROOT / "PROJECTS/PRJ-006/01_CASE/crime_event_contract.json"
+    )
+    drama_script = render_drama_layer(
+        fixture["screenplay_units"],
+        fixture["presentation_plan"],
+        crime_event_contract,
+    )
+    narration_script = render_narration_layer(
+        fixture["screenplay_units"],
+        fixture["presentation_plan"],
+        crime_event_contract,
+    )
+    panel_reaction_script = render_panel_layer(
+        fixture["reaction_segments"],
+        fixture["presentation_plan"],
+    )
+    return render_broadcast_master(
+        fixture["presentation_plan"],
+        {
+            "drama_script": drama_script,
+            "narration_script": narration_script,
+            "panel_reaction_script": panel_reaction_script,
+        },
+    )
+
+
 def apply_feature_fixture(fixture_id: str) -> PilotFixture:
     """PRJ-006 구조에 독립 Original Fiction 기능 명세를 적용한다."""
     fixture = deepcopy(pilot_fixture())
@@ -159,6 +251,7 @@ def apply_feature_fixture(fixture_id: str) -> PilotFixture:
         "text",
         mapping_value(spec, "unit_text"),
     )
+    align_reconstruction_units(fixture)
     turns = [
         turn
         for reaction in mapping_list(
@@ -180,13 +273,13 @@ def apply_feature_fixture(fixture_id: str) -> PilotFixture:
     reordered.extend(
         segment for segment in segments if segment["segment_id"] not in front_ids
     )
-    for index, segment in enumerate(reordered):
-        segment["start_sec"] = index * 100
     fixture["presentation_plan"]["segments"] = reordered
     for scene_id, raw_segment_ids in mapping_value(spec, "scene_segment_ids").items():
         assert isinstance(raw_segment_ids, list)
         assert all(isinstance(item, str) for item in raw_segment_ids)
         scenes_by_id[scene_id]["segment_ids"] = raw_segment_ids
+    align_presentation_timing(fixture)
+    fixture["final_script"] = render_fixture_machine_master(fixture)
     return fixture
 
 
@@ -235,7 +328,7 @@ def assert_fixture_source_style(fixture_id: str) -> None:
     retrospective = report["retrospective_meaning_coverage"]
     assert isinstance(retrospective, dict)
     assert retrospective["mappings_complete"] is True
-    assert fixture["final_script"] == pilot_fixture()["final_script"]
+    assert fixture["final_script"] == render_fixture_machine_master(fixture)
 
 
 @pytest.mark.parametrize("fixture_id", ["R1", "R2"])
@@ -283,12 +376,17 @@ def test_r1_context_and_retrospective_negative_mutations_fail() -> None:
     retrospective = next(
         line for line in rendered.splitlines() if "수동 재시작 신호" in line
     )
-    first_unit = byte_fragment(
-        rendered,
-        mapping_records(build_report(fixture, rendered), "unit_mappings")[0],
-    )
+    first_mapping = mapping_records(
+        build_report(fixture, rendered),
+        "unit_mappings",
+    )[0]
+    first_unit = byte_fragment(rendered, first_mapping)
     moved = replace_once(rendered, f"{retrospective}\n\n", "")
-    moved = replace_once(moved, first_unit, f"{retrospective}\n\n{first_unit}")
+    moved = replace_mapped_fragment(
+        moved,
+        first_mapping,
+        f"{retrospective}\n\n{first_unit}",
+    )
     assert "BROADCAST_READABLE_V2_RETROSPECTIVE_POSITION_MISMATCH" in issue_codes(
         build_report(fixture, moved)
     )
@@ -322,13 +420,16 @@ def test_r2_relationship_panel_and_unsupported_negative_mutations_fail() -> None
     )
 
 
-def test_r1_r2_are_distinct_and_machine_master_remains_external() -> None:
-    """두 Fixture 출력은 독립이며 기존 Machine Master Byte를 재작성하지 않는다."""
+def test_r1_r2_have_distinct_source_derived_machine_masters() -> None:
+    """두 Fixture의 Machine Master는 각자의 Canonical Source에서 생성한다."""
     r1 = apply_feature_fixture("R1")
     r2 = apply_feature_fixture("R2")
     assert render_fixture(r1) != render_fixture(r2)
     original_hash = sha256(
         (ROOT / "PROJECTS/PRJ-006/07_SCRIPT/final_script.md").read_bytes()
     ).hexdigest()
-    assert sha256(r1["final_script"].encode("utf-8")).hexdigest() == original_hash
-    assert sha256(r2["final_script"].encode("utf-8")).hexdigest() == original_hash
+    r1_hash = sha256(r1["final_script"].encode("utf-8")).hexdigest()
+    r2_hash = sha256(r2["final_script"].encode("utf-8")).hexdigest()
+    assert r1_hash != original_hash
+    assert r2_hash != original_hash
+    assert r1_hash != r2_hash

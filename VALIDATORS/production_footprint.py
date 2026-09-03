@@ -569,6 +569,20 @@ def production_manifest_from_scene_cards_v11(
     }
 
 
+def production_manifest_from_readable_v12(
+    project_id: str,
+    readable_deliverable: Mapping[str, object],
+) -> dict[str, object]:
+    """Footprint 비활성 Project의 v2 Deliverable 전용 Manifest를 만든다."""
+    return {
+        "$schema": "../../STANDARD/schemas/production_manifest_1_2.schema.json",
+        "schema_family": "production-manifest",
+        "schema_version": "1.2.0",
+        "project_id": project_id,
+        "deliverables": [dict(readable_deliverable)],
+    }
+
+
 def production_manifest_scene_projection(
     production_manifest: Mapping[str, object],
 ) -> dict[str, object]:

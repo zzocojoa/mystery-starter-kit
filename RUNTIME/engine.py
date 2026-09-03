@@ -84,6 +84,7 @@ from RUNTIME.transactions import (
 )
 from VALIDATORS.agent_validation import manifest_agents
 from VALIDATORS.change_log import change_log_bytes
+from VALIDATORS.config_admission import broadcast_readable_config_admission_issues
 from VALIDATORS.dependency import artifact_hash, dependency_artifacts
 from VALIDATORS.exceptions import StarterKitError
 from VALIDATORS.gate_transaction import (
@@ -770,6 +771,13 @@ async def execute_existing_run(
             dependency_graph,
             state,
             completed_artifacts,
+        )
+        drift.extend(
+            broadcast_readable_config_admission_issues(
+                repository_root,
+                project_path,
+                state,
+            )
         )
         if drift:
             raise RuntimeExecutionError(

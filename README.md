@@ -76,6 +76,17 @@ Legacy Project를 Screenplay Unit 경로로 일괄 변환하거나 진행 중 Pr
 
 Broadcast Readable v2는 기존 Production Config Pin을 바꾸지 않고 Project별 `00_PROJECT/broadcast_readable_config.json`으로 명시적으로 선택한다. `enabled=true`, `profile_id=BROADCAST_READABLE_SCRIPT`, `profile_version=2.0.0`의 완전한 조합만 v2를 활성화한다. Config가 없으면 기존 v1 Pin 경로를 그대로 사용하고, disabled Config는 기존 v1 Pin보다 우선해 Readable Chain을 비활성화한다. 부분 Pin이나 알 수 없는 Version에는 fallback하지 않고 오류를 반환한다.
 
+Config를 새로 적용하거나 활성/비활성 상태를 바꿀 때는 Canonical 파일을 직접 복사하거나 Project State를 수정하지 않고 공식 Admission 명령을 사용한다.
+
+```bash
+.venv/bin/mystery-kit broadcast-readable-config-set PROJECTS/PRJ-006 \
+  --input /absolute/path/to/broadcast_readable_config.json \
+  --actor codex-app \
+  --reason "Broadcast Readable v2 활성화"
+```
+
+Admission은 Config Schema·Project·등록 Profile Hash를 확인하고 Project Lock 아래 Recoverable Transaction으로 Config, State, Change Log를 함께 Commit한다. 동일 Byte라도 State 또는 Admission 근거가 없으면 다시 승인하며, 모든 결속이 이미 유효할 때만 `NO_OP`이다. Lock 충돌이나 Stale Input은 명시적으로 실패하고 준비 중 Transaction은 다음 Admission에서 복구한다. Config 변경 뒤에는 출력된 `process_start_gate`부터 Gate를 순서대로 다시 실행하며, `rebuild-state --force`로 대체하지 않는다.
+
 v2 전환은 Readable 전용 변경이다. `screenplay_units`, Character·Relationship·Panel·Presentation을 입력으로 새 사람용 Markdown을 만들지만, Machine `final_script.md`, Drama·Narration·Panel Layer와 Reenactment bytes는 수정하지 않는다. v2 QA Report의 정상 결과는 Human 검토 전 상태인 `NEEDS_REVIEW`이며, GATE-13은 동일 bytes의 Production Copy와 Report/Profile Hash가 결속된 Manifest만 만든다. Human `editorial-approve`, 사용자-facing `production-finalize`, `register`는 별도 절차다.
 
 완성 예시는 [PRJ-006](PROJECTS/PRJ-006/)이다. 이 Original Fiction Pilot은 GATE-00~13과 기술적 Editorial Review를 통과했지만 `WORD_COUNT_ESTIMATE`만 보유하므로 상태가 `EDITORIAL_REVIEW_REQUIRED`이며 Production Ready 예제가 아니다.

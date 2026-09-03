@@ -65,7 +65,7 @@
     "channel_consistency_report": {"media_type": "application/json", "schema": "RUNTIME/schemas/project_artifacts.schema.json#/$defs/qaReport", "validators": [], "commit_policy": "ALWAYS_DIAGNOSTIC", "max_bytes": 524288},
     "validation_report": {"media_type": "application/json", "schema": "STANDARD/schemas/validation_report.schema.json", "validators": [], "commit_policy": "ALWAYS_DIAGNOSTIC", "max_bytes": 1048576},
     "shooting_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
-    "production_manifest": {"media_type": "application/json", "schema": "STANDARD/schemas/production_manifest.schema.json", "schema_versions": {"1.1.0": "STANDARD/schemas/production_manifest_1_1.schema.json"}, "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
+    "production_manifest": {"media_type": "application/json", "schema": "STANDARD/schemas/production_manifest.schema.json", "schema_versions": {"1.1.0": "STANDARD/schemas/production_manifest_1_1.schema.json", "1.2.0": "STANDARD/schemas/production_manifest_1_2.schema.json"}, "validators": [], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 524288},
     "narration": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "production_panel_reaction_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},
     "production_expert_analysis_script": {"media_type": "text/markdown", "schema": null, "validators": ["NON_EMPTY"], "commit_policy": "ATOMIC_ON_PASS", "max_bytes": 2097152},

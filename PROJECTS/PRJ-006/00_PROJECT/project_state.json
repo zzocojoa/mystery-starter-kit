@@ -4,14 +4,14 @@
   "project_id": "PRJ-006",
   "state": "EDITORIAL_REVIEW_REQUIRED",
   "current_gate": "GATE-13",
-  "updated_at": "2026-09-02T16:45:48.831106Z",
+  "updated_at": "2026-09-03T01:01:45.259532Z",
   "readiness": {
     "artifact_status": "ARTIFACT_COMPLETE",
     "contract_status": "CONTRACT_VALIDATED",
     "process_status": "PROCESS_CONFORMANT",
     "editorial_status": "EDITORIAL_REVIEW_REQUIRED",
     "process_start_gate": "GATE-08",
-    "process_revision": 5
+    "process_revision": 6
   },
   "artifacts": {
     "project_manifest": {
@@ -542,8 +542,8 @@
       "invalidated_by": []
     },
     "broadcast_readable_config": {
-      "status": "MISSING",
-      "content_hash": null,
+      "status": "CLEAN",
+      "content_hash": "5d261391b973cdf8bbad0c1ef1020b1bf53b8656656edd764bfbe022a17b0803",
       "invalidated_by": []
     }
   }

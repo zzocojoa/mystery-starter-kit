@@ -72,6 +72,7 @@ from VALIDATORS.output_profiles import (
 from VALIDATORS.pipeline import ArtifactContent, load_existing_project_artifacts
 from VALIDATORS.production_footprint import (
     build_production_footprint,
+    production_manifest_from_readable_v12,
     production_manifest_from_scene_cards,
     production_manifest_from_scene_cards_v11,
 )
@@ -84,6 +85,7 @@ from VALIDATORS.reference_validation import (
     sanitize_reference_profile,
     validate_reference_collision,
 )
+from VALIDATORS.requirements import production_footprint_is_enforced
 from VALIDATORS.scene_realization import (
     build_script_realization_report,
     channel_realization_evidence,
@@ -1455,14 +1457,20 @@ def core_task_outputs(
                     resolved_readable["profile_id"],
                     resolved_readable["profile_version"],
                 )
-                manifest = production_manifest_from_scene_cards_v11(
-                    project_id,
-                    mapping_artifact(artifacts, "production_footprint"),
-                    mapping_artifact(artifacts, "scene_cards"),
-                    mapping_artifact(artifacts, "characters"),
-                    mapping_artifact(artifacts, "actual_timeline"),
-                    deliverable,
-                )
+                if production_footprint_is_enforced(artifacts):
+                    manifest = production_manifest_from_scene_cards_v11(
+                        project_id,
+                        mapping_artifact(artifacts, "production_footprint"),
+                        mapping_artifact(artifacts, "scene_cards"),
+                        mapping_artifact(artifacts, "characters"),
+                        mapping_artifact(artifacts, "actual_timeline"),
+                        deliverable,
+                    )
+                else:
+                    manifest = production_manifest_from_readable_v12(
+                        project_id,
+                        deliverable,
+                    )
             else:
                 manifest = production_manifest_from_scene_cards(
                     project_id,

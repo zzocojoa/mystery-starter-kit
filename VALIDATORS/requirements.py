@@ -34,6 +34,38 @@ def crime_v2_candidate_policy_applies(
     )
 
 
+def production_footprint_is_enforced(artifacts: Mapping[str, object]) -> bool:
+    """Project Constraints가 최종 Scene Footprint를 강제하는지 반환한다."""
+    constraints = artifacts.get("project_constraints")
+    limits = (
+        constraints.get("production_limits")
+        if isinstance(constraints, Mapping)
+        else None
+    )
+    return (
+        isinstance(limits, Mapping)
+        and limits.get("enforce_final_footprint") is True
+    )
+
+
+def broadcast_readable_v2_is_active(artifacts: Mapping[str, object]) -> bool:
+    """검증 대상으로 선택된 v2 Config 활성 상태인지 반환한다."""
+    config = artifacts.get("broadcast_readable_config")
+    return (
+        isinstance(config, Mapping)
+        and config.get("enabled") is True
+        and config.get("profile_id") == "BROADCAST_READABLE_SCRIPT"
+        and config.get("profile_version") == "2.0.0"
+    )
+
+
+def production_manifest_required(artifacts: Mapping[str, object]) -> bool:
+    """Footprint 또는 활성 v2 Deliverable 때문에 Manifest가 필요한지 반환한다."""
+    return production_footprint_is_enforced(
+        artifacts
+    ) or broadcast_readable_v2_is_active(artifacts)
+
+
 def requirement_matches(
     predicate: object,
     production_config: Mapping[str, object],
@@ -127,10 +159,9 @@ def requirement_matches(
     if operator == "production_footprint_enforced":
         if value is not True:
             raise ConfigurationError("production_footprint_enforced는 true여야 합니다.")
-        constraints = artifacts.get("project_constraints")
-        limits = constraints.get("production_limits") if isinstance(constraints, Mapping) else None
-        return (
-            isinstance(limits, Mapping)
-            and limits.get("enforce_final_footprint") is True
-        )
+        return production_footprint_is_enforced(artifacts)
+    if operator == "production_manifest_required":
+        if value is not True:
+            raise ConfigurationError("production_manifest_required는 true여야 합니다.")
+        return production_manifest_required(artifacts)
     raise ConfigurationError(f"알 수 없는 Requirement Operator입니다: operator={operator!r}")

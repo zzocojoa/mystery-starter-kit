@@ -3,6 +3,7 @@
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from hashlib import sha256
+from typing import cast
 
 from RUNTIME.broadcast_readable_renderer import (
     format_profile_template,
@@ -16,6 +17,8 @@ from RUNTIME.broadcast_readable_v2_renderer import (
 )
 from RUNTIME.screenplay_renderers import (
     CHARACTER_AUTHORED_TYPES,
+    DRAMA_UNIT_TYPES,
+    NARRATION_UNIT_TYPES,
     cast_order,
     characters_by_id,
     mapping_items,
@@ -456,6 +459,119 @@ def fragment_occurrence_issues(
     return issues
 
 
+def actual_byte_range(
+    actual_markdown: str,
+    character_start: int,
+    character_end: int,
+) -> dict[str, int]:
+    """Actual 문자열의 문자 범위를 UTF-8 Half-open Byte 범위로 변환한다."""
+    return {
+        "byte_start": byte_offset(actual_markdown, character_start),
+        "byte_end": byte_offset(actual_markdown, character_end),
+    }
+
+
+def consume_actual_block(
+    actual_markdown: str,
+    cursor: int,
+    expected_block: str,
+    error_code: str,
+    context: dict[str, object],
+) -> tuple[dict[str, int] | None, int, list[ValidationIssue]]:
+    """현재 Cursor에서만 Exact Block과 구분자를 소비한다."""
+    if not actual_markdown.startswith(expected_block, cursor):
+        return (
+            None,
+            cursor,
+            [
+                v2_issue(
+                    error_code,
+                    "Actual Markdown의 다음 Block이 Canonical 순서와 다릅니다.",
+                    READABLE_PATH,
+                    {
+                        **context,
+                        "expected_block_sha256": text_sha256(expected_block),
+                        "actual_cursor_byte": byte_offset(actual_markdown, cursor),
+                    },
+                )
+            ],
+        )
+    end = cursor + len(expected_block)
+    byte_range = actual_byte_range(actual_markdown, cursor, end)
+    if actual_markdown.startswith("\n\n", end):
+        return byte_range, end + 2, []
+    if actual_markdown.startswith("\n", end) and end + 1 == len(actual_markdown):
+        return byte_range, end + 1, []
+    return (
+        byte_range,
+        end,
+        [
+            v2_issue(
+                "BROADCAST_READABLE_V2_BLOCK_BOUNDARY_AMBIGUOUS",
+                "Actual Markdown Block 사이의 경계를 확정할 수 없습니다.",
+                READABLE_PATH,
+                {
+                    **context,
+                    "block_end_byte": byte_range["byte_end"],
+                },
+            )
+        ],
+    )
+
+
+def global_occurrence_index(
+    actual_markdown: str,
+    block: str,
+    byte_range: Mapping[str, object],
+) -> int:
+    """Mapping 완료 뒤 공개 계약용 전역 Exact 발생 번호를 계산한다."""
+    expected_start = byte_range.get("byte_start")
+    expected_end = byte_range.get("byte_end")
+    for index, candidate in enumerate(occurrence_ranges(actual_markdown, block), 1):
+        if (
+            candidate["byte_start"] == expected_start
+            and candidate["byte_end"] == expected_end
+        ):
+            return index
+    raise ConfigurationError("BROADCAST_READABLE_V2_OCCURRENCE_INDEX_INVALID")
+
+
+def duplicate_mapping_range_issues(
+    mappings: Sequence[Mapping[str, object]],
+) -> list[ValidationIssue]:
+    """Unit·Turn이 같은 Actual Byte 범위를 재사용하면 실패한다."""
+    owners_by_range: defaultdict[tuple[int, int], list[str]] = defaultdict(list)
+    for mapping in mappings:
+        byte_range = mapping.get("actual_byte_range")
+        if not isinstance(byte_range, Mapping):
+            continue
+        byte_start = byte_range.get("byte_start")
+        byte_end = byte_range.get("byte_end")
+        if not isinstance(byte_start, int) or not isinstance(byte_end, int):
+            continue
+        owner = mapping.get("unit_id", mapping.get("turn_id"))
+        owners_by_range[(byte_start, byte_end)].append(str(owner))
+    duplicates = [
+        {
+            "byte_start": byte_range[0],
+            "byte_end": byte_range[1],
+            "owners": owners,
+        }
+        for byte_range, owners in owners_by_range.items()
+        if len(owners) > 1
+    ]
+    if not duplicates:
+        return []
+    return [
+        v2_issue(
+            "BROADCAST_READABLE_V2_DUPLICATE_BYTE_RANGE",
+            "둘 이상의 Canonical Block이 같은 Actual Byte 범위를 사용했습니다.",
+            REPORT_PATH,
+            {"duplicates": duplicates},
+        )
+    ]
+
+
 def independent_conformance(
     screenplay_units: Mapping[str, object],
     characters_document: Mapping[str, object],
@@ -466,7 +582,7 @@ def independent_conformance(
     output_profile: Mapping[str, object],
     actual_markdown: str,
 ) -> dict[str, object]:
-    """Actual Markdown에서 Mapping·Coverage·Issue를 Renderer와 독립 계산한다."""
+    """Actual Markdown을 전역 Presentation 순서의 Segment 경계 안에서 검증한다."""
     document_contract = profile_mapping(output_profile, "document_contract")
     render_contract = profile_mapping(output_profile, "render_contract")
     scenes = scene_map(screenplay_units)
@@ -547,14 +663,14 @@ def independent_conformance(
         )
     )
 
-    expected_unit_blocks: list[str] = []
     unit_blocks: dict[str, str] = {}
+    expected_unit_blocks: list[str] = []
     for records in unit_records.values():
         for _scene_id, unit in records:
             unit_id = required_string(unit, "unit_id")
             block = verifier_unit_block(unit, characters, render_contract)
-            expected_unit_blocks.append(block)
             unit_blocks[unit_id] = block
+            expected_unit_blocks.append(block)
     issues.extend(
         fragment_occurrence_issues(
             actual_markdown,
@@ -563,7 +679,6 @@ def independent_conformance(
             "Unit Block",
         )
     )
-
     panel_blocks: dict[str, str] = {}
     expected_panel_blocks: list[str] = []
     for reaction in reactions.values():
@@ -581,62 +696,292 @@ def independent_conformance(
         )
     )
 
-    unit_occurrence_index: defaultdict[str, int] = defaultdict(int)
+    body_heading = "## 방송 대본"
+    body_heading_ranges = occurrence_ranges(actual_markdown, body_heading)
+    cursor = -1
+    if len(body_heading_ranges) == 1:
+        body_character_start = actual_markdown.find(body_heading)
+        body_end = body_character_start + len(body_heading)
+        if actual_markdown.startswith("\n\n", body_end):
+            cursor = body_end + 2
+    if cursor < 0:
+        issues.append(
+            v2_issue(
+                "BROADCAST_READABLE_V2_SEGMENT_BOUNDARY_MISMATCH",
+                "방송 대본 Body의 시작 경계를 확정할 수 없습니다.",
+                READABLE_PATH,
+                {"heading_count": len(body_heading_ranges)},
+            )
+        )
+
+    first_segment_by_scene: dict[str, int] = {}
+    last_segment_by_scene: dict[str, int] = {}
+    for global_index, segment in enumerate(segments):
+        scene_id = required_string(segment, "scene_id")
+        first_segment_by_scene.setdefault(scene_id, global_index)
+        last_segment_by_scene[scene_id] = global_index
+
     unit_mappings: list[dict[str, object]] = []
-    unit_ranges_by_segment: defaultdict[str, list[dict[str, int]]] = defaultdict(list)
+    panel_turn_mappings: list[dict[str, object]] = []
+    segment_mappings: list[dict[str, object]] = []
+    scene_heading_ranges: dict[str, dict[str, int]] = {}
+    scene_context_ranges: dict[str, tuple[dict[str, int], dict[str, int]]] = {}
+    scene_retrospective_ranges: dict[str, dict[str, int]] = {}
+    unsupported_types: set[str] = set()
     special_expected = Counter[str]()
     special_actual = Counter[str]()
-    for scene in sorted_scenes(screenplay_units):
-        units = mapping_items(scene.get("units"), "units")
-        for unit in units:
-            unit_id = required_string(unit, "unit_id")
-            segment_id = required_string(unit, "segment_id")
-            unit_type = required_string(unit, "type")
-            block = unit_blocks[unit_id]
-            unit_occurrence_index[block] += 1
-            occurrence_index = unit_occurrence_index[block]
-            byte_range = range_for_occurrence(
-                occurrence_ranges(actual_markdown, block),
-                occurrence_index,
-            )
-            special_expected[unit_type] += 1
-            if byte_range is None:
-                continue
-            special_actual[unit_type] += 1
-            unit_ranges_by_segment[segment_id].append(byte_range)
-            unit_mappings.append(
-                {
-                    "unit_id": unit_id,
-                    "segment_id": segment_id,
-                    "canonical_order": unit.get("order"),
-                    "text_sha256": text_sha256(required_string(unit, "text")),
-                    "exact_occurrence_index": occurrence_index,
-                    "actual_byte_range": byte_range,
-                }
-            )
-
-    panel_occurrence_index: defaultdict[str, int] = defaultdict(int)
-    panel_turn_mappings: list[dict[str, object]] = []
-    panel_ranges_by_reaction: defaultdict[str, list[dict[str, int]]] = defaultdict(list)
+    seen_scene_ids: set[str] = set()
+    previous_scene_id: str | None = None
+    panel_index = 1
     global_turn_order = 0
-    for segment in segments:
-        if segment.get("segment_type") != "PANEL_REACTION":
-            continue
-        reaction_id = required_string(segment, "reaction_segment_id")
-        selected_reaction = reactions.get(reaction_id)
-        if selected_reaction is None:
-            continue
-        for turn in mapping_items(selected_reaction.get("turns"), "turns"):
-            turn_id = required_string(turn, "turn_id")
-            block = panel_blocks[turn_id]
-            panel_occurrence_index[block] += 1
-            occurrence_index = panel_occurrence_index[block]
-            byte_range = range_for_occurrence(
-                occurrence_ranges(actual_markdown, block),
-                occurrence_index,
+    parsing_failed = cursor < 0
+
+    for global_index, segment in enumerate(segments):
+        segment_id = required_string(segment, "segment_id")
+        segment_type = required_string(segment, "segment_type")
+        scene_id = required_string(segment, "scene_id")
+        if segment_type not in {"DRAMA", "NARRATION", "PANEL_REACTION"}:
+            unsupported_types.add(segment_type)
+            parsing_failed = True
+            break
+        if parsing_failed:
+            break
+        fragments = scene_fragments[scene_id]
+        if global_index == first_segment_by_scene[scene_id]:
+            heading_fragment = fragments["heading"]
+            situation = fragments["situation"]
+            sound = fragments["sound"]
+            assert isinstance(heading_fragment, str)
+            assert isinstance(situation, str)
+            assert isinstance(sound, str)
+            heading_range, cursor, boundary_issues = consume_actual_block(
+                actual_markdown,
+                cursor,
+                heading_fragment,
+                "BROADCAST_READABLE_V2_CONTEXT_POSITION_MISMATCH",
+                {"scene_id": scene_id, "context": "HEADING"},
             )
-            if byte_range is not None:
-                panel_ranges_by_reaction[reaction_id].append(byte_range)
+            issues.extend(boundary_issues)
+            if boundary_issues and any(
+                actual_markdown.startswith(
+                    format_profile_template(
+                        profile_string(
+                            document_contract,
+                            "scene_resume_heading_template",
+                        ),
+                        {
+                            "order": scene_order_title(candidate_scene)[0],
+                            "title": scene_order_title(candidate_scene)[1],
+                        },
+                        "scene_resume_heading_template",
+                    ),
+                    cursor,
+                )
+                for candidate_scene in scenes.values()
+            ):
+                issues.append(
+                    v2_issue(
+                        "BROADCAST_READABLE_V2_SCENE_REENTRY_POSITION_MISMATCH",
+                        "Scene 재진입 Heading이 첫 Scene 경계 앞에 배치됐습니다.",
+                        READABLE_PATH,
+                        {"scene_id": scene_id, "segment_id": segment_id},
+                    )
+                )
+            situation_range, cursor, situation_issues = consume_actual_block(
+                actual_markdown,
+                cursor,
+                situation,
+                "BROADCAST_READABLE_V2_CONTEXT_POSITION_MISMATCH",
+                {"scene_id": scene_id, "context": "SITUATION"},
+            )
+            issues.extend(situation_issues)
+            sound_range, cursor, sound_issues = consume_actual_block(
+                actual_markdown,
+                cursor,
+                sound,
+                "BROADCAST_READABLE_V2_CONTEXT_POSITION_MISMATCH",
+                {"scene_id": scene_id, "context": "SOUND_ACTION"},
+            )
+            issues.extend(sound_issues)
+            if (
+                heading_range is None
+                or situation_range is None
+                or sound_range is None
+                or boundary_issues
+                or situation_issues
+                or sound_issues
+            ):
+                parsing_failed = True
+                break
+            scene_heading_ranges[scene_id] = heading_range
+            scene_context_ranges[scene_id] = (situation_range, sound_range)
+            seen_scene_ids.add(scene_id)
+        elif previous_scene_id != scene_id:
+            order, title = scene_order_title(scenes[scene_id])
+            resume_heading = format_profile_template(
+                profile_string(document_contract, "scene_resume_heading_template"),
+                {"order": order, "title": title},
+                "scene_resume_heading_template",
+            )
+            _resume_range, cursor, resume_issues = consume_actual_block(
+                actual_markdown,
+                cursor,
+                resume_heading,
+                "BROADCAST_READABLE_V2_SCENE_REENTRY_POSITION_MISMATCH",
+                {"scene_id": scene_id, "segment_id": segment_id},
+            )
+            issues.extend(resume_issues)
+            if scene_id not in seen_scene_ids or resume_issues:
+                parsing_failed = True
+                break
+
+        content_ranges: list[dict[str, int]] = []
+        records = unit_records.get(segment_id, [])
+        if segment_type in {"DRAMA", "NARRATION"}:
+            expected_types = (
+                DRAMA_UNIT_TYPES if segment_type == "DRAMA" else NARRATION_UNIT_TYPES
+            )
+            if not records:
+                issues.append(
+                    v2_issue(
+                        "BROADCAST_READABLE_V2_SEGMENT_MAPPING_MISSING",
+                        "Segment에 대응할 Canonical Unit이 없습니다.",
+                        READABLE_PATH,
+                        {"segment_id": segment_id},
+                    )
+                )
+                parsing_failed = True
+                break
+            for record_scene_id, unit in records:
+                unit_id = required_string(unit, "unit_id")
+                unit_type = required_string(unit, "type")
+                special_expected[unit_type] += 1
+                if record_scene_id != scene_id or unit_type not in expected_types:
+                    issues.append(
+                        v2_issue(
+                            "BROADCAST_READABLE_V2_UNIT_SEGMENT_MISMATCH",
+                            "Unit의 Scene·Layer가 Presentation Segment와 다릅니다.",
+                            READABLE_PATH,
+                            {
+                                "segment_id": segment_id,
+                                "unit_id": unit_id,
+                                "scene_id": record_scene_id,
+                                "unit_type": unit_type,
+                            },
+                        )
+                    )
+                    parsing_failed = True
+                    break
+                block = unit_blocks[unit_id]
+                unit_range, cursor, unit_issues = consume_actual_block(
+                    actual_markdown,
+                    cursor,
+                    block,
+                    "BROADCAST_READABLE_V2_UNIT_ORDER_MISMATCH",
+                    {"segment_id": segment_id, "unit_id": unit_id},
+                )
+                issues.extend(unit_issues)
+                if unit_range is None or unit_issues:
+                    if any(
+                        actual_markdown.startswith(retrospective, cursor)
+                        for retrospective in expected_retrospectives
+                    ):
+                        issues.append(
+                            v2_issue(
+                                "BROADCAST_READABLE_V2_RETROSPECTIVE_POSITION_MISMATCH",
+                                "Retrospective가 Scene의 마지막 Segment보다 앞에 있습니다.",
+                                READABLE_PATH,
+                                {"scene_id": scene_id, "segment_id": segment_id},
+                            )
+                        )
+                    issues.append(
+                        v2_issue(
+                            "BROADCAST_READABLE_V2_GLOBAL_SEGMENT_ORDER_MISMATCH",
+                            "Actual Segment가 전역 Presentation 순서와 다릅니다.",
+                            READABLE_PATH,
+                            {"segment_id": segment_id, "global_index": global_index},
+                        )
+                    )
+                    parsing_failed = True
+                    break
+                special_actual[unit_type] += 1
+                content_ranges.append(unit_range)
+                unit_mappings.append(
+                    {
+                        "unit_id": unit_id,
+                        "segment_id": segment_id,
+                        "canonical_order": unit.get("order"),
+                        "text_sha256": text_sha256(required_string(unit, "text")),
+                        "exact_occurrence_index": global_occurrence_index(
+                            actual_markdown,
+                            block,
+                            unit_range,
+                        ),
+                        "actual_byte_range": unit_range,
+                    }
+                )
+            if parsing_failed:
+                break
+        else:
+            if records:
+                issues.append(
+                    v2_issue(
+                        "BROADCAST_READABLE_V2_UNIT_SEGMENT_MISMATCH",
+                        "Panel Segment가 Screenplay Unit을 포함합니다.",
+                        READABLE_PATH,
+                        {"segment_id": segment_id},
+                    )
+                )
+                parsing_failed = True
+                break
+            reaction_id = required_string(segment, "reaction_segment_id")
+            selected_reaction = reactions.get(reaction_id)
+            if selected_reaction is None:
+                issues.append(
+                    v2_issue(
+                        "BROADCAST_READABLE_V2_SEGMENT_MAPPING_MISSING",
+                        "Panel Segment의 Reaction을 찾지 못했습니다.",
+                        READABLE_PATH,
+                        {"segment_id": segment_id, "reaction_segment_id": reaction_id},
+                    )
+                )
+                parsing_failed = True
+                break
+            panel_heading = format_profile_template(
+                profile_string(render_contract, "panel_section_heading_template"),
+                {"index": panel_index},
+                "panel_section_heading_template",
+            )
+            _panel_heading_range, cursor, panel_heading_issues = consume_actual_block(
+                actual_markdown,
+                cursor,
+                panel_heading,
+                "BROADCAST_READABLE_V2_GLOBAL_SEGMENT_ORDER_MISMATCH",
+                {"segment_id": segment_id, "reaction_segment_id": reaction_id},
+            )
+            issues.extend(panel_heading_issues)
+            if panel_heading_issues:
+                parsing_failed = True
+                break
+            for turn in mapping_items(selected_reaction.get("turns"), "turns"):
+                turn_id = required_string(turn, "turn_id")
+                block = panel_blocks[turn_id]
+                turn_range, cursor, turn_issues = consume_actual_block(
+                    actual_markdown,
+                    cursor,
+                    block,
+                    "BROADCAST_READABLE_V2_PANEL_TURN_ORDER_MISMATCH",
+                    {
+                        "segment_id": segment_id,
+                        "reaction_segment_id": reaction_id,
+                        "turn_id": turn_id,
+                    },
+                )
+                issues.extend(turn_issues)
+                if turn_range is None or turn_issues:
+                    parsing_failed = True
+                    break
+                content_ranges.append(turn_range)
                 panel_turn_mappings.append(
                     {
                         "reaction_segment_id": reaction_id,
@@ -645,53 +990,53 @@ def independent_conformance(
                         "spoken_line_sha256": text_sha256(
                             required_string(turn, "spoken_line")
                         ),
-                        "actual_byte_range": byte_range,
+                        "actual_byte_range": turn_range,
                     }
                 )
-            global_turn_order += 1
-
-    segment_mappings: list[dict[str, object]] = []
-    segment_ranges: dict[str, dict[str, int]] = {}
-    unsupported_types: set[str] = set()
-    for global_index, segment in enumerate(segments):
-        segment_id = required_string(segment, "segment_id")
-        segment_type = required_string(segment, "segment_type")
-        scene_id = required_string(segment, "scene_id")
-        if segment_type not in {"DRAMA", "NARRATION", "PANEL_REACTION"}:
-            unsupported_types.add(segment_type)
-            continue
-        ranges = (
-            panel_ranges_by_reaction.get(
-                required_string(segment, "reaction_segment_id"),
-                [],
-            )
-            if segment_type == "PANEL_REACTION"
-            else unit_ranges_by_segment.get(segment_id, [])
-        )
-        if not ranges:
+                global_turn_order += 1
+            if parsing_failed:
+                break
+            panel_index += 1
+        if not content_ranges:
             issues.append(
                 v2_issue(
                     "BROADCAST_READABLE_V2_SEGMENT_MAPPING_MISSING",
-                    "Actual Markdown에서 Segment Source 범위를 찾지 못했습니다.",
+                    "Actual Markdown에서 Segment Content 범위를 찾지 못했습니다.",
                     READABLE_PATH,
                     {"segment_id": segment_id},
                 )
             )
-            continue
-        byte_range = {
-            "byte_start": min(item["byte_start"] for item in ranges),
-            "byte_end": max(item["byte_end"] for item in ranges),
-        }
-        segment_ranges[segment_id] = byte_range
+            parsing_failed = True
+            break
         segment_mappings.append(
             {
                 "segment_id": segment_id,
                 "type": segment_type,
                 "global_presentation_index": global_index,
                 "scene_id": scene_id,
-                "actual_byte_range": byte_range,
+                "actual_byte_range": {
+                    "byte_start": content_ranges[0]["byte_start"],
+                    "byte_end": content_ranges[-1]["byte_end"],
+                },
             }
         )
+        if global_index == last_segment_by_scene[scene_id]:
+            retrospective = fragments["retrospective"]
+            if isinstance(retrospective, str):
+                retrospective_range, cursor, retrospective_issues = consume_actual_block(
+                    actual_markdown,
+                    cursor,
+                    retrospective,
+                    "BROADCAST_READABLE_V2_RETROSPECTIVE_POSITION_MISMATCH",
+                    {"scene_id": scene_id, "segment_id": segment_id},
+                )
+                issues.extend(retrospective_issues)
+                if retrospective_range is None or retrospective_issues:
+                    parsing_failed = True
+                    break
+                scene_retrospective_ranges[scene_id] = retrospective_range
+        previous_scene_id = scene_id
+
     if unsupported_types:
         issues.append(
             v2_issue(
@@ -701,217 +1046,73 @@ def independent_conformance(
                 {"segment_types": sorted(unsupported_types)},
             )
         )
-    mapped_starts = [
-        required_byte_start(mapping.get("actual_byte_range"))
-        for mapping in segment_mappings
-    ]
-    if mapped_starts != sorted(mapped_starts) or len(mapped_starts) != len(segments):
+    if not parsing_failed and cursor != len(actual_markdown):
         issues.append(
             v2_issue(
-                "BROADCAST_READABLE_V2_GLOBAL_SEGMENT_ORDER_MISMATCH",
-                "Actual Segment Byte 순서가 전역 Presentation 순서와 다릅니다.",
+                "BROADCAST_READABLE_V2_SEGMENT_BOUNDARY_MISMATCH",
+                "모든 Segment 뒤에 소비되지 않은 Actual Content가 있습니다.",
                 READABLE_PATH,
-                {"actual_starts": mapped_starts},
+                {"actual_cursor_byte": byte_offset(actual_markdown, cursor)},
             )
         )
-    for segment_id, ranges in unit_ranges_by_segment.items():
-        starts = [item["byte_start"] for item in ranges]
-        if starts != sorted(starts):
-            issues.append(
-                v2_issue(
-                    "BROADCAST_READABLE_V2_UNIT_ORDER_MISMATCH",
-                    "Actual Unit Byte 순서가 Canonical 순서와 다릅니다.",
-                    READABLE_PATH,
-                    {"segment_id": segment_id, "actual_starts": starts},
-                )
-            )
-    for reaction_id, ranges in panel_ranges_by_reaction.items():
-        starts = [item["byte_start"] for item in ranges]
-        if starts != sorted(starts):
-            issues.append(
-                v2_issue(
-                    "BROADCAST_READABLE_V2_PANEL_TURN_ORDER_MISMATCH",
-                    "Actual Panel Turn Byte 순서가 Canonical 순서와 다릅니다.",
-                    READABLE_PATH,
-                    {"reaction_segment_id": reaction_id, "actual_starts": starts},
-                )
-            )
 
-    scene_segment_indexes: defaultdict[str, list[int]] = defaultdict(list)
-    for index, segment in enumerate(segments):
-        scene_segment_indexes[required_string(segment, "scene_id")].append(index)
     scene_mappings: list[dict[str, object]] = []
-    retrospective_actual_count = 0
-    for scene_id, indexes in scene_segment_indexes.items():
-        scene = scenes[scene_id]
-        fragments = scene_fragments[scene_id]
-        scene_heading = fragments["heading"]
-        situation = fragments["situation"]
-        sound = fragments["sound"]
-        retrospective = fragments["retrospective"]
-        assert isinstance(scene_heading, str)
-        assert isinstance(situation, str)
-        assert isinstance(sound, str)
-        heading_ranges = occurrence_ranges(actual_markdown, scene_heading)
-        situation_ranges = occurrence_ranges(actual_markdown, situation)
-        sound_ranges = occurrence_ranges(actual_markdown, sound)
-        scene_segment_ids = [
-            required_string(segments[index], "segment_id") for index in indexes
-        ]
-        mapped_scene_ranges = [
-            segment_ranges[segment_id]
-            for segment_id in scene_segment_ids
-            if segment_id in segment_ranges
-        ]
-        if (
-            len(heading_ranges) != 1
-            or len(situation_ranges) != 1
-            or len(sound_ranges) != 1
-            or not mapped_scene_ranges
-        ):
-            issues.append(
-                v2_issue(
-                    "BROADCAST_READABLE_V2_SCENE_CONTEXT_MAPPING_MISSING",
-                    "Scene Heading 또는 시작 Context의 Actual 범위가 불완전합니다.",
-                    READABLE_PATH,
-                    {"scene_id": scene_id},
-                )
-            )
+    segment_ranges_by_scene: defaultdict[str, list[dict[str, int]]] = defaultdict(list)
+    for mapping in segment_mappings:
+        mapped_scene_id = mapping["scene_id"]
+        byte_range = mapping["actual_byte_range"]
+        if isinstance(mapped_scene_id, str) and isinstance(byte_range, dict):
+            segment_ranges_by_scene[mapped_scene_id].append(byte_range)
+    for scene_id, indexes in (
+        (scene_id, [
+            index
+            for index, segment in enumerate(segments)
+            if segment.get("scene_id") == scene_id
+        ])
+        for scene_id in first_segment_by_scene
+    ):
+        heading_range = scene_heading_ranges.get(scene_id)
+        context_ranges = scene_context_ranges.get(scene_id)
+        mapped_ranges = segment_ranges_by_scene.get(scene_id, [])
+        if heading_range is None or context_ranges is None or not mapped_ranges:
             continue
-        first_segment_start = min(item["byte_start"] for item in mapped_scene_ranges)
-        last_segment_end = max(item["byte_end"] for item in mapped_scene_ranges)
-        if not (
-            heading_ranges[0]["byte_start"]
-            < situation_ranges[0]["byte_start"]
-            < sound_ranges[0]["byte_start"]
-            < first_segment_start
-        ):
-            issues.append(
-                v2_issue(
-                    "BROADCAST_READABLE_V2_CONTEXT_POSITION_MISMATCH",
-                    "Scene 시작 Context가 첫 전역 Segment 앞의 올바른 순서가 아닙니다.",
-                    READABLE_PATH,
-                    {"scene_id": scene_id},
-                )
-            )
-        retrospective_hash: str | None = None
-        actual_end = last_segment_end
-        if isinstance(retrospective, str):
-            retrospective_ranges = occurrence_ranges(actual_markdown, retrospective)
-            retrospective_actual_count += len(retrospective_ranges)
-            retrospective_hash = text_sha256(retrospective)
-            if (
-                len(retrospective_ranges) != 1
-                or retrospective_ranges[0]["byte_start"] <= last_segment_end
-            ):
-                issues.append(
-                    v2_issue(
-                        "BROADCAST_READABLE_V2_RETROSPECTIVE_POSITION_MISMATCH",
-                        "Retrospective가 Scene의 마지막 전역 Segment 뒤에 있지 않습니다.",
-                        READABLE_PATH,
-                        {"scene_id": scene_id},
-                    )
-                )
-            elif retrospective_ranges:
-                actual_end = retrospective_ranges[0]["byte_end"]
+        retrospective_range = scene_retrospective_ranges.get(scene_id)
+        retrospective = scene_fragments[scene_id]["retrospective"]
         scene_mappings.append(
             {
                 "scene_id": scene_id,
                 "first_global_segment_index": min(indexes),
                 "last_global_segment_index": max(indexes),
-                "heading_sha256": text_sha256(scene_heading),
-                "situation_context_sha256": text_sha256(situation),
-                "sound_action_context_sha256": text_sha256(sound),
-                "retrospective_sha256": retrospective_hash,
+                "heading_sha256": text_sha256(
+                    cast(str, scene_fragments[scene_id]["heading"])
+                ),
+                "situation_context_sha256": text_sha256(
+                    cast(str, scene_fragments[scene_id]["situation"])
+                ),
+                "sound_action_context_sha256": text_sha256(
+                    cast(str, scene_fragments[scene_id]["sound"])
+                ),
+                "retrospective_sha256": (
+                    text_sha256(retrospective)
+                    if isinstance(retrospective, str)
+                    else None
+                ),
                 "actual_byte_range": {
-                    "byte_start": heading_ranges[0]["byte_start"],
-                    "byte_end": actual_end,
+                    "byte_start": heading_range["byte_start"],
+                    "byte_end": (
+                        retrospective_range["byte_end"]
+                        if retrospective_range is not None
+                        else mapped_ranges[-1]["byte_end"]
+                    ),
                 },
             }
         )
 
-    expected_reentry_records: list[tuple[str, str, str | None]] = []
-    seen_scene_ids: set[str] = set()
-    previous_scene_id: str | None = None
-    previous_segment_id: str | None = None
-    for segment in segments:
-        scene_id = required_string(segment, "scene_id")
-        segment_id = required_string(segment, "segment_id")
-        if scene_id in seen_scene_ids and previous_scene_id != scene_id:
-            order, title = scene_order_title(scenes[scene_id])
-            resume_heading = format_profile_template(
-                profile_string(
-                    document_contract,
-                    "scene_resume_heading_template",
-                ),
-                {"order": order, "title": title},
-                "scene_resume_heading_template",
-            )
-            expected_reentry_records.append(
-                (resume_heading, segment_id, previous_segment_id)
-            )
-        seen_scene_ids.add(scene_id)
-        previous_scene_id = scene_id
-        previous_segment_id = segment_id
-    expected_reentry_counts = Counter(
-        heading for heading, _segment_id, _previous_id in expected_reentry_records
-    )
-    possible_reentry_headings = {
-        format_profile_template(
-            profile_string(document_contract, "scene_resume_heading_template"),
-            {"order": scene_order_title(scene)[0], "title": scene_order_title(scene)[1]},
-            "scene_resume_heading_template",
-        )
-        for scene in scenes.values()
-    }
-    for resume_heading in possible_reentry_headings:
-        actual_count = len(occurrence_ranges(actual_markdown, resume_heading))
-        expected_count = expected_reentry_counts[resume_heading]
-        if actual_count != expected_count:
-            issues.append(
-                v2_issue(
-                    "BROADCAST_READABLE_V2_SCENE_REENTRY_MISMATCH",
-                    "Scene 재진입 Heading의 발생 횟수가 전역 순서와 다릅니다.",
-                    READABLE_PATH,
-                    {
-                        "heading_sha256": text_sha256(resume_heading),
-                        "expected_count": expected_count,
-                        "actual_count": actual_count,
-                    },
-                )
-            )
-    reentry_occurrence_indexes: defaultdict[str, int] = defaultdict(int)
-    for resume_heading, segment_id, preceding_segment_id in expected_reentry_records:
-        reentry_occurrence_indexes[resume_heading] += 1
-        heading_range = range_for_occurrence(
-            occurrence_ranges(actual_markdown, resume_heading),
-            reentry_occurrence_indexes[resume_heading],
-        )
-        current_range = segment_ranges.get(segment_id)
-        preceding_range = (
-            segment_ranges.get(preceding_segment_id)
-            if preceding_segment_id is not None
-            else None
-        )
-        if (
-            heading_range is None
-            or current_range is None
-            or preceding_range is None
-            or not (
-                preceding_range["byte_end"]
-                < heading_range["byte_start"]
-                < current_range["byte_start"]
-            )
-        ):
-            issues.append(
-                v2_issue(
-                    "BROADCAST_READABLE_V2_SCENE_REENTRY_POSITION_MISMATCH",
-                    "Scene 재진입 Heading이 전역 Segment 경계 사이에 있지 않습니다.",
-                    READABLE_PATH,
-                    {"segment_id": segment_id},
-                )
-            )
-
+    all_content_mappings: list[Mapping[str, object]] = [
+        *unit_mappings,
+        *panel_turn_mappings,
+    ]
+    issues.extend(duplicate_mapping_range_issues(all_content_mappings))
     visibility = profile_mapping(output_profile, "visibility_contract")
     prefix_matches = visible_matches(
         actual_markdown,
@@ -945,7 +1146,7 @@ def independent_conformance(
                 },
             )
         )
-
+    retrospective_actual_count = len(scene_retrospective_ranges)
     special_unit_type_coverage = [
         {
             "unit_type": unit_type,

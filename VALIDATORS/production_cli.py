@@ -38,6 +38,7 @@ from VALIDATORS.compatibility import (
     evaluate_channel_binding,
     make_project_compatibility_report,
 )
+from VALIDATORS.config_admission import admit_broadcast_readable_config
 from VALIDATORS.crime_event import explicit_crime_policy
 from VALIDATORS.dependency import (
     artifact_hash,
@@ -262,6 +263,15 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     audit_parser.add_argument("--reference-source", type=Path)
+
+    readable_config_parser = subparsers.add_parser(
+        "broadcast-readable-config-set",
+        help="Broadcast Readable Config를 검증된 Transaction으로 승인합니다.",
+    )
+    readable_config_parser.add_argument("project_path", type=Path)
+    readable_config_parser.add_argument("--input", type=Path, required=True)
+    readable_config_parser.add_argument("--actor", required=True)
+    readable_config_parser.add_argument("--reason", required=True)
 
     rebuild_parser = subparsers.add_parser(
         "rebuild-state",
@@ -1807,6 +1817,19 @@ def run_audit(args: argparse.Namespace) -> int:
     return 0 if report["result"] == "PASS" else 1
 
 
+def run_broadcast_readable_config_set(args: argparse.Namespace) -> int:
+    """Broadcast Readable Config Admission Transaction을 실행한다."""
+    result = admit_broadcast_readable_config(
+        args.project_path,
+        args.input,
+        args.actor,
+        args.reason,
+        utc_now(),
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
 def run_rebuild_state(args: argparse.Namespace) -> int:
     """명시적 Force가 있을 때만 현재 Artifact에서 Project State를 복구한다."""
     if args.force is not True:
@@ -2006,6 +2029,8 @@ def run_cli(argv: Sequence[str]) -> int:
             return run_task_return(args)
         if args.command == "audit":
             return run_audit(args)
+        if args.command == "broadcast-readable-config-set":
+            return run_broadcast_readable_config_set(args)
         if args.command == "rebuild-state":
             return run_rebuild_state(args)
         if args.command == "editorial-approve":
