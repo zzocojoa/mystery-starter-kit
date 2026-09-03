@@ -21,6 +21,7 @@ from test_broadcast_readable_v2_validation import (
 )
 
 from RUNTIME.contracts import load_artifact_contracts
+from RUNTIME.core_tasks import approved_variation_output
 from RUNTIME.output_gateway import validate_artifact_content
 from RUNTIME.screenplay_renderers import (
     render_broadcast_master,
@@ -28,8 +29,20 @@ from RUNTIME.screenplay_renderers import (
     render_narration_layer,
     render_panel_layer,
 )
-from VALIDATORS.candidate_event_briefs import canonical_json_hash
+from VALIDATORS.candidate_approval import build_candidate_approval, validate_candidate_approval
+from VALIDATORS.candidate_eligibility import build_candidate_eligibility_bound
+from VALIDATORS.candidate_evaluation import (
+    candidate_evaluation_input_hashes,
+    validate_candidate_evaluation,
+)
+from VALIDATORS.candidate_event_briefs import (
+    build_bound_crime_event_contract,
+    canonical_json_hash,
+)
 from VALIDATORS.io import load_json_object
+from VALIDATORS.novelty import evaluate_variation_precheck_bound
+from VALIDATORS.variation_engines.common import candidate_signature
+from VALIDATORS.variation_engines.v2_1_0 import derived_policy_profile
 
 ROOT = Path(__file__).resolve().parents[1]
 CANONICAL_BUNDLES_PATH = ROOT / "tests/fixtures/broadcast_readable_v2/canonical_source_bundles.json"
@@ -864,6 +877,135 @@ def test_r1_selected_path_dimension_coherence() -> None:
     assert fixture_dimension_coherence_issues(fixture, r1_dimension_targets()) == []
     assert fixture == original
     assert fixture["candidate_approval"]["selected_candidate_id"] == "VAR-01"
+
+
+def test_r1_derived_hashes_rebuild_with_normal_evaluation_and_approval() -> None:
+    """기존 Builder로 전체 파생 결속을 재계산하며 점수·선택을 조작하지 않는다."""
+    fixture = apply_feature_fixture("R1")
+    variations = fixture["variation_candidates"]
+    briefs = fixture["candidate_event_briefs"]
+    candidate = mapping_list(variations, "candidates")[0]
+    selection = cast(dict[str, str], mapping_value(candidate, "selection"))
+    profile = derived_policy_profile(selection, "ORIGINAL_FICTION")
+    assert candidate["policy_profile"] == profile
+    assert candidate["signature"] == candidate_signature(selection, profile)
+    novelty = evaluate_variation_precheck_bound(
+        variations, briefs, [], load_json_object(ROOT / "STANDARD/novelty_thresholds.json")
+    )
+    eligibility = build_candidate_eligibility_bound(
+        fixture["production_config"],
+        fixture["project_constraints"],
+        load_json_object(ROOT / "CHANNELS/mystery_main/versions/2.1.0/channel_dna.json"),
+        variations,
+        briefs,
+        novelty,
+    )
+    evaluation = fixture["candidate_evaluation"]
+    assert evaluation["input_hashes"] == candidate_evaluation_input_hashes(
+        variations, briefs, novelty, eligibility
+    )
+    assert evaluation["novelty_report_hash"] == canonical_json_hash(novelty)
+    assert validate_candidate_evaluation(variations, briefs, evaluation, novelty, eligibility) == []
+    approved, selected_id = approved_variation_output(
+        variations, briefs, evaluation, novelty, eligibility
+    )
+    assert selected_id == "VAR-01"
+    assert approved == variations
+    approval = fixture["candidate_approval"]
+    rebuilt_approval = build_candidate_approval(
+        str(approval["project_id"]),
+        selected_id,
+        str(evaluation["recommended_candidate_id"]),
+        str(approval["actor"]),
+        str(approval["reason"]),
+        str(approval["approved_at"]),
+        fixture["production_config"],
+        variations,
+        briefs,
+        novelty,
+        eligibility,
+        evaluation,
+        str(fixture["production_config"]["approval_policy"]),
+        None,
+    )
+    assert rebuilt_approval == approval
+    assert (
+        validate_candidate_approval(
+            fixture["production_config"],
+            variations,
+            briefs,
+            novelty,
+            eligibility,
+            evaluation,
+            approval,
+        )
+        == []
+    )
+    contract, issues = build_bound_crime_event_contract(
+        str(approval["project_id"]),
+        variations,
+        briefs,
+        fixture["case_input"],
+        fixture["facts"],
+        fixture["characters"],
+        fixture["relationships"],
+        {},
+    )
+    assert issues == []
+    assert contract == fixture["crime_event_contract"]
+
+
+def source_output_baseline_hashes(fixture_id: str) -> tuple[str, str]:
+    """기준 e7bd177에서 실제 Renderer로 캡처한 불변 출력 Hash를 반환한다."""
+    return {
+        "R1": (
+            "9c2f0f0c09bfe9505fc9a48404a56be2f6cfd47d2b47cae60148ea19fdd9a2ac",
+            "f79b0bd9b54feaf5fecf34a5f30f3ff89dcfd9100c2d2d91cfebc999cbfd2c37",
+        ),
+        "R2": (
+            "89a1a099c084f9c56e8416b57d387aa9efd4b6db1c238408bf3d254851636cc9",
+            "7ebe714f4f7954932d05cf92d6caa7a446c049bf94f01b94ea3730959c9791eb",
+        ),
+    }[fixture_id]
+
+
+@pytest.mark.parametrize("fixture_id", ["R1", "R2"])
+def test_dimension_fix_preserves_baseline_script_bytes(fixture_id: str) -> None:
+    """Metadata 보정이 Machine·Readable·예상 Production 사본을 바꾸지 않는다."""
+    fixture = apply_feature_fixture(fixture_id)
+    machine_hash, readable_hash = source_output_baseline_hashes(fixture_id)
+    assert sha256(fixture["final_script"].encode("utf-8")).hexdigest() == machine_hash
+    assert sha256(render_fixture(fixture).encode("utf-8")).hexdigest() == readable_hash
+
+
+def test_dimension_fix_preserves_r2_complete_bundle() -> None:
+    """R2 전체 레코드와 Metadata는 기준 Head 그대로 유지한다."""
+    assert canonical_json_hash(fixture_record("R2")) == (
+        "e8ec178264a53a29a27e911a63012d79a44bc7fa784d58e6a2e68b4f2d26c27e"
+    )
+
+
+@pytest.mark.parametrize(
+    ("artifact_name", "baseline_hash"),
+    [
+        ("facts", "f7696506d237f236aec1cf2647ffaefa7a56b91c131d4511d76c069accbbaf6f"),
+        ("characters", "407a1ef9681461b9f3f93a048fe250053acd64899d592c0344245de1954029a8"),
+        ("actual_timeline", "653f0d2180dc9274393dec7fff3ab15fedf5e280fc1b90ebc801ba6fef59375b"),
+        ("viewer_timeline", "bf50951bda2c89db87ad882d49053df5b3352003f3ac2780997bbf6d75ec1397"),
+        ("clue_matrix", "2e7643e1677d9dfebb09ba55e0fbcfe0172d9149746b30613825bfc7481d6164"),
+        ("scene_cards", "10a50b1aa28e5d83903d36ff1ed63a3f8a3b72e467ad9764e9347fc20eb6df82"),
+        ("reaction_segments", "5e868671beae44f2189d2a4b68033b845bc0cefa595d60a3fc4599c5056ff1f3"),
+        ("presentation_plan", "b116b49733059562fda821d4c5194beb323a7d93733800b22e34e037fd56059b"),
+        ("screenplay_units", "68129fefd7aa6dd7ce48df322eaff76c76d42794b59dddd51ddff38503662245"),
+    ],
+)
+def test_dimension_fix_preserves_r1_visible_artifacts(
+    artifact_name: str,
+    baseline_hash: str,
+) -> None:
+    """수정 가능한 Expected Metadata와 독립적으로 원본 Artifact Hash를 고정한다."""
+    artifacts = mapping_value(fixture_record("R1"), "artifacts")
+    assert canonical_json_hash(artifacts[artifact_name]) == baseline_hash
 
 
 def test_r1_protagonist_role_mutation_fails() -> None:

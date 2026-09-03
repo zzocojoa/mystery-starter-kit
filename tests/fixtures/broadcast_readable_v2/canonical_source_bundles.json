@@ -58,8 +58,8 @@
           "schema_version": "1.1.0",
           "project_id": "PRJ-901",
           "approved_candidate_id": "VAR-01",
-          "candidate_selection_sha256": "db7a81865319935e6433476523c6774da13d040665df274109eff8dfff413c60",
-          "candidate_event_brief_sha256": "a372ace9909d16945cfa0b196e7d3d84756da5444e3fde948321dece6367052e",
+          "candidate_selection_sha256": "d13b1057bb4fe6a3885d0abde75b878582e58bbb929915029af7e5cd3aefafb7",
+          "candidate_event_brief_sha256": "fa244e3c02c61df5cd8c0d20c344a6cff0b6cb9dc01a33e8fe975ba8659a215b",
           "event_id": "EVENT-01",
           "primary_crime": "CONFINEMENT",
           "related_crimes": [],
@@ -104,7 +104,7 @@
             "CHAR-03"
           ],
           "protagonist_id": "CHAR-02",
-          "relationship_context": "DATING_PARTNER",
+          "relationship_context": "WORKPLACE",
           "target_selection_reason": "서도훈이 윤해원의 야간 세탁실 동선과 김세라의 관리실 점검 습관을 알고 있던 점",
           "initiating_context": "서도훈이 야간 세탁실 동선과 관리실 점검 습관을 알고 있어 두 사람에게 반복 접근할 수 있었다.",
           "trigger_event": "김세라가 수동 재시작 기록의 조작을 윤해원에게 알린 순간",
@@ -339,7 +339,7 @@
               "relationship_id": "REL-01",
               "from": "CHAR-01",
               "to": "CHAR-02",
-              "engine": "DATING_PARTNER",
+              "engine": "WORKPLACE",
               "display_summary": "서도훈이 윤해원의 야간 근무 동선을 통제하며 신뢰를 무너뜨린 전 동료 관계"
             }
           ]
@@ -1366,10 +1366,10 @@
                 "core_action_type": "CONFINEMENT",
                 "responsible_agent_structure": "SINGLE_AGENT",
                 "victim_structure": "MULTIPLE_VICTIMS",
-                "relationship_context": "DATING_PARTNER",
+                "relationship_context": "WORKPLACE",
                 "harm_classification": "LIBERTY_DEPRIVATION",
                 "motive_category": "RETALIATION",
-                "protagonist_role": "VICTIM_FAMILY",
+                "protagonist_role": "VICTIM",
                 "protagonist_goal": "SURVIVE_OR_ESCAPE",
                 "protagonist_risk": "PHYSICAL_HARM",
                 "depiction_mode": "DIRECT_NON_GRAPHIC",
@@ -1391,7 +1391,7 @@
                 "production_complexity": "LOW",
                 "relationship_engine": "POWER_IMBALANCE",
                 "reveal_mode": "EVENT_RECONSTRUCTION",
-                "setting": "LODGING",
+                "setting": "WORKPLACE",
                 "special_effect_level": "LOW",
                 "technical_dependency_level": "HIGH",
                 "timeline_style": "FLASHBACK_DRIVEN",
@@ -1402,7 +1402,7 @@
                 "threat_type": "CRIME",
                 "incident_type": "CONFINEMENT",
                 "culprit_structure": "SINGLE",
-                "trusted_domain": "ROMANTIC_PARTNER",
+                "trusted_domain": "EMPLOYMENT",
                 "safe_domain_betrayal": "PHYSICAL_BOUNDARY_VIOLATED",
                 "responsible_agent_structure": "SINGLE_AGENT",
                 "information_mechanism": "WITNESS_ACCOUNT",
@@ -1423,7 +1423,7 @@
                 "episode_theme": "OFFENDER_RESPONSIBILITY",
                 "source_truth_classification": "ORIGINAL_FICTION"
               },
-              "signature": "d00f2f678ad9d4fcad207f5ea20c96871fb2c62b2a5a5088b2f03ad2ecf35a5c",
+              "signature": "23988d86101aea0b8d0bb199dac548eb787701104a4367d7c1d663052062d232",
               "selection_status": "APPROVED"
             },
             {
@@ -1745,7 +1745,7 @@
           "briefs": [
             {
               "candidate_id": "VAR-01",
-              "candidate_selection_sha256": "db7a81865319935e6433476523c6774da13d040665df274109eff8dfff413c60",
+              "candidate_selection_sha256": "d13b1057bb4fe6a3885d0abde75b878582e58bbb929915029af7e5cd3aefafb7",
               "primary_crime": "CONFINEMENT",
               "core_action_type": "CONFINEMENT",
               "responsible_agent_structure": "SINGLE_AGENT",
@@ -1758,7 +1758,7 @@
                 "VICTIM-02"
               ],
               "protagonist_role_slot": "PROTAGONIST-01",
-              "relationship_context": "DATING_PARTNER",
+              "relationship_context": "WORKPLACE",
               "target_selection_reason": "서도훈이 윤해원의 야간 세탁실 동선과 김세라의 관리실 점검 습관을 알고 있던 점",
               "initiating_context": "서도훈이 야간 세탁실 동선과 관리실 점검 습관을 알고 있어 두 사람에게 반복 접근할 수 있었다.",
               "trigger_event": "김세라가 수동 재시작 기록의 조작을 윤해원에게 알린 순간",
@@ -2354,17 +2354,17 @@
             "production_score": 15.0
           },
           "input_hashes": {
-            "variation_candidates": "abc45510f2bc5380dc3be32d33f4a09e1c1475f6b497e0136b42b5b86bede394",
-            "novelty_precheck": "cc973be42c77a63ec6c4070038e0cc0980b6b0a7e6915508de0b1ff8ae87d75c",
-            "candidate_eligibility": "ad79408fe4774bc8f2e27e723f4572de95d10ca8e93b1775f1dbbf0ad787c414",
-            "candidate_event_briefs": "467583364c84e8c0731f86b40f565ae504e24b826b5d554914945e475eeebfb4",
-            "candidate_event_brief_var_01": "a372ace9909d16945cfa0b196e7d3d84756da5444e3fde948321dece6367052e",
+            "variation_candidates": "0270a473a5a142a7e87d7cdc1bf1a009bdab6e15c89d4c0b76ab00696f85c070",
+            "novelty_precheck": "0651a54f89828d936bd72b59eb2965913c3d4bf663296f13f0a2c70175030a62",
+            "candidate_eligibility": "316666eb09fd65c2d01df00fd44f0aed73d804c19cdbb151c6949f7dac5c7db8",
+            "candidate_event_briefs": "30bb8e74d2a70e7306ad89c1855f1e089097b4e75a1b6642411f1162c6a66dc0",
+            "candidate_event_brief_var_01": "fa244e3c02c61df5cd8c0d20c344a6cff0b6cb9dc01a33e8fe975ba8659a215b",
             "candidate_event_brief_var_02": "d47123b647f79e736969b16dd92b025b3fa013242041a48afb6db5453711e04a",
             "candidate_event_brief_var_03": "5821c48e13a1d701533c86961314050d4756779f5c948704ec88eb8139813b69",
             "candidate_event_brief_var_04": "71fdfa86052428786589bb8a5b365c942a232e2d15af709959c225111df4eacd",
             "candidate_event_brief_var_05": "f88d19d5953307bb24fb21a150447345797dbca7aba9e03ee577ab3e642f4a3d"
           },
-          "novelty_report_hash": "cc973be42c77a63ec6c4070038e0cc0980b6b0a7e6915508de0b1ff8ae87d75c",
+          "novelty_report_hash": "0651a54f89828d936bd72b59eb2965913c3d4bf663296f13f0a2c70175030a62",
           "recommended_candidate_id": "VAR-01",
           "evaluations": [
             {
@@ -2521,12 +2521,12 @@
           "reason": "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다.",
           "input_hashes": {
             "production_config": "7adadc10899bee6f90ac0bc2fa71bbda06f1aee44b595600daadb61c00c25b6d",
-            "variation_candidates": "242a99ad8c6f7c2e288fc379369e23d764e8e029896df068408f0ad09f63baff",
-            "novelty_precheck": "cc973be42c77a63ec6c4070038e0cc0980b6b0a7e6915508de0b1ff8ae87d75c",
-            "candidate_eligibility": "ad79408fe4774bc8f2e27e723f4572de95d10ca8e93b1775f1dbbf0ad787c414",
-            "candidate_evaluation": "fbec983aab8fc14ee4277878fb7d08c26f236f18ba85282ef167d9975cfe14cd",
-            "candidate_event_briefs": "467583364c84e8c0731f86b40f565ae504e24b826b5d554914945e475eeebfb4",
-            "candidate_event_brief_var_01": "a372ace9909d16945cfa0b196e7d3d84756da5444e3fde948321dece6367052e",
+            "variation_candidates": "12234bbe4e34c1eba330555775db09c05e15d1d1310459fd034822eb53619539",
+            "novelty_precheck": "0651a54f89828d936bd72b59eb2965913c3d4bf663296f13f0a2c70175030a62",
+            "candidate_eligibility": "316666eb09fd65c2d01df00fd44f0aed73d804c19cdbb151c6949f7dac5c7db8",
+            "candidate_evaluation": "58082b74db6f3b851aba8b0bce6d1c3be18c004d09e0f14b800d83af8d22db7a",
+            "candidate_event_briefs": "30bb8e74d2a70e7306ad89c1855f1e089097b4e75a1b6642411f1162c6a66dc0",
+            "candidate_event_brief_var_01": "fa244e3c02c61df5cd8c0d20c344a6cff0b6cb9dc01a33e8fe975ba8659a215b",
             "candidate_event_brief_var_02": "d47123b647f79e736969b16dd92b025b3fa013242041a48afb6db5453711e04a",
             "candidate_event_brief_var_03": "5821c48e13a1d701533c86961314050d4756779f5c948704ec88eb8139813b69",
             "candidate_event_brief_var_04": "71fdfa86052428786589bb8a5b365c942a232e2d15af709959c225111df4eacd",
@@ -2543,12 +2543,12 @@
           "story_dna": {
             "mystery_type": "HOW",
             "architecture": "ARCH-01_LINEAR_REVEAL",
-            "protagonist_role": "VICTIM_FAMILY",
+            "protagonist_role": "VICTIM",
             "perspective": "FIRST_PERSON",
             "narrator_reliability": "RELIABLE",
             "timeline_style": "FLASHBACK_DRIVEN",
             "incident_type": "CONFINEMENT",
-            "setting": "LODGING",
+            "setting": "WORKPLACE",
             "setting_logic": [
               "MACHINE_LOG",
               "HANDWRITTEN_CHECKLIST",
@@ -2615,7 +2615,7 @@
           "final_truth": "수기 점검표와 젖은 영수증 시각, 관리실 출입 흔적이 서도훈의 접근·퇴로 제한·기록 은폐 책임을 확인함",
           "causal_truth": "김세라가 수동 재시작 기록의 조작을 윤해원에게 알린 순간 이후 세 번째 건조기를 수동 재시작해 종료음에 맞춰 관리실 출입을 가리고 윤해원과 김세라의 퇴로를 제한함",
           "incident_type": "CONFINEMENT",
-          "setting": "LODGING",
+          "setting": "WORKPLACE",
           "primary_crime": "CONFINEMENT",
           "responsible_actor_ids": [
             "CHAR-01"
@@ -2828,20 +2828,22 @@
         "expected_artifact_sha256": {
           "actual_timeline": "653f0d2180dc9274393dec7fff3ab15fedf5e280fc1b90ebc801ba6fef59375b",
           "audience_belief": "fd07ca2702fca65283399ae2ad9d47b8c14e89d60a7bd8dd670babb03a803071",
-          "candidate_approval": "ff3da4fe4a4a9254f2f5c8b273f92360a72c5e553c012e4a50e25ffc436d1b34",
-          "candidate_event_briefs": "467583364c84e8c0731f86b40f565ae504e24b826b5d554914945e475eeebfb4",
-          "case_input": "1f349e975fefc56af4ebb0ed18d83b758ca50f393941b6e5e15e7b4e208c80ba",
+          "candidate_approval": "1207fd5e0a2a2e6a1281ebdb631166e9827555491b1af1a1a0ab1e14cd1c506b",
+          "candidate_event_briefs": "30bb8e74d2a70e7306ad89c1855f1e089097b4e75a1b6642411f1162c6a66dc0",
+          "case_input": "457713f68287d2e46a828c7757acfa461fb53b31248fc4e881df69723ab27742",
           "character_state_transitions": "8dce149bb75a6a2581409db00b2e776453b169afae315e8c03c0e6dbf14608e4",
           "clue_matrix": "2e7643e1677d9dfebb09ba55e0fbcfe0172d9149746b30613825bfc7481d6164",
-          "crime_event_contract": "d20341063652ff64600f07b7a27ecbe1bfad5d4891606981e58a01e2ad7bdfd2",
+          "crime_event_contract": "f0ac235760563cca6e3377fb9a17a0c91ff88003cef705f2990a64a477a31cec",
           "facts": "f7696506d237f236aec1cf2647ffaefa7a56b91c131d4511d76c069accbbaf6f",
           "presentation_plan": "b116b49733059562fda821d4c5194beb323a7d93733800b22e34e037fd56059b",
           "reaction_segments": "5e868671beae44f2189d2a4b68033b845bc0cefa595d60a3fc4599c5056ff1f3",
           "scene_cards": "10a50b1aa28e5d83903d36ff1ed63a3f8a3b72e467ad9764e9347fc20eb6df82",
           "screenplay_units": "68129fefd7aa6dd7ce48df322eaff76c76d42794b59dddd51ddff38503662245",
-          "story_dna": "677f148cf5cecf2ff7c16bf0103d81b4a7f2c008aae8d4796eff9077a8f44037",
-          "variation_candidates": "60863a53b6222d27f3fb87b3ca1e20c0f4d18da9a1b9d979523e923d7b3846be",
-          "viewer_timeline": "bf50951bda2c89db87ad882d49053df5b3352003f3ac2780997bbf6d75ec1397"
+          "story_dna": "a51037e7fa9214eaa49bda74e5e618211fd19615d468b795daf10705b6e95ac8",
+          "variation_candidates": "fe004c4f278b0dd48312e634fbb9a341a7bee05cfcc2607a4f6bdd1dddaadabb",
+          "viewer_timeline": "bf50951bda2c89db87ad882d49053df5b3352003f3ac2780997bbf6d75ec1397",
+          "candidate_evaluation": "58082b74db6f3b851aba8b0bce6d1c3be18c004d09e0f14b800d83af8d22db7a",
+          "relationships": "68cbfe4155ca53d9479810284da6baddeb4302fed881a7f589999511acf12404"
         }
       }
     },
