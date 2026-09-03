@@ -677,3 +677,86 @@ ROC-01~ROC-11은 `test_current_report_*`, `test_prj_006_historical_report_2_0_re
 - 기준 Head 대비 Profile v1/v2, Registry, Report 2.0 Schema, PRJ-006 전체 Tree `f8021e4164ff83dfa8cd665ee557a43c67b1f5c6`, Story Library Tree `e6330aa1f967e4db0ab06ce1e15525292420a478`, 세 Renderer의 diff는 0이다. 보호 Script Hash는 Final `df995516...`, Readable `5a901b14...`, Reenactment `0a97c970...`, Screenplay Units `c478aff6...`로 유지된다.
 - 로컬 최종 검증은 Ruff PASS, strict mypy 153 files PASS, pytest 731 tests, package 1.6.1 build PASS, dependency audit known vulnerability 0, Runtime Doctor PASS, `origin/main`과 PR #32 기준 SHA 대비 Registered Version Immutability PASS다. 정확한 최종 Head의 원격 CI는 PR 본문에 후속 기록한다.
 - Human Editorial Approval, `production-finalize`, Story Library `register`, PR Merge/Close는 실행하지 않는다.
+
+
+## R1 Dimension Coherence Final Correction — 2026-09-04
+
+기준은 PR #33의 검증된 Head `e7bd17712dc8e3105aeedb676ec1a29b5d4524b1`이고 작업 Branch는 `codex/broadcast-readable-v2-r1-dimension-fix`다. PR #33은 OPEN·미병합 상태이며 공개 Branch를 수정하지 않았다. 앞 절의 R1 Hash 표는 **보정 전 기준선**이며 현재 Hash의 단일 근거는 [R1 차원 정합성 보고서](../../R1_DIMENSION_COHERENCE_Closure_Report.md)의 7~10절이다. R2 값은 그대로 유지한다.
+
+현재 R1 승인 경로는 `VICTIM / WORKPLACE / WORKPLACE`, 선택·추천·승인은 `VAR-01`이다. Case Input은 Schema에 없는 protagonist_role 필드를 만들지 않고 기존 victim_ids의 CHAR-02와 Contract·Character 결속으로 역할을 검증한다. Production Code, Versioned Profile/Schema, Renderer, PRJ-006, Story Library, R2 전체 레코드와 R1 가시 본문은 보존한다.
+
+```text
+PHASE 0 RESULT
+Status: PASS
+Branch: codex/broadcast-readable-v2-r1-dimension-fix
+Commit SHA: 61c5fb5
+Files changed: tests/test_broadcast_readable_v2_source_fixtures.py
+R1 dimensions before: VICTIM_FAMILY / LODGING / DATING_PARTNER
+R1 dimensions after: unchanged (reproduction)
+Derived hashes updated: none
+Protected byte hashes: Closure Report sections 9–10
+Targeted tests: original three dimension assertions fail; independent oracle finds 9 issues
+Gate evidence: baseline full 731 tests and toolchain PASS
+Known risks: baseline Candidate/Story agreement does not establish Character semantics
+Next phase: independent selected-path oracle
+
+PHASE 1 RESULT
+Status: PASS
+Branch: codex/broadcast-readable-v2-r1-dimension-fix
+Commit SHA: 8b4cc70 (Phase 2와 함께 기록)
+Files changed: tests/test_broadcast_readable_v2_source_fixtures.py
+R1 dimensions before: VICTIM_FAMILY / LODGING / DATING_PARTNER
+R1 dimensions after: unchanged (oracle)
+Derived hashes updated: none
+Protected byte hashes: Closure Report sections 9–10
+Targeted tests: fixed targets, Character role/slots, selected uniqueness and binding hash checks
+Gate evidence: Production Validator unchanged
+Known risks: global generation policy is outside this goal
+Next phase: independent dimension mutations
+
+PHASE 2 RESULT
+Status: PASS
+Branch: codex/broadcast-readable-v2-r1-dimension-fix
+Commit SHA: 8b4cc70
+Files changed: tests/test_broadcast_readable_v2_source_fixtures.py
+R1 dimensions before: VICTIM_FAMILY / LODGING / DATING_PARTNER
+R1 dimensions after: unchanged (mutation tests)
+Derived hashes updated: none
+Protected byte hashes: Closure Report sections 9–10
+Targeted tests: MUT-01~05; after fixture correction all expected rejection/pass outcomes verified
+Gate evidence: none fabricated; no skip/xfail
+Known risks: full candidate-pool hashes are distinct from selected-path dimension scope
+Next phase: minimal fixture correction
+
+PHASE 3 RESULT
+Status: PASS
+Branch: codex/broadcast-readable-v2-r1-dimension-fix
+Commit SHA: 4466877
+Files changed: canonical_source_bundles.json, test_broadcast_readable_v2_source_fixtures.py
+R1 dimensions before: VICTIM_FAMILY / LODGING / DATING_PARTNER
+R1 dimensions after: VICTIM / WORKPLACE / WORKPLACE
+Derived hashes updated: selected profile/signature, brief, evaluation, approval, story/case/contract, expected hashes
+Protected byte hashes: baseline Machine/Readable/R2 directly re-rendered byte-identical; Report sections 9–10
+Targeted tests: Source Fixture 57 tests; normal evaluator/approval preserves VAR-01 without score changes
+Gate evidence: existing bound-contract builder reproduces corrected fixture exactly
+Known risks: no new general Production semantic policy
+Next phase: actual Gate hash chain
+
+PHASE 4 RESULT
+Status: PASS
+Branch: codex/broadcast-readable-v2-r1-dimension-fix
+Commit SHA: ed046b9
+Files changed: tests/test_broadcast_readable_v2_closure.py
+R1 dimensions before: VICTIM / WORKPLACE / WORKPLACE
+R1 dimensions after: same at actual canonical Gate snapshots
+Derived hashes updated: no additional fixture values; report/manifest independently rebuilt for assertions
+Protected byte hashes: baseline Machine/Readable/Production copy preserved
+Targeted tests: isolated GATE-00~13 regression 1 PASS; designated five-file regression 237 PASS
+Gate evidence: 14 gates COMMITTED, 39 traces, 386 input hashes, Report 2.1 NEEDS_REVIEW issue 0, Manifest 1.2, Audit PASS
+Known risks: R1-only test source adjusts three pending candidate dimensions; normal Gateway/CORE/validators remain active
+Next phase: full local validation and exact-head remote CI
+```
+
+Phase 5 로컬 검증은 전체 pytest **758 PASS**(307.77초), 표적 pytest **237 PASS**(191.46초), Ruff PASS, strict mypy 153 files PASS, build 1.6.1 PASS, pip-audit 알려진 취약점 없음, Doctor PASS, `origin/main`과 검증된 PR #33 Head 대비 Version Immutability PASS다. 코드 변경 없이 증거 문서만 이어서 Commit한다.
+
+최종 문서 Commit을 포함한 Head SHA와 Python 3.11/3.14 CI Run/Job ID, PHASE 5 최종 판정은 후속 PR 본문에 기록한다. Human Editorial Approval, 사용자-facing `production-finalize`, `register`, PR Merge/Close는 수행하지 않는다.
