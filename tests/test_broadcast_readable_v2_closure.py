@@ -1,6 +1,5 @@
 """Broadcast Readable v2 BR-15~BR-18 폐쇄 조건을 검증한다."""
 
-import asyncio
 import json
 import os
 from collections.abc import Mapping, Sequence
@@ -15,6 +14,8 @@ from test_broadcast_readable_v2_runtime import project_task_outputs
 from test_broadcast_readable_v2_source_fixtures import (
     SourceFixture,
     apply_feature_fixture,
+    assert_panel_reveal_scope,
+    fixture_metadata,
     render_fixture_machine_master,
 )
 from test_broadcast_readable_v2_validation import (
@@ -27,13 +28,16 @@ from test_broadcast_readable_v2_validation import (
 
 import VALIDATORS.gate_transaction as gate_transaction_module
 from RUNTIME.contracts import load_artifact_contracts, load_task_catalog
-from RUNTIME.engine import execute_run
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.event_store import utc_now
 from RUNTIME.models import GenerationOptions, LLMMessage, LLMRequest, OutputContract
 from RUNTIME.output_gateway import validate_artifact_content
 from RUNTIME.planner import task_condition_matches
-from RUNTIME.providers.fake import fake_screenplay_units
+from RUNTIME.providers.fake import (
+    fake_edit_script_from_presentation_plan,
+    fake_editorial_review,
+    fake_screenplay_units,
+)
 from RUNTIME.transactions import (
     acquire_project_lock,
     commit_gate_transaction,
@@ -46,7 +50,10 @@ from VALIDATORS.broadcast_readable_v2 import (
     consume_actual_block,
     independent_conformance,
 )
-from VALIDATORS.candidate_evaluation import document_sha256
+from VALIDATORS.candidate_evaluation import (
+    candidate_evaluation_input_hashes,
+    document_sha256,
+)
 from VALIDATORS.config_admission import (
     admit_broadcast_readable_config,
     broadcast_readable_config_admission_issues,
@@ -70,6 +77,7 @@ from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.library_store import sync_novelty_gate
 from VALIDATORS.models import ProjectState
 from VALIDATORS.output_profiles import broadcast_readable_activation_mode
+from VALIDATORS.pipeline import load_existing_project_artifacts
 from VALIDATORS.presentation_validation import validate_presentation_design
 from VALIDATORS.production_cli import build_parser, run_cli
 from VALIDATORS.requirements import production_manifest_required
@@ -110,11 +118,7 @@ def unit_by_id(fixture: Mapping[str, object], unit_id: str) -> dict[str, object]
 
 def issue_codes(issues: Sequence[Mapping[str, object]]) -> set[str]:
     """검증 Issue Code 집합을 반환한다."""
-    return {
-        str(issue["code"])
-        for issue in issues
-        if isinstance(issue.get("code"), str)
-    }
+    return {str(issue["code"]) for issue in issues if isinstance(issue.get("code"), str)}
 
 
 def normalize_unadmitted_pilot(project_path: Path) -> None:
@@ -207,8 +211,7 @@ def copied_pilot_repository_with_runtime(tmp_path: Path) -> tuple[Path, Path]:
     definitions = graph["artifacts"]
     assert isinstance(definitions, dict)
     prior_workspace = (
-        project_path
-        / ".runtime/reuse_fixture/gates/GATE-08/semantic-attempt-001/staged_project"
+        project_path / ".runtime/reuse_fixture/gates/GATE-08/semantic-attempt-001/staged_project"
     )
     for artifact_name in task["writes"]:
         definition = definitions[artifact_name]
@@ -308,8 +311,7 @@ def install_gate_seven_reuse_record(
     assert isinstance(definitions, dict)
     transaction_id = "CODEX-TASK-0000000000000007"
     prior_workspace = (
-        project_path
-        / f".runtime/reuse_fixture/gates/{gate_id}/semantic-attempt-001/staged_project"
+        project_path / f".runtime/reuse_fixture/gates/{gate_id}/semantic-attempt-001/staged_project"
     )
     for task_id in task_ids:
         for artifact_name in tasks[task_id]["writes"]:
@@ -367,6 +369,75 @@ def admission_canonical_bytes(project_path: Path) -> dict[str, bytes]:
     }
 
 
+def assert_task_input_hashes_match_canonical(
+    repository_root: Path,
+    project_path: Path,
+    traces: Sequence[Mapping[str, object]],
+    task_id: str,
+    artifact_names: Sequence[str],
+) -> None:
+    """Task Trace의 입력 Hash가 같은 Project의 Canonical Byte와 일치하는지 검사한다."""
+    matches = [trace for trace in traces if trace.get("task_id") == task_id]
+    assert len(matches) == 1, task_id
+    input_hashes = matches[0].get("input_hashes")
+    assert isinstance(input_hashes, Mapping)
+    graph = load_json_object(repository_root / "STANDARD/dependency_graph.json")
+    definitions = graph["artifacts"]
+    assert isinstance(definitions, dict)
+    for artifact_name in artifact_names:
+        definition = definitions[artifact_name]
+        assert isinstance(definition, dict)
+        relative_path = definition["path"]
+        assert isinstance(relative_path, str)
+        expected_hash = artifact_hash((project_path / relative_path).read_bytes())
+        assert input_hashes.get(artifact_name) == expected_hash, (
+            task_id,
+            artifact_name,
+        )
+
+
+def assert_fixture_gate_hash_chain(
+    repository_root: Path,
+    project_path: Path,
+    traces: Sequence[Mapping[str, object]],
+) -> None:
+    """GATE-04~09의 Source→파생 Artifact Hash 결속을 Task Trace로 검사한다."""
+    expectations = {
+        "character.design": ("facts",),
+        "story.bind_crime_event": ("facts", "characters", "relationships"),
+        "mystery.design": ("facts", "crime_event_contract"),
+        "scene.design": ("actual_timeline", "viewer_timeline", "clue_matrix"),
+        "scene.design_reactions": (
+            "scene_cards",
+            "viewer_timeline",
+            "clue_matrix",
+        ),
+        "script.compose_screenplay_units": (
+            "crime_event_contract",
+            "scene_cards",
+            "presentation_plan",
+        ),
+        "script.render_screenplay_layers": (
+            "screenplay_units",
+            "facts",
+            "crime_event_contract",
+        ),
+        "continuity.validate_broadcast_readable": (
+            "screenplay_units",
+            "final_script",
+            "broadcast_readable_script",
+        ),
+    }
+    for task_id, artifact_names in expectations.items():
+        assert_task_input_hashes_match_canonical(
+            repository_root,
+            project_path,
+            traces,
+            task_id,
+            artifact_names,
+        )
+
+
 def project_canonical_bytes(project_path: Path) -> dict[str, bytes]:
     """Runtime 운영 경로를 제외한 Project 전체 Byte Snapshot을 반환한다."""
     return {
@@ -382,8 +453,7 @@ def write_process_trace_records(
 ) -> None:
     """Process Trace 객체 배열을 정규 JSONL Byte로 기록한다."""
     content = "".join(
-        json.dumps(dict(record), ensure_ascii=False, sort_keys=True) + "\n"
-        for record in records
+        json.dumps(dict(record), ensure_ascii=False, sort_keys=True) + "\n" for record in records
     )
     (project_path / "00_PROJECT/process_trace.jsonl").write_text(
         content,
@@ -690,37 +760,49 @@ def prepare_gate_project(
 def prepare_source_style_gate_project(
     tmp_path: Path,
     fixture_id: str,
-    process_revision: int,
 ) -> tuple[Path, Path]:
-    """R1·R2 Fixture의 GATE-04 직전 Project를 만든다."""
+    """R1·R2 자체 Source로 정상 GATE-00~03을 통과한 Project를 만든다."""
     fixture = apply_feature_fixture(fixture_id)
     project_id = fixture["project_manifest"]["project_id"]
     assert isinstance(project_id, str)
     repository_root = create_runtime_repository(tmp_path)
     project_path = create_runtime_project(repository_root, project_id)
-    write_json_object(
-        project_path / "00_PROJECT/project_constraints.json",
-        fixture["project_constraints"],
-    )
-    bootstrap = asyncio.run(
-        execute_run(
+    fixture_documents: Mapping[str, object] = fixture
+    for artifact_name in (
+        "project_manifest",
+        "production_config",
+        "project_constraints",
+    ):
+        write_json_object(
+            project_path / f"00_PROJECT/{artifact_name}.json",
+            cast(dict[str, object], fixture_documents[artifact_name]),
+        )
+    for gate_number in range(4):
+        gate_id = f"GATE-{gate_number:02d}"
+        result = submit_fixture_gate_until_committed(
             repository_root,
             project_path,
-            "GATE-00",
-            "GATE-03",
-            "default",
-            None,
-            None,
+            fixture,
+            gate_id,
+            f"2026-09-03T02:{gate_number:02d}:00Z",
+            f"2026-09-03T02:{gate_number:02d}:30Z",
         )
-    )
-    assert bootstrap["status"] == "COMPLETED"
-    install_independent_source_gate_outputs(repository_root, project_path, fixture)
-    state_path = project_path / "00_PROJECT/project_state.json"
-    state = cast(ProjectState, load_json_object(state_path))
-    readiness = state["readiness"]
-    readiness["process_revision"] = process_revision
-    readiness["process_start_gate"] = "GATE-04"
-    write_json_object(state_path, state)
+        assert result["status"] == "COMMITTED"
+    assert document_sha256(
+        load_json_object(project_path / "01_CASE/facts.json")
+    ) == document_sha256(fixture["facts"])
+    predecessor_paths = {
+        "variation_candidates": "00_PROJECT/variation_candidates.json",
+        "candidate_event_briefs": "00_PROJECT/candidate_event_briefs.json",
+        "story_dna": "00_PROJECT/story_dna.json",
+        "case_input": "01_CASE/case_input.json",
+    }
+    expected_hashes = fixture_metadata(fixture_id)["expected_artifact_sha256"]
+    for artifact_name, relative_path in predecessor_paths.items():
+        assert (
+            document_sha256(load_json_object(project_path / relative_path))
+            == (expected_hashes[artifact_name])
+        )
     write_artifact(
         project_path / "00_PROJECT/broadcast_readable_config.json",
         fixture["config"],
@@ -736,52 +818,123 @@ def prepare_source_style_gate_project(
     return repository_root, project_path
 
 
-def install_independent_source_gate_outputs(
+def fixture_production_package_outputs(
+    fixture: SourceFixture,
+) -> dict[str, str]:
+    """R1 Footprint-off 인계 문서를 자체 사건 Source로 생성한다."""
+    presentation_plan = fixture["presentation_plan"]
+    reactions = mapping_list(fixture["reaction_segments"], "reaction_segments")
+    reaction_cues = "\n".join(
+        f"{reaction['reaction_segment_id']} 패널 촬영 Cue" for reaction in reactions
+    )
+    title = fixture["case_input"]["title_working"]
+    assert isinstance(title, str)
+    return {
+        "shooting_script": f"# {title} 촬영 대본\n\nSCN-01과 SCN-02의 비선정적 사건 재구성 Cue",
+        "narration": render_fixture_machine_master(fixture),
+        "production_panel_reaction_script": reaction_cues,
+        "subtitle_script": f"00:00 본 이야기는 창작입니다. {title}",
+        "edit_script": fake_edit_script_from_presentation_plan(presentation_plan),
+    }
+
+
+def fixture_task_outputs(
     repository_root: Path,
-    project_path: Path,
+    workspace: Path,
+    fixture: SourceFixture,
+    task_id: str,
+) -> dict[str, object]:
+    """현재 Test Task에 필요한 정식 Output Contract 문서만 반환한다."""
+    fixture_documents: Mapping[str, object] = fixture
+    artifacts = load_existing_project_artifacts(
+        workspace,
+        load_json_object(repository_root / "STANDARD/dependency_graph.json"),
+    )
+    outputs: dict[str, object] = {}
+    for artifact_name, document in fixture_documents.items():
+        if isinstance(document, Mapping):
+            outputs[artifact_name] = deepcopy(document)
+    outputs.update(fixture_production_package_outputs(fixture))
+    if task_id == "variation.evaluate":
+        candidate_evaluation = deepcopy(fixture["candidate_evaluation"])
+        novelty_precheck = cast(Mapping[str, object], artifacts["novelty_precheck"])
+        candidate_evaluation["input_hashes"] = candidate_evaluation_input_hashes(
+            cast(Mapping[str, object], artifacts["variation_candidates"]),
+            cast(Mapping[str, object], artifacts["candidate_event_briefs"]),
+            novelty_precheck,
+            cast(Mapping[str, object], artifacts["candidate_eligibility"]),
+        )
+        candidate_evaluation["novelty_report_hash"] = document_sha256(novelty_precheck)
+        outputs["candidate_evaluation"] = candidate_evaluation
+    if task_id == "editorial.review":
+        project_id = fixture["project_manifest"]["project_id"]
+        assert isinstance(project_id, str)
+        outputs["editorial_review"] = fake_editorial_review(project_id, artifacts)
+    return outputs
+
+
+def write_fixture_task_outputs(
+    repository_root: Path,
+    record: Mapping[str, object],
     fixture: SourceFixture,
 ) -> None:
-    """독립 Fixture의 Gate 04~08 LLM 후보를 Canonical Staging Source로 둔다."""
-    artifact_names = {
-        "characters",
-        "relationships",
-        "knowledge_matrix",
-        "actual_timeline",
-        "viewer_timeline",
-        "audience_belief",
-        "clue_matrix",
-        "hypothesis_ledger",
-        "causal_graph",
-        "beat_sheet",
-        "retention_plan",
-        "character_state_transitions",
-        "scene_cards",
-        "panel_cast",
-        "reaction_segments",
-        "presentation_plan",
-        "screenplay_units",
-    }
+    """현재 Transaction의 allowed_writes만 격리 Workspace에 기록한다."""
+    raw_workspace = record.get("workspace")
+    raw_allowed_writes = record.get("allowed_writes")
+    task_id = record.get("current_task_id")
+    if (
+        not isinstance(raw_workspace, str)
+        or not isinstance(raw_allowed_writes, list)
+        or not isinstance(task_id, str)
+    ):
+        raise AssertionError("Fixture Task에 Workspace, Task ID 또는 allowed_writes가 없습니다.")
+    workspace = Path(raw_workspace)
     graph = load_json_object(repository_root / "STANDARD/dependency_graph.json")
     definitions = graph["artifacts"]
     assert isinstance(definitions, dict)
-    state_path = project_path / "00_PROJECT/project_state.json"
-    state = cast(ProjectState, load_json_object(state_path))
-    fixture_documents: Mapping[str, object] = fixture
-    for artifact_name in sorted(artifact_names):
+    outputs = fixture_task_outputs(repository_root, workspace, fixture, task_id)
+    if task_id == "scene.design_reactions":
+        assert_panel_reveal_scope(fixture)
+    for artifact_name in raw_allowed_writes:
+        assert isinstance(artifact_name, str)
+        if artifact_name not in outputs:
+            raise AssertionError(f"Fixture Task Output이 없습니다: {artifact_name}")
         definition = definitions[artifact_name]
         assert isinstance(definition, dict)
         relative_path = definition["path"]
         assert isinstance(relative_path, str)
-        artifact_path = project_path / relative_path
-        write_artifact(artifact_path, fixture_documents[artifact_name])
-        state = invalidate_artifact_dependents(
-            graph,
-            state,
-            artifact_name,
-            artifact_hash(artifact_path.read_bytes()),
-            "2026-09-03T03:00:00Z",
+        write_artifact(workspace / relative_path, outputs[artifact_name])
+
+
+def submit_fixture_gate_until_committed(
+    repository_root: Path,
+    project_path: Path,
+    fixture: SourceFixture,
+    gate_id: str,
+    started_at: str,
+    completed_at: str,
+) -> dict[str, object]:
+    """Fixture Adapter와 Production CORE를 순서대로 실행해 Gate를 Commit한다."""
+    result = task_open(
+        repository_root,
+        project_path,
+        gate_id,
+        started_at,
+        None,
+    )
+    for _attempt in range(16):
+        if result.get("status") == "COMMITTED":
+            return result
+        if result.get("gate_phase") == "AWAITING_LLM":
+            write_fixture_task_outputs(repository_root, result, fixture)
+        result = task_submit(
+            repository_root,
+            project_path,
+            gate_id,
+            completed_at,
+            None,
         )
-    write_json_object(state_path, state)
+    raise AssertionError(f"Fixture Gate Transaction이 완료되지 않았습니다: {gate_id}")
 
 
 def submit_gate_until_committed(
@@ -840,9 +993,7 @@ def test_audit_rejects_existing_v2_config_with_missing_state_entry(
     assert report["result"] == "FAIL"
     raw_process_issues = report["process_issues"]
     assert isinstance(raw_process_issues, list)
-    process_issues = [
-        issue for issue in raw_process_issues if isinstance(issue, dict)
-    ]
+    process_issues = [issue for issue in raw_process_issues if isinstance(issue, dict)]
     assert "CANONICAL_ARTIFACT_DRIFT" in issue_codes(process_issues)
 
 
@@ -856,9 +1007,7 @@ def test_audit_fails_closed_when_config_admission_commits_mid_snapshot(
     write_json_object(
         disabled_config_path,
         {
-            "$schema": (
-                "../../../STANDARD/schemas/broadcast_readable_config.schema.json"
-            ),
+            "$schema": ("../../../STANDARD/schemas/broadcast_readable_config.schema.json"),
             "schema_family": "broadcast-readable-config",
             "schema_version": "1.0.0",
             "project_id": "PRJ-006",
@@ -1102,10 +1251,7 @@ def test_disabled_admission_still_rejects_deleted_config_file(tmp_path: Path) ->
         state,
     )
 
-    assert any(
-        issue.get("reason") == "CONFIG_FILE_MISSING_AFTER_ADMISSION"
-        for issue in issues
-    )
+    assert any(issue.get("reason") == "CONFIG_FILE_MISSING_AFTER_ADMISSION" for issue in issues)
 
 
 @pytest.mark.parametrize("state_entry_mode", ["missing", "absent"])
@@ -1124,9 +1270,7 @@ def test_deleted_config_after_successful_admission_is_drift(
     if state_entry_mode == "missing":
         config_state = artifacts["broadcast_readable_config"]
         assert isinstance(config_state, dict)
-        config_state.update(
-            {"status": "MISSING", "content_hash": None, "invalidated_by": []}
-        )
+        config_state.update({"status": "MISSING", "content_hash": None, "invalidated_by": []})
     else:
         artifacts.pop("broadcast_readable_config")
     write_json_object(state_path, state)
@@ -1137,10 +1281,7 @@ def test_deleted_config_after_successful_admission_is_drift(
         cast(ProjectState, state),
     )
 
-    assert any(
-        issue.get("reason") == "CONFIG_FILE_MISSING_AFTER_ADMISSION"
-        for issue in issues
-    )
+    assert any(issue.get("reason") == "CONFIG_FILE_MISSING_AFTER_ADMISSION" for issue in issues)
 
 
 def test_config_admission_backfills_state_and_invalidates_exact_chain(
@@ -1194,17 +1335,18 @@ def test_config_admission_backfills_state_and_invalidates_exact_chain(
         assert isinstance(artifact_state, dict)
         if artifact_name in READABLE_INVALIDATION:
             assert artifact_state["status"] == "DIRTY"
-            assert artifact_state["invalidated_by"] == [
-                "broadcast_readable_config"
-            ]
+            assert artifact_state["invalidated_by"] == ["broadcast_readable_config"]
         elif artifact_name != "broadcast_readable_config":
             assert artifact_state == artifacts_before[artifact_name]
     typed_state = cast(ProjectState, state_after)
-    assert broadcast_readable_config_admission_issues(
-        repository_root,
-        project_path,
-        typed_state,
-    ) == []
+    assert (
+        broadcast_readable_config_admission_issues(
+            repository_root,
+            project_path,
+            typed_state,
+        )
+        == []
+    )
 
 
 def test_config_admission_cli_help_and_transaction(
@@ -1256,9 +1398,7 @@ def test_config_admission_rejects_invalid_candidate_without_canonical_change(
 ) -> None:
     """Schema·Project·Profile 오류는 Canonical 파일을 하나도 바꾸지 않는다."""
     _repository_root, project_path = copied_pilot_repository(tmp_path)
-    candidate = load_json_object(
-        project_path / "00_PROJECT/broadcast_readable_config.json"
-    )
+    candidate = load_json_object(project_path / "00_PROJECT/broadcast_readable_config.json")
     if mutation == "schema":
         candidate["unregistered_field"] = True
     elif mutation == "project":
@@ -1305,9 +1445,7 @@ def test_config_admission_rejects_invalid_profile_registry_binding(
     elif registry_mutation == "path":
         version["path"] = "../../outside.json"
     else:
-        raise AssertionError(
-            f"알 수 없는 Registry Mutation입니다: {registry_mutation}"
-        )
+        raise AssertionError(f"알 수 없는 Registry Mutation입니다: {registry_mutation}")
     write_json_object(registry_path, registry)
     before = admission_canonical_bytes(project_path)
 
@@ -1375,9 +1513,7 @@ def test_config_admission_rejects_input_changed_after_snapshot(
     """Lock 획득 전후 외부 Candidate가 바뀌면 Stale 입력으로 거부한다."""
     _repository_root, project_path = copied_pilot_repository(tmp_path)
     input_path = tmp_path / "candidate.json"
-    candidate = load_json_object(
-        project_path / "00_PROJECT/broadcast_readable_config.json"
-    )
+    candidate = load_json_object(project_path / "00_PROJECT/broadcast_readable_config.json")
     write_json_object(input_path, candidate)
     before = admission_canonical_bytes(project_path)
 
@@ -1439,9 +1575,7 @@ def test_config_admission_write_failure_restores_all_canonical_targets(
 
     assert error_info.value.code == "TRANSACTION_ERROR"
     assert admission_canonical_bytes(project_path) == before
-    records = list(
-        (project_path / ".runtime/transactions").glob("*/transaction.json")
-    )
+    records = list((project_path / ".runtime/transactions").glob("*/transaction.json"))
     assert len(records) == 1
     assert load_json_object(records[0])["status"] == "ROLLED_BACK"
 
@@ -1451,9 +1585,7 @@ def test_config_admission_recovers_prepared_transaction_before_commit(
 ) -> None:
     """중단된 PREPARED Transaction을 복구한 뒤 새 Admission을 Commit한다."""
     repository_root, project_path = copied_pilot_repository(tmp_path)
-    dependency_graph = load_json_object(
-        repository_root / "STANDARD/dependency_graph.json"
-    )
+    dependency_graph = load_json_object(repository_root / "STANDARD/dependency_graph.json")
     state_path = project_path / "00_PROJECT/project_state.json"
     original_state = cast(ProjectState, load_json_object(state_path))
     interrupted_state = deepcopy(original_state)
@@ -1469,12 +1601,7 @@ def test_config_admission_recovers_prepared_transaction_before_commit(
         interrupted_state,
         {},
     )
-    record_path = (
-        project_path
-        / ".runtime/transactions"
-        / transaction_id
-        / "transaction.json"
-    )
+    record_path = project_path / ".runtime/transactions" / transaction_id / "transaction.json"
     record = load_json_object(record_path)
     record["status"] = "PREPARED"
     record["committed_at"] = None
@@ -1559,15 +1686,12 @@ def test_config_state_drift_fails_read_only_audit(
     drift = next(
         issue
         for issue in raw_issues
-        if isinstance(issue, dict)
-        and issue.get("code") == "CANONICAL_ARTIFACT_DRIFT"
+        if isinstance(issue, dict) and issue.get("code") == "CANONICAL_ARTIFACT_DRIFT"
     )
     details = drift["artifacts"]
     assert isinstance(details, list)
     assert expected_reason in {
-        str(detail.get("reason"))
-        for detail in details
-        if isinstance(detail, dict)
+        str(detail.get("reason")) for detail in details if isinstance(detail, dict)
     }
     assert project_canonical_bytes(project_path) == before
 
@@ -1577,9 +1701,7 @@ def test_disabled_config_overrides_v1_pins_and_reactivation_is_explicit(
 ) -> None:
     """disabled 우선순위와 후속 명시적 v2 재활성화를 보존한다."""
     _repository_root, project_path = copied_pilot_repository(tmp_path)
-    active_config = load_json_object(
-        project_path / "00_PROJECT/broadcast_readable_config.json"
-    )
+    active_config = load_json_object(project_path / "00_PROJECT/broadcast_readable_config.json")
     disabled_config = deepcopy(active_config)
     disabled_config["enabled"] = False
     disabled_config.pop("profile_id")
@@ -1596,14 +1718,15 @@ def test_disabled_config_overrides_v1_pins_and_reactivation_is_explicit(
         "Readable v2 비활성화",
         ADMITTED_AT,
     )
-    production_config = load_json_object(
-        project_path / "00_PROJECT/production_config.json"
-    )
+    production_config = load_json_object(project_path / "00_PROJECT/production_config.json")
     assert disabled_result["result"] == "COMMITTED"
-    assert broadcast_readable_activation_mode(
-        production_config,
-        {"broadcast_readable_config": disabled_config},
-    ) == "DISABLED"
+    assert (
+        broadcast_readable_activation_mode(
+            production_config,
+            {"broadcast_readable_config": disabled_config},
+        )
+        == "DISABLED"
+    )
 
     active_result = admit_broadcast_readable_config(
         project_path,
@@ -1612,14 +1735,15 @@ def test_disabled_config_overrides_v1_pins_and_reactivation_is_explicit(
         "Readable v2 재활성화",
         "2026-09-03T01:01:00Z",
     )
-    canonical_config = load_json_object(
-        project_path / "00_PROJECT/broadcast_readable_config.json"
-    )
+    canonical_config = load_json_object(project_path / "00_PROJECT/broadcast_readable_config.json")
     assert active_result["result"] == "COMMITTED"
-    assert broadcast_readable_activation_mode(
-        production_config,
-        {"broadcast_readable_config": canonical_config},
-    ) == "V2_CONFIG"
+    assert (
+        broadcast_readable_activation_mode(
+            production_config,
+            {"broadcast_readable_config": canonical_config},
+        )
+        == "V2_CONFIG"
+    )
 
 
 def test_identical_config_admission_is_no_op(tmp_path: Path) -> None:
@@ -1727,9 +1851,7 @@ def test_config_backfill_records_llm_outputs_as_validated_reuse(
         if trace["process_revision"] == 6 and trace["gate_id"] == "GATE-08"
     ]
     reused = [
-        trace
-        for trace in revision_traces
-        if trace.get("execution_mode") == "VALIDATED_REUSE"
+        trace for trace in revision_traces if trace.get("execution_mode") == "VALIDATED_REUSE"
     ]
     assert {trace["task_id"] for trace in reused} == {
         "script.compose_screenplay_units",
@@ -1744,9 +1866,7 @@ def test_config_reuse_rejects_missing_prior_actual_trace(tmp_path: Path) -> None
     repository_root, project_path = copied_pilot_repository_with_runtime(tmp_path)
     records = trace_records(repository_root, project_path)
     source_index = screenplay_source_trace_index(records)
-    retained = [
-        record for index, record in enumerate(records) if index != source_index
-    ]
+    retained = [record for index, record in enumerate(records) if index != source_index]
     write_process_trace_records(project_path, retained)
 
     opened = open_config_reuse_candidate(
@@ -2114,17 +2234,13 @@ def test_identical_drama_and_panel_blocks_keep_container_ownership() -> None:
     set_dialogue_unit(fixture, "UNIT-003", "CHAR-05", "확인했습니다.")
     characters = mapping_list(fixture["characters"], "characters")
     speaker = next(
-        character
-        for character in characters
-        if character.get("character_id") == "CHAR-05"
+        character for character in characters if character.get("character_id") == "CHAR-05"
     )
     reactions = mapping_list(fixture["reaction_segments"], "reaction_segments")
     first_turn = mapping_list(reactions[0], "turns")[0]
     panelists = mapping_list(fixture["panel_cast"], "panelists")
     panelist = next(
-        item
-        for item in panelists
-        if item.get("panelist_id") == first_turn["panelist_id"]
+        item for item in panelists if item.get("panelist_id") == first_turn["panelist_id"]
     )
     panelist["display_name"] = speaker["name"]
     first_turn["spoken_line"] = "확인했습니다."
@@ -2161,9 +2277,7 @@ def test_unit_text_inside_context_does_not_change_owner_count() -> None:
     scenes = mapping_list(fixture["screenplay_units"], "scenes")
     context = scenes[0]["context"]
     assert isinstance(context, dict)
-    context["location_description"] = (
-        "세탁실 입구\n\n**화면 문구**\n공통 문구\n\n관리실 복도"
-    )
+    context["location_description"] = "세탁실 입구\n\n**화면 문구**\n공통 문구\n\n관리실 복도"
     rendered = render_fixture(fixture)
     report = build_report(fixture, rendered)
 
@@ -2209,12 +2323,10 @@ def test_prefix_overlap_passes_source_renderer_verifier_report_and_gate(
         )
         assert gate_result["status"] == "COMMITTED"
 
-    assert (
-        project_path / "07_SCRIPT/broadcast_readable_script.md"
-    ).read_text(encoding="utf-8") == rendered
-    gate_report = load_json_object(
-        project_path / "08_QA/broadcast_readable_report.json"
-    )
+    assert (project_path / "07_SCRIPT/broadcast_readable_script.md").read_text(
+        encoding="utf-8"
+    ) == rendered
+    gate_report = load_json_object(project_path / "08_QA/broadcast_readable_report.json")
     assert gate_report["result"] == "NEEDS_REVIEW"
     assert gate_report["issues"] == []
     gate_traces = [
@@ -2222,13 +2334,9 @@ def test_prefix_overlap_passes_source_renderer_verifier_report_and_gate(
         for trace in trace_records(repository_root, project_path)
         if trace.get("process_revision") == 93
     ]
+    assert any(trace.get("task_id") == "script.render_broadcast_readable" for trace in gate_traces)
     assert any(
-        trace.get("task_id") == "script.render_broadcast_readable"
-        for trace in gate_traces
-    )
-    assert any(
-        trace.get("task_id") == "continuity.validate_broadcast_readable"
-        for trace in gate_traces
+        trace.get("task_id") == "continuity.validate_broadcast_readable" for trace in gate_traces
     )
 
 
@@ -2366,9 +2474,7 @@ def test_repeated_unit_turn_and_cross_layer_blocks_map_to_distinct_ranges() -> N
         if character.get("character_id") == source_dialogue["speaker_id"]
     )
     matching_panelist = next(
-        panelist
-        for panelist in panelists
-        if panelist.get("panelist_id") == turns[0]["panelist_id"]
+        panelist for panelist in panelists if panelist.get("panelist_id") == turns[0]["panelist_id"]
     )
     matching_panelist["display_name"] = dialogue_character["name"]
 
@@ -2389,23 +2495,15 @@ def test_repeated_unit_turn_and_cross_layer_blocks_map_to_distinct_ranges() -> N
     repeated_dialogue_mappings = [
         mapping
         for mapping in unit_mappings
-        if isinstance(mapping, dict)
-        and mapping.get("unit_id") in {"UNIT-003", "UNIT-013"}
+        if isinstance(mapping, dict) and mapping.get("unit_id") in {"UNIT-003", "UNIT-013"}
     ]
     repeated_panel_mappings = [
         mapping
         for mapping in panel_mappings
-        if isinstance(mapping, dict)
-        and mapping.get("turn_id") in {"TURN-001-01", "TURN-001-02"}
+        if isinstance(mapping, dict) and mapping.get("turn_id") in {"TURN-001-01", "TURN-001-02"}
     ]
-    assert [
-        mapping["exact_occurrence_index"]
-        for mapping in repeated_action_mappings
-    ] == [1, 2, 3]
-    assert [
-        mapping["exact_occurrence_index"]
-        for mapping in repeated_dialogue_mappings
-    ] == [1, 2]
+    assert [mapping["exact_occurrence_index"] for mapping in repeated_action_mappings] == [1, 2, 3]
+    assert [mapping["exact_occurrence_index"] for mapping in repeated_dialogue_mappings] == [1, 2]
     for mappings in (
         repeated_action_mappings,
         repeated_dialogue_mappings,
@@ -2421,9 +2519,7 @@ def test_source_style_fixture_passes_production_presentation_semantics(
 ) -> None:
     """R1·R2가 Production과 같은 GATE-07 Presentation 의미 검증을 통과한다."""
     fixture = apply_feature_fixture(fixture_id)
-    channel = load_json_object(
-        ROOT / "CHANNELS/mystery_main/versions/2.1.0/channel_dna.json"
-    )
+    channel = load_json_object(ROOT / "CHANNELS/mystery_main/versions/2.1.0/channel_dna.json")
 
     issues = validate_presentation_design(
         fixture["panel_cast"],
@@ -2440,26 +2536,27 @@ def test_source_style_fixture_passes_production_presentation_semantics(
     assert issues == []
 
 
-@pytest.mark.parametrize(
-    ("fixture_id", "process_revision"),
-    [("R1", 91), ("R2", 92)],
-)
+@pytest.mark.parametrize("fixture_id", ["R1", "R2"])
 def test_source_style_fixture_passes_real_gate_transactions(
     tmp_path: Path,
     fixture_id: str,
-    process_revision: int,
 ) -> None:
     """R1·R2가 정상 GATE-04~09 Transaction과 의미 Validator를 통과한다."""
+    fixture = apply_feature_fixture(fixture_id)
     repository_root, project_path = prepare_source_style_gate_project(
         tmp_path,
         fixture_id,
-        process_revision,
     )
+    state_before = load_json_object(project_path / "00_PROJECT/project_state.json")
+    readiness_before = state_before["readiness"]
+    assert isinstance(readiness_before, dict)
+    process_revision = readiness_before["process_revision"]
     for gate_number in range(4, 10):
         gate_id = f"GATE-{gate_number:02d}"
-        result = submit_gate_until_committed(
+        result = submit_fixture_gate_until_committed(
             repository_root,
             project_path,
+            fixture,
             gate_id,
             f"2026-09-03T03:{gate_number:02d}:00Z",
             f"2026-09-03T03:{gate_number:02d}:30Z",
@@ -2473,7 +2570,7 @@ def test_source_style_fixture_passes_real_gate_transactions(
         for trace in trace_records(repository_root, project_path)
         if trace["process_revision"] == process_revision
     ]
-    assert {trace["gate_id"] for trace in gate_traces} == {
+    expected_gate_ids = {
         "GATE-04",
         "GATE-05",
         "GATE-06",
@@ -2481,64 +2578,150 @@ def test_source_style_fixture_passes_real_gate_transactions(
         "GATE-08",
         "GATE-09",
     }
+    assert expected_gate_ids <= {trace["gate_id"] for trace in gate_traces}
+    acceptance_gate_traces = [
+        trace for trace in gate_traces if trace["gate_id"] in expected_gate_ids
+    ]
     assert any(
-        trace["task_id"] == "script.render_broadcast_readable"
-        for trace in gate_traces
+        trace["task_id"] == "script.render_broadcast_readable" for trace in acceptance_gate_traces
     )
     assert any(
         trace["task_id"] == "continuity.validate_broadcast_readable"
-        for trace in gate_traces
+        for trace in acceptance_gate_traces
     )
-    report = load_json_object(
-        project_path / "08_QA/broadcast_readable_report.json"
+    assert_fixture_gate_hash_chain(
+        repository_root,
+        project_path,
+        acceptance_gate_traces,
     )
+    expected_hashes = fixture_metadata(fixture_id)["expected_artifact_sha256"]
+    assert (
+        document_sha256(load_json_object(project_path / "01_CASE/facts.json"))
+        == expected_hashes["facts"]
+    )
+    assert (
+        document_sha256(load_json_object(project_path / "01_CASE/crime_event_contract.json"))
+        == expected_hashes["crime_event_contract"]
+    )
+    assert (
+        document_sha256(load_json_object(project_path / "07_SCRIPT/screenplay_units.json"))
+        == expected_hashes["screenplay_units"]
+    )
+    assert (project_path / "07_SCRIPT/final_script.md").read_text(
+        encoding="utf-8"
+    ) == render_fixture_machine_master(fixture)
+    report = load_json_object(project_path / "08_QA/broadcast_readable_report.json")
+    assert report["schema_version"] == "2.1.0"
+    assert report["mapping_contract_version"] == "OWNER_BOUND_1"
+    assert report["result"] == "NEEDS_REVIEW"
     assert report["issues"] == []
 
 
-@pytest.mark.parametrize(
-    ("fixture_id", "process_revision"),
-    [("R1", 94), ("R2", 95)],
-)
+@pytest.mark.parametrize("fixture_id", ["R1", "R2"])
 def test_gate_four_contract_matches_fixture_source_hash(
     tmp_path: Path,
     fixture_id: str,
-    process_revision: int,
 ) -> None:
     """실제 GATE-04 CORE Contract는 Fixture가 선언한 상위 사건 입력과 결속된다."""
     fixture = apply_feature_fixture(fixture_id)
     repository_root, project_path = prepare_source_style_gate_project(
         tmp_path,
         fixture_id,
-        process_revision,
     )
-    result = submit_gate_until_committed(
+    result = submit_fixture_gate_until_committed(
         repository_root,
         project_path,
+        fixture,
         "GATE-04",
         "2026-09-03T03:40:00Z",
         "2026-09-03T03:40:30Z",
     )
-    actual_contract = load_json_object(
-        project_path / "01_CASE/crime_event_contract.json"
-    )
+    actual_contract = load_json_object(project_path / "01_CASE/crime_event_contract.json")
     actual_facts = load_json_object(project_path / "01_CASE/facts.json")
 
     assert result["status"] == "COMMITTED"
     assert document_sha256(actual_facts) == document_sha256(fixture["facts"])
-    assert document_sha256(actual_contract) == document_sha256(
-        fixture["crime_event_contract"]
+    assert document_sha256(actual_contract) == document_sha256(fixture["crime_event_contract"])
+
+
+def test_cross_fixture_gate_three_facts_fail_gate_four_snapshot(tmp_path: Path) -> None:
+    """R1 GATE-03에 R2 Facts를 주입하면 GATE-04가 Canonical Drift를 거부한다."""
+    repository_root, project_path = prepare_source_style_gate_project(tmp_path, "R1")
+    foreign_fixture = apply_feature_fixture("R2")
+    write_json_object(project_path / "01_CASE/facts.json", foreign_fixture["facts"])
+
+    with pytest.raises(GateTransactionError):
+        task_open(
+            repository_root,
+            project_path,
+            "GATE-04",
+            "2026-09-03T03:41:00Z",
+            None,
+        )
+
+
+def test_unrevealed_panel_evidence_fails_real_gate_seven(tmp_path: Path) -> None:
+    """미공개 Fact를 아는 Panel 후보는 실제 GATE-07 Commit에서 거부된다."""
+    fixture = apply_feature_fixture("R2")
+    reactions = mapping_list(fixture["reaction_segments"], "reaction_segments")
+    result_first_turn = mapping_list(reactions[2], "turns")[0]
+    result_first_turn["known_fact_ids"] = ["FACT-01", "FACT-02"]
+    repository_root, project_path = prepare_source_style_gate_project(tmp_path, "R2")
+    for gate_number in range(4, 7):
+        result = submit_fixture_gate_until_committed(
+            repository_root,
+            project_path,
+            fixture,
+            f"GATE-{gate_number:02d}",
+            f"2026-09-03T03:{gate_number:02d}:00Z",
+            f"2026-09-03T03:{gate_number:02d}:30Z",
+        )
+        assert result["status"] == "COMMITTED"
+
+    with pytest.raises(AssertionError):
+        submit_fixture_gate_until_committed(
+            repository_root,
+            project_path,
+            fixture,
+            "GATE-07",
+            "2026-09-03T03:07:00Z",
+            "2026-09-03T03:07:30Z",
+        )
+
+
+def test_prj_006_master_injection_fails_gate_nine_snapshot(tmp_path: Path) -> None:
+    """R1 GATE-08 Master를 PRJ-006 Byte로 바꾸면 GATE-09가 Drift를 거부한다."""
+    fixture = apply_feature_fixture("R1")
+    repository_root, project_path = prepare_source_style_gate_project(tmp_path, "R1")
+    for gate_number in range(4, 9):
+        result = submit_fixture_gate_until_committed(
+            repository_root,
+            project_path,
+            fixture,
+            f"GATE-{gate_number:02d}",
+            f"2026-09-03T03:{gate_number:02d}:00Z",
+            f"2026-09-03T03:{gate_number:02d}:30Z",
+        )
+        assert result["status"] == "COMMITTED"
+    (project_path / "07_SCRIPT/final_script.md").write_bytes(
+        (PILOT_ROOT / "07_SCRIPT/final_script.md").read_bytes()
     )
+
+    with pytest.raises(GateTransactionError):
+        task_open(
+            repository_root,
+            project_path,
+            "GATE-09",
+            "2026-09-03T03:09:00Z",
+            None,
+        )
 
 
 def test_v2_enabled_requires_manifest_when_footprint_is_disabled() -> None:
     """v2 활성 경로는 Footprint와 무관하게 GATE-13 Manifest를 요구한다."""
     fixture = apply_feature_fixture("R1")
-    production_config = load_json_object(
-        PILOT_ROOT / "00_PROJECT/production_config.json"
-    )
-    channel = load_json_object(
-        ROOT / "CHANNELS/mystery_main/versions/2.1.0/channel_dna.json"
-    )
+    production_config = load_json_object(PILOT_ROOT / "00_PROJECT/production_config.json")
+    channel = load_json_object(ROOT / "CHANNELS/mystery_main/versions/2.1.0/channel_dna.json")
     project_constraints = deepcopy(
         load_json_object(PILOT_ROOT / "00_PROJECT/project_constraints.json")
     )
@@ -2587,15 +2770,9 @@ def test_manifest_requiredness_matrix_is_shared_by_task_and_artifact(
     expected: bool,
 ) -> None:
     """Task Planner와 Artifact Requiredness가 같은 Manifest 선택자를 쓴다."""
-    production_config = load_json_object(
-        PILOT_ROOT / "00_PROJECT/production_config.json"
-    )
-    channel = load_json_object(
-        ROOT / "CHANNELS/mystery_main/versions/2.1.0/channel_dna.json"
-    )
-    constraints = deepcopy(
-        load_json_object(PILOT_ROOT / "00_PROJECT/project_constraints.json")
-    )
+    production_config = load_json_object(PILOT_ROOT / "00_PROJECT/production_config.json")
+    channel = load_json_object(ROOT / "CHANNELS/mystery_main/versions/2.1.0/channel_dna.json")
+    constraints = deepcopy(load_json_object(PILOT_ROOT / "00_PROJECT/project_constraints.json"))
     limits = constraints["production_limits"]
     assert isinstance(limits, dict)
     limits["enforce_final_footprint"] = footprint_enabled
@@ -2618,18 +2795,24 @@ def test_manifest_requiredness_matrix_is_shared_by_task_and_artifact(
     task = load_task_catalog(ROOT)["production.build_manifest"]
 
     assert production_manifest_required(artifacts) is expected
-    assert task_condition_matches(
-        task["condition"],
-        production_config,
-        channel,
-        artifacts,
-    ) is expected
-    assert artifact_required_for_project(
-        manifest_definition,
-        channel,
-        production_config,
-        artifacts,
-    ) is expected
+    assert (
+        task_condition_matches(
+            task["condition"],
+            production_config,
+            channel,
+            artifacts,
+        )
+        is expected
+    )
+    assert (
+        artifact_required_for_project(
+            manifest_definition,
+            channel,
+            production_config,
+            artifacts,
+        )
+        is expected
+    )
 
 
 def test_footprint_off_builds_deliverables_only_manifest(tmp_path: Path) -> None:
@@ -2643,8 +2826,8 @@ def test_footprint_off_builds_deliverables_only_manifest(tmp_path: Path) -> None
     assert isinstance(production_limits, dict)
     production_limits["enforce_final_footprint"] = False
     write_json_object(constraints_path, project_constraints)
-    _readable, _report, _production_copy, manifest = (
-        build_footprint_off_readable_chain(project_path, project_constraints)
+    _readable, _report, _production_copy, manifest = build_footprint_off_readable_chain(
+        project_path, project_constraints
     )
     assert manifest["schema_version"] == "1.2.0"
     assert "source_footprint_sha256" not in manifest
@@ -2681,9 +2864,7 @@ def test_footprint_off_manifest_mutations_are_rejected(
     _repository_root, project_path = copied_pilot_repository(tmp_path)
     footprint_path = project_path / "06_SCENE/production_footprint.json"
     footprint_path.unlink()
-    constraints = load_json_object(
-        project_path / "00_PROJECT/project_constraints.json"
-    )
+    constraints = load_json_object(project_path / "00_PROJECT/project_constraints.json")
     limits = constraints["production_limits"]
     assert isinstance(limits, dict)
     limits["enforce_final_footprint"] = False
@@ -2745,54 +2926,71 @@ def test_full_runtime_reaches_gate_13_without_footprint_file(tmp_path: Path) -> 
     repository_root, project_path = prepare_source_style_gate_project(
         tmp_path,
         "R1",
-        93,
     )
     footprint_path = project_path / "06_SCENE/production_footprint.json"
-    footprint_path.unlink(missing_ok=True)
+    assert not footprint_path.exists()
     expected_master = render_fixture_machine_master(fixture)
-    for gate_number in range(4, 13):
+    for gate_number in range(4, 14):
         gate_id = f"GATE-{gate_number:02d}"
-        gate_result = submit_gate_until_committed(
+        gate_result = submit_fixture_gate_until_committed(
             repository_root,
             project_path,
+            fixture,
             gate_id,
             utc_now(),
             utc_now(),
         )
         assert gate_result["status"] == "COMMITTED"
-    assert (project_path / "07_SCRIPT/final_script.md").read_text() == expected_master
-
-    runtime_result = asyncio.run(
-        execute_run(
-            repository_root,
-            project_path,
-            "GATE-13",
-            "GATE-13",
-            "default",
-            None,
-            None,
-        )
+    assert (project_path / "07_SCRIPT/final_script.md").read_text(
+        encoding="utf-8"
+    ) == expected_master
+    expected_hashes = fixture_metadata("R1")["expected_artifact_sha256"]
+    assert (
+        document_sha256(load_json_object(project_path / "07_SCRIPT/screenplay_units.json"))
+        == expected_hashes["screenplay_units"]
     )
-
-    assert runtime_result["status"] == "COMPLETED"
     assert not footprint_path.exists()
-    readable_report = load_json_object(
-        project_path / "08_QA/broadcast_readable_report.json"
-    )
+    readable_report = load_json_object(project_path / "08_QA/broadcast_readable_report.json")
+    assert readable_report["schema_version"] == "2.1.0"
+    assert readable_report["mapping_contract_version"] == "OWNER_BOUND_1"
     assert readable_report["result"] == "NEEDS_REVIEW"
     assert readable_report["issues"] == []
-    production_copy = (
-        project_path / "09_PRODUCTION/broadcast_readable_script.md"
-    )
+    production_copy = project_path / "09_PRODUCTION/broadcast_readable_script.md"
     canonical_readable = project_path / "07_SCRIPT/broadcast_readable_script.md"
     assert production_copy.read_bytes() == canonical_readable.read_bytes()
-    manifest = load_json_object(
-        project_path / "09_PRODUCTION/production_manifest.json"
-    )
+    manifest = load_json_object(project_path / "09_PRODUCTION/production_manifest.json")
     assert manifest["schema_version"] == "1.2.0"
+    deliverables = mapping_list(manifest, "deliverables")
+    readable_deliverable = next(
+        item
+        for item in deliverables
+        if item.get("artifact_name") == "production_broadcast_readable_script"
+    )
+    assert readable_deliverable["source_report_sha256"] == document_sha256(readable_report)
     state = load_json_object(project_path / "00_PROJECT/project_state.json")
     assert state["current_gate"] == "GATE-13"
     assert state["state"] == "EDITORIAL_REVIEW_REQUIRED"
+    assert state.get("editorial_approved") is not True
+    assert state.get("production_ready") is not True
+    gate_thirteen_traces = [
+        trace
+        for trace in trace_records(repository_root, project_path)
+        if trace.get("gate_id") == "GATE-13"
+    ]
+    assert_task_input_hashes_match_canonical(
+        repository_root,
+        project_path,
+        gate_thirteen_traces,
+        "production.package_broadcast_readable",
+        ("broadcast_readable_script", "broadcast_readable_report"),
+    )
+    assert_task_input_hashes_match_canonical(
+        repository_root,
+        project_path,
+        gate_thirteen_traces,
+        "production.build_manifest",
+        ("broadcast_readable_report", "production_broadcast_readable_script"),
+    )
     audit = audit_project(
         repository_root,
         project_path,
