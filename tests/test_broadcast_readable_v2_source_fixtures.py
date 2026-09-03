@@ -173,6 +173,225 @@ class FixtureMetadata(TypedDict):
     expected_artifact_sha256: dict[str, str]
 
 
+class DimensionIssue(TypedDict):
+    """승인 경로의 차원·결속 불일치를 나타내는 Test 전용 진단."""
+
+    code: str
+    artifact: str
+    expected: object
+    actual: object
+
+
+def r1_dimension_targets() -> dict[str, str]:
+    """Candidate나 Metadata에서 추론하지 않는 R1 사건의 고정 차원."""
+    return {
+        "protagonist_role": "VICTIM",
+        "setting": "WORKPLACE",
+        "relationship_context": "WORKPLACE",
+    }
+
+
+def dimension_value_issues(
+    dimension: str,
+    values: Mapping[str, object],
+    expected: object,
+) -> list[DimensionIssue]:
+    """서로 독립된 구조 필드를 명시적 Expected와 비교한다."""
+    return [
+        {
+            "code": f"FIXTURE_{dimension.upper()}_MISMATCH",
+            "artifact": artifact,
+            "expected": expected,
+            "actual": actual,
+        }
+        for artifact, actual in values.items()
+        if actual != expected
+    ]
+
+
+def fixture_dimension_coherence_issues(
+    fixture: SourceFixture,
+    expected_dimensions: Mapping[str, str],
+) -> list[DimensionIssue]:
+    """승인 Candidate만 따라 차원·인물·관계와 선택 Brief Hash를 교차 검증한다."""
+    approval = fixture["candidate_approval"]
+    selected_id = approval.get("selected_candidate_id")
+    candidates = [
+        record
+        for record in mapping_list(fixture["variation_candidates"], "candidates")
+        if record.get("candidate_id") == selected_id
+    ]
+    briefs = [
+        record
+        for record in mapping_list(fixture["candidate_event_briefs"], "briefs")
+        if record.get("candidate_id") == selected_id
+    ]
+    evaluations = [
+        record
+        for record in mapping_list(fixture["candidate_evaluation"], "evaluations")
+        if record.get("candidate_id") == selected_id
+    ]
+    cardinalities = (len(candidates), len(briefs), len(evaluations))
+    if not isinstance(selected_id, str) or cardinalities != (1, 1, 1):
+        return [
+            {
+                "code": "FIXTURE_SELECTED_PATH_MISMATCH",
+                "artifact": "candidate_approval.selected_candidate_id",
+                "expected": "고유 Candidate·Brief·Evaluation 하나",
+                "actual": cardinalities,
+            }
+        ]
+    selection = mapping_value(candidates[0], "selection")
+    brief = briefs[0]
+    dna = mapping_value(fixture["story_dna"], "story_dna")
+    contract = fixture["crime_event_contract"]
+    protagonist_id = contract.get("protagonist_id")
+    protagonists = [
+        character
+        for character in mapping_list(fixture["characters"], "characters")
+        if character.get("character_id") == protagonist_id
+    ]
+    protagonist = protagonists[0] if len(protagonists) == 1 else {}
+    issues = dimension_value_issues(
+        "selected_path",
+        {
+            "variation_candidates.approved_candidate_id": fixture["variation_candidates"].get(
+                "approved_candidate_id"
+            ),
+            "candidate_evaluation.recommended_candidate_id": fixture["candidate_evaluation"].get(
+                "recommended_candidate_id"
+            ),
+            "candidate_approval.recommended_candidate_id": approval.get("recommended_candidate_id"),
+        },
+        selected_id,
+    )
+    issues.extend(
+        dimension_value_issues(
+            "protagonist_role",
+            {
+                "selected_candidate.selection.protagonist_role": selection.get("protagonist_role"),
+                "story_dna.story_dna.protagonist_role": dna.get("protagonist_role"),
+                "characters.protagonist.role": protagonist.get("role"),
+                "case_input.victim_ids": (
+                    "VICTIM"
+                    if protagonist_id in string_list(fixture["case_input"], "victim_ids")
+                    else None
+                ),
+            },
+            expected_dimensions["protagonist_role"],
+        )
+    )
+    issues.extend(
+        dimension_value_issues(
+            "protagonist_role", {"crime_event_contract.protagonist_id": protagonist_id}, "CHAR-02"
+        )
+    )
+    role_slots = protagonist.get("crime_role_slots")
+    bindings = mapping_list(contract, "role_bindings")
+    role_bound = (
+        isinstance(role_slots, list)
+        and {"VICTIM-01", "PROTAGONIST-01"} <= set(role_slots)
+        and all(
+            any(
+                binding.get("role_slot") == slot
+                and binding.get("character_id") == protagonist_id
+                and binding.get("role_type") == role_type
+                for binding in bindings
+            )
+            for slot, role_type in (("VICTIM-01", "VICTIM"), ("PROTAGONIST-01", "PROTAGONIST"))
+        )
+        and protagonist_id in string_list(contract, "victim_ids")
+    )
+    issues.extend(
+        dimension_value_issues(
+            "protagonist_role", {"crime_event_contract.role_bindings": role_bound}, True
+        )
+    )
+    issues.extend(
+        dimension_value_issues(
+            "setting",
+            {
+                "selected_candidate.selection.setting": selection.get("setting"),
+                "story_dna.story_dna.setting": dna.get("setting"),
+                "case_input.setting": fixture["case_input"].get("setting"),
+            },
+            expected_dimensions["setting"],
+        )
+    )
+    actor_ids = string_list(contract, "actor_ids")
+    relationships = [
+        relationship
+        for relationship in mapping_list(fixture["relationships"], "relationships")
+        if any(
+            {relationship.get("from"), relationship.get("to")} == {actor_id, protagonist_id}
+            for actor_id in actor_ids
+        )
+    ]
+    relationship_values: dict[str, object] = {
+        "selected_candidate.selection.relationship_context": selection.get("relationship_context"),
+        "candidate_event_brief.relationship_context": brief.get("relationship_context"),
+        "crime_event_contract.relationship_context": contract.get("relationship_context"),
+    }
+    if not relationships:
+        relationship_values["relationships.offender_protagonist.engine"] = None
+    for relationship in relationships:
+        relationship_id = str(relationship["relationship_id"])
+        relationship_values[f"relationships.{relationship_id}.engine"] = relationship.get("engine")
+        summary = relationship.get("display_summary")
+        workplace_summary = (
+            isinstance(summary, str)
+            and any(token in summary for token in ("업무", "동료", "근무"))
+            and not any(token in summary for token in ("연인", "배우자", "연애"))
+        )
+        issues.extend(
+            dimension_value_issues(
+                "relationship_context",
+                {f"relationships.{relationship_id}.display_summary": workplace_summary},
+                True,
+            )
+        )
+    issues.extend(
+        dimension_value_issues(
+            "relationship_context", relationship_values, expected_dimensions["relationship_context"]
+        )
+    )
+    selection_hash = canonical_json_hash(selection)
+    brief_hash = canonical_json_hash(brief)
+    selected_hash_key = f"candidate_event_brief_{selected_id.lower().replace('-', '_')}"
+    issues.extend(
+        dimension_value_issues(
+            "selected_path_hash",
+            {
+                "candidate_event_brief.candidate_selection_sha256": brief.get(
+                    "candidate_selection_sha256"
+                ),
+                "crime_event_contract.candidate_selection_sha256": contract.get(
+                    "candidate_selection_sha256"
+                ),
+            },
+            selection_hash,
+        )
+    )
+    issues.extend(
+        dimension_value_issues(
+            "selected_path_hash",
+            {
+                "crime_event_contract.candidate_event_brief_sha256": contract.get(
+                    "candidate_event_brief_sha256"
+                ),
+                "candidate_evaluation.selected_brief_hash": mapping_value(
+                    fixture["candidate_evaluation"], "input_hashes"
+                ).get(selected_hash_key),
+                "candidate_approval.selected_brief_hash": mapping_value(
+                    approval, "input_hashes"
+                ).get(selected_hash_key),
+            },
+            brief_hash,
+        )
+    )
+    return issues
+
+
 def mapping_value(document: Mapping[str, object], field: str) -> dict[str, object]:
     """Fixture 필수 객체 필드를 반환한다."""
     value = document[field]
@@ -635,6 +854,139 @@ def test_r1_selected_candidate_dimensions_match_story(
 
     assert len(selected) == 1
     assert mapping_value(selected[0], "selection")[dimension] == expected
+
+
+def test_r1_selected_path_dimension_coherence() -> None:
+    """R1 승인 경로의 차원·Hash·실제 인물 결속이 독립 목표와 일치한다."""
+    fixture = apply_feature_fixture("R1")
+    original = deepcopy(fixture)
+
+    assert fixture_dimension_coherence_issues(fixture, r1_dimension_targets()) == []
+    assert fixture == original
+    assert fixture["candidate_approval"]["selected_candidate_id"] == "VAR-01"
+
+
+def test_r1_protagonist_role_mutation_fails() -> None:
+    """MUT-01: Story DNA만 가족 역할로 바꾸면 실제 피해자 주인공과 충돌한다."""
+    fixture = apply_feature_fixture("R1")
+    assert fixture_dimension_coherence_issues(fixture, r1_dimension_targets()) == []
+    mapping_value(fixture["story_dna"], "story_dna")["protagonist_role"] = "VICTIM_FAMILY"
+
+    issues = fixture_dimension_coherence_issues(fixture, r1_dimension_targets())
+
+    assert {issue["code"] for issue in issues} == {"FIXTURE_PROTAGONIST_ROLE_MISMATCH"}
+    assert issues[0]["artifact"] == "story_dna.story_dna.protagonist_role"
+
+
+def test_r1_setting_mutation_fails() -> None:
+    """MUT-02: Case Input만 숙박시설로 바꾸면 업무 공간 분류와 충돌한다."""
+    fixture = apply_feature_fixture("R1")
+    assert fixture_dimension_coherence_issues(fixture, r1_dimension_targets()) == []
+    fixture["case_input"]["setting"] = "LODGING"
+
+    issues = fixture_dimension_coherence_issues(fixture, r1_dimension_targets())
+
+    assert {issue["code"] for issue in issues} == {"FIXTURE_SETTING_MISMATCH"}
+    assert issues[0]["artifact"] == "case_input.setting"
+
+
+@pytest.mark.parametrize("artifact_name", ["crime_event_contract", "relationships"])
+def test_r1_relationship_context_mutation_fails(artifact_name: str) -> None:
+    """MUT-03: Contract 또는 실제 관계만 연인 관계로 바꾸면 독립 실패한다."""
+    fixture = apply_feature_fixture("R1")
+    assert fixture_dimension_coherence_issues(fixture, r1_dimension_targets()) == []
+    if artifact_name == "crime_event_contract":
+        fixture["crime_event_contract"]["relationship_context"] = "DATING_PARTNER"
+    else:
+        mapping_list(fixture["relationships"], "relationships")[0]["engine"] = "DATING_PARTNER"
+
+    issues = fixture_dimension_coherence_issues(fixture, r1_dimension_targets())
+
+    assert {issue["code"] for issue in issues} == {"FIXTURE_RELATIONSHIP_CONTEXT_MISMATCH"}
+
+
+def test_r1_unselected_candidate_dimension_does_not_pollute_selected_path() -> None:
+    """MUT-04: 비선택 후보의 차원은 승인 경로 차원 Oracle의 대상이 아니다."""
+    fixture = apply_feature_fixture("R1")
+    selected_id = fixture["candidate_approval"]["selected_candidate_id"]
+    unselected = next(
+        candidate
+        for candidate in mapping_list(fixture["variation_candidates"], "candidates")
+        if candidate["candidate_id"] != selected_id
+    )
+    mapping_value(unselected, "selection")["relationship_context"] = "DATING_PARTNER"
+
+    assert fixture_dimension_coherence_issues(fixture, r1_dimension_targets()) == []
+
+
+def test_r1_coupled_wrong_dimensions_cannot_replace_character_truth() -> None:
+    """MUT-05: 잘못된 Candidate·Story·Expected끼리 같아도 실제 피해자 결속이 거부한다."""
+    fixture = apply_feature_fixture("R1")
+    selected_id = fixture["candidate_approval"]["selected_candidate_id"]
+    candidate = next(
+        candidate
+        for candidate in mapping_list(fixture["variation_candidates"], "candidates")
+        if candidate["candidate_id"] == selected_id
+    )
+    selection = mapping_value(candidate, "selection")
+    selection["protagonist_role"] = "VICTIM_FAMILY"
+    mapping_value(fixture["story_dna"], "story_dna")["protagonist_role"] = "VICTIM_FAMILY"
+    brief = next(
+        brief
+        for brief in mapping_list(fixture["candidate_event_briefs"], "briefs")
+        if brief["candidate_id"] == selected_id
+    )
+    brief["candidate_selection_sha256"] = canonical_json_hash(selection)
+    fixture["crime_event_contract"]["candidate_selection_sha256"] = canonical_json_hash(selection)
+    fixture["crime_event_contract"]["candidate_event_brief_sha256"] = canonical_json_hash(brief)
+    for artifact_name in ("candidate_evaluation", "candidate_approval"):
+        document = cast(Mapping[str, object], fixture)[artifact_name]
+        assert isinstance(document, dict)
+        mapping_value(document, "input_hashes")["candidate_event_brief_var_01"] = (
+            canonical_json_hash(brief)
+        )
+    wrong_expected = {**r1_dimension_targets(), "protagonist_role": "VICTIM_FAMILY"}
+
+    fixed_target_issues = fixture_dimension_coherence_issues(fixture, r1_dimension_targets())
+    coupled_target_issues = fixture_dimension_coherence_issues(fixture, wrong_expected)
+
+    assert "FIXTURE_PROTAGONIST_ROLE_MISMATCH" in {issue["code"] for issue in fixed_target_issues}
+    assert {issue["code"] for issue in coupled_target_issues} == {
+        "FIXTURE_PROTAGONIST_ROLE_MISMATCH"
+    }
+    assert "characters.protagonist.role" in {issue["artifact"] for issue in coupled_target_issues}
+
+
+@pytest.mark.parametrize("document_name", ["variation_candidates", "candidate_event_briefs"])
+def test_r1_duplicate_selected_candidate_path_fails(document_name: str) -> None:
+    """승인 ID가 Candidate 또는 Brief에 중복되면 임의 첫 레코드를 선택하지 않는다."""
+    fixture = apply_feature_fixture("R1")
+    document = cast(Mapping[str, object], fixture)[document_name]
+    assert isinstance(document, dict)
+    field = "candidates" if document_name == "variation_candidates" else "briefs"
+    records = document[field]
+    assert isinstance(records, list)
+    records.append(deepcopy(records[0]))
+
+    assert {
+        issue["code"]
+        for issue in fixture_dimension_coherence_issues(fixture, r1_dimension_targets())
+    } == {"FIXTURE_SELECTED_PATH_MISMATCH"}
+
+
+@pytest.mark.parametrize("artifact_name", ["candidate_evaluation", "candidate_approval"])
+def test_r1_selected_brief_hash_mutation_fails(artifact_name: str) -> None:
+    """승인 경로의 평가·승인 기록은 동일한 선택 Brief Hash를 보유해야 한다."""
+    fixture = apply_feature_fixture("R1")
+    assert fixture_dimension_coherence_issues(fixture, r1_dimension_targets()) == []
+    document = cast(Mapping[str, object], fixture)[artifact_name]
+    assert isinstance(document, dict)
+    mapping_value(document, "input_hashes")["candidate_event_brief_var_01"] = "0" * 64
+
+    assert {
+        issue["code"]
+        for issue in fixture_dimension_coherence_issues(fixture, r1_dimension_targets())
+    } == {"FIXTURE_SELECTED_PATH_HASH_MISMATCH"}
 
 
 def test_prj_006_story_token_injection_fails_fixture_isolation() -> None:
