@@ -612,6 +612,31 @@ def test_source_style_fixture_passes_composite_semantics(fixture_id: str) -> Non
     assert_fixture_semantic_consistency(apply_feature_fixture(fixture_id), fixture_id)
 
 
+@pytest.mark.parametrize(
+    ("dimension", "expected"),
+    [
+        ("protagonist_role", "VICTIM"),
+        ("setting", "WORKPLACE"),
+        ("relationship_context", "WORKPLACE"),
+    ],
+)
+def test_r1_selected_candidate_dimensions_match_story(
+    dimension: str,
+    expected: str,
+) -> None:
+    """R1 승인 차원은 피해자 주인공과 업무 공간·전 동료 사건에 일치한다."""
+    fixture = apply_feature_fixture("R1")
+    selected_id = fixture["candidate_approval"]["selected_candidate_id"]
+    selected = [
+        candidate
+        for candidate in mapping_list(fixture["variation_candidates"], "candidates")
+        if candidate["candidate_id"] == selected_id
+    ]
+
+    assert len(selected) == 1
+    assert mapping_value(selected[0], "selection")[dimension] == expected
+
+
 def test_prj_006_story_token_injection_fails_fixture_isolation() -> None:
     """PRJ-006 고유 인물명을 R1에 주입하면 독립성 검사가 실패한다."""
     fixture = apply_feature_fixture("R1")
