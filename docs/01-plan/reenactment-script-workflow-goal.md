@@ -565,7 +565,7 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 | ID | 구현·계약 | Positive/Negative 증거 | 실제 Gate 증거 | 상태 |
 |---|---|---|---|---|
 | BR-15 | `config_admission.py`, CLI, Config State/Audit/Gate 결속, Journal Recovery | Admission/No-op과 Schema·Project·Profile·경로·Lock·Stale·쓰기 경계·Recovery·Drift Test | `CONFIG-ADMISSION-0ED93C4B20894E83`, Revision 6 GATE-08~13 | CLOSED |
-| BR-16 | Presentation 순서의 Segment-bounded cursor와 UTF-8 range | A→B→A, 반복 Unit/Turn, Prefix·다중 행 Oracle, offset/occurrence/membership 변조 | PRJ-006 11 Scene·23 Segment·95 Unit·7 관계·14 Turn, issue 0 | CLOSED |
+| BR-16 | Presentation 순서의 Segment-bounded cursor와 UTF-8 range | Prefix whole-block 개수, A→B→A 전체 Source→Renderer→Verifier→Report→GATE-09, 반복 Unit/Turn, offset/occurrence/membership 변조 | PRJ-006 11 Scene·23 Segment·95 Unit·7 관계·14 Turn, issue 0 + Prefix Revision 93 | CLOSED |
 | BR-17 | R1/R2 누적 Timing, Reaction/Scene/재구성 결속, Fixture별 Master | R1/R2 Schema·Presentation·GATE Transaction과 의미 Mutation | 두 Fixture GATE-04~09 COMMITTED | CLOSED |
 | BR-18 | 공통 Manifest Requiredness와 Footprint-free Manifest 1.2 | 6개 Requiredness 조합, 8개 Manifest Mutation, 파일 없는 Full Integration | v2+Footprint-off GATE-00~13 COMMITTED | CLOSED |
 
@@ -575,5 +575,5 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 - Revision 6은 GATE-08, 09, 10, 11, 12, 13을 순서대로 Commit했다. 과거 LLM 결과는 현재 입력·출력·원래 Trace가 모두 맞을 때만 `VALIDATED_REUSE`로 기록했고 새 LLM 실행으로 가장하지 않았다.
 - 최종 Readable과 Production Copy는 SHA-256 `5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41`로 byte-identical하다. v2 Report SHA-256은 `4ffeeb983fc7ad33b78f14090646fcee7f2c7794e55ec3b58a491c473d3b363a`, 결과는 `NEEDS_REVIEW`, issue 0이다.
 - 최종 State는 GATE-13 `EDITORIAL_REVIEW_REQUIRED`, Artifact/Contract/Process는 COMPLETE/VALIDATED/CONFORMANT, Human Editorial은 미승인, Production Ready는 false다.
-- `validate`와 `audit`는 GATE-00~13 PASS, issue 0, State 불변이다. 전체 검증은 Ruff PASS, strict mypy PASS(153 source files), pytest PASS(652 tests), package 1.6.1 build PASS, 외부 의존성 audit PASS, Runtime Doctor PASS, `origin/main`과 고정 기준 Ref 대비 Version Immutability PASS다.
+- `validate`와 `audit`는 GATE-00~13 PASS, issue 0, State 불변이다. 전체 검증은 Ruff PASS, strict mypy PASS(153 source files), pytest PASS(654 tests), package 1.6.1 build PASS, 외부 의존성 audit PASS, Runtime Doctor PASS, `origin/main`과 고정 기준 Ref 대비 Version Immutability PASS다.
 - Novelty Index의 전후 SHA-256은 `95a24dd2c3373765a24d21238cfd843befb80f539cf63d78ff1822c1c30c01ee`이며 `entries=[]`다. Human `editorial-approve`, 사용자용 `production-finalize`, Story Library `register`, PR Merge/Close는 실행하지 않았다.

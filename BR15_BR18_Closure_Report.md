@@ -70,9 +70,11 @@ Revision 6에서 `script.compose_screenplay_units`, `production.package`, `edito
 
 ## 7. Segment-bounded Mapping과 검증 한계
 
-Verifier는 `## 방송 대본` 이후의 실제 cursor에서 Presentation Segment를 한 번씩 순차 소비한다. Scene 첫 진입 Context, 재진입 Heading, Unit Layer/Scene Membership, Panel container, Scene 마지막 Retrospective를 해당 경계에서 검증한 다음 실제 UTF-8 half-open Byte Range를 기록한다. 공개 `exact_occurrence_index`는 Mapping 뒤 전역 발생 번호로 계산한다.
+Verifier는 `## 방송 대본` 이후의 실제 cursor에서 Presentation Segment를 한 번씩 순차 소비한다. Scene 첫 진입 Context, 재진입 Heading, Unit Layer/Scene Membership, Panel container, Scene 마지막 Retrospective를 해당 경계에서 검증한 다음 실제 UTF-8 half-open Byte Range를 기록한다. 전역 개수와 공개 `exact_occurrence_index`는 독립 Markdown Block 경계를 만족한 Exact 발생만 계산하므로 짧은 Block이 긴 Block의 Prefix여도 내부 substring을 별도 발생으로 세지 않는다.
 
 독립 소형 Oracle의 정답은 `한글`/`한글 확장\n둘째 줄`/`한글`에 대해 각각 `[0,6)`, `[8,32)`, `[34,40)`이다. 짧은 Block을 긴 Block 내부와 대응하지 않는다.
+
+대표 정상 Prefix Fixture는 비재구성 SCREEN_TEXT Unit으로 A→B→A를 구성한다. `test_prefix_overlap_passes_source_renderer_verifier_report_and_gate`가 Canonical Source, 실제 Renderer, `independent_conformance`, Report 생성, GATE-04~09 Task Open/Submit과 저장 Report를 한 경로에서 검증한다. 별도 중복 변이는 긴 Block 내부 Prefix는 제외하면서 독립 Short Block 추가를 `BROADCAST_READABLE_V2_UNIT_OCCURRENCE_MISMATCH`로 거부함을 확인하고, Cursor·Byte Range Helper Oracle은 그 아래 보조 증거로 둔다.
 
 완전히 같은 Visible Byte Block 둘을 교환해 결과 Byte가 같으면 Markdown만으로 ID 교환 사실을 관찰할 수 없다. 이 경우에는 Canonical 순서에 따른 결정론적 일대일 발생 대응과 중복 없는 Coverage만 보증한다.
 
@@ -82,6 +84,7 @@ Verifier는 `## 방송 대본` 이후의 실제 cursor에서 Presentation Segmen
 - R2: 3열 관계표, 결과 선제시 Scene, Flashback, 조사/인터뷰, Message 위협, 단계적 관계 갈등, 책임 확인, Panel 교차 배치.
 - 두 Fixture 모두 자신의 Canonical Source에서 Layer와 Machine Master를 결정론적으로 만들며 PRJ-006 Master를 재사용하지 않는다.
 - `test_source_style_fixture_passes_real_gate_transactions[R1-91]`와 `[R2-92]`는 GATE-04부터 GATE-09까지 정상 Task Open/Submit을 실행한다. 이 범위에 GATE-07 Presentation 의미 검증, GATE-08 Renderer, GATE-09 독립 Report 검증이 포함된다.
+- Prefix 정상 Fixture도 Process Revision 93에서 같은 GATE-04~09 경로를 통과해 Helper 수준이 아닌 전체 소비 경로를 증명한다.
 
 ## 9. Footprint-off GATE-13
 
@@ -112,7 +115,7 @@ Readable Canonical과 Production Copy는 모두 `5a901b14502a69bc38f7906dcfc816c
 ```bash
 .venv/bin/python -m ruff check .                                      # PASS
 .venv/bin/python -m mypy VALIDATORS RUNTIME RUNTIME_ADAPTERS tests    # PASS, 153 source files
-PYTHONPATH=. .venv/bin/python -m pytest -q                            # PASS, 652 tests
+PYTHONPATH=. .venv/bin/python -m pytest -q                            # PASS, 654 tests
 .venv/bin/python -m build                                             # PASS, 1.6.1 sdist/wheel
 .venv/bin/python -m pip_audit                                         # PASS, known vulnerability 0
 PYTHONPATH=. .venv/bin/mystery-runtime doctor                         # PASS
@@ -157,4 +160,4 @@ Workflow `.github/workflows/ci.yml`의 Python 3.11/3.14 Matrix가 Closure PR의 
 | 4 | PASS | Gate-valid R1/R2 |
 | 5 | PASS | Footprint 독립 Manifest 1.2와 Full Integration |
 | 6 | PASS | PRJ-006 Revision 6 Backfill, 보호 Byte·Library 불변 |
-| 7 | PASS | 652 Test 전체 회귀와 Closure PR exact-head CI |
+| 7 | PASS | 654 Test 전체 회귀와 Closure PR exact-head CI |

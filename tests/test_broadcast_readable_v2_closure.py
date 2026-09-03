@@ -12,8 +12,12 @@ from typing import cast
 import pytest
 from runtime.support import create_runtime_project, create_runtime_repository
 from test_broadcast_readable_v2_runtime import project_task_outputs
-from test_broadcast_readable_v2_source_fixtures import apply_feature_fixture
+from test_broadcast_readable_v2_source_fixtures import (
+    apply_feature_fixture,
+    render_fixture_machine_master,
+)
 from test_broadcast_readable_v2_validation import (
+    PilotFixture,
     build_report,
     pilot_fixture,
     render_fixture,
@@ -34,7 +38,11 @@ from RUNTIME.transactions import (
     write_artifact,
 )
 from VALIDATORS.broadcast_readable import production_readable_deliverable_issues
-from VALIDATORS.broadcast_readable_v2 import consume_actual_block
+from VALIDATORS.broadcast_readable_v2 import (
+    block_occurrence_ranges,
+    consume_actual_block,
+    independent_conformance,
+)
 from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.config_admission import (
     admit_broadcast_readable_config,
@@ -367,13 +375,13 @@ def fake_screenplay_candidate(project_path: Path, project_id: str) -> dict[str, 
     return fake_screenplay_units(request, project_id, "ORIGINAL_FICTION")
 
 
-def install_source_style_fixture(
+def install_gate_fixture(
     repository_root: Path,
     project_path: Path,
-    fixture_id: str,
+    source_fixture: PilotFixture,
 ) -> set[str]:
-    """R1·R2 Source와 결정론적 GATE-08 파생 후보를 Canonical에 배치한다."""
-    fixture = apply_feature_fixture(fixture_id)
+    """명시적 Source와 결정론적 GATE-08 파생 후보를 Canonical에 배치한다."""
+    fixture = deepcopy(source_fixture)
     for document_name in (
         "config",
         "screenplay_units",
@@ -449,17 +457,18 @@ def install_source_style_fixture(
     return installed
 
 
-def prepare_source_style_gate_project(
+def prepare_gate_project(
     tmp_path: Path,
-    fixture_id: str,
+    fixture: PilotFixture,
     process_revision: int,
+    admission_reason: str,
 ) -> tuple[Path, Path]:
-    """R1·R2를 미검증 DIRTY Source로 둔 GATE-04 직전 Project를 만든다."""
+    """명시적 Fixture를 미검증 DIRTY Source로 둔 GATE-04 직전 Project를 만든다."""
     repository_root, project_path = copied_pilot_repository(tmp_path)
-    installed = install_source_style_fixture(
+    installed = install_gate_fixture(
         repository_root,
         project_path,
-        fixture_id,
+        fixture,
     )
     state_path = project_path / "00_PROJECT/project_state.json"
     state = cast(ProjectState, load_json_object(state_path))
@@ -493,10 +502,24 @@ def prepare_source_style_gate_project(
         project_path,
         project_path / "00_PROJECT/broadcast_readable_config.json",
         "fixture-builder",
-        f"{fixture_id} Config 승인",
+        admission_reason,
         "2026-09-03T03:01:00Z",
     )
     return repository_root, project_path
+
+
+def prepare_source_style_gate_project(
+    tmp_path: Path,
+    fixture_id: str,
+    process_revision: int,
+) -> tuple[Path, Path]:
+    """R1·R2 Fixture의 GATE-04 직전 Project를 만든다."""
+    return prepare_gate_project(
+        tmp_path,
+        apply_feature_fixture(fixture_id),
+        process_revision,
+        f"{fixture_id} Config 승인",
+    )
 
 
 def submit_gate_until_committed(
@@ -1173,6 +1196,115 @@ def test_editorial_reuse_requires_self_bound_new_config_inputs(
     )
 
 
+def prefix_overlap_fixture() -> PilotFixture:
+    """짧은 Screen Text가 확장 Block의 Prefix인 A→B→A Source를 만든다."""
+    fixture = apply_feature_fixture("R1")
+    segments = mapping_list(fixture["presentation_plan"], "segments")
+    narration_segment = next(
+        segment for segment in segments if segment.get("segment_id") == "SEG-002"
+    )
+    narration_segment["segment_type"] = "DRAMA"
+    narration_segment["source_artifact"] = "drama_script"
+    narration_segment.pop("narrator_character_id", None)
+    narration_segment.pop("narration_function", None)
+    texts = {
+        "UNIT-002": "한글",
+        "UNIT-011": "한글 확장\n둘째 줄",
+        "UNIT-009": "한글",
+        "UNIT-010": "다른 화면",
+    }
+    for unit_id, text in texts.items():
+        unit = unit_by_id(fixture, unit_id)
+        unit["type"] = "SCREEN_TEXT"
+        unit["text"] = text
+        unit.pop("speaker_id", None)
+        unit.pop("delivery", None)
+    fixture["final_script"] = render_fixture_machine_master(fixture)
+    return fixture
+
+
+def test_prefix_overlap_passes_source_renderer_verifier_report_and_gate(
+    tmp_path: Path,
+) -> None:
+    """Prefix 정상 입력이 Source부터 GATE-09까지 전체 소비 경로를 통과한다."""
+    fixture = prefix_overlap_fixture()
+    rendered = render_fixture(fixture)
+    conformance = independent_conformance(
+        fixture["screenplay_units"],
+        fixture["characters"],
+        fixture["relationships"],
+        fixture["panel_cast"],
+        fixture["reaction_segments"],
+        fixture["presentation_plan"],
+        fixture["profile"],
+        rendered,
+    )
+    assert conformance["issues"] == []
+    report = build_report(fixture, rendered)
+    assert report["result"] == "NEEDS_REVIEW"
+    assert report["issues"] == []
+
+    repository_root, project_path = prepare_gate_project(
+        tmp_path,
+        fixture,
+        93,
+        "Prefix 중첩 정상 경로 Config 승인",
+    )
+    for gate_number in range(4, 10):
+        gate_id = f"GATE-{gate_number:02d}"
+        result = submit_gate_until_committed(
+            repository_root,
+            project_path,
+            gate_id,
+            f"2026-09-03T04:{gate_number:02d}:00Z",
+            f"2026-09-03T04:{gate_number:02d}:30Z",
+        )
+        assert result["status"] == "COMMITTED"
+
+    assert (
+        project_path / "07_SCRIPT/broadcast_readable_script.md"
+    ).read_text(encoding="utf-8") == rendered
+    gate_report = load_json_object(
+        project_path / "08_QA/broadcast_readable_report.json"
+    )
+    assert gate_report["result"] == "NEEDS_REVIEW"
+    assert gate_report["issues"] == []
+    gate_traces = [
+        trace
+        for trace in trace_records(repository_root, project_path)
+        if trace.get("process_revision") == 93
+    ]
+    assert any(
+        trace.get("task_id") == "script.render_broadcast_readable"
+        for trace in gate_traces
+    )
+    assert any(
+        trace.get("task_id") == "continuity.validate_broadcast_readable"
+        for trace in gate_traces
+    )
+
+
+def test_prefix_overlap_extra_standalone_block_fails_global_count() -> None:
+    """긴 Prefix 내부는 제외하되 독립 Short Block 중복은 전역 개수로 거부한다."""
+    fixture = prefix_overlap_fixture()
+    rendered = render_fixture(fixture)
+    short_block = "**화면 문구**\n한글"
+    duplicated = rendered.replace(
+        f"{short_block}\n\n",
+        f"{short_block}\n\n{short_block}\n\n",
+        1,
+    )
+
+    report = build_report(fixture, duplicated)
+    raw_issues = report["issues"]
+    assert isinstance(raw_issues, list)
+    assert all(isinstance(issue, dict) for issue in raw_issues)
+
+    assert "BROADCAST_READABLE_V2_UNIT_OCCURRENCE_MISMATCH" in issue_codes(
+        [issue for issue in raw_issues if isinstance(issue, dict)]
+    )
+
+
 def test_identical_blocks_follow_a_b_a_presentation_segments() -> None:
     """동일 Block 세 개도 Scene 순서가 아닌 A→B→A 표시 순서로 소비한다."""
     fixture = apply_feature_fixture("R1")
@@ -1238,6 +1370,13 @@ def test_segment_cursor_has_direct_utf8_multiline_prefix_oracle() -> None:
         assert byte_range == expected_range
         assert cursor == expected_cursor
     assert cursor == len(actual)
+    assert block_occurrence_ranges(actual, "한글") == [
+        {"byte_start": 0, "byte_end": 6},
+        {"byte_start": 34, "byte_end": 40},
+    ]
+    assert block_occurrence_ranges(actual, "한글 확장\n둘째 줄") == [
+        {"byte_start": 8, "byte_end": 32}
+    ]
 
     _byte_range, failed_cursor, issues = consume_actual_block(
         actual,

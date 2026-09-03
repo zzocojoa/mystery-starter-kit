@@ -91,6 +91,36 @@ def occurrence_ranges(value: str, fragment: str) -> list[dict[str, int]]:
         start = end
 
 
+def block_occurrence_ranges(value: str, fragment: str) -> list[dict[str, int]]:
+    """독립 Markdown Block 경계에 놓인 Exact Fragment 범위를 반환한다."""
+    if not fragment:
+        raise ConfigurationError("BROADCAST_READABLE_V2_EMPTY_FRAGMENT")
+    ranges: list[dict[str, int]] = []
+    start = 0
+    while True:
+        character_start = value.find(fragment, start)
+        if character_start < 0:
+            return ranges
+        character_end = character_start + len(fragment)
+        starts_at_boundary = character_start == 0 or (
+            character_start >= 2
+            and value[character_start - 2 : character_start] == "\n\n"
+        )
+        ends_at_boundary = (
+            character_end == len(value)
+            or value.startswith("\n\n", character_end)
+            or (
+                value.startswith("\n", character_end)
+                and character_end + 1 == len(value)
+            )
+        )
+        if starts_at_boundary and ends_at_boundary:
+            ranges.append(
+                actual_byte_range(value, character_start, character_end)
+            )
+        start = character_start + 1
+
+
 def range_for_occurrence(
     ranges: Sequence[dict[str, int]],
     occurrence_index: int,
@@ -442,7 +472,7 @@ def fragment_occurrence_issues(
     issues: list[ValidationIssue] = []
     expected_counts = Counter(expected_fragments)
     for fragment, expected_count in expected_counts.items():
-        actual_count = len(occurrence_ranges(actual_markdown, fragment))
+        actual_count = len(block_occurrence_ranges(actual_markdown, fragment))
         if actual_count != expected_count:
             issues.append(
                 v2_issue(
@@ -527,7 +557,10 @@ def global_occurrence_index(
     """Mapping 완료 뒤 공개 계약용 전역 Exact 발생 번호를 계산한다."""
     expected_start = byte_range.get("byte_start")
     expected_end = byte_range.get("byte_end")
-    for index, candidate in enumerate(occurrence_ranges(actual_markdown, block), 1):
+    for index, candidate in enumerate(
+        block_occurrence_ranges(actual_markdown, block),
+        1,
+    ):
         if (
             candidate["byte_start"] == expected_start
             and candidate["byte_end"] == expected_end
