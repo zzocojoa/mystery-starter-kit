@@ -297,6 +297,19 @@ def assert_fixture_reference_integrity(fixture: SourceFixture) -> None:
             )
 
 
+def assert_fixture_story_token_isolation(
+    fixture: SourceFixture,
+    fixture_id: str,
+) -> None:
+    """PRJ-006과 반대 Fixture의 고유 Story Token이 없는지 검증한다."""
+    serialized = json.dumps(fixture, ensure_ascii=False, sort_keys=True)
+    assert all(token not in serialized for token in PRJ_006_STORY_TOKENS)
+    other_fixture_id = "R2" if fixture_id == "R1" else "R1"
+    other_record = fixture_record(other_fixture_id)
+    for token in string_list(other_record, "allowed_story_tokens"):
+        assert token not in serialized
+
+
 def assert_fixture_source_style(fixture_id: str) -> None:
     """공통 Source-style 구조·원문·순서·가시성 불변식을 검증한다."""
     fixture = apply_feature_fixture(fixture_id)
@@ -342,12 +355,7 @@ def test_source_style_fixture_is_a_complete_independent_bundle(
     """R1·R2가 PRJ-006 의미 Source 없이 자체 Canonical 문서를 소유한다."""
     fixture = apply_feature_fixture(fixture_id)
     assert set(fixture) >= INDEPENDENT_BUNDLE_DOCUMENTS
-    serialized = json.dumps(fixture, ensure_ascii=False, sort_keys=True)
-    assert all(token not in serialized for token in PRJ_006_STORY_TOKENS)
-    other_fixture_id = "R2" if fixture_id == "R1" else "R1"
-    other_record = fixture_record(other_fixture_id)
-    for token in string_list(other_record, "allowed_story_tokens"):
-        assert token not in serialized
+    assert_fixture_story_token_isolation(fixture, fixture_id)
     project_id = fixture["screenplay_units"]["project_id"]
     fixture_documents: Mapping[str, object] = fixture
     for document_name in INDEPENDENT_BUNDLE_DOCUMENTS:
@@ -356,6 +364,30 @@ def test_source_style_fixture_is_a_complete_independent_bundle(
         if "project_id" in document:
             assert document["project_id"] == project_id
     assert_fixture_reference_integrity(fixture)
+
+
+def test_prj_006_story_token_injection_fails_fixture_isolation() -> None:
+    """PRJ-006 고유 인물명을 R1에 주입하면 독립성 검사가 실패한다."""
+    fixture = apply_feature_fixture("R1")
+    characters = mapping_list(fixture["characters"], "characters")
+    characters[0]["name"] = sorted(PRJ_006_STORY_TOKENS)[0]
+
+    with pytest.raises(AssertionError):
+        assert_fixture_story_token_isolation(fixture, "R1")
+
+
+def test_unknown_clue_reference_fails_fixture_integrity() -> None:
+    """자체 Clue Contract에 없는 Unit 참조는 독립 Bundle 검사를 실패시킨다."""
+    fixture = apply_feature_fixture("R2")
+    first_scene = mapping_list(fixture["screenplay_units"], "scenes")[0]
+    first_unit = mapping_list(first_scene, "units")[0]
+    references = mapping_value(first_unit, "references")
+    clue_ids = references["clue_ids"]
+    assert isinstance(clue_ids, list)
+    clue_ids.append("CLUE-999")
+
+    with pytest.raises(AssertionError, match="clue_ids"):
+        assert_fixture_reference_integrity(fixture)
 
 
 @pytest.mark.parametrize("fixture_id", ["R1", "R2"])
