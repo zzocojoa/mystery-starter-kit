@@ -179,20 +179,65 @@ def copied_pilot_repository(tmp_path: Path) -> tuple[Path, Path]:
 
 
 def copied_pilot_repository_with_runtime(tmp_path: Path) -> tuple[Path, Path]:
-    """과거 실행 근거까지 포함한 격리 Pilot Repository를 만든다."""
-    repository_root = tmp_path / "repository"
-    for directory in (
-        "AGENTS",
-        "STANDARD",
-        "CHANNELS",
-        "RUNTIME",
-        "STORY_LIBRARY",
-        "VALIDATORS",
-    ):
-        copytree(ROOT / directory, repository_root / directory)
-    project_path = repository_root / "PROJECTS/PRJ-006"
-    copytree(PILOT_ROOT, project_path)
-    normalize_unadmitted_pilot(project_path)
+    """과거 실행 근거를 명시적으로 구성한 격리 Pilot Repository를 만든다."""
+    repository_root, project_path = copied_pilot_repository(tmp_path)
+    prior_trace = next(
+        trace
+        for trace in trace_records(repository_root, project_path)
+        if trace.get("process_revision") == 5
+        and trace.get("gate_id") == "GATE-08"
+        and trace.get("task_id") == "script.compose_screenplay_units"
+    )
+    task_id = "script.compose_screenplay_units"
+    task = load_task_catalog(repository_root)[task_id]
+    graph = load_json_object(repository_root / "STANDARD/dependency_graph.json")
+    definitions = graph["artifacts"]
+    assert isinstance(definitions, dict)
+    prior_workspace = (
+        project_path
+        / ".runtime/reuse_fixture/gates/GATE-08/semantic-attempt-001/staged_project"
+    )
+    for artifact_name in task["writes"]:
+        definition = definitions[artifact_name]
+        assert isinstance(definition, dict)
+        relative_path = definition["path"]
+        assert isinstance(relative_path, str)
+        output_path = prior_workspace / relative_path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes((project_path / relative_path).read_bytes())
+
+    transaction_id = "CODEX-TASK-0000000000000001"
+    prior_inputs = prior_trace["input_hashes"]
+    assert isinstance(prior_inputs, dict)
+    prior_commit_sha = prior_trace["commit_sha"]
+    assert isinstance(prior_commit_sha, str)
+    write_json_object(
+        project_path / f".runtime/codex_tasks/{transaction_id}/task.json",
+        {
+            "schema_family": "gate-transaction",
+            "schema_version": "1.0.0",
+            "transaction_id": transaction_id,
+            "project_id": "PRJ-006",
+            "gate_id": "GATE-08",
+            "process_revision": 5,
+            "task_ids": [task_id],
+            "completed_task_ids": [task_id],
+            "task_input_hashes": {task_id: prior_inputs},
+            "agent_ids": ["script_writer"],
+            "allowed_reads": [],
+            "allowed_writes": [],
+            "input_hashes": prior_inputs,
+            "canonical_hashes": {},
+            "workspace_hashes": {},
+            "forbidden_paths": [],
+            "workspace": str(prior_workspace.relative_to(repository_root)),
+            "status": "COMMITTED",
+            "changed_paths": [],
+            "commit_sha": prior_commit_sha,
+            "started_at": "2026-09-02T16:40:53Z",
+            "completed_at": "2026-09-02T16:43:01Z",
+        },
+    )
     return repository_root, project_path
 
 
