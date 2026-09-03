@@ -40,10 +40,13 @@ from VALIDATORS.models import ValidationIssue
 
 READABLE_PATH = "07_SCRIPT/broadcast_readable_script.md"
 REPORT_PATH = "08_QA/broadcast_readable_report.json"
-PROFILE_PATH = (
-    "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
-)
+PROFILE_PATH = "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
 PROFILE_SCHEMA_PATH = "STANDARD/schemas/broadcast_readable_output_profile_2_0.schema.json"
+CURRENT_REPORT_SCHEMA_PATH = "../../../STANDARD/schemas/broadcast_readable_report_2_1.schema.json"
+CURRENT_REPORT_VERSION = "2.1.0"
+LEGACY_REPORT_SCHEMA_PATH = "../../../STANDARD/schemas/broadcast_readable_report_2_0.schema.json"
+LEGACY_REPORT_VERSION = "2.0.0"
+MAPPING_CONTRACT_VERSION = "OWNER_BOUND_1"
 MAPPING_EXTENSION_FIELDS = {
     "owner_type",
     "owner_id",
@@ -116,21 +119,15 @@ def block_occurrence_ranges(value: str, fragment: str) -> list[dict[str, int]]:
             return ranges
         character_end = character_start + len(fragment)
         starts_at_boundary = character_start == 0 or (
-            character_start >= 2
-            and value[character_start - 2 : character_start] == "\n\n"
+            character_start >= 2 and value[character_start - 2 : character_start] == "\n\n"
         )
         ends_at_boundary = (
             character_end == len(value)
             or value.startswith("\n\n", character_end)
-            or (
-                value.startswith("\n", character_end)
-                and character_end + 1 == len(value)
-            )
+            or (value.startswith("\n", character_end) and character_end + 1 == len(value))
         )
         if starts_at_boundary and ends_at_boundary:
-            ranges.append(
-                actual_byte_range(value, character_start, character_end)
-            )
+            ranges.append(actual_byte_range(value, character_start, character_end))
         start = character_start + 1
 
 
@@ -167,9 +164,7 @@ def scene_map(
     for scene in sorted_scenes(screenplay_units):
         scene_id = required_string(scene, "scene_id")
         if scene_id in result:
-            raise ConfigurationError(
-                f"BROADCAST_READABLE_SCENE_DUPLICATED: scene_id={scene_id}"
-            )
+            raise ConfigurationError(f"BROADCAST_READABLE_SCENE_DUPLICATED: scene_id={scene_id}")
         result[scene_id] = scene
     return result
 
@@ -178,9 +173,7 @@ def scene_order_title(scene: Mapping[str, object]) -> tuple[int, str]:
     """Scene Heading의 순서와 제목을 검증해 반환한다."""
     order = scene.get("order")
     if not isinstance(order, int) or isinstance(order, bool):
-        raise ConfigurationError(
-            f"BROADCAST_READABLE_SCENE_SEQUENCE_INVALID: order={order!r}"
-        )
+        raise ConfigurationError(f"BROADCAST_READABLE_SCENE_SEQUENCE_INVALID: order={order!r}")
     return order, normalize_line_endings(required_string(scene, "title"))
 
 
@@ -209,9 +202,7 @@ def verifier_context_value(
     if value is None:
         return profile_string(document_contract, "no_previous_scene_label")
     if not isinstance(value, str) or value not in scenes:
-        raise ConfigurationError(
-            f"BROADCAST_READABLE_PREVIOUS_SCENE_INVALID: value={value!r}"
-        )
+        raise ConfigurationError(f"BROADCAST_READABLE_PREVIOUS_SCENE_INVALID: value={value!r}")
     return scene_reference_text(scenes[value], document_contract)
 
 
@@ -316,9 +307,7 @@ def verifier_unit_block(
     speaker_id = required_string(unit, "speaker_id")
     character = characters.get(speaker_id)
     if character is None:
-        raise ConfigurationError(
-            f"BROADCAST_READABLE_SPEAKER_UNKNOWN: speaker_id={speaker_id}"
-        )
+        raise ConfigurationError(f"BROADCAST_READABLE_SPEAKER_UNKNOWN: speaker_id={speaker_id}")
     speaker_name = normalize_line_endings(required_string(character, "name"))
     delivery_block = verifier_delivery_block(unit, render_contract)
     if unit_type == "DIALOGUE":
@@ -334,9 +323,7 @@ def verifier_unit_block(
     labels = profile_mapping(render_contract, "special_unit_labels")
     label = labels.get(unit_type)
     if unit_type not in CHARACTER_AUTHORED_TYPES or not isinstance(label, str):
-        raise ConfigurationError(
-            f"BROADCAST_READABLE_UNIT_TYPE_UNSUPPORTED: unit_type={unit_type}"
-        )
+        raise ConfigurationError(f"BROADCAST_READABLE_UNIT_TYPE_UNSUPPORTED: unit_type={unit_type}")
     return format_profile_template(
         profile_string(render_contract, "character_authored_template"),
         {
@@ -358,15 +345,11 @@ def verifier_panel_turn_block(
     panelist_id = required_string(turn, "panelist_id")
     panelist = panelists.get(panelist_id)
     if panelist is None:
-        raise ConfigurationError(
-            f"BROADCAST_READABLE_PANELIST_UNKNOWN: panelist_id={panelist_id}"
-        )
+        raise ConfigurationError(f"BROADCAST_READABLE_PANELIST_UNKNOWN: panelist_id={panelist_id}")
     return format_profile_template(
         profile_string(render_contract, "panel_turn_template"),
         {
-            "display_name": normalize_line_endings(
-                required_string(panelist, "display_name")
-            ),
+            "display_name": normalize_line_endings(required_string(panelist, "display_name")),
             "spoken_line": normalize_line_endings(required_string(turn, "spoken_line")),
         },
         "panel_turn_template",
@@ -440,9 +423,7 @@ def relationship_rows_and_mappings(
                 "name": markdown_cell(required_string(character, "name")),
                 "role": markdown_cell(required_string(character, "role")),
                 "relationships": markdown_cell(
-                    separator.join(entries[character_id])
-                    if entries[character_id]
-                    else "—"
+                    separator.join(entries[character_id]) if entries[character_id] else "—"
                 ),
             },
             "character_table_row_template",
@@ -605,6 +586,223 @@ def duplicate_mapping_range_issues(
     ]
 
 
+def owner_mapping_contract_issues(
+    report: Mapping[str, object],
+    actual_markdown: str,
+) -> list[ValidationIssue]:
+    """2.1 Report Mapping의 소유·Container·Hash·순서 의미를 검사한다."""
+    raw_segments = report.get("segment_mappings")
+    segment_mappings = (
+        [item for item in raw_segments if isinstance(item, Mapping)]
+        if isinstance(raw_segments, list)
+        else []
+    )
+    segments_by_id = {str(mapping.get("segment_id")): mapping for mapping in segment_mappings}
+    typed_mappings: list[tuple[str, Mapping[str, object]]] = []
+    for field in ("unit_mappings", "panel_turn_mappings"):
+        raw_mappings = report.get(field)
+        if isinstance(raw_mappings, list):
+            typed_mappings.extend(
+                (field, mapping) for mapping in raw_mappings if isinstance(mapping, Mapping)
+            )
+    issues: list[ValidationIssue] = []
+    encoded_markdown = actual_markdown.encode("utf-8")
+    for field, mapping in typed_mappings:
+        expected_owner_type = "UNIT" if field == "unit_mappings" else "PANEL_TURN"
+        identity_field = "unit_id" if field == "unit_mappings" else "turn_id"
+        if mapping.get("owner_type") != expected_owner_type:
+            issues.append(
+                v2_issue(
+                    "BROADCAST_READABLE_V2_OWNER_TYPE_MISMATCH",
+                    "Mapping 종류와 Owner Type이 다릅니다.",
+                    REPORT_PATH,
+                    {"mapping": field, "owner_type": mapping.get("owner_type")},
+                )
+            )
+        if mapping.get("owner_id") != mapping.get(identity_field):
+            issues.append(
+                v2_issue(
+                    "BROADCAST_READABLE_V2_OWNER_ID_MISMATCH",
+                    "Mapping Owner ID가 Canonical Unit·Turn ID와 다릅니다.",
+                    REPORT_PATH,
+                    {
+                        "mapping": field,
+                        "owner_id": mapping.get("owner_id"),
+                        identity_field: mapping.get(identity_field),
+                    },
+                )
+            )
+        segment_id = mapping.get("segment_id")
+        segment = segments_by_id.get(str(segment_id))
+        expected_container = segment.get("type") if segment is not None else None
+        if (
+            expected_container not in {"DRAMA", "NARRATION", "PANEL_REACTION"}
+            or mapping.get("container_type") != expected_container
+            or (field == "unit_mappings" and expected_container == "PANEL_REACTION")
+            or (field == "panel_turn_mappings" and expected_container != "PANEL_REACTION")
+        ):
+            issues.append(
+                v2_issue(
+                    "BROADCAST_READABLE_V2_CONTAINER_BINDING_MISMATCH",
+                    "Mapping Container Type이 Presentation Segment와 다릅니다.",
+                    REPORT_PATH,
+                    {
+                        "mapping": field,
+                        "segment_id": segment_id,
+                        "container_type": mapping.get("container_type"),
+                        "expected_container_type": expected_container,
+                    },
+                )
+            )
+        if segment is None or mapping.get("scene_id") != segment.get("scene_id"):
+            issues.append(
+                v2_issue(
+                    "BROADCAST_READABLE_V2_SEGMENT_BINDING_MISMATCH",
+                    "Mapping Scene·Segment 결속이 Presentation과 다릅니다.",
+                    REPORT_PATH,
+                    {
+                        "mapping": field,
+                        "segment_id": segment_id,
+                        "scene_id": mapping.get("scene_id"),
+                    },
+                )
+            )
+        raw_range = mapping.get("actual_byte_range")
+        byte_start = raw_range.get("byte_start") if isinstance(raw_range, Mapping) else None
+        byte_end = raw_range.get("byte_end") if isinstance(raw_range, Mapping) else None
+        if (
+            not isinstance(byte_start, int)
+            or not isinstance(byte_end, int)
+            or byte_start < 0
+            or byte_end <= byte_start
+            or byte_end > len(encoded_markdown)
+        ):
+            issues.append(
+                v2_issue(
+                    "BROADCAST_READABLE_V2_BYTE_RANGE_INVALID",
+                    "Mapping Byte Range가 Actual Markdown 범위와 다릅니다.",
+                    REPORT_PATH,
+                    {"mapping": field, "actual_byte_range": raw_range},
+                )
+            )
+            continue
+        try:
+            block = encoded_markdown[byte_start:byte_end].decode("utf-8")
+        except UnicodeDecodeError:
+            issues.append(
+                v2_issue(
+                    "BROADCAST_READABLE_V2_BYTE_RANGE_INVALID",
+                    "Mapping Byte Range가 UTF-8 Block 경계를 벗어났습니다.",
+                    REPORT_PATH,
+                    {"mapping": field, "actual_byte_range": raw_range},
+                )
+            )
+            continue
+        if mapping.get("rendered_block_sha256") != text_sha256(block):
+            issues.append(
+                v2_issue(
+                    "BROADCAST_READABLE_V2_BLOCK_HASH_MISMATCH",
+                    "Mapping Block Hash가 Actual Markdown Byte Range와 다릅니다.",
+                    REPORT_PATH,
+                    {
+                        "mapping": field,
+                        "owner_id": mapping.get("owner_id"),
+                        "actual_byte_range": raw_range,
+                    },
+                )
+            )
+
+    def global_order(mapping: Mapping[str, object]) -> int:
+        """Mapping의 정수 전역 순서를 반환한다."""
+        value = mapping.get("global_presentation_order")
+        return value if isinstance(value, int) else -1
+
+    globally_ordered = sorted(
+        (mapping for _field, mapping in typed_mappings),
+        key=global_order,
+    )
+    global_orders = [mapping.get("global_presentation_order") for mapping in globally_ordered]
+    if global_orders != list(range(1, len(globally_ordered) + 1)):
+        issues.append(
+            v2_issue(
+                "BROADCAST_READABLE_V2_GLOBAL_ORDER_MISMATCH",
+                "Unit·Panel Mapping의 전역 Presentation Order가 연속하지 않습니다.",
+                REPORT_PATH,
+                {"global_presentation_orders": global_orders},
+            )
+        )
+
+    local_groups: defaultdict[tuple[object, object], list[Mapping[str, object]]] = defaultdict(list)
+    occurrence_groups: defaultdict[tuple[object, object, object], list[Mapping[str, object]]] = (
+        defaultdict(list)
+    )
+    for mapping in globally_ordered:
+        local_groups[(mapping.get("owner_type"), mapping.get("segment_id"))].append(mapping)
+        occurrence_groups[
+            (
+                mapping.get("owner_type"),
+                mapping.get("container_type"),
+                mapping.get("rendered_block_sha256"),
+            )
+        ].append(mapping)
+    for local_group, mappings in local_groups.items():
+        orders = [mapping.get("container_local_order") for mapping in mappings]
+        if orders != list(range(1, len(mappings) + 1)):
+            issues.append(
+                v2_issue(
+                    "BROADCAST_READABLE_V2_CONTAINER_ORDER_MISMATCH",
+                    "Segment Container Local Order가 1부터 연속하지 않습니다.",
+                    REPORT_PATH,
+                    {"group": list(local_group), "orders": orders},
+                )
+            )
+    for occurrence_group, mappings in occurrence_groups.items():
+        occurrence_orders = [
+            mapping.get("same_block_occurrence_index_within_owner_type_or_container")
+            for mapping in mappings
+        ]
+        exact_orders = [mapping.get("exact_occurrence_index") for mapping in mappings]
+        expected_orders = list(range(1, len(mappings) + 1))
+        if occurrence_orders != expected_orders or exact_orders != expected_orders:
+            issues.append(
+                v2_issue(
+                    "BROADCAST_READABLE_V2_OCCURRENCE_ORDER_MISMATCH",
+                    "Owner·Container·Block 발생 번호가 1부터 연속하지 않습니다.",
+                    REPORT_PATH,
+                    {
+                        "group": list(occurrence_group),
+                        "occurrence_orders": occurrence_orders,
+                        "exact_occurrence_orders": exact_orders,
+                    },
+                )
+            )
+    return issues
+
+
+def legacy_report_2_0_from_current(
+    report: Mapping[str, object],
+) -> dict[str, object]:
+    """현재 Report를 Historical 2.0 비교 계약으로 변환한다."""
+    legacy = deepcopy(dict(report))
+    legacy["$schema"] = LEGACY_REPORT_SCHEMA_PATH
+    legacy["schema_version"] = LEGACY_REPORT_VERSION
+    legacy.pop("mapping_contract_version", None)
+    ordered_mappings: list[dict[str, object]] = []
+    for field in ("unit_mappings", "panel_turn_mappings"):
+        raw_mappings = legacy.get(field)
+        if isinstance(raw_mappings, list):
+            ordered_mappings.extend(
+                mapping for mapping in raw_mappings if isinstance(mapping, dict)
+            )
+    ordered_mappings.sort(key=lambda mapping: cast(int, mapping["global_presentation_order"]))
+    legacy_container_orders: defaultdict[str, int] = defaultdict(int)
+    for mapping in ordered_mappings:
+        container_type = cast(str, mapping["container_type"])
+        legacy_container_orders[container_type] += 1
+        mapping["container_local_order"] = legacy_container_orders[container_type]
+    return legacy
+
+
 def expected_report_for_mapping_contract(
     expected: Mapping[str, object],
     report: Mapping[str, object],
@@ -764,7 +962,7 @@ def independent_conformance(
     panel_index = 1
     global_turn_order = 0
     global_content_order = 0
-    container_orders: defaultdict[str, int] = defaultdict(int)
+    container_orders: defaultdict[tuple[str, str], int] = defaultdict(int)
     owned_occurrence_counts: defaultdict[tuple[str, str, str], int] = defaultdict(int)
     parsing_failed = cursor < 0
 
@@ -870,9 +1068,7 @@ def independent_conformance(
         content_ranges: list[dict[str, int]] = []
         records = unit_records.get(segment_id, [])
         if segment_type in {"DRAMA", "NARRATION"}:
-            expected_types = (
-                DRAMA_UNIT_TYPES if segment_type == "DRAMA" else NARRATION_UNIT_TYPES
-            )
+            expected_types = DRAMA_UNIT_TYPES if segment_type == "DRAMA" else NARRATION_UNIT_TYPES
             if not records:
                 issues.append(
                     v2_issue(
@@ -939,7 +1135,8 @@ def independent_conformance(
                 special_actual[unit_type] += 1
                 content_ranges.append(unit_range)
                 rendered_block_sha256 = text_sha256(block)
-                container_orders[segment_type] += 1
+                container_key = ("UNIT", segment_id)
+                container_orders[container_key] += 1
                 global_content_order += 1
                 occurrence_index = next_owned_occurrence_index(
                     owned_occurrence_counts,
@@ -958,7 +1155,7 @@ def independent_conformance(
                         "canonical_order": unit.get("order"),
                         "text_sha256": text_sha256(required_string(unit, "text")),
                         "rendered_block_sha256": rendered_block_sha256,
-                        "container_local_order": container_orders[segment_type],
+                        "container_local_order": container_orders[container_key],
                         "global_presentation_order": global_content_order,
                         "same_block_occurrence_index_within_owner_type_or_container": (
                             occurrence_index
@@ -1030,7 +1227,8 @@ def independent_conformance(
                     break
                 content_ranges.append(turn_range)
                 rendered_block_sha256 = text_sha256(block)
-                container_orders[segment_type] += 1
+                container_key = ("PANEL_TURN", segment_id)
+                container_orders[container_key] += 1
                 global_content_order += 1
                 occurrence_index = next_owned_occurrence_index(
                     owned_occurrence_counts,
@@ -1048,11 +1246,9 @@ def independent_conformance(
                         "segment_id": segment_id,
                         "scene_id": scene_id,
                         "global_order": global_turn_order,
-                        "spoken_line_sha256": text_sha256(
-                            required_string(turn, "spoken_line")
-                        ),
+                        "spoken_line_sha256": text_sha256(required_string(turn, "spoken_line")),
                         "rendered_block_sha256": rendered_block_sha256,
-                        "container_local_order": container_orders[segment_type],
+                        "container_local_order": container_orders[container_key],
                         "global_presentation_order": global_content_order,
                         "same_block_occurrence_index_within_owner_type_or_container": (
                             occurrence_index
@@ -1166,11 +1362,14 @@ def independent_conformance(
         if isinstance(mapped_scene_id, str) and isinstance(byte_range, dict):
             segment_ranges_by_scene[mapped_scene_id].append(byte_range)
     for scene_id, indexes in (
-        (scene_id, [
-            index
-            for index, segment in enumerate(segments)
-            if segment.get("scene_id") == scene_id
-        ])
+        (
+            scene_id,
+            [
+                index
+                for index, segment in enumerate(segments)
+                if segment.get("scene_id") == scene_id
+            ],
+        )
         for scene_id in first_segment_by_scene
     ):
         heading_range = scene_heading_ranges.get(scene_id)
@@ -1185,9 +1384,7 @@ def independent_conformance(
                 "scene_id": scene_id,
                 "first_global_segment_index": min(indexes),
                 "last_global_segment_index": max(indexes),
-                "heading_sha256": text_sha256(
-                    cast(str, scene_fragments[scene_id]["heading"])
-                ),
+                "heading_sha256": text_sha256(cast(str, scene_fragments[scene_id]["heading"])),
                 "situation_context_sha256": text_sha256(
                     cast(str, scene_fragments[scene_id]["situation"])
                 ),
@@ -1195,9 +1392,7 @@ def independent_conformance(
                     cast(str, scene_fragments[scene_id]["sound"])
                 ),
                 "retrospective_sha256": (
-                    text_sha256(retrospective)
-                    if isinstance(retrospective, str)
-                    else None
+                    text_sha256(retrospective) if isinstance(retrospective, str) else None
                 ),
                 "actual_byte_range": {
                     "byte_start": heading_range["byte_start"],
@@ -1267,8 +1462,7 @@ def independent_conformance(
         "retrospective_meaning_coverage": {
             "expected_count": len(expected_retrospectives),
             "actual_count": retrospective_actual_count,
-            "mappings_complete": len(expected_retrospectives)
-            == retrospective_actual_count,
+            "mappings_complete": len(expected_retrospectives) == retrospective_actual_count,
         },
         "visibility_scan": {
             "forbidden_prefix_matches": prefix_matches,
@@ -1363,9 +1557,10 @@ def build_broadcast_readable_report_v2(
     config_hash = document_sha256(broadcast_readable_config)
     profile_document_hash = document_sha256(output_profile)
     return {
-        "$schema": "../../../STANDARD/schemas/broadcast_readable_report_2_0.schema.json",
+        "$schema": CURRENT_REPORT_SCHEMA_PATH,
         "schema_family": "broadcast-readable-report",
-        "schema_version": "2.0.0",
+        "schema_version": CURRENT_REPORT_VERSION,
+        "mapping_contract_version": MAPPING_CONTRACT_VERSION,
         "project_id": screenplay_units.get("project_id"),
         "result": result,
         "config_binding": {
@@ -1408,9 +1603,7 @@ def build_broadcast_readable_report_v2(
             "actual_sha256": actual_hash,
             "byte_identical": byte_identical,
         },
-        "retrospective_meaning_coverage": conformance[
-            "retrospective_meaning_coverage"
-        ],
+        "retrospective_meaning_coverage": conformance["retrospective_meaning_coverage"],
         "visibility_scan": conformance["visibility_scan"],
         "unsupported_segment_types": conformance["unsupported_segment_types"],
         "issues": issues,
@@ -1437,9 +1630,7 @@ def validate_broadcast_readable_report_v2(
     for field in ("unit_mappings", "panel_turn_mappings"):
         value = report.get(field)
         if isinstance(value, list):
-            reported_mappings.extend(
-                item for item in value if isinstance(item, Mapping)
-            )
+            reported_mappings.extend(item for item in value if isinstance(item, Mapping))
     result_issues.extend(duplicate_mapping_range_issues(reported_mappings))
     if report.get("result") == "PASS":
         result_issues.append(
@@ -1452,8 +1643,7 @@ def validate_broadcast_readable_report_v2(
         )
     if (
         broadcast_readable_config.get("enabled") is not True
-        or broadcast_readable_config.get("profile_id")
-        != "BROADCAST_READABLE_SCRIPT"
+        or broadcast_readable_config.get("profile_id") != "BROADCAST_READABLE_SCRIPT"
         or broadcast_readable_config.get("profile_version") != "2.0.0"
     ):
         return [
@@ -1463,9 +1653,9 @@ def validate_broadcast_readable_report_v2(
                 "v2 Config Profile 결속이 활성 2.0.0 계약과 다릅니다.",
                 "00_PROJECT/broadcast_readable_config.json",
                 {},
-            )
+            ),
         ]
-    expected = build_broadcast_readable_report_v2(
+    current_expected = build_broadcast_readable_report_v2(
         broadcast_readable_config,
         screenplay_units,
         characters,
@@ -1478,12 +1668,31 @@ def validate_broadcast_readable_report_v2(
         output_profile_file_sha256,
         actual_markdown,
     )
-    raw_issues = expected["issues"]
+    raw_issues = current_expected["issues"]
     issues = [
         *result_issues,
         *(list(raw_issues) if isinstance(raw_issues, list) else []),
     ]
-    comparable_expected = expected_report_for_mapping_contract(expected, report)
+    report_version = report.get("schema_version")
+    if report_version == CURRENT_REPORT_VERSION:
+        issues.extend(owner_mapping_contract_issues(report, actual_markdown))
+        comparable_expected = current_expected
+    elif report_version == LEGACY_REPORT_VERSION:
+        legacy_expected = legacy_report_2_0_from_current(current_expected)
+        comparable_expected = expected_report_for_mapping_contract(
+            legacy_expected,
+            report,
+        )
+    else:
+        comparable_expected = current_expected
+        issues.append(
+            v2_issue(
+                "BROADCAST_READABLE_V2_REPORT_VERSION_UNSUPPORTED",
+                "Broadcast Readable v2 Report Version이 지원 범위와 다릅니다.",
+                REPORT_PATH,
+                {"schema_version": report_version},
+            )
+        )
     if dict(report) != comparable_expected:
         issues.append(
             v2_issue(

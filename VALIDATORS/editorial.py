@@ -118,15 +118,13 @@ def editorial_artifact_hashes(
             encoded_review_artifact(artifacts[artifact_name])
         ).hexdigest()
     readable_report = artifacts.get("broadcast_readable_report")
-    if (
-        isinstance(readable_report, Mapping)
-        and readable_report.get("schema_version") == "2.0.0"
-    ):
+    if isinstance(readable_report, Mapping) and readable_report.get("schema_version") in {
+        "2.0.0",
+        "2.1.0",
+    }:
         profile_binding = readable_report.get("output_profile_binding")
         profile_hash = (
-            profile_binding.get("file_sha256")
-            if isinstance(profile_binding, Mapping)
-            else None
+            profile_binding.get("file_sha256") if isinstance(profile_binding, Mapping) else None
         )
         if isinstance(profile_hash, str):
             hashes["broadcast_readable_output_profile"] = profile_hash
@@ -371,10 +369,7 @@ def runtime_evidence_issues(
     invalid_method_fields: list[dict[str, object]] = []
     if method == "WORD_COUNT_ESTIMATE":
         if (
-            positive_numeric_value(
-                evidence.get("estimated_panel_spoken_duration_sec")
-            )
-            is None
+            positive_numeric_value(evidence.get("estimated_panel_spoken_duration_sec")) is None
             or evidence.get("measured_panel_duration_sec") is not None
         ):
             invalid_method_fields.append({"scope": "aggregate"})
@@ -1079,9 +1074,7 @@ def finalize_production_ready(
     reenactment_evidence = review.get("reenactment_runtime_evidence")
     if isinstance(reenactment_evidence, Mapping):
         reenactment_method = reenactment_evidence.get("method")
-        reenactment_measured = numeric_value(
-            reenactment_evidence.get("measured_duration_sec")
-        )
+        reenactment_measured = numeric_value(reenactment_evidence.get("measured_duration_sec"))
         if (
             reenactment_method not in {"TABLE_READ", "RECORDED_AUDIO"}
             or reenactment_measured is None

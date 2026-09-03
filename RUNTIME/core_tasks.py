@@ -327,25 +327,28 @@ def runtime_validation_inputs(
                 repository_root / "STANDARD" / "schemas" / "psychological_arc.schema.json"
             ),
             "character_state_transitions": load_json_object(
-                repository_root
-                / "STANDARD"
-                / "schemas"
-                / "character_state_transitions.schema.json"
+                repository_root / "STANDARD" / "schemas" / "character_state_transitions.schema.json"
             ),
             "screenplay_units": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "screenplay_units.schema.json"
             ),
             "reenactment_export_report": load_json_object(
-                repository_root
-                / "STANDARD"
-                / "schemas"
-                / "reenactment_export_report.schema.json"
+                repository_root / "STANDARD" / "schemas" / "reenactment_export_report.schema.json"
             ),
             "broadcast_readable_report": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "broadcast_readable_report.schema.json"
+            ),
+            "broadcast_readable_report_2_0": load_json_object(
                 repository_root
                 / "STANDARD"
                 / "schemas"
-                / "broadcast_readable_report.schema.json"
+                / "broadcast_readable_report_2_0.schema.json"
+            ),
+            "broadcast_readable_report_2_1": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "broadcast_readable_report_2_1.schema.json"
             ),
             "clue_matrix": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "clue_matrix.schema.json"
@@ -431,9 +434,7 @@ def runtime_validation_inputs_for_project(
         artifacts,
     )
     if readable_profile is not None:
-        selected_schemas["broadcast_readable_output_profile"] = readable_profile[
-            "document"
-        ]
+        selected_schemas["broadcast_readable_output_profile"] = readable_profile["document"]
         selected_schemas["broadcast_readable_output_profile_binding"] = {
             "sha256": readable_profile["sha256"],
         }
@@ -442,7 +443,7 @@ def runtime_validation_inputs_for_project(
                 repository_root
                 / "STANDARD"
                 / "schemas"
-                / "broadcast_readable_report_2_0.schema.json"
+                / "broadcast_readable_report_2_1.schema.json"
             )
     return (
         channel,
@@ -1056,11 +1057,7 @@ def production_reenactment_output(
     markdown = text_artifact(artifacts, "reenactment_character_script")
     report_issues = report.get("issues")
     runtime_status = report.get("runtime_status")
-    runtime_result = (
-        runtime_status.get("status")
-        if isinstance(runtime_status, Mapping)
-        else None
-    )
+    runtime_result = runtime_status.get("status") if isinstance(runtime_status, Mapping) else None
     expected_hash = report.get("output_markdown_sha256")
     actual_hash = sha256(markdown.encode("utf-8")).hexdigest()
     if (
@@ -1136,9 +1133,7 @@ def production_broadcast_readable_output(
             readable_script,
         )
     )
-    required_report_result = (
-        "NEEDS_REVIEW" if profile_version == "2.0.0" else "PASS"
-    )
+    required_report_result = "NEEDS_REVIEW" if profile_version == "2.0.0" else "PASS"
     if (
         validation_report.get("result") != "PASS"
         or report.get("result") != required_report_result
@@ -1439,10 +1434,7 @@ def core_task_outputs(
                 production_config,
                 artifacts,
             )
-            if (
-                resolved_readable is not None
-                and resolved_readable["profile_version"] == "2.0.0"
-            ):
+            if resolved_readable is not None and resolved_readable["profile_version"] == "2.0.0":
                 production_readable = text_artifact(
                     artifacts,
                     "production_broadcast_readable_script",

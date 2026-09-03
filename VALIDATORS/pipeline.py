@@ -319,6 +319,26 @@ def optional_schema_issues(
     )
 
 
+def broadcast_readable_report_schema(
+    report: Mapping[str, object],
+    presentation_schemas: Mapping[str, Mapping[str, object]],
+) -> Mapping[str, object]:
+    """Report Schema Version에 맞는 Legacy·Current Schema를 반환한다."""
+    schema_version = report.get("schema_version")
+    schema_keys = {
+        "2.0.0": "broadcast_readable_report_2_0",
+        "2.1.0": "broadcast_readable_report_2_1",
+    }
+    schema_key = schema_keys.get(schema_version) if isinstance(schema_version, str) else None
+    schema = presentation_schemas.get(schema_key) if schema_key is not None else None
+    if not isinstance(schema, Mapping):
+        raise ConfigurationError(
+            "Broadcast Readable Report Schema Version이 등록되지 않았습니다: "
+            f"schema_version={schema_version}"
+        )
+    return schema
+
+
 def required_channel_artifact_issues(
     artifacts: Mapping[str, ArtifactContent],
     production_config: Mapping[str, object],
@@ -823,9 +843,7 @@ def production_text_issues(
         or "production_expert_analysis_script" in artifacts
     ):
         artifact_names.append("production_expert_analysis_script")
-    readable_definition = dependency_artifacts(graph)[
-        "production_broadcast_readable_script"
-    ]
+    readable_definition = dependency_artifacts(graph)["production_broadcast_readable_script"]
     if (
         artifact_required_for_project(
             readable_definition,
@@ -884,9 +902,7 @@ def run_production_validation(
     )
     candidate_event_brief_schema = presentation_schemas.get("candidate_event_briefs")
     clue_matrix_schema = presentation_schemas.get("clue_matrix")
-    character_state_transition_schema = presentation_schemas.get(
-        "character_state_transitions"
-    )
+    character_state_transition_schema = presentation_schemas.get("character_state_transitions")
     candidate_eligibility = artifact_document(artifacts, "candidate_eligibility")
     candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
     candidate_approval = artifact_document(artifacts, "candidate_approval")
@@ -1500,9 +1516,7 @@ def run_production_validation(
     validated_readable_profile_hash: str | None = None
     if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
         output_profile = presentation_schemas.get("reenactment_output_profile")
-        readable_output_profile = presentation_schemas.get(
-            "broadcast_readable_output_profile"
-        )
+        readable_output_profile = presentation_schemas.get("broadcast_readable_output_profile")
         readable_output_profile_binding = presentation_schemas.get(
             "broadcast_readable_output_profile_binding"
         )
@@ -1674,9 +1688,7 @@ def run_production_validation(
         ),
     ]
     if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
-        output_profile_binding = presentation_schemas.get(
-            "reenactment_output_profile_binding"
-        )
+        output_profile_binding = presentation_schemas.get("reenactment_output_profile_binding")
         profile_hash = (
             output_profile_binding.get("sha256")
             if isinstance(output_profile_binding, Mapping)
@@ -1723,7 +1735,10 @@ def run_production_validation(
             gate_09.extend(
                 schema_issues(
                     broadcast_readable_report,
-                    presentation_schemas["broadcast_readable_report"],
+                    broadcast_readable_report_schema(
+                        broadcast_readable_report,
+                        presentation_schemas,
+                    ),
                     "08_QA/broadcast_readable_report.json",
                 )
             )

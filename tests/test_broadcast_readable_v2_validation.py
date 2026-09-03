@@ -11,6 +11,8 @@ from jsonschema import Draft202012Validator
 from RUNTIME.broadcast_readable_v2_renderer import (
     render_broadcast_readable_script_v2,
 )
+from RUNTIME.contracts import load_artifact_contracts
+from RUNTIME.output_gateway import validate_artifact_content
 from VALIDATORS.broadcast_readable_v2 import (
     build_broadcast_readable_report_v2,
     validate_broadcast_readable_report_v2,
@@ -20,13 +22,8 @@ from VALIDATORS.models import ValidationIssue
 
 ROOT = Path(__file__).resolve().parents[1]
 PILOT_ROOT = ROOT / "PROJECTS/PRJ-006"
-PROFILE_PATH = (
-    ROOT
-    / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
-)
-REPORT_SCHEMA_PATH = (
-    ROOT / "STANDARD/schemas/broadcast_readable_report_2_0.schema.json"
-)
+PROFILE_PATH = ROOT / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
+REPORT_SCHEMA_PATH = ROOT / "STANDARD/schemas/broadcast_readable_report_2_1.schema.json"
 FORBIDDEN_PREFIXES = (
     "SCN-",
     "SEG-",
@@ -61,9 +58,7 @@ def pilot_fixture() -> PilotFixture:
     """PRJ-006 Canonical 입력과 v2 활성 Config를 읽는다."""
     return {
         "config": {
-            "$schema": (
-                "../../../STANDARD/schemas/broadcast_readable_config.schema.json"
-            ),
+            "$schema": ("../../../STANDARD/schemas/broadcast_readable_config.schema.json"),
             "schema_family": "broadcast-readable-config",
             "schema_version": "1.0.0",
             "project_id": "PRJ-006",
@@ -71,22 +66,12 @@ def pilot_fixture() -> PilotFixture:
             "profile_id": "BROADCAST_READABLE_SCRIPT",
             "profile_version": "2.0.0",
         },
-        "screenplay_units": load_json_object(
-            PILOT_ROOT / "07_SCRIPT/screenplay_units.json"
-        ),
-        "characters": load_json_object(
-            PILOT_ROOT / "02_CHARACTER/characters.json"
-        ),
-        "relationships": load_json_object(
-            PILOT_ROOT / "02_CHARACTER/relationships.json"
-        ),
+        "screenplay_units": load_json_object(PILOT_ROOT / "07_SCRIPT/screenplay_units.json"),
+        "characters": load_json_object(PILOT_ROOT / "02_CHARACTER/characters.json"),
+        "relationships": load_json_object(PILOT_ROOT / "02_CHARACTER/relationships.json"),
         "panel_cast": load_json_object(PILOT_ROOT / "06_SCENE/panel_cast.json"),
-        "reaction_segments": load_json_object(
-            PILOT_ROOT / "06_SCENE/reaction_segments.json"
-        ),
-        "presentation_plan": load_json_object(
-            PILOT_ROOT / "06_SCENE/presentation_plan.json"
-        ),
+        "reaction_segments": load_json_object(PILOT_ROOT / "06_SCENE/reaction_segments.json"),
+        "presentation_plan": load_json_object(PILOT_ROOT / "06_SCENE/presentation_plan.json"),
         "final_script": (PILOT_ROOT / "07_SCRIPT/final_script.md").read_text(),
         "profile": load_json_object(PROFILE_PATH),
         "profile_file_sha256": sha256(PROFILE_PATH.read_bytes()).hexdigest(),
@@ -180,11 +165,7 @@ def replace_mapped_fragment(
     assert isinstance(byte_start, int)
     assert isinstance(byte_end, int)
     encoded = actual_markdown.encode("utf-8")
-    return (
-        encoded[:byte_start].decode("utf-8")
-        + replacement
-        + encoded[byte_end:].decode("utf-8")
-    )
+    return encoded[:byte_start].decode("utf-8") + replacement + encoded[byte_end:].decode("utf-8")
 
 
 def unique_mapping_pair(
@@ -220,13 +201,7 @@ def swap_ordered_fragments(value: str, first: str, second: str) -> str:
     assert first_start >= 0
     assert second_start > first_start + len(first)
     middle = value[first_start + len(first) : second_start]
-    return (
-        value[:first_start]
-        + second
-        + middle
-        + first
-        + value[second_start + len(second) :]
-    )
+    return value[:first_start] + second + middle + first + value[second_start + len(second) :]
 
 
 def issue_codes(report: dict[str, object]) -> set[str]:
@@ -234,9 +209,7 @@ def issue_codes(report: dict[str, object]) -> set[str]:
     raw_issues = report["issues"]
     assert isinstance(raw_issues, list)
     return {
-        str(issue["code"])
-        for issue in raw_issues
-        if isinstance(issue, dict) and "code" in issue
+        str(issue["code"]) for issue in raw_issues if isinstance(issue, dict) and "code" in issue
     }
 
 
@@ -266,9 +239,7 @@ def reentry_fixture() -> PilotFixture:
     by_id = {str(segment["segment_id"]): segment for segment in segments}
     front_ids = ["SEG-001", "SEG-004", "SEG-003", "SEG-002", "SEG-005"]
     reordered = [by_id[segment_id] for segment_id in front_ids]
-    reordered.extend(
-        segment for segment in segments if segment["segment_id"] not in front_ids
-    )
+    reordered.extend(segment for segment in segments if segment["segment_id"] not in front_ids)
     fixture["presentation_plan"]["segments"] = reordered
     reset_start_times(reordered)
     scenes = mutable_records(fixture["screenplay_units"], "scenes")
@@ -331,13 +302,71 @@ def test_current_report_uses_owner_bound_contract_version() -> None:
     assert report["mapping_contract_version"] == "OWNER_BOUND_1"
 
 
-@pytest.mark.parametrize("field", ["owner_type", "container_type"])
-def test_current_report_schema_requires_owner_mapping_fields(field: str) -> None:
+def test_current_report_passes_versioned_output_gateway() -> None:
+    """현재 2.1 Report는 Artifact Contract에 등록된 Schema를 통과한다."""
+    fixture = pilot_fixture()
+    report = build_report(fixture, render_fixture(fixture))
+    contract = load_artifact_contracts(ROOT)["broadcast_readable_report"]
+
+    validate_artifact_content(
+        ROOT,
+        "test.current_report",
+        "broadcast_readable_report",
+        contract["media_type"],
+        report,
+        contract,
+    )
+
+
+def test_prj_006_historical_report_2_0_remains_read_only_compatible() -> None:
+    """PRJ-006의 저장된 2.0 Report는 Byte 수정 없이 Legacy 검증을 통과한다."""
+    fixture = pilot_fixture()
+    report = load_json_object(PILOT_ROOT / "08_QA/broadcast_readable_report.json")
+    actual = (PILOT_ROOT / "07_SCRIPT/broadcast_readable_script.md").read_text()
+    contract = load_artifact_contracts(ROOT)["broadcast_readable_report"]
+
+    assert report["schema_version"] == "2.0.0"
+    validate_artifact_content(
+        ROOT,
+        "test.legacy_report",
+        "broadcast_readable_report",
+        contract["media_type"],
+        report,
+        contract,
+    )
+    assert validate_report(report, fixture, actual) == []
+
+
+@pytest.mark.parametrize(
+    ("mapping_field", "required_field"),
+    [
+        ("unit_mappings", "owner_type"),
+        ("unit_mappings", "owner_id"),
+        ("unit_mappings", "container_type"),
+        ("panel_turn_mappings", "owner_type"),
+        ("panel_turn_mappings", "owner_id"),
+        ("panel_turn_mappings", "container_type"),
+    ],
+)
+def test_current_report_schema_requires_owner_mapping_fields(
+    mapping_field: str,
+    required_field: str,
+) -> None:
     """현재 Report Mapping에서 Owner 계약 필드를 누락하면 Schema가 거부한다."""
     fixture = pilot_fixture()
     report = build_report(fixture, render_fixture(fixture))
-    first_mapping = mapping_records(report, "unit_mappings")[0]
-    first_mapping.pop(field)
+    first_mapping = mapping_records(report, mapping_field)[0]
+    first_mapping.pop(required_field)
+    validator = Draft202012Validator(load_json_object(REPORT_SCHEMA_PATH))
+
+    assert list(validator.iter_errors(report))
+
+
+def test_current_report_schema_requires_mapping_contract_version() -> None:
+    """현재 Report에서 Mapping Contract Version을 누락하면 Schema가 거부한다."""
+    fixture = pilot_fixture()
+    report = build_report(fixture, render_fixture(fixture))
+    report.pop("mapping_contract_version")
     validator = Draft202012Validator(load_json_object(REPORT_SCHEMA_PATH))
 
     assert list(validator.iter_errors(report))
@@ -371,9 +400,81 @@ def test_current_report_container_order_restarts_for_each_segment() -> None:
         key = (mapping["owner_type"], mapping["segment_id"])
         orders_by_segment.setdefault(key, []).append(raw_order)
 
-    assert all(
-        orders == list(range(1, len(orders) + 1))
-        for orders in orders_by_segment.values()
+    assert all(orders == list(range(1, len(orders) + 1)) for orders in orders_by_segment.values())
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected_code"),
+    [
+        ("owner_type", "BROADCAST_READABLE_V2_OWNER_TYPE_MISMATCH"),
+        ("owner_id", "BROADCAST_READABLE_V2_OWNER_ID_MISMATCH"),
+        ("container_type", "BROADCAST_READABLE_V2_CONTAINER_BINDING_MISMATCH"),
+        ("segment_id", "BROADCAST_READABLE_V2_CONTAINER_BINDING_MISMATCH"),
+        ("scene_id", "BROADCAST_READABLE_V2_SEGMENT_BINDING_MISMATCH"),
+        ("block_hash", "BROADCAST_READABLE_V2_BLOCK_HASH_MISMATCH"),
+        ("byte_range", "BROADCAST_READABLE_V2_BLOCK_HASH_MISMATCH"),
+        ("global_order", "BROADCAST_READABLE_V2_GLOBAL_ORDER_MISMATCH"),
+        ("container_order", "BROADCAST_READABLE_V2_CONTAINER_ORDER_MISMATCH"),
+        ("occurrence_order", "BROADCAST_READABLE_V2_OCCURRENCE_ORDER_MISMATCH"),
+        ("duplicate_range", "BROADCAST_READABLE_V2_DUPLICATE_BYTE_RANGE"),
+    ],
+)
+def test_current_report_owner_mapping_mutations_fail(
+    mutation: str,
+    expected_code: str,
+) -> None:
+    """2.1 Owner·Container·Hash·순서·Range 변조를 독립 의미 Issue로 거부한다."""
+    fixture = pilot_fixture()
+    actual = render_fixture(fixture)
+    report = build_report(fixture, actual)
+    mappings = mapping_records(report, "unit_mappings")
+    first = mappings[0]
+    if mutation == "owner_type":
+        first["owner_type"] = "PANEL_TURN"
+    elif mutation == "owner_id":
+        first["owner_id"] = "UNIT-999"
+    elif mutation == "container_type":
+        first["container_type"] = "NARRATION"
+    elif mutation == "segment_id":
+        first["segment_id"] = "SEG-999"
+    elif mutation == "scene_id":
+        first["scene_id"] = "SCN-999"
+    elif mutation == "block_hash":
+        first["rendered_block_sha256"] = "0" * 64
+    elif mutation == "byte_range":
+        byte_range = first["actual_byte_range"]
+        assert isinstance(byte_range, dict)
+        byte_start = byte_range["byte_start"]
+        assert isinstance(byte_start, int)
+        byte_range["byte_start"] = byte_start + 1
+    elif mutation == "global_order":
+        first["global_presentation_order"] = mappings[1]["global_presentation_order"]
+    elif mutation == "container_order":
+        first["container_local_order"] = 0
+    elif mutation == "occurrence_order":
+        first["same_block_occurrence_index_within_owner_type_or_container"] = 2
+    elif mutation == "duplicate_range":
+        mappings[1]["actual_byte_range"] = deepcopy(first["actual_byte_range"])
+    else:
+        raise AssertionError(f"알 수 없는 Owner Mapping Mutation입니다: {mutation}")
+
+    assert expected_code in validation_issue_codes(validate_report(report, fixture, actual))
+
+
+def test_current_report_simple_legacy_version_downgrade_fails() -> None:
+    """현재 2.1 Report의 Version만 2.0으로 낮춰 Legacy로 위장할 수 없다."""
+    fixture = pilot_fixture()
+    actual = render_fixture(fixture)
+    report = build_report(fixture, actual)
+    report["schema_version"] = "2.0.0"
+    report["$schema"] = "../../../STANDARD/schemas/broadcast_readable_report_2_0.schema.json"
+    legacy_schema = load_json_object(
+        ROOT / "STANDARD/schemas/broadcast_readable_report_2_0.schema.json"
+    )
+
+    assert list(Draft202012Validator(legacy_schema).iter_errors(report))
+    assert "BROADCAST_READABLE_V2_REPORT_STALE" in validation_issue_codes(
+        validate_report(report, fixture, actual)
     )
 
 
@@ -402,9 +503,7 @@ def test_character_or_relationship_text_mutation_fails(
     actual = render_fixture(fixture)
     if old == "같은 야간 근무를 맡던 동료":
         row = next(
-            line
-            for line in actual.splitlines()
-            if line.startswith("| 정세린 |") and old in line
+            line for line in actual.splitlines() if line.startswith("| 정세린 |") and old in line
         )
         mutated = replace_once(actual, row, row.replace(old, new, 1))
     else:
@@ -562,9 +661,7 @@ def test_retrospective_mutations_fail(mutation: str) -> None:
     """반전 후 의미의 조기 배치와 중복을 각각 탐지한다."""
     fixture = pilot_fixture()
     actual = render_fixture(fixture)
-    retrospective = next(
-        line for line in actual.splitlines() if line.startswith("*[반전 후 의미:")
-    )
+    retrospective = next(line for line in actual.splitlines() if line.startswith("*[반전 후 의미:"))
     if mutation == "duplicate":
         mutated = replace_once(
             actual,
@@ -630,9 +727,7 @@ def test_profile_content_mutation_invalidates_actual_and_saved_report() -> None:
     assert isinstance(labels, dict)
     labels["location_description"] = "현장"
 
-    codes = validation_issue_codes(
-        validate_report(saved_report, mutated_fixture, actual)
-    )
+    codes = validation_issue_codes(validate_report(saved_report, mutated_fixture, actual))
     assert "BROADCAST_READABLE_V2_RECONSTRUCTION_MISMATCH" in codes
     assert "BROADCAST_READABLE_V2_REPORT_STALE" in codes
 

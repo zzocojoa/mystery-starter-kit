@@ -33,10 +33,7 @@ from VALIDATORS.pipeline import (
 
 ROOT = Path(__file__).resolve().parents[1]
 PILOT_ROOT = ROOT / "PROJECTS/PRJ-006"
-PROFILE_PATH = (
-    ROOT
-    / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
-)
+PROFILE_PATH = ROOT / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
 V1_READABLE_SHA256 = "a823e34f69132c857d6eea6a93b9842dd5f40add50edfe6409b1a2f6c4fbe2fa"
 
 
@@ -90,9 +87,7 @@ def generated_v2_chain(
         "production.package_broadcast_readable",
         overlay,
     )
-    production_readable = production_outputs[
-        "production_broadcast_readable_script"
-    ]
+    production_readable = production_outputs["production_broadcast_readable_script"]
     assert isinstance(production_readable, str)
     overlay.update(production_outputs)
     manifest_outputs = task_outputs("production.build_manifest", overlay)
@@ -104,9 +99,7 @@ def generated_v2_chain(
 def test_runtime_conditions_keep_v1_v2_and_inactive_paths_distinct() -> None:
     """동일 Task가 v1 호환·v2 Config·비활성 경로를 결정론적으로 선택한다."""
     task = load_task_catalog(ROOT)["script.render_broadcast_readable"]
-    production_config = load_json_object(
-        PILOT_ROOT / "00_PROJECT/production_config.json"
-    )
+    production_config = load_json_object(PILOT_ROOT / "00_PROJECT/production_config.json")
     channel: dict[str, object] = {"capabilities": {}}
     assert task_condition_matches(task["condition"], production_config, channel, {})
     assert task_condition_matches(
@@ -137,9 +130,7 @@ def test_v2_tasks_are_core_with_minimum_reads_and_single_writes() -> None:
     expectations = {
         "script.render_broadcast_readable": "broadcast_readable_script",
         "continuity.validate_broadcast_readable": "broadcast_readable_report",
-        "production.package_broadcast_readable": (
-            "production_broadcast_readable_script"
-        ),
+        "production.package_broadcast_readable": ("production_broadcast_readable_script"),
     }
     for task_id, output_name in expectations.items():
         task = tasks[task_id]
@@ -168,23 +159,26 @@ def test_runtime_v1_dispatch_keeps_registered_output_bytes(tmp_path: Path) -> No
 def test_gate_08_09_13_core_chain_and_manifest_are_v2_bound() -> None:
     """v2 CORE Chain은 NEEDS_REVIEW Report와 byte-identical Copy를 Manifest에 묶는다."""
     fixture = pilot_fixture()
-    final_hash_before = sha256(
-        (PILOT_ROOT / "07_SCRIPT/final_script.md").read_bytes()
-    ).hexdigest()
+    final_hash_before = sha256((PILOT_ROOT / "07_SCRIPT/final_script.md").read_bytes()).hexdigest()
     readable, report, production_readable, manifest = generated_v2_chain(fixture)
 
+    assert report["schema_version"] == "2.1.0"
+    assert report["mapping_contract_version"] == "OWNER_BOUND_1"
     assert report["result"] == "NEEDS_REVIEW"
     assert report["issues"] == []
     assert production_readable == readable
     assert manifest["schema_version"] == "1.1.0"
-    assert production_readable_deliverable_issues(
-        manifest,
-        readable,
-        production_readable,
-        document_sha256(report),
-        "BROADCAST_READABLE_SCRIPT",
-        "2.0.0",
-    ) == []
+    assert (
+        production_readable_deliverable_issues(
+            manifest,
+            readable,
+            production_readable,
+            document_sha256(report),
+            "BROADCAST_READABLE_SCRIPT",
+            "2.0.0",
+        )
+        == []
+    )
     contracts = load_artifact_contracts(ROOT)
     validate_artifact_content(
         ROOT,
@@ -376,9 +370,12 @@ def test_gate_trace_hashes_include_v2_config_and_profile(
     graph = load_json_object(ROOT / "STANDARD/dependency_graph.json")
     hashes = task_artifact_hashes(ROOT, project_path, task, graph)
 
-    assert hashes["broadcast_readable_config"] == sha256(
-        (project_path / "00_PROJECT/broadcast_readable_config.json").read_bytes()
-    ).hexdigest()
-    assert hashes["broadcast_readable_output_profile"] == sha256(
-        PROFILE_PATH.read_bytes()
-    ).hexdigest()
+    assert (
+        hashes["broadcast_readable_config"]
+        == sha256(
+            (project_path / "00_PROJECT/broadcast_readable_config.json").read_bytes()
+        ).hexdigest()
+    )
+    assert (
+        hashes["broadcast_readable_output_profile"] == sha256(PROFILE_PATH.read_bytes()).hexdigest()
+    )
