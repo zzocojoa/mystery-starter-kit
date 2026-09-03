@@ -56,10 +56,11 @@ from VALIDATORS.dependency import (
     artifact_required_for_project,
     invalidate_artifact_dependents,
 )
-from VALIDATORS.exceptions import ConfigurationError
+from VALIDATORS.exceptions import ConfigurationError, GateTransactionError
 from VALIDATORS.gate_transaction import (
     audit_project,
     return_task_to_owner,
+    revision_trigger_allows_validated_reuse,
     task_inputs_support_validated_reuse,
     task_open,
     task_submit,
@@ -289,6 +290,79 @@ def project_canonical_bytes(project_path: Path) -> dict[str, bytes]:
         for path in sorted(project_path.rglob("*"))
         if path.is_file() and ".runtime" not in path.relative_to(project_path).parts
     }
+
+
+def write_process_trace_records(
+    project_path: Path,
+    records: Sequence[Mapping[str, object]],
+) -> None:
+    """Process Trace 객체 배열을 정규 JSONL Byte로 기록한다."""
+    content = "".join(
+        json.dumps(dict(record), ensure_ascii=False, sort_keys=True) + "\n"
+        for record in records
+    )
+    (project_path / "00_PROJECT/process_trace.jsonl").write_text(
+        content,
+        encoding="utf-8",
+    )
+
+
+def screenplay_source_trace_index(records: Sequence[Mapping[str, object]]) -> int:
+    """Config 재사용 Fixture의 실제 Screenplay 실행 Trace 위치를 반환한다."""
+    matches = [
+        index
+        for index, trace in enumerate(records)
+        if trace.get("process_revision") == 5
+        and trace.get("gate_id") == "GATE-08"
+        and trace.get("task_id") == "script.compose_screenplay_units"
+        and trace.get("execution_mode") != "VALIDATED_REUSE"
+    ]
+    assert len(matches) == 1
+    return matches[0]
+
+
+def open_config_reuse_candidate(
+    repository_root: Path,
+    project_path: Path,
+    opened_at: str,
+) -> dict[str, object]:
+    """공식 Config Admission 뒤 GATE-08 재사용 후보 Task를 연다."""
+    admit_broadcast_readable_config(
+        project_path,
+        project_path / "00_PROJECT/broadcast_readable_config.json",
+        "codex-app",
+        "재사용 Trace 결속 검증",
+        ADMITTED_AT,
+    )
+    return task_open(
+        repository_root,
+        project_path,
+        "GATE-08",
+        opened_at,
+        None,
+    )
+
+
+def render_pilot_fixture_machine_master(fixture: PilotFixture) -> str:
+    """PRJ-006 계약을 사용해 수정된 Mapping Fixture의 Machine Master를 만든다."""
+    overlay: dict[str, object] = dict(fixture)
+    overlay.update(
+        project_task_outputs(
+            "script.render_screenplay_layers",
+            PILOT_ROOT,
+            overlay,
+        )
+    )
+    overlay.update(
+        project_task_outputs(
+            "script.render_broadcast_master",
+            PILOT_ROOT,
+            overlay,
+        )
+    )
+    final_script = overlay["final_script"]
+    assert isinstance(final_script, str)
+    return final_script
 
 
 def build_footprint_off_readable_chain(
@@ -709,6 +783,7 @@ def test_audit_fails_closed_when_config_admission_commits_mid_snapshot(
     )
     original_validation = gate_transaction_module.full_validation_report
     admission_committed = False
+    committed_snapshot: dict[str, bytes] | None = None
 
     def commit_during_validation(
         current_repository_root: Path,
@@ -717,7 +792,7 @@ def test_audit_fails_closed_when_config_admission_commits_mid_snapshot(
         channel_path: Path | None,
     ) -> object:
         """검증 중 한 번만 공식 Config Admission을 Commit한다."""
-        nonlocal admission_committed
+        nonlocal admission_committed, committed_snapshot
         if not admission_committed:
             admit_broadcast_readable_config(
                 current_project_path,
@@ -727,6 +802,7 @@ def test_audit_fails_closed_when_config_admission_commits_mid_snapshot(
                 "2026-09-03T05:00:00Z",
             )
             admission_committed = True
+            committed_snapshot = project_canonical_bytes(current_project_path)
         return original_validation(
             current_repository_root,
             current_project_path,
@@ -748,6 +824,8 @@ def test_audit_fails_closed_when_config_admission_commits_mid_snapshot(
     )
 
     assert admission_committed is True
+    assert committed_snapshot is not None
+    assert project_canonical_bytes(project_path) == committed_snapshot
     assert report["result"] == "FAIL"
     assert report["state_unchanged"] is False
     assert report["snapshot_consistent"] is False
@@ -757,6 +835,192 @@ def test_audit_fails_closed_when_config_admission_commits_mid_snapshot(
         issue.get("code") == "AUDIT_SNAPSHOT_CHANGED"
         for issue in raw_issues
         if isinstance(issue, dict)
+    )
+
+
+def test_audit_fails_closed_when_gate_commits_mid_snapshot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Audit 도중 Gate Commit이 발생하면 시작 Revision의 PASS를 허용하지 않는다."""
+    repository_root, project_path = copied_committed_pilot_repository(tmp_path)
+    return_task_to_owner(
+        repository_root,
+        project_path,
+        "script_writer",
+        "concurrency-test",
+        "Gate Commit Snapshot 경계 검증",
+        "2026-09-03T05:02:00Z",
+    )
+    opened = task_open(
+        repository_root,
+        project_path,
+        "GATE-08",
+        "2026-09-03T05:03:00Z",
+        None,
+    )
+    assert opened["gate_phase"] == "AWAITING_LLM"
+    original_validation = gate_transaction_module.full_validation_report
+    gate_committed = False
+    committed_snapshot: dict[str, bytes] | None = None
+
+    def commit_during_validation(
+        current_repository_root: Path,
+        current_project_path: Path,
+        reference_source: Path | None,
+        channel_path: Path | None,
+    ) -> object:
+        """검증 중 열린 Gate를 한 번만 공식 Transaction으로 Commit한다."""
+        nonlocal gate_committed, committed_snapshot
+        if not gate_committed:
+            submit_gate_until_committed(
+                current_repository_root,
+                current_project_path,
+                "GATE-08",
+                "2026-09-03T05:03:00Z",
+                "2026-09-03T05:04:00Z",
+            )
+            gate_committed = True
+            committed_snapshot = project_canonical_bytes(current_project_path)
+        return original_validation(
+            current_repository_root,
+            current_project_path,
+            reference_source,
+            channel_path,
+        )
+
+    monkeypatch.setattr(
+        gate_transaction_module,
+        "full_validation_report",
+        commit_during_validation,
+    )
+    report = audit_project(
+        repository_root,
+        project_path,
+        None,
+        None,
+        "2026-09-03T05:05:00Z",
+    )
+
+    assert gate_committed is True
+    assert committed_snapshot is not None
+    assert project_canonical_bytes(project_path) == committed_snapshot
+    assert report["result"] == "FAIL"
+    assert report["state_unchanged"] is False
+    assert report["snapshot_consistent"] is False
+    raw_issues = report["process_issues"]
+    assert isinstance(raw_issues, list)
+    assert any(
+        issue.get("code") == "AUDIT_SNAPSHOT_CHANGED"
+        for issue in raw_issues
+        if isinstance(issue, dict)
+    )
+
+
+def test_stable_audit_measures_equal_snapshot_without_writing_canonical_bytes(
+    tmp_path: Path,
+) -> None:
+    """변동 없는 Audit는 동일 Token을 측정하고 Canonical Byte를 쓰지 않는다."""
+    repository_root, project_path = copied_committed_pilot_repository(tmp_path)
+    before = project_canonical_bytes(project_path)
+
+    report = audit_project(
+        repository_root,
+        project_path,
+        None,
+        None,
+        "2026-09-03T05:06:00Z",
+    )
+
+    assert report["result"] == "PASS"
+    assert report["snapshot_start_token"] == report["snapshot_end_token"]
+    assert report["state_unchanged"] is True
+    assert report["snapshot_consistent"] is True
+    assert project_canonical_bytes(project_path) == before
+
+
+def test_never_admitted_optional_config_can_remain_absent(tmp_path: Path) -> None:
+    """Admission 이력과 CLEAN State가 없으면 Config 부재를 비활성 경로로 본다."""
+    repository_root, project_path = copied_pilot_repository(tmp_path)
+    (project_path / "00_PROJECT/broadcast_readable_config.json").unlink()
+    state = cast(
+        ProjectState,
+        load_json_object(project_path / "00_PROJECT/project_state.json"),
+    )
+
+    issues = broadcast_readable_config_admission_issues(
+        repository_root,
+        project_path,
+        state,
+    )
+
+    assert issues == []
+
+
+def test_clean_config_state_rejects_deleted_canonical_file(tmp_path: Path) -> None:
+    """CLEAN State가 가리키는 Config 파일 삭제는 Canonical Drift다."""
+    repository_root, project_path = copied_pilot_repository(tmp_path)
+    config_path = project_path / "00_PROJECT/broadcast_readable_config.json"
+    config_hash = artifact_hash(config_path.read_bytes())
+    config_path.unlink()
+    state_path = project_path / "00_PROJECT/project_state.json"
+    state = cast(ProjectState, load_json_object(state_path))
+    state["artifacts"]["broadcast_readable_config"] = {
+        "status": "CLEAN",
+        "content_hash": config_hash,
+        "invalidated_by": [],
+    }
+
+    issues = broadcast_readable_config_admission_issues(
+        repository_root,
+        project_path,
+        state,
+    )
+
+    assert any(issue.get("reason") == "CANONICAL_FILE_MISSING" for issue in issues)
+
+
+def test_disabled_admission_still_rejects_deleted_config_file(tmp_path: Path) -> None:
+    """enabled=false도 공식 Config 파일 삭제로 비활성화할 수 없다."""
+    repository_root, project_path = copied_pilot_repository(tmp_path)
+    disabled_config_path = tmp_path / "disabled-config.json"
+    write_json_object(
+        disabled_config_path,
+        {
+            "schema_family": "broadcast-readable-config",
+            "schema_version": "1.0.0",
+            "project_id": "PRJ-006",
+            "enabled": False,
+        },
+    )
+    admit_broadcast_readable_config(
+        project_path,
+        disabled_config_path,
+        "config-test",
+        "Readable 기능을 공식적으로 비활성화",
+        "2026-09-03T05:07:00Z",
+    )
+    canonical_path = project_path / "00_PROJECT/broadcast_readable_config.json"
+    canonical_path.unlink()
+    state = cast(
+        ProjectState,
+        load_json_object(project_path / "00_PROJECT/project_state.json"),
+    )
+    state["artifacts"]["broadcast_readable_config"] = {
+        "status": "MISSING",
+        "content_hash": None,
+        "invalidated_by": [],
+    }
+
+    issues = broadcast_readable_config_admission_issues(
+        repository_root,
+        project_path,
+        state,
+    )
+
+    assert any(
+        issue.get("reason") == "CONFIG_FILE_MISSING_AFTER_ADMISSION"
+        for issue in issues
     )
 
 
@@ -830,6 +1094,18 @@ def test_config_admission_backfills_state_and_invalidates_exact_chain(
     assert state_after["state"] == "BLOCKED"
     assert readiness["process_start_gate"] == "GATE-08"
     assert readiness["process_revision"] == 6
+    revision_trigger = state_after["revision_trigger"]
+    assert isinstance(revision_trigger, dict)
+    assert revision_trigger == {
+        "type": "CONFIG_ADMISSION",
+        "source_id": result["admission_id"],
+        "target_owner_agent": None,
+        "target_gate": None,
+        "target_task_ids": [],
+        "actor": "codex-app",
+        "reason": "기존 v2 Config를 공식 경로로 등록",
+        "triggered_at": ADMITTED_AT,
+    }
     for artifact_name, artifact_state in artifacts_after.items():
         assert isinstance(artifact_state, dict)
         if artifact_name in READABLE_INVALIDATION:
@@ -1329,6 +1605,12 @@ def test_config_backfill_records_llm_outputs_as_validated_reuse(
 ) -> None:
     """동일 입력·출력의 기존 LLM 결과를 새 실행으로 가장하지 않는다."""
     repository_root, project_path = copied_pilot_repository_with_runtime(tmp_path)
+    prior_trace = next(
+        trace
+        for trace in trace_records(repository_root, project_path)
+        if trace.get("process_revision") == 5
+        and trace.get("task_id") == "script.compose_screenplay_units"
+    )
     config_path = project_path / "00_PROJECT/broadcast_readable_config.json"
     admit_broadcast_readable_config(
         project_path,
@@ -1368,7 +1650,70 @@ def test_config_backfill_records_llm_outputs_as_validated_reuse(
     assert {trace["task_id"] for trace in reused} == {
         "script.compose_screenplay_units",
     }
-    assert all(isinstance(trace.get("reused_trace_id"), str) for trace in reused)
+    assert len(reused) == 1
+    assert reused[0]["reused_trace_id"] == prior_trace["trace_id"]
+    assert reused[0]["input_hashes"] == prior_trace["input_hashes"]
+
+
+def test_config_reuse_rejects_missing_prior_actual_trace(tmp_path: Path) -> None:
+    """과거 실제 Trace ID가 사라지면 동일 Byte도 재사용하지 않는다."""
+    repository_root, project_path = copied_pilot_repository_with_runtime(tmp_path)
+    records = trace_records(repository_root, project_path)
+    source_index = screenplay_source_trace_index(records)
+    retained = [
+        record for index, record in enumerate(records) if index != source_index
+    ]
+    write_process_trace_records(project_path, retained)
+
+    opened = open_config_reuse_candidate(
+        repository_root,
+        project_path,
+        "2026-09-03T05:08:00Z",
+    )
+
+    assert opened["current_task_id"] == "script.compose_screenplay_units"
+    assert opened["gate_phase"] == "AWAITING_LLM"
+
+
+def test_config_reuse_rejects_prior_trace_input_hash_mismatch(
+    tmp_path: Path,
+) -> None:
+    """과거 Trace와 Task Record의 입력 Hash가 다르면 재사용하지 않는다."""
+    repository_root, project_path = copied_pilot_repository_with_runtime(tmp_path)
+    records = trace_records(repository_root, project_path)
+    source = records[screenplay_source_trace_index(records)]
+    raw_hashes = source["input_hashes"]
+    assert isinstance(raw_hashes, dict)
+    first_artifact = sorted(raw_hashes)[0]
+    raw_hashes[first_artifact] = "0" * 64
+    write_process_trace_records(project_path, records)
+
+    opened = open_config_reuse_candidate(
+        repository_root,
+        project_path,
+        "2026-09-03T05:09:00Z",
+    )
+
+    assert opened["current_task_id"] == "script.compose_screenplay_units"
+    assert opened["gate_phase"] == "AWAITING_LLM"
+
+
+def test_config_reuse_rejects_prior_trace_commit_mismatch(tmp_path: Path) -> None:
+    """과거 Trace와 Task Record의 Commit 결속이 다르면 재사용하지 않는다."""
+    repository_root, project_path = copied_pilot_repository_with_runtime(tmp_path)
+    records = trace_records(repository_root, project_path)
+    source = records[screenplay_source_trace_index(records)]
+    source["commit_sha"] = "0" * 64
+    write_process_trace_records(project_path, records)
+
+    opened = open_config_reuse_candidate(
+        repository_root,
+        project_path,
+        "2026-09-03T05:10:00Z",
+    )
+
+    assert opened["current_task_id"] == "script.compose_screenplay_units"
+    assert opened["gate_phase"] == "AWAITING_LLM"
 
 
 def test_owner_return_requires_target_llm_task_execution(tmp_path: Path) -> None:
@@ -1392,11 +1737,196 @@ def test_owner_return_requires_target_llm_task_execution(tmp_path: Path) -> None
     )
 
     assert result["target_gate"] == "GATE-08"
+    assert result["target_task_ids"] == ["script.compose_screenplay_units"]
+    state = load_json_object(project_path / "00_PROJECT/project_state.json")
+    revision_trigger = state["revision_trigger"]
+    assert isinstance(revision_trigger, dict)
+    assert revision_trigger["type"] == "OWNER_RETURN"
+    assert revision_trigger["target_owner_agent"] == "script_writer"
+    assert revision_trigger["target_gate"] == "GATE-08"
+    assert revision_trigger["target_task_ids"] == result["target_task_ids"]
+    assert revision_trigger["actor"] == "critic-reviewer"
+    assert revision_trigger["reason"] == "대본의 의미 수정이 필요함"
+    assert revision_trigger["returned_at"] == "2026-09-03T05:10:00Z"
+    assert opened["revision_trigger"] == revision_trigger
     assert opened["current_task_id"] == "script.compose_screenplay_units"
     assert opened["gate_phase"] == "AWAITING_LLM"
     execution_modes = opened["task_execution_modes"]
     assert isinstance(execution_modes, dict)
     assert "script.compose_screenplay_units" not in execution_modes
+
+
+def test_other_owner_return_blocks_target_and_reuses_unaffected_upstream_task(
+    tmp_path: Path,
+) -> None:
+    """다른 Owner 반환도 대상은 재실행하고 영향 없는 선행 Task는 재사용한다."""
+    repository_root, project_path = copied_committed_pilot_repository(tmp_path)
+    result = return_task_to_owner(
+        repository_root,
+        project_path,
+        "story_architect",
+        "critic-reviewer",
+        "상태 전이 의미 수정이 필요함",
+        "2026-09-03T05:12:00Z",
+    )
+
+    opened = task_open(
+        repository_root,
+        project_path,
+        "GATE-07",
+        "2026-09-03T05:13:00Z",
+        None,
+    )
+
+    assert result["target_gate"] == "GATE-07"
+    target_task_ids = result["target_task_ids"]
+    assert isinstance(target_task_ids, list)
+    assert target_task_ids == ["story.design_state_transitions"]
+    assert opened["current_task_id"] == "story.design_state_transitions"
+    assert opened["gate_phase"] == "AWAITING_LLM"
+    execution_modes = opened["task_execution_modes"]
+    assert isinstance(execution_modes, dict)
+    assert execution_modes["scene.design"] == "VALIDATED_REUSE"
+    assert "story.design_state_transitions" not in execution_modes
+
+
+@pytest.mark.parametrize(
+    "trigger_type",
+    ["HUMAN_REVISION_REQUEST", "SEMANTIC_CORRECTION"],
+)
+def test_explicit_revision_trigger_blocks_target_task_reuse(
+    tmp_path: Path,
+    trigger_type: str,
+) -> None:
+    """Human·Semantic 재작성 Trigger는 지정 LLM Task를 반드시 다시 연다."""
+    repository_root, project_path = copied_committed_pilot_repository(tmp_path)
+    return_task_to_owner(
+        repository_root,
+        project_path,
+        "script_writer",
+        "critic-reviewer",
+        "대본 재작성 범위 설정",
+        "2026-09-03T05:14:00Z",
+    )
+    state_path = project_path / "00_PROJECT/project_state.json"
+    state = load_json_object(state_path)
+    revision_trigger = state["revision_trigger"]
+    assert isinstance(revision_trigger, dict)
+    revision_trigger["type"] = trigger_type
+    revision_trigger["source_id"] = f"{trigger_type}:TEST"
+    write_json_object(state_path, state)
+
+    opened = task_open(
+        repository_root,
+        project_path,
+        "GATE-08",
+        "2026-09-03T05:15:00Z",
+        None,
+    )
+
+    assert opened["current_task_id"] == "script.compose_screenplay_units"
+    assert opened["gate_phase"] == "AWAITING_LLM"
+    execution_modes = opened["task_execution_modes"]
+    assert isinstance(execution_modes, dict)
+    assert "script.compose_screenplay_units" not in execution_modes
+
+
+def test_missing_revision_trigger_is_not_treated_as_config_only(tmp_path: Path) -> None:
+    """누락된 Trigger는 Config-only 최적화로 추정하지 않는다."""
+    repository_root, project_path = copied_pilot_repository_with_runtime(tmp_path)
+    admit_broadcast_readable_config(
+        project_path,
+        project_path / "00_PROJECT/broadcast_readable_config.json",
+        "codex-app",
+        "Config Trigger 생성",
+        ADMITTED_AT,
+    )
+    state_path = project_path / "00_PROJECT/project_state.json"
+    state = load_json_object(state_path)
+    state.pop("revision_trigger")
+    write_json_object(state_path, state)
+
+    opened = task_open(
+        repository_root,
+        project_path,
+        "GATE-08",
+        "2026-09-03T05:16:00Z",
+        None,
+    )
+
+    assert opened["current_task_id"] == "script.compose_screenplay_units"
+    assert opened["gate_phase"] == "AWAITING_LLM"
+
+
+def test_unknown_revision_trigger_is_rejected_by_task_record_schema(
+    tmp_path: Path,
+) -> None:
+    """알 수 없는 Trigger를 Config-only로 추정하지 않고 계약 오류로 거부한다."""
+    repository_root, project_path = copied_pilot_repository_with_runtime(tmp_path)
+    admit_broadcast_readable_config(
+        project_path,
+        project_path / "00_PROJECT/broadcast_readable_config.json",
+        "codex-app",
+        "Config Trigger 생성",
+        ADMITTED_AT,
+    )
+    state_path = project_path / "00_PROJECT/project_state.json"
+    state = load_json_object(state_path)
+    revision_trigger = state["revision_trigger"]
+    assert isinstance(revision_trigger, dict)
+    revision_trigger["type"] = "UNKNOWN_TRIGGER"
+    write_json_object(state_path, state)
+
+    with pytest.raises(GateTransactionError) as raised:
+        task_open(
+            repository_root,
+            project_path,
+            "GATE-08",
+            "2026-09-03T05:17:00Z",
+            None,
+        )
+
+    assert raised.value.code == "GATE_TRANSACTION_RECORD_INVALID"
+
+
+@pytest.mark.parametrize("tampered_field", ["reason", "target_task_ids"])
+def test_revision_trigger_task_snapshot_rejects_owner_return_tampering(
+    tmp_path: Path,
+    tampered_field: str,
+) -> None:
+    """Task Snapshot의 Owner 반환 사유·대상 변조는 재사용 권한을 잃는다."""
+    repository_root, project_path = copied_committed_pilot_repository(tmp_path)
+    return_task_to_owner(
+        repository_root,
+        project_path,
+        "scene_designer",
+        "critic-reviewer",
+        "Scene 의미 수정이 필요함",
+        "2026-09-03T05:18:00Z",
+    )
+    state = load_json_object(project_path / "00_PROJECT/project_state.json")
+    state_trigger = state["revision_trigger"]
+    assert isinstance(state_trigger, dict)
+    task_trigger = deepcopy(state_trigger)
+    if tampered_field == "reason":
+        task_trigger["reason"] = "변조된 사유"
+    else:
+        task_trigger["target_task_ids"] = []
+    task_id = "story.design_state_transitions"
+    task = load_task_catalog(repository_root)[task_id]
+
+    assert revision_trigger_allows_validated_reuse(
+        task_id,
+        task,
+        state_trigger,
+        state_trigger,
+    )
+    assert not revision_trigger_allows_validated_reuse(
+        task_id,
+        task,
+        task_trigger,
+        state_trigger,
+    )
 
 
 def test_editorial_reuse_requires_self_bound_new_config_inputs(
@@ -1437,7 +1967,7 @@ def test_editorial_reuse_requires_self_bound_new_config_inputs(
 
 def prefix_overlap_fixture() -> PilotFixture:
     """짧은 Screen Text가 확장 Block의 Prefix인 A→B→A Source를 만든다."""
-    fixture = apply_feature_fixture("R1")
+    fixture = pilot_fixture()
     segments = mapping_list(fixture["presentation_plan"], "segments")
     narration_segment = next(
         segment for segment in segments if segment.get("segment_id") == "SEG-002"
@@ -1458,7 +1988,7 @@ def prefix_overlap_fixture() -> PilotFixture:
         unit["text"] = text
         unit.pop("speaker_id", None)
         unit.pop("delivery", None)
-    fixture["final_script"] = render_fixture_machine_master(fixture)
+    fixture["final_script"] = render_pilot_fixture_machine_master(fixture)
     return fixture
 
 
@@ -1478,7 +2008,7 @@ def set_dialogue_unit(
 
 def test_internal_blank_paragraph_prefix_maps_only_owned_units() -> None:
     """긴 대사 내부 빈 문단이 짧은 대사의 추가 발생으로 계산되지 않는다."""
-    fixture = apply_feature_fixture("R1")
+    fixture = pilot_fixture()
     set_dialogue_unit(fixture, "UNIT-003", "CHAR-05", "안녕")
     set_dialogue_unit(
         fixture,
@@ -1495,7 +2025,7 @@ def test_internal_blank_paragraph_prefix_maps_only_owned_units() -> None:
 
 def test_identical_drama_and_panel_blocks_keep_container_ownership() -> None:
     """동일한 대사와 Panel Block은 서로의 발생 개수에 포함되지 않는다."""
-    fixture = apply_feature_fixture("R1")
+    fixture = pilot_fixture()
     set_dialogue_unit(fixture, "UNIT-003", "CHAR-05", "확인했습니다.")
     characters = mapping_list(fixture["characters"], "characters")
     speaker = next(
@@ -1537,7 +2067,7 @@ def test_identical_drama_and_panel_blocks_keep_container_ownership() -> None:
 
 def test_unit_text_inside_context_does_not_change_owner_count() -> None:
     """Context 내부의 동일 가시 Block은 Unit 소유권과 개수에 관여하지 않는다."""
-    fixture = apply_feature_fixture("R1")
+    fixture = pilot_fixture()
     unit = unit_by_id(fixture, "UNIT-002")
     unit["type"] = "SCREEN_TEXT"
     unit["text"] = "공통 문구"
@@ -1640,7 +2170,7 @@ def test_prefix_overlap_extra_standalone_block_fails_global_count() -> None:
 
 def test_identical_blocks_follow_a_b_a_presentation_segments() -> None:
     """동일 Block 세 개도 Scene 순서가 아닌 A→B→A 표시 순서로 소비한다."""
-    fixture = apply_feature_fixture("R1")
+    fixture = pilot_fixture()
     presentation_plan = fixture["presentation_plan"]
     assert isinstance(presentation_plan, dict)
     segments = mapping_list(presentation_plan, "segments")
@@ -1659,6 +2189,7 @@ def test_identical_blocks_follow_a_b_a_presentation_segments() -> None:
             unit["text"] = repeated_text
         unit.pop("speaker_id", None)
         unit.pop("delivery", None)
+    fixture["final_script"] = render_pilot_fixture_machine_master(fixture)
 
     rendered = render_fixture(fixture)
     report = build_report(fixture, rendered)
@@ -1673,7 +2204,7 @@ def test_identical_blocks_follow_a_b_a_presentation_segments() -> None:
         and mapping.get("unit_id") in {"UNIT-001", "UNIT-011", "UNIT-009"}
     }
     starts: list[int] = []
-    for unit_id in ("UNIT-001", "UNIT-011", "UNIT-009"):
+    for unit_id in ("UNIT-001", "UNIT-009", "UNIT-011"):
         byte_range = mappings[unit_id]["actual_byte_range"]
         assert isinstance(byte_range, dict)
         byte_start = byte_range["byte_start"]
@@ -1724,7 +2255,7 @@ def test_segment_cursor_has_direct_utf8_multiline_prefix_oracle() -> None:
 
 def test_repeated_unit_turn_and_cross_layer_blocks_map_to_distinct_ranges() -> None:
     """동일 Unit·대사·Panel 발화도 Segment와 Layer별 실제 발생을 소비한다."""
-    fixture = apply_feature_fixture("R1")
+    fixture = pilot_fixture()
     action_text = "한글 *경고등*이 켜진다."
     for unit_id in ("UNIT-002", "UNIT-004", "UNIT-011"):
         unit = unit_by_id(fixture, unit_id)

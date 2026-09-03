@@ -4,6 +4,7 @@ import json
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from datetime import datetime
+from hashlib import sha256
 from pathlib import Path
 from typing import cast
 from uuid import uuid4
@@ -51,7 +52,7 @@ from VALIDATORS.dependency import (
 from VALIDATORS.editorial import editorial_artifact_hashes
 from VALIDATORS.exceptions import ConfigurationError, GateTransactionError
 from VALIDATORS.io import load_json_object, write_json_object
-from VALIDATORS.models import ProductionValidationReport, ProjectState
+from VALIDATORS.models import ProductionValidationReport, ProjectState, RevisionTrigger
 from VALIDATORS.output_profiles import (
     resolve_active_broadcast_readable_output_profile,
 )
@@ -515,6 +516,59 @@ def audit_artifact_names(
     )
 
 
+def audit_snapshot_token(
+    project_path: Path,
+    dependency_graph: Mapping[str, object],
+) -> str:
+    """Canonical·Trace·Transaction 경계의 결정론적 Audit Snapshot Hash를 만든다."""
+    relative_paths = {
+        "00_PROJECT/project_state.json",
+        "00_PROJECT/change_log.jsonl",
+        PROCESS_TRACE_PATH,
+        "00_PROJECT/broadcast_readable_config.json",
+    }
+    for definition in dependency_artifacts(dependency_graph).values():
+        relative_path = definition.get("path")
+        if isinstance(relative_path, str):
+            relative_paths.add(relative_path)
+    for pattern in (
+        ".runtime/codex_tasks/*/task.json",
+        ".runtime/transactions/*/transaction.json",
+    ):
+        relative_paths.update(
+            path.relative_to(project_path).as_posix()
+            for path in project_path.glob(pattern)
+            if path.is_file()
+        )
+    entries: list[dict[str, object]] = []
+    for relative_path in sorted(relative_paths):
+        path = project_path / relative_path
+        if not path.is_file():
+            entries.append({"path": relative_path, "exists": False})
+            continue
+        try:
+            content = path.read_bytes()
+        except OSError as error:
+            raise ConfigurationError(
+                "Audit Snapshot 파일을 읽지 못했습니다: "
+                f"path={path}, detail={error}"
+            ) from error
+        entries.append(
+            {
+                "path": relative_path,
+                "exists": True,
+                "sha256": sha256(content).hexdigest(),
+            }
+        )
+    serialized = json.dumps(
+        entries,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return sha256(serialized).hexdigest()
+
+
 def task_open_unlocked(
     repository_root: Path,
     project_path: Path,
@@ -617,6 +671,7 @@ def task_open_unlocked(
         "project_id": state["project_id"],
         "gate_id": gate_id,
         "process_revision": state["readiness"]["process_revision"],
+        "revision_trigger": deepcopy(state.get("revision_trigger")),
         "task_ids": list(tasks),
         "current_task_id": None,
         "completed_task_ids": [],
@@ -1039,6 +1094,44 @@ def task_inputs_support_validated_reuse(
     return actual_hashes == editorial_artifact_hashes(artifacts)
 
 
+def revision_trigger_allows_validated_reuse(
+    task_id: str,
+    task: RuntimeTask,
+    task_revision_trigger: object,
+    state_revision_trigger: object,
+) -> bool:
+    """현재 Revision 원인과 Task 범위가 과거 실행 재사용을 허용하는지 판정한다."""
+    if not isinstance(task_revision_trigger, Mapping) or not isinstance(
+        state_revision_trigger,
+        Mapping,
+    ):
+        return False
+    if dict(task_revision_trigger) != dict(state_revision_trigger):
+        return False
+    trigger_type = task_revision_trigger.get("type")
+    if trigger_type in {"CONFIG_ADMISSION", "NORMAL_GATE_PROGRESS"}:
+        return True
+    if trigger_type not in {
+        "OWNER_RETURN",
+        "HUMAN_REVISION_REQUEST",
+        "SEMANTIC_CORRECTION",
+    }:
+        return False
+    raw_target_task_ids = task_revision_trigger.get("target_task_ids")
+    target_owner_agent = task_revision_trigger.get("target_owner_agent")
+    if not isinstance(raw_target_task_ids, list) or not all(
+        isinstance(value, str) for value in raw_target_task_ids
+    ):
+        return False
+    if target_owner_agent is not None and not isinstance(target_owner_agent, str):
+        return False
+    if not raw_target_task_ids and target_owner_agent is None:
+        return False
+    if task_id in raw_target_task_ids:
+        return False
+    return task["agent_id"] != target_owner_agent
+
+
 def matching_validated_reuse_trace_id(
     repository_root: Path,
     project_path: Path,
@@ -1047,8 +1140,16 @@ def matching_validated_reuse_trace_id(
     task: RuntimeTask,
     current_input_hashes: Mapping[str, str],
     dependency_graph: Mapping[str, object],
+    revision_trigger: object,
 ) -> str | None:
     """동일 입력·출력 Byte를 가진 과거 실제 LLM 실행 Trace를 찾는다."""
+    if not revision_trigger_allows_validated_reuse(
+        task_id,
+        task,
+        revision_trigger,
+        project_state(project_path).get("revision_trigger"),
+    ):
+        return None
     definitions = dependency_artifacts(dependency_graph)
     for record in reversed(all_task_records(repository_root, project_path)):
         if record.get("status") != "COMMITTED":
@@ -1165,6 +1266,7 @@ def advance_gate_tasks(
                 task,
                 current_hashes,
                 dependency_graph,
+                updated.get("revision_trigger"),
             )
             if reused_trace_id is not None:
                 read_workspace_outputs(
@@ -1897,6 +1999,21 @@ def owner_revision_gate(
     return max(candidates, key=gate_index)
 
 
+def owner_revision_task_ids(
+    gate_tasks: Mapping[str, RuntimeTask],
+    owner_agent: str,
+    target_gate: str,
+) -> list[str]:
+    """Owner 반환 Gate에서 반드시 재실행할 LLM Task 식별자를 반환한다."""
+    return sorted(
+        task_id
+        for task_id, task in gate_tasks.items()
+        if task["executor"] == "LLM"
+        and task["agent_id"] == owner_agent
+        and task["target_gate"] == target_gate
+    )
+
+
 def revision_state(
     state: ProjectState,
     target_gate: str,
@@ -1989,6 +2106,11 @@ def return_task_to_owner_unlocked(
             {"current_gate": through_gate},
         )
     target_gate = owner_revision_gate(catalog, owner_agent, through_gate)
+    target_task_ids = owner_revision_task_ids(
+        tasks_for_gate(repository_root, project_path, target_gate),
+        owner_agent,
+        target_gate,
+    )
     if active is not None:
         aborted = deepcopy(active)
         aborted["status"] = "ABORTED"
@@ -2009,6 +2131,17 @@ def return_task_to_owner_unlocked(
         dependency_graph,
         returned_at,
     )
+    next_state["revision_trigger"] = RevisionTrigger(
+        type="OWNER_RETURN",
+        source_id=f"OWNER-RETURN-{uuid4().hex[:16].upper()}",
+        target_owner_agent=owner_agent,
+        target_gate=target_gate,
+        target_task_ids=target_task_ids,
+        actor=actor,
+        reason=reason,
+        triggered_at=returned_at,
+        returned_at=returned_at,
+    )
     write_json_object(
         project_path / "00_PROJECT" / "project_state.json",
         next_state,
@@ -2019,6 +2152,7 @@ def return_task_to_owner_unlocked(
         "actor": actor,
         "reason": reason,
         "target_gate": target_gate,
+        "target_task_ids": target_task_ids,
         "current_gate": next_state["current_gate"],
         "process_revision": next_state["readiness"]["process_revision"],
         "aborted_transaction_id": (
@@ -2125,10 +2259,11 @@ def audit_project(
     audited_at: str,
 ) -> dict[str, object]:
     """Artifact 정합성과 Process Conformance를 Project State와 분리해 판정한다."""
-    state = project_state(project_path)
     dependency_graph = load_json_object(
         repository_root / "STANDARD" / "dependency_graph.json"
     )
+    snapshot_start_token = audit_snapshot_token(project_path, dependency_graph)
+    state = project_state(project_path)
     drift = canonical_artifact_drift(
         project_path,
         dependency_graph,
@@ -2156,22 +2291,6 @@ def audit_project(
         state["readiness"]["process_revision"],
     )
     timestamp_issues = process_timestamp_issues(project_path, traces)
-    conformant = trace_conformant and not drift and not timestamp_issues
-    artifact_complete = (
-        validation["gate_results"].get("GATE-13") == "PASS" and not drift
-    )
-    contract_validated = validation["result"] == "PASS" and not drift
-    editorial_approved = (
-        state["readiness"]["editorial_status"] == "EDITORIAL_APPROVED"
-    )
-    production_ready = (
-        artifact_complete
-        and contract_validated
-        and conformant
-        and editorial_approved
-        and state["state"] == "PRODUCTION_READY"
-    )
-    technical_pass = artifact_complete and contract_validated and conformant
     process_issues: list[dict[str, object]] = []
     process_issues.extend(timestamp_issues)
     if not trace_conformant:
@@ -2190,13 +2309,48 @@ def audit_project(
                 "artifacts": drift,
             }
         )
+    snapshot_end_token = audit_snapshot_token(project_path, dependency_graph)
+    snapshot_consistent = snapshot_start_token == snapshot_end_token
+    if not snapshot_consistent:
+        process_issues.append(
+            {
+                "code": "AUDIT_SNAPSHOT_CHANGED",
+                "message": "Audit 도중 Canonical Revision 또는 Transaction 상태가 변경됐습니다.",
+                "snapshot_start_token": snapshot_start_token,
+                "snapshot_end_token": snapshot_end_token,
+            }
+        )
+    conformant = (
+        trace_conformant
+        and not drift
+        and not timestamp_issues
+        and snapshot_consistent
+    )
+    artifact_complete = (
+        validation["gate_results"].get("GATE-13") == "PASS" and not drift
+    )
+    contract_validated = validation["result"] == "PASS" and not drift
+    editorial_approved = (
+        state["readiness"]["editorial_status"] == "EDITORIAL_APPROVED"
+    )
+    production_ready = (
+        artifact_complete
+        and contract_validated
+        and conformant
+        and editorial_approved
+        and state["state"] == "PRODUCTION_READY"
+    )
+    technical_pass = artifact_complete and contract_validated and conformant
     return {
         "schema_family": "process-audit",
         "schema_version": "1.0.0",
         "project_id": state["project_id"],
         "audited_at": audited_at,
         "result": "PASS" if technical_pass else "FAIL",
-        "state_unchanged": True,
+        "snapshot_start_token": snapshot_start_token,
+        "snapshot_end_token": snapshot_end_token,
+        "state_unchanged": snapshot_consistent,
+        "snapshot_consistent": snapshot_consistent,
         "current_gate": state["current_gate"],
         "project_state": state["state"],
         "artifact_complete": artifact_complete,

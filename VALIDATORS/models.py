@@ -35,6 +35,13 @@ EditorialStatus = Literal[
     "EDITORIAL_REVIEW_REQUIRED",
     "EDITORIAL_APPROVED",
 ]
+RevisionTriggerType = Literal[
+    "CONFIG_ADMISSION",
+    "OWNER_RETURN",
+    "HUMAN_REVISION_REQUEST",
+    "SEMANTIC_CORRECTION",
+    "NORMAL_GATE_PROGRESS",
+]
 
 
 class CompatibilityError(TypedDict):
@@ -113,6 +120,20 @@ class ProjectReadiness(TypedDict):
     process_revision: int
 
 
+class RevisionTrigger(TypedDict):
+    """현재 Process Revision을 연 원인과 재실행 범위."""
+
+    type: RevisionTriggerType
+    source_id: str
+    target_owner_agent: str | None
+    target_gate: str | None
+    target_task_ids: list[str]
+    actor: str | None
+    reason: str
+    triggered_at: str
+    returned_at: NotRequired[str]
+
+
 class ProjectState(TypedDict):
     """프로젝트 전체 상태와 Artifact 상태 집합."""
 
@@ -124,6 +145,7 @@ class ProjectState(TypedDict):
     updated_at: str
     readiness: ProjectReadiness
     artifacts: dict[str, ArtifactState]
+    revision_trigger: NotRequired[RevisionTrigger]
 
 
 class ProductionValidationReport(TypedDict):

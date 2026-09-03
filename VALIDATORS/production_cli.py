@@ -89,7 +89,12 @@ from VALIDATORS.library_store import (
     sync_novelty_production_ready,
     sync_novelty_revision,
 )
-from VALIDATORS.models import ProjectCompatibilityReport, ProjectState, ValidationIssue
+from VALIDATORS.models import (
+    ProjectCompatibilityReport,
+    ProjectState,
+    RevisionTrigger,
+    ValidationIssue,
+)
 from VALIDATORS.novelty import evaluate_variation_precheck_bound
 from VALIDATORS.pipeline import load_selected_project_artifacts
 from VALIDATORS.reference_validation import sanitize_reference_profile
@@ -506,6 +511,16 @@ def invalidate_channel_pin_state(
         "process_revision": state["readiness"]["process_revision"] + 1,
     }
     next_state["updated_at"] = updated_at
+    next_state["revision_trigger"] = RevisionTrigger(
+        type="SEMANTIC_CORRECTION",
+        source_id=f"CHANNEL-PIN:{updated_at}",
+        target_owner_agent=None,
+        target_gate="GATE-00",
+        target_task_ids=[],
+        actor=None,
+        reason="Channel Pin 변경으로 전체 의미 계약을 다시 검증합니다.",
+        triggered_at=updated_at,
+    )
     return next_state
 
 

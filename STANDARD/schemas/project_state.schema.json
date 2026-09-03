@@ -75,6 +75,9 @@
         }
       }
     },
+    "revision_trigger": {
+      "$ref": "#/$defs/revisionTrigger"
+    },
     "artifacts": {
       "type": "object",
       "propertyNames": {
@@ -100,6 +103,69 @@
               "pattern": "^[a-z][a-z0-9_]*$"
             }
           }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "revisionTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "source_id",
+        "target_owner_agent",
+        "target_gate",
+        "target_task_ids",
+        "actor",
+        "reason",
+        "triggered_at"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "CONFIG_ADMISSION",
+            "OWNER_RETURN",
+            "HUMAN_REVISION_REQUEST",
+            "SEMANTIC_CORRECTION",
+            "NORMAL_GATE_PROGRESS"
+          ]
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_owner_agent": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "target_gate": {
+          "type": ["string", "null"],
+          "pattern": "^GATE-(0[0-9]|1[0-3])$"
+        },
+        "target_task_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "actor": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "triggered_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "returned_at": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     }

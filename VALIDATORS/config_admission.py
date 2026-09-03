@@ -26,7 +26,7 @@ from VALIDATORS.dependency import (
 )
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.io import load_json_object
-from VALIDATORS.models import ProjectState
+from VALIDATORS.models import ProjectState, RevisionTrigger
 from VALIDATORS.output_profiles import (
     ResolvedOutputProfile,
     resolve_active_broadcast_readable_output_profile,
@@ -216,6 +216,9 @@ def config_admission_state(
     dependency_graph: Mapping[str, object],
     state: ProjectState,
     config_file_sha256: str,
+    admission_id: str,
+    actor: str,
+    reason: str,
     admitted_at: str,
 ) -> tuple[ProjectState, list[str]]:
     """Config를 CLEAN으로 승인하고 정확한 Readable 하위만 무효화한다."""
@@ -252,6 +255,16 @@ def config_admission_state(
         }
     next_state["state"] = "BLOCKED"
     next_state["updated_at"] = admitted_at
+    next_state["revision_trigger"] = RevisionTrigger(
+        type="CONFIG_ADMISSION",
+        source_id=admission_id,
+        target_owner_agent=None,
+        target_gate=None,
+        target_task_ids=[],
+        actor=actor,
+        reason=reason,
+        triggered_at=admitted_at,
+    )
     return next_state, invalidated_names
 
 
@@ -364,6 +377,9 @@ def admit_broadcast_readable_config(
             dependency_graph,
             state,
             config_file_sha256,
+            admission_id,
+            actor,
+            reason,
             admitted_at,
         )
         profile_id = None if resolved_profile is None else resolved_profile["profile_id"]
@@ -436,6 +452,20 @@ def broadcast_readable_config_admission_issues(
                     "artifact": CONFIG_ARTIFACT,
                     "path": CONFIG_RELATIVE_PATH,
                     "reason": "CANONICAL_FILE_MISSING",
+                }
+            ]
+        admitted_before = any(
+            record.get("event") == ADMISSION_EVENT
+            and isinstance((detail := record.get("detail")), Mapping)
+            and detail.get("commit_result") == "COMMITTED"
+            for record in change_log_records(project_path)
+        )
+        if admitted_before:
+            return [
+                {
+                    "artifact": CONFIG_ARTIFACT,
+                    "path": CONFIG_RELATIVE_PATH,
+                    "reason": "CONFIG_FILE_MISSING_AFTER_ADMISSION",
                 }
             ]
         return []
