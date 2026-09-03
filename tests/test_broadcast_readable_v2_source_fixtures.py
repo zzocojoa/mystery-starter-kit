@@ -1,5 +1,6 @@
 """추상 기능군 R1·R2의 Original Fiction Source-style Fixture를 검증한다."""
 
+import json
 from copy import deepcopy
 from hashlib import sha256
 from pathlib import Path
@@ -54,6 +55,36 @@ CANONICAL_SCHEMA_PATHS = {
     "panel_cast": ROOT / "STANDARD/schemas/panel_cast.schema.json",
     "reaction_segments": ROOT / "STANDARD/schemas/reaction_segments.schema.json",
     "presentation_plan": ROOT / "STANDARD/schemas/presentation_plan.schema.json",
+}
+INDEPENDENT_BUNDLE_DOCUMENTS = {
+    "project_manifest",
+    "production_config",
+    "project_constraints",
+    "config",
+    "source_truth_contract",
+    "crime_event_contract",
+    "facts",
+    "characters",
+    "relationships",
+    "actual_timeline",
+    "viewer_timeline",
+    "clue_matrix",
+    "scene_cards",
+    "panel_cast",
+    "reaction_segments",
+    "presentation_plan",
+    "screenplay_units",
+}
+PRJ_006_STORY_TOKENS = {
+    "PRJ-006",
+    "강태수",
+    "오민재",
+    "박도윤",
+    "한지석",
+    "정세린",
+    "한서윤",
+    "폐장 실내 수영장",
+    "수영장 제어실",
 }
 
 
@@ -335,6 +366,25 @@ def assert_fixture_source_style(fixture_id: str) -> None:
 def test_source_style_fixture_is_issue_free(fixture_id: str) -> None:
     """R1·R2는 Raw Reference 없이 독립 Original Fiction Source 문서를 만든다."""
     assert_fixture_source_style(fixture_id)
+
+
+@pytest.mark.parametrize("fixture_id", ["R1", "R2"])
+def test_source_style_fixture_is_a_complete_independent_bundle(
+    fixture_id: str,
+) -> None:
+    """R1·R2가 PRJ-006 의미 Source 없이 자체 Canonical 문서를 소유한다."""
+    fixture = apply_feature_fixture(fixture_id)
+    assert INDEPENDENT_BUNDLE_DOCUMENTS <= set(fixture)
+    serialized = json.dumps(fixture, ensure_ascii=False, sort_keys=True)
+    assert PRJ_006_STORY_TOKENS.isdisjoint(
+        token for token in PRJ_006_STORY_TOKENS if token in serialized
+    )
+    project_id = fixture["screenplay_units"]["project_id"]
+    for document_name in INDEPENDENT_BUNDLE_DOCUMENTS:
+        document = fixture[document_name]
+        assert isinstance(document, dict)
+        if "project_id" in document:
+            assert document["project_id"] == project_id
 
 
 def test_r1_reentry_note_signal_and_retrospective_positions() -> None:

@@ -577,3 +577,43 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 - 최종 State는 GATE-13 `EDITORIAL_REVIEW_REQUIRED`, Artifact/Contract/Process는 COMPLETE/VALIDATED/CONFORMANT, Human Editorial은 미승인, Production Ready는 false다.
 - `validate`와 `audit`는 GATE-00~13 PASS, issue 0, State 불변이다. 전체 검증은 Ruff PASS, strict mypy PASS(153 source files), pytest PASS(654 tests), package 1.6.1 build PASS, 외부 의존성 audit PASS, Runtime Doctor PASS, `origin/main`과 고정 기준 Ref 대비 Version Immutability PASS다.
 - Novelty Index의 전후 SHA-256은 `95a24dd2c3373765a24d21238cfd843befb80f539cf63d78ff1822c1c30c01ee`이며 `entries=[]`다. Human `editorial-approve`, 사용자용 `production-finalize`, Story Library `register`, PR Merge/Close는 실행하지 않았다.
+
+## Broadcast Readable v2 P1 Final Closure
+
+### Phase 0 기준선과 계보
+
+- 검증 시각: 2026-09-03 (Asia/Seoul)
+- PR #31의 원격 Head는 `381c91a92cf5c3368d47b7f0b417b0435f20e8fa`이며 Goal 기준 SHA와 정확히 같다. 기준 SHA는 현재 Head의 선조이고 PR은 `OPEN`, `CLEAN`, 미병합이다.
+- 후속 Branch `codex/broadcast-readable-v2-final-closure`는 검증된 PR #31 Head에서 생성했다. PR #28~#31 Branch, 공개 Commit 이력과 PR Base는 변경하지 않는다.
+- 구현 전 기준선은 Ruff, strict mypy 153개 파일, pytest 654개, package 1.6.1 build, dependency audit, Runtime Doctor와 `origin/main` 대비 Registered Version Immutability를 모두 통과했다.
+- Human Editorial Approval, `production-finalize`, Story Library `register`, PR Merge·Close는 이 Goal의 금지 범위다.
+
+### 보호 Byte Manifest
+
+아래 SHA-256과 Git Blob SHA는 기준 Head `381c91a92cf5c3368d47b7f0b417b0435f20e8fa`에서 계산했다. 최종 Head에서 파일별로 재계산하고 기준 Head와 경로 Diff 0을 함께 확인한다.
+
+| 경로 | SHA-256 | Git Blob SHA |
+|---|---|---|
+| `CHANNELS/mystery_main/output_profiles/broadcast-readable-script/1.0.0.json` | `7c8b59c96af7a65f59faf7f4ed68d2ad7ffba10ef59fbbbb3189dd1445943667` | `f7617ec40b13b23f6fab963dac32cec0504f2cca` |
+| `CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json` | `d156c49f31a0ecee4563c7eb6347ff5973325a918eb1fae3281955a70ec07284` | `c0947dcdf83c4bd34fa30df0e07958b264731d9f` |
+| `CHANNELS/mystery_main/output_profiles/registry.json` | `1836f7c706db5edba70ece2ef49d2303cd769e11f8bcdd46e241eda45d398c3f` | `700fb97cd6fa451c1e8ed38b1d5d13cdd16d34a6` |
+| `PROJECTS/PRJ-006/07_SCRIPT/screenplay_units.json` | `c478aff60b0af9adba79e20dcc01622dd282460e93e0037e9f70e078910163ad` | `fa9e668cf840c3ed17e48edee3a2d3f522cb99ea` |
+| `PROJECTS/PRJ-006/07_SCRIPT/broadcast_readable_script.md` | `5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41` | `d3c66243087f4a0c3526fbbf20fab192093a217d` |
+| `PROJECTS/PRJ-006/07_SCRIPT/draft_v01.md` | `df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602` | `176c5c15c356e35573b6a11110ea1fbc1dc0d558` |
+| `PROJECTS/PRJ-006/07_SCRIPT/drama_script.md` | `da3e02203c8e7b6a480fb90d607501f3a2e850e4f3e3c0c0ac35efc6f98bfe1b` | `1849ed9d719269a6f9877d2dba39afe6d0b1c89b` |
+| `PROJECTS/PRJ-006/07_SCRIPT/final_script.md` | `df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602` | `176c5c15c356e35573b6a11110ea1fbc1dc0d558` |
+| `PROJECTS/PRJ-006/07_SCRIPT/narration_script.md` | `5c532952b199d06a1bc7582d7dbd0b7453a55a3eba63977b89e8088ad4b2acc5` | `74810da69871670e75de2e97f2741273c7600274` |
+| `PROJECTS/PRJ-006/07_SCRIPT/panel_reaction_script.md` | `46f2b81d521d0ff60cf0af41effb6ba0484320349128397029eff099fc72be86` | `a3e9ef0f0d9dca808d9c410293dbb4a1fe870807` |
+| `PROJECTS/PRJ-006/07_SCRIPT/reenactment_character_script.md` | `0a97c9702158a3f45b6613016fea5b9d67f85e6f3316f88ea9bd80b7bd9e5618` | `dfeed21ec0258950ea489b7ff96481b7b6455c0b` |
+| `PROJECTS/PRJ-006/09_PRODUCTION/broadcast_readable_script.md` | `5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41` | `d3c66243087f4a0c3526fbbf20fab192093a217d` |
+| `PROJECTS/PRJ-006/09_PRODUCTION/edit_script.md` | `39f2d642a0d51cb3592de24758744083bcb81ff4d3db2ad870c75d5057bca652` | `f64976b61a507578c3d0a8163f99585a04c1ee9b` |
+| `PROJECTS/PRJ-006/09_PRODUCTION/narration.md` | `316efbb7854f9f01ce19441bb7c9d6b19bb491a39674070b77a02de9068639d9` | `8821f84a835154c2de295c2665b9ff21a908d064` |
+| `PROJECTS/PRJ-006/09_PRODUCTION/panel_reaction_script.md` | `42e344427fa5e4bde332a03597ed363f083038987482f5fab836aef9eb42f7cc` | `c060094a32324841f5e7f151628d3599e9bfa7fa` |
+| `PROJECTS/PRJ-006/09_PRODUCTION/reenactment_character_script.md` | `0a97c9702158a3f45b6613016fea5b9d67f85e6f3316f88ea9bd80b7bd9e5618` | `dfeed21ec0258950ea489b7ff96481b7b6455c0b` |
+| `PROJECTS/PRJ-006/09_PRODUCTION/shooting_script.md` | `f140912435fa39b91e17bbdc9237080489fe043b808500ed1a8678b5ac5338ba` | `625e14eae11a05b7236b135ee28de9b58a6a79a7` |
+| `PROJECTS/PRJ-006/09_PRODUCTION/subtitle_script.md` | `b3f0805ece7afb6612703bc852686c9c4bc9ca8ebf80ba5f901a92def6c26417` | `a892da96ce582647765923f64e1c59b3490864d2` |
+| `STORY_LIBRARY/novelty_index.json` | `95a24dd2c3373765a24d21238cfd843befb80f539cf63d78ff1822c1c30c01ee` | `a5f5a7d354bc731b50e57cf397dd88e8c94c7e35` |
+| `STORY_LIBRARY/published_fingerprints.json` | `1c0d62446bb7507719bd0b3c9a58cd84315a421dae7e466f8f7aee3cf74dce99` | `766d92b9defb1333920a441dcef8d9a409513751` |
+| `STORY_LIBRARY/story_history.jsonl` | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` |
+
+Registry의 `BROADCAST_READABLE_SCRIPT@1.0.0` Entry canonical SHA-256은 `b12bbefa02bd5d98f9dd27ac6824a71c7139049f8425af02d0b8025ea8368ef1`, `@2.0.0` Entry는 `877d8f989f992b0099170250811519048c4f546434ce3d79af1283c45d6278ed`다.

@@ -10,6 +10,7 @@ from shutil import copytree, rmtree
 from typing import cast
 
 import pytest
+import VALIDATORS.gate_transaction as gate_transaction_module
 from runtime.support import create_runtime_project, create_runtime_repository
 from test_broadcast_readable_v2_runtime import project_task_outputs
 from test_broadcast_readable_v2_source_fixtures import (
@@ -19,6 +20,7 @@ from test_broadcast_readable_v2_source_fixtures import (
 from test_broadcast_readable_v2_validation import (
     PilotFixture,
     build_report,
+    mapping_records,
     pilot_fixture,
     render_fixture,
 )
@@ -56,6 +58,7 @@ from VALIDATORS.dependency import (
 from VALIDATORS.exceptions import ConfigurationError
 from VALIDATORS.gate_transaction import (
     audit_project,
+    return_task_to_owner,
     task_inputs_support_validated_reuse,
     task_open,
     task_submit,
@@ -246,6 +249,23 @@ def copied_pilot_repository_with_runtime(tmp_path: Path) -> tuple[Path, Path]:
             "completed_at": "2026-09-02T16:43:01Z",
         },
     )
+    return repository_root, project_path
+
+
+def copied_committed_pilot_repository(tmp_path: Path) -> tuple[Path, Path]:
+    """최종 Commit 상태와 실행 이력을 보존한 격리 Pilot Repository를 만든다."""
+    repository_root = tmp_path / "repository"
+    for directory in (
+        "AGENTS",
+        "STANDARD",
+        "CHANNELS",
+        "RUNTIME",
+        "STORY_LIBRARY",
+        "VALIDATORS",
+    ):
+        copytree(ROOT / directory, repository_root / directory)
+    project_path = repository_root / "PROJECTS/PRJ-006"
+    copytree(PILOT_ROOT, project_path)
     return repository_root, project_path
 
 
@@ -582,6 +602,113 @@ def test_audit_rejects_existing_v2_config_with_missing_state_entry(
         issue for issue in raw_process_issues if isinstance(issue, dict)
     ]
     assert "CANONICAL_ARTIFACT_DRIFT" in issue_codes(process_issues)
+
+
+def test_audit_fails_closed_when_config_admission_commits_mid_snapshot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Audit 도중 Admission Commit이 발생하면 혼합 Revision PASS를 거부한다."""
+    repository_root, project_path = copied_committed_pilot_repository(tmp_path)
+    disabled_config_path = tmp_path / "disabled-readable-config.json"
+    write_json_object(
+        disabled_config_path,
+        {
+            "$schema": (
+                "../../../STANDARD/schemas/broadcast_readable_config.schema.json"
+            ),
+            "schema_family": "broadcast-readable-config",
+            "schema_version": "1.0.0",
+            "project_id": "PRJ-006",
+            "enabled": False,
+        },
+    )
+    original_validation = gate_transaction_module.full_validation_report
+    admission_committed = False
+
+    def commit_during_validation(
+        current_repository_root: Path,
+        current_project_path: Path,
+        reference_source: Path | None,
+        channel_path: Path | None,
+    ) -> object:
+        """검증 중 한 번만 공식 Config Admission을 Commit한다."""
+        nonlocal admission_committed
+        if not admission_committed:
+            admit_broadcast_readable_config(
+                current_project_path,
+                disabled_config_path,
+                "concurrency-test",
+                "Audit Snapshot 중 Config 변경",
+                "2026-09-03T05:00:00Z",
+            )
+            admission_committed = True
+        return original_validation(
+            current_repository_root,
+            current_project_path,
+            reference_source,
+            channel_path,
+        )
+
+    monkeypatch.setattr(
+        gate_transaction_module,
+        "full_validation_report",
+        commit_during_validation,
+    )
+    report = audit_project(
+        repository_root,
+        project_path,
+        None,
+        None,
+        "2026-09-03T05:01:00Z",
+    )
+
+    assert admission_committed is True
+    assert report["result"] == "FAIL"
+    assert report["state_unchanged"] is False
+    assert report["snapshot_consistent"] is False
+    raw_issues = report["process_issues"]
+    assert isinstance(raw_issues, list)
+    assert any(
+        issue.get("code") == "AUDIT_SNAPSHOT_CHANGED"
+        for issue in raw_issues
+        if isinstance(issue, dict)
+    )
+
+
+@pytest.mark.parametrize("state_entry_mode", ["missing", "absent"])
+def test_deleted_config_after_successful_admission_is_drift(
+    tmp_path: Path,
+    state_entry_mode: str,
+) -> None:
+    """성공 Admission 이력 뒤 Config와 State 결속이 사라지면 실패한다."""
+    repository_root, project_path = copied_committed_pilot_repository(tmp_path)
+    config_path = project_path / "00_PROJECT/broadcast_readable_config.json"
+    config_path.unlink()
+    state_path = project_path / "00_PROJECT/project_state.json"
+    state = load_json_object(state_path)
+    artifacts = state["artifacts"]
+    assert isinstance(artifacts, dict)
+    if state_entry_mode == "missing":
+        config_state = artifacts["broadcast_readable_config"]
+        assert isinstance(config_state, dict)
+        config_state.update(
+            {"status": "MISSING", "content_hash": None, "invalidated_by": []}
+        )
+    else:
+        artifacts.pop("broadcast_readable_config")
+    write_json_object(state_path, state)
+
+    issues = broadcast_readable_config_admission_issues(
+        repository_root,
+        project_path,
+        cast(ProjectState, state),
+    )
+
+    assert any(
+        issue.get("reason") == "CONFIG_FILE_MISSING_AFTER_ADMISSION"
+        for issue in issues
+    )
 
 
 def test_config_admission_backfills_state_and_invalidates_exact_chain(
@@ -1160,6 +1287,34 @@ def test_config_backfill_records_llm_outputs_as_validated_reuse(
     assert all(isinstance(trace.get("reused_trace_id"), str) for trace in reused)
 
 
+def test_owner_return_requires_target_llm_task_execution(tmp_path: Path) -> None:
+    """Owner Return 대상은 같은 입력·기존 Byte가 있어도 재사용하지 않는다."""
+    repository_root, project_path = copied_committed_pilot_repository(tmp_path)
+    result = return_task_to_owner(
+        repository_root,
+        project_path,
+        "script_writer",
+        "critic-reviewer",
+        "대본의 의미 수정이 필요함",
+        "2026-09-03T05:10:00Z",
+    )
+
+    opened = task_open(
+        repository_root,
+        project_path,
+        "GATE-08",
+        "2026-09-03T05:11:00Z",
+        None,
+    )
+
+    assert result["target_gate"] == "GATE-08"
+    assert opened["current_task_id"] == "script.compose_screenplay_units"
+    assert opened["gate_phase"] == "AWAITING_LLM"
+    execution_modes = opened["task_execution_modes"]
+    assert isinstance(execution_modes, dict)
+    assert "script.compose_screenplay_units" not in execution_modes
+
+
 def test_editorial_reuse_requires_self_bound_new_config_inputs(
     tmp_path: Path,
 ) -> None:
@@ -1221,6 +1376,98 @@ def prefix_overlap_fixture() -> PilotFixture:
         unit.pop("delivery", None)
     fixture["final_script"] = render_fixture_machine_master(fixture)
     return fixture
+
+
+def set_dialogue_unit(
+    fixture: PilotFixture,
+    unit_id: str,
+    speaker_id: str,
+    text: str,
+) -> None:
+    """지정 Unit을 전달 지시 없는 대사 Block으로 만든다."""
+    unit = unit_by_id(fixture, unit_id)
+    unit["type"] = "DIALOGUE"
+    unit["speaker_id"] = speaker_id
+    unit["text"] = text
+    unit.pop("delivery", None)
+
+
+def test_internal_blank_paragraph_prefix_maps_only_owned_units() -> None:
+    """긴 대사 내부 빈 문단이 짧은 대사의 추가 발생으로 계산되지 않는다."""
+    fixture = apply_feature_fixture("R1")
+    set_dialogue_unit(fixture, "UNIT-003", "CHAR-05", "안녕")
+    set_dialogue_unit(
+        fixture,
+        "UNIT-006",
+        "CHAR-05",
+        "안녕\n\n추가 설명",
+    )
+    rendered = render_fixture(fixture)
+    report = build_report(fixture, rendered)
+
+    assert report["result"] == "NEEDS_REVIEW"
+    assert report["issues"] == []
+
+
+def test_identical_drama_and_panel_blocks_keep_container_ownership() -> None:
+    """동일한 대사와 Panel Block은 서로의 발생 개수에 포함되지 않는다."""
+    fixture = apply_feature_fixture("R1")
+    set_dialogue_unit(fixture, "UNIT-003", "CHAR-05", "확인했습니다.")
+    characters = mapping_list(fixture["characters"], "characters")
+    speaker = next(
+        character
+        for character in characters
+        if character.get("character_id") == "CHAR-05"
+    )
+    reactions = mapping_list(fixture["reaction_segments"], "reaction_segments")
+    first_turn = mapping_list(reactions[0], "turns")[0]
+    panelists = mapping_list(fixture["panel_cast"], "panelists")
+    panelist = next(
+        item
+        for item in panelists
+        if item.get("panelist_id") == first_turn["panelist_id"]
+    )
+    panelist["display_name"] = speaker["name"]
+    first_turn["spoken_line"] = "확인했습니다."
+    rendered = render_fixture(fixture)
+    report = build_report(fixture, rendered)
+
+    assert report["result"] == "NEEDS_REVIEW"
+    assert report["issues"] == []
+    unit_mapping = next(
+        mapping
+        for mapping in mapping_records(report, "unit_mappings")
+        if mapping.get("unit_id") == "UNIT-003"
+    )
+    turn_mapping = next(
+        mapping
+        for mapping in mapping_records(report, "panel_turn_mappings")
+        if mapping.get("turn_id") == first_turn["turn_id"]
+    )
+    assert unit_mapping["container_type"] == "DRAMA"
+    assert turn_mapping["container_type"] == "PANEL_REACTION"
+    assert unit_mapping["actual_byte_range"] != turn_mapping["actual_byte_range"]
+
+
+def test_unit_text_inside_context_does_not_change_owner_count() -> None:
+    """Context 내부의 동일 가시 Block은 Unit 소유권과 개수에 관여하지 않는다."""
+    fixture = apply_feature_fixture("R1")
+    unit = unit_by_id(fixture, "UNIT-002")
+    unit["type"] = "SCREEN_TEXT"
+    unit["text"] = "공통 문구"
+    unit.pop("speaker_id", None)
+    unit.pop("delivery", None)
+    scenes = mapping_list(fixture["screenplay_units"], "scenes")
+    context = scenes[0]["context"]
+    assert isinstance(context, dict)
+    context["location_description"] = (
+        "세탁실 입구\n\n**화면 문구**\n공통 문구\n\n관리실 복도"
+    )
+    rendered = render_fixture(fixture)
+    report = build_report(fixture, rendered)
+
+    assert report["result"] == "NEEDS_REVIEW"
+    assert report["issues"] == []
 
 
 def test_prefix_overlap_passes_source_renderer_verifier_report_and_gate(
