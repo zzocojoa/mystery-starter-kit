@@ -629,3 +629,51 @@ Registry의 `BROADCAST_READABLE_SCRIPT@1.0.0` Entry canonical SHA-256은 `b12bbe
 - 로컬 최종 검증은 Ruff PASS, strict mypy 153 files PASS, pytest 최종 수집 684 tests, package 1.6.1 build PASS, dependency audit known vulnerability 0, Runtime Doctor PASS, `origin/main`과 PR #31 기준 SHA 대비 Registered Version Immutability PASS다.
 - 상세 함수별 Mandatory Matrix, 보호 Hash와 Closure Matrix는 저장소 루트 `BROADCAST_READABLE_P1_Closure_Report.md`에 기록했다. 보고서 포함 최종 Head의 Python 3.11/3.14 Run/Job ID는 Head 순환을 피하기 위해 Final Closure PR 본문에 기록한다.
 - Human Editorial Approval, `production-finalize`, Story Library `register`, PR Merge/Close는 실행하지 않았다.
+
+## Broadcast Readable v2 Final Acceptance Correction
+
+### 기준·변경 범위
+
+- 검증 기준은 열린 PR #32의 Head `e79645e35f54c94db794bc130de05bd263956bea`이고, 보정 Branch는 `codex/broadcast-readable-v2-acceptance-fix`다. 기준 SHA는 보정 Head의 선조이며 최종 exact Head와 Python 3.11/3.14 Run·Job ID는 자기 참조 Commit을 피하기 위해 새 PR 본문에 기록한다.
+- 변경은 Report 2.1 Schema·Artifact Contract·CORE Version Dispatch·Report/Editorial/Pipeline Validator, R1/R2 정적 Fixture와 Test-only Gate Adapter, `validate` 종료 코드 및 회귀 테스트로 제한했다. Production FakeProvider, Channel DNA, Runtime Task Catalog, Dependency Graph, Agent Manifest, Config Admission, Gate Transaction은 변경하지 않았다.
+
+### Report 2.0/2.1과 Owner Contract
+
+| Report | 생성·검증 계약 | 결과 |
+|---|---|---|
+| Historical 2.0.0 | 기존 Schema와 Validator Dispatch를 byte 불변으로 유지 | PRJ-006 Temp Worktree `validate=0`, `audit=0` |
+| Current 2.1.0 | `mapping_contract_version=OWNER_BOUND_1`, Owner·Container·Scene/Segment·UTF-8 Range·Block Hash·전역/로컬/Occurrence Order 필수 | 정상 PASS, 단순 2.0 Downgrade와 각 독립 변조 FAIL |
+
+ROC-01~ROC-11은 `test_current_report_*`, `test_prj_006_historical_report_2_0_remains_read_only_compatible`와 Output Gateway 회귀 테스트가 담당한다. 누락 Owner 필드, Owner ID 불일치, Container/Scene/Segment 오결속, Hash·Range·Order 변조는 각각 Schema 또는 명시적 의미 Issue로 거부된다.
+
+### R1/R2 Canonical Artifact Hash Matrix
+
+두 Bundle은 `ORIGINAL_FICTION`이며 R1은 셀프 세탁실 사건, R2는 산장 연수원 사건이다. 다음 canonical document SHA-256은 Fixture Metadata와 실제 GATE 산출물이 일치한다.
+
+| Artifact | R1 | R2 |
+|---|---|---|
+| `variation_candidates` | `60863a53b6222d27f3fb87b3ca1e20c0f4d18da9a1b9d979523e923d7b3846be` | `1c4972a4e4b77ffa388603a6d9680069611bc05bb79351eba187b66b4074a0bf` |
+| `candidate_event_briefs` | `467583364c84e8c0731f86b40f565ae504e24b826b5d554914945e475eeebfb4` | `309d8679ae0bcc0b0a5b2492e9bd437b9320d4222fe728a60bccad0961151329` |
+| `candidate_approval` | `ff3da4fe4a4a9254f2f5c8b273f92360a72c5e553c012e4a50e25ffc436d1b34` | `ab50b03f36c4b0d2ac83d4d47ad52a58396ee7d7d8985b221ef3f352d51ba608` |
+| `case_input` | `1f349e975fefc56af4ebb0ed18d83b758ca50f393941b6e5e15e7b4e208c80ba` | `7a60c912f27c879f10dec8774bfeecf763c095601389c4d178400337303eec03` |
+| `story_dna` | `677f148cf5cecf2ff7c16bf0103d81b4a7f2c008aae8d4796eff9077a8f44037` | `6fa9dc4084265000933cad25be7445021d80187ff1d3d21327cf1b20ba3bbf98` |
+| `facts` | `f7696506d237f236aec1cf2647ffaefa7a56b91c131d4511d76c069accbbaf6f` | `710e58add28de9ac4a9123dcc1b453170cd6e250e77f19432a5f3317eba42fd7` |
+| `crime_event_contract` | `d20341063652ff64600f07b7a27ecbe1bfad5d4891606981e58a01e2ad7bdfd2` | `d13e42015ec65c286e105999af26c5dd5b85b9b67f38123a1d33df3c864c4bce` |
+| `actual_timeline` | `653f0d2180dc9274393dec7fff3ab15fedf5e280fc1b90ebc801ba6fef59375b` | `be6b3abadd4cb812465c578c430efb1f5a6504c0e96e83c725409c7ec10c5ef8` |
+| `viewer_timeline` | `bf50951bda2c89db87ad882d49053df5b3352003f3ac2780997bbf6d75ec1397` | `2d4317355a21880066a65e551acf79f476e4587eab78b6f245f4b1252f466daf` |
+| `audience_belief` | `fd07ca2702fca65283399ae2ad9d47b8c14e89d60a7bd8dd670babb03a803071` | `e9eaf1566348a5b6f74a958d39f8712bb87cee433c5c46eb10c2966817e8a2b4` |
+| `clue_matrix` | `2e7643e1677d9dfebb09ba55e0fbcfe0172d9149746b30613825bfc7481d6164` | `efd2402e525488e0a9115cc5b3ffc915f6a6a21e743c9971966772caf5b695c8` |
+| `character_state_transitions` | `8dce149bb75a6a2581409db00b2e776453b169afae315e8c03c0e6dbf14608e4` | `a38bc297252b5e1190490bcdf19011201ce69f3501180f5f12d64e415f86b038` |
+| `scene_cards` | `10a50b1aa28e5d83903d36ff1ed63a3f8a3b72e467ad9764e9347fc20eb6df82` | `d0bb9b140feb0f8b5be846426f6a38daf1ca65b5935a933ee142036e4d404b9d` |
+| `reaction_segments` | `5e868671beae44f2189d2a4b68033b845bc0cefa595d60a3fc4599c5056ff1f3` | `a63de2d5ae893305c6090393bea45f676ec487b49723f271b4945e8d0dc1beb0` |
+| `presentation_plan` | `b116b49733059562fda821d4c5194beb323a7d93733800b22e34e037fd56059b` | `b7f2313f52e5ebc25a93f4b1c5e4eb2cb1acb56d8be43e8850e24be2d05c9151` |
+| `screenplay_units` | `68129fefd7aa6dd7ce48df322eaff76c76d42794b59dddd51ddff38503662245` | `e970d5cca34c0e03daa9b65dc6e87f04bedf9a3451034022649aea0eb12f1e99` |
+
+### Gate·CLI·보호 증거
+
+- Test-only Staging Adapter는 각 Runtime Task의 `allowed_writes`만 작성한다. R1/R2는 실제 GATE-04~09 Transaction이 모두 `COMMITTED`되고 GATE-03 Facts → GATE-04 Contract → GATE-08 Screenplay/Final → GATE-09 Report의 Trace Input Hash가 canonical SHA와 일치한다. R1은 준비된 GATE-00~03 뒤 Footprint 없이 GATE-04~13을 모두 Commit하고 Manifest 1.2, Audit PASS, `EDITORIAL_REVIEW_REQUIRED`를 확인했다.
+- R1에 R2 Facts 주입은 GATE-04에서, 미공개 Panel Fact는 GATE-07에서, PRJ-006 Master bytes는 GATE-09에서 거부된다. 가짜 `source_truth_contract`는 Artifact Inventory에 없고 Production FakeProvider에는 Fixture Story를 추가하지 않았다.
+- `validate` 종료 행렬은 Audit PASS `0`, Validation FAIL `1`, Snapshot Changed/Validation PASS `1`, Canonical Drift `1`이다. 실제 `run_cli`가 저장·출력한 최상위 `result`를 종료 코드의 단일 기준으로 사용한다.
+- 기준 Head 대비 Profile v1/v2, Registry, Report 2.0 Schema, PRJ-006 전체 Tree `f8021e4164ff83dfa8cd665ee557a43c67b1f5c6`, Story Library Tree `e6330aa1f967e4db0ab06ce1e15525292420a478`, 세 Renderer의 diff는 0이다. 보호 Script Hash는 Final `df995516...`, Readable `5a901b14...`, Reenactment `0a97c970...`, Screenplay Units `c478aff6...`로 유지된다.
+- 로컬 최종 검증은 Ruff PASS, strict mypy 153 files PASS, pytest 731 tests, package 1.6.1 build PASS, dependency audit known vulnerability 0, Runtime Doctor PASS, `origin/main`과 PR #32 기준 SHA 대비 Registered Version Immutability PASS다. 정확한 최종 Head의 원격 CI는 PR 본문에 후속 기록한다.
+- Human Editorial Approval, `production-finalize`, Story Library `register`, PR Merge/Close는 실행하지 않는다.
