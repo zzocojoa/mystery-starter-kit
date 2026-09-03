@@ -1,9 +1,11 @@
-"""추상 기능군 R1·R2의 Original Fiction Source-style Fixture를 검증한다."""
+"""추상 기능군 R1·R2의 독립 Original Fiction Fixture를 검증한다."""
 
 import json
+from collections.abc import Mapping
 from copy import deepcopy
 from hashlib import sha256
 from pathlib import Path
+from typing import cast
 
 import pytest
 from jsonschema import Draft202012Validator
@@ -13,12 +15,13 @@ from test_broadcast_readable_v2_validation import (
     byte_fragment,
     issue_codes,
     mapping_records,
-    pilot_fixture,
     render_fixture,
     replace_mapped_fragment,
     replace_once,
 )
 
+from RUNTIME.contracts import load_artifact_contracts
+from RUNTIME.output_gateway import validate_artifact_content
 from RUNTIME.screenplay_renderers import (
     render_broadcast_master,
     render_drama_layer,
@@ -28,9 +31,12 @@ from RUNTIME.screenplay_renderers import (
 from VALIDATORS.io import load_json_object
 
 ROOT = Path(__file__).resolve().parents[1]
-FEATURE_FIXTURES_PATH = (
+CANONICAL_BUNDLES_PATH = (
+    ROOT / "tests/fixtures/broadcast_readable_v2/canonical_source_bundles.json"
+)
+PROFILE_PATH = (
     ROOT
-    / "tests/fixtures/broadcast_readable_v2/source_style_features.json"
+    / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
 )
 FORBIDDEN_VISIBLE_TOKENS = (
     "SCN-",
@@ -49,13 +55,6 @@ FORBIDDEN_VISIBLE_TOKENS = (
     "[청취 불명확]",
     "[화자 불명확]",
 )
-CANONICAL_SCHEMA_PATHS = {
-    "screenplay_units": ROOT / "STANDARD/schemas/screenplay_units.schema.json",
-    "relationships": ROOT / "STANDARD/schemas/relationships.schema.json",
-    "panel_cast": ROOT / "STANDARD/schemas/panel_cast.schema.json",
-    "reaction_segments": ROOT / "STANDARD/schemas/reaction_segments.schema.json",
-    "presentation_plan": ROOT / "STANDARD/schemas/presentation_plan.schema.json",
-}
 INDEPENDENT_BUNDLE_DOCUMENTS = {
     "project_manifest",
     "production_config",
@@ -75,6 +74,28 @@ INDEPENDENT_BUNDLE_DOCUMENTS = {
     "presentation_plan",
     "screenplay_units",
 }
+RUNTIME_SCHEMA_DOCUMENTS = {
+    "project_constraints",
+    "crime_event_contract",
+    "facts",
+    "characters",
+    "relationships",
+    "knowledge_matrix",
+    "actual_timeline",
+    "viewer_timeline",
+    "audience_belief",
+    "clue_matrix",
+    "hypothesis_ledger",
+    "causal_graph",
+    "beat_sheet",
+    "retention_plan",
+    "character_state_transitions",
+    "scene_cards",
+    "panel_cast",
+    "reaction_segments",
+    "presentation_plan",
+    "screenplay_units",
+}
 PRJ_006_STORY_TOKENS = {
     "PRJ-006",
     "강태수",
@@ -88,14 +109,39 @@ PRJ_006_STORY_TOKENS = {
 }
 
 
-def mapping_value(document: dict[str, object], field: str) -> dict[str, object]:
+class SourceFixture(PilotFixture):
+    """Gate 의미 검증까지 필요한 독립 Canonical 입력 묶음."""
+
+    project_manifest: dict[str, object]
+    production_config: dict[str, object]
+    project_constraints: dict[str, object]
+    source_truth_contract: dict[str, object]
+    crime_event_contract: dict[str, object]
+    facts: dict[str, object]
+    knowledge_matrix: dict[str, object]
+    actual_timeline: dict[str, object]
+    viewer_timeline: dict[str, object]
+    audience_belief: dict[str, object]
+    clue_matrix: dict[str, object]
+    hypothesis_ledger: dict[str, object]
+    causal_graph: dict[str, object]
+    beat_sheet: dict[str, object]
+    retention_plan: dict[str, object]
+    character_state_transitions: dict[str, object]
+    scene_cards: dict[str, object]
+
+
+def mapping_value(document: Mapping[str, object], field: str) -> dict[str, object]:
     """Fixture 필수 객체 필드를 반환한다."""
     value = document[field]
     assert isinstance(value, dict)
     return value
 
 
-def mapping_list(document: dict[str, object], field: str) -> list[dict[str, object]]:
+def mapping_list(
+    document: Mapping[str, object],
+    field: str,
+) -> list[dict[str, object]]:
     """Fixture 필수 객체 배열을 반환한다."""
     value = document[field]
     assert isinstance(value, list)
@@ -103,7 +149,7 @@ def mapping_list(document: dict[str, object], field: str) -> list[dict[str, obje
     return [item for item in value if isinstance(item, dict)]
 
 
-def string_list(document: dict[str, object], field: str) -> list[str]:
+def string_list(document: Mapping[str, object], field: str) -> list[str]:
     """Fixture 필수 문자열 배열을 반환한다."""
     value = document[field]
     assert isinstance(value, list)
@@ -111,16 +157,16 @@ def string_list(document: dict[str, object], field: str) -> list[str]:
     return [item for item in value if isinstance(item, str)]
 
 
-def mapping_byte_start(mapping: dict[str, object]) -> int:
+def mapping_byte_start(mapping: Mapping[str, object]) -> int:
     """Report Mapping의 Byte 시작 위치를 정수로 반환한다."""
     value = mapping_value(mapping, "actual_byte_range")["byte_start"]
     assert isinstance(value, int)
     return value
 
 
-def feature_spec(fixture_id: str) -> dict[str, object]:
-    """요청한 R1 또는 R2 기능 Fixture 명세를 반환한다."""
-    document = load_json_object(FEATURE_FIXTURES_PATH)
+def fixture_record(fixture_id: str) -> dict[str, object]:
+    """Versioned Bundle에서 요청한 Fixture 레코드를 반환한다."""
+    document = load_json_object(CANONICAL_BUNDLES_PATH)
     matches = [
         fixture
         for fixture in mapping_list(document, "fixtures")
@@ -130,96 +176,25 @@ def feature_spec(fixture_id: str) -> dict[str, object]:
     return matches[0]
 
 
-def replace_named_values(
-    records: list[dict[str, object]],
-    id_field: str,
-    value_field: str,
-    replacements: dict[str, object],
-) -> None:
-    """ID별 Fixture 표시값을 Canonical Record에 적용한다."""
-    records_by_id = {str(record[id_field]): record for record in records}
-    for record_id, replacement in replacements.items():
-        assert isinstance(replacement, str)
-        records_by_id[record_id][value_field] = replacement
-
-
-def align_presentation_timing(fixture: PilotFixture) -> None:
-    """재배치된 Segment와 Reaction의 누적 시간을 함께 정합화한다."""
-    reactions = {
-        str(reaction["reaction_segment_id"]): reaction
-        for reaction in mapping_list(
-            fixture["reaction_segments"],
-            "reaction_segments",
-        )
-    }
-    cursor = 0
-    for segment in mapping_list(fixture["presentation_plan"], "segments"):
-        duration = segment["duration_sec"]
-        assert isinstance(duration, int)
-        segment["start_sec"] = cursor
-        reaction_id = segment.get("reaction_segment_id")
-        if isinstance(reaction_id, str):
-            reaction = reactions[reaction_id]
-            reaction["start_sec"] = cursor
-            reaction["duration_sec"] = duration
-            reaction["after_scene_id"] = segment["scene_id"]
-        cursor += duration
-
-
-def align_reconstruction_units(fixture: PilotFixture) -> None:
-    """재구성 반복 Unit의 가시 정체성을 원본 Unit과 일치시킨다."""
-    scenes = mapping_list(fixture["screenplay_units"], "scenes")
-    scenes_by_id = {str(scene["scene_id"]): scene for scene in scenes}
-    visible_fields = ("type", "text", "speaker_id", "delivery")
-    for scene in scenes:
-        source_scene_id = scene.get("reconstruction_of_scene_id")
-        if not isinstance(source_scene_id, str):
-            continue
-        source_units = {
-            str(unit["unit_id"]): unit
-            for unit in mapping_list(scenes_by_id[source_scene_id], "units")
-        }
-        repeated_units = {
-            str(unit["unit_id"]): unit
-            for unit in mapping_list(scene, "units")
-        }
-        raw_bindings = scene.get("reconstruction_bindings")
-        if raw_bindings is None:
-            continue
-        assert isinstance(raw_bindings, list)
-        assert all(isinstance(binding, dict) for binding in raw_bindings)
-        bindings = [binding for binding in raw_bindings if isinstance(binding, dict)]
-        for binding in bindings:
-            source_unit = source_units[str(binding["source_unit_id"])]
-            repeated_unit = repeated_units[str(binding["repeated_unit_id"])]
-            for field in visible_fields:
-                if field in source_unit:
-                    repeated_unit[field] = deepcopy(source_unit[field])
-                else:
-                    repeated_unit.pop(field, None)
-
-
 def render_fixture_machine_master(fixture: PilotFixture) -> str:
-    """각 Fixture의 Canonical Source에서 Machine Master를 생성한다."""
-    crime_event_contract = load_json_object(
-        ROOT / "PROJECTS/PRJ-006/01_CASE/crime_event_contract.json"
-    )
+    """각 Fixture의 자체 Canonical Source에서 Machine Master를 생성한다."""
+    source_fixture = cast(SourceFixture, fixture)
     drama_script = render_drama_layer(
-        fixture["screenplay_units"],
-        fixture["presentation_plan"],
-        crime_event_contract,
+        source_fixture["screenplay_units"],
+        source_fixture["presentation_plan"],
+        source_fixture["crime_event_contract"],
     )
     narration_script = render_narration_layer(
-        fixture["screenplay_units"],
-        fixture["presentation_plan"],
-        crime_event_contract,
+        source_fixture["screenplay_units"],
+        source_fixture["presentation_plan"],
+        source_fixture["crime_event_contract"],
     )
     panel_reaction_script = render_panel_layer(
-        fixture["reaction_segments"],
-        fixture["presentation_plan"],
+        source_fixture["reaction_segments"],
+        source_fixture["presentation_plan"],
     )
     return render_broadcast_master(
-        fixture["presentation_plan"],
+        source_fixture["presentation_plan"],
         {
             "drama_script": drama_script,
             "narration_script": narration_script,
@@ -228,116 +203,111 @@ def render_fixture_machine_master(fixture: PilotFixture) -> str:
     )
 
 
-def apply_feature_fixture(fixture_id: str) -> PilotFixture:
-    """PRJ-006 구조에 독립 Original Fiction 기능 명세를 적용한다."""
-    fixture = deepcopy(pilot_fixture())
-    spec = feature_spec(fixture_id)
-    project_id = spec["project_id"]
-    title = spec["title"]
-    assert isinstance(project_id, str)
-    assert isinstance(title, str)
-    fixture["config"]["project_id"] = project_id
-    fixture["screenplay_units"]["title"] = title
-    for document_name in (
-        "screenplay_units",
-        "characters",
-        "relationships",
-        "panel_cast",
-        "reaction_segments",
-        "presentation_plan",
-    ):
-        fixture[document_name]["project_id"] = project_id
-    replace_named_values(
-        mapping_list(fixture["characters"], "characters"),
-        "character_id",
-        "name",
-        mapping_value(spec, "character_names"),
-    )
-    replace_named_values(
-        mapping_list(fixture["panel_cast"], "panelists"),
-        "panelist_id",
-        "display_name",
-        mapping_value(spec, "panel_names"),
-    )
-    replace_named_values(
-        mapping_list(fixture["relationships"], "relationships"),
-        "relationship_id",
-        "display_summary",
-        mapping_value(spec, "relationship_summaries"),
-    )
-    scenes = mapping_list(fixture["screenplay_units"], "scenes")
-    scenes_by_id = {str(scene["scene_id"]): scene for scene in scenes}
-    for scene_id, raw_context in mapping_value(spec, "scene_context").items():
-        assert isinstance(raw_context, dict)
-        context = mapping_value(scenes_by_id[scene_id], "context")
-        context.update(raw_context)
-    units = [
-        unit
-        for scene in scenes
-        for unit in mapping_list(scene, "units")
-    ]
-    replace_named_values(
-        units,
-        "unit_id",
-        "text",
-        mapping_value(spec, "unit_text"),
-    )
-    align_reconstruction_units(fixture)
-    turns = [
-        turn
-        for reaction in mapping_list(
-            fixture["reaction_segments"],
-            "reaction_segments",
-        )
-        for turn in mapping_list(reaction, "turns")
-    ]
-    replace_named_values(
-        turns,
-        "turn_id",
-        "spoken_line",
-        mapping_value(spec, "panel_text"),
-    )
-    segments = mapping_list(fixture["presentation_plan"], "segments")
-    segments_by_id = {str(segment["segment_id"]): segment for segment in segments}
-    front_ids = string_list(spec, "presentation_front_ids")
-    reordered = [segments_by_id[segment_id] for segment_id in front_ids]
-    reordered.extend(
-        segment for segment in segments if segment["segment_id"] not in front_ids
-    )
-    fixture["presentation_plan"]["segments"] = reordered
-    for scene_id, raw_segment_ids in mapping_value(spec, "scene_segment_ids").items():
-        assert isinstance(raw_segment_ids, list)
-        assert all(isinstance(item, str) for item in raw_segment_ids)
-        scenes_by_id[scene_id]["segment_ids"] = raw_segment_ids
-    align_presentation_timing(fixture)
+def apply_feature_fixture(fixture_id: str) -> SourceFixture:
+    """독립 Versioned Canonical Bundle 하나를 읽고 파생 입력을 결속한다."""
+    record = fixture_record(fixture_id)
+    raw_artifacts = record["artifacts"]
+    assert isinstance(raw_artifacts, dict)
+    assert all(isinstance(value, dict) for value in raw_artifacts.values())
+    artifacts = deepcopy(raw_artifacts)
+    profile = load_json_object(PROFILE_PATH)
+    fixture_values: dict[str, object] = {
+        **artifacts,
+        "profile": profile,
+        "profile_file_sha256": sha256(PROFILE_PATH.read_bytes()).hexdigest(),
+    }
+    fixture = cast(SourceFixture, fixture_values)
     fixture["final_script"] = render_fixture_machine_master(fixture)
     return fixture
+
+
+def artifact_ids(document: Mapping[str, object], field: str, id_field: str) -> set[str]:
+    """Canonical Record 배열의 ID 집합을 반환한다."""
+    return {
+        str(record[id_field])
+        for record in mapping_list(document, field)
+        if isinstance(record.get(id_field), str)
+    }
+
+
+def assert_reference_subset(
+    actual: object,
+    expected: set[str],
+    label: str,
+) -> None:
+    """참조 ID 배열이 자체 Fixture의 ID 집합 안인지 검증한다."""
+    assert isinstance(actual, list), label
+    assert all(isinstance(item, str) for item in actual), label
+    assert set(actual) <= expected, label
+
+
+def assert_fixture_reference_integrity(fixture: SourceFixture) -> None:
+    """Screenplay와 Presentation 참조가 자체 Contract에만 결속됐는지 검사한다."""
+    character_ids = artifact_ids(fixture["characters"], "characters", "character_id")
+    fact_ids = artifact_ids(fixture["facts"], "facts", "fact_id")
+    clue_ids = artifact_ids(fixture["clue_matrix"], "clues", "clue_id")
+    scene_ids = artifact_ids(fixture["scene_cards"], "scenes", "scene_id")
+    contract = fixture["crime_event_contract"]
+    event_ids = {str(contract["event_id"])}
+    harm_ids = set(string_list(contract, "harm_ids"))
+    development_ids = artifact_ids(
+        contract,
+        "development_functions",
+        "development_function_id",
+    )
+    reveal_ids = artifact_ids(contract, "reveal_targets", "reveal_target_id")
+    characters = {
+        str(character["character_id"]): str(character["name"])
+        for character in mapping_list(fixture["characters"], "characters")
+    }
+    for relationship in mapping_list(fixture["relationships"], "relationships"):
+        source_id = relationship["from"]
+        target_id = relationship["to"]
+        summary = relationship["display_summary"]
+        assert isinstance(source_id, str)
+        assert isinstance(target_id, str)
+        assert isinstance(summary, str)
+        assert {source_id, target_id} <= character_ids
+        assert characters[source_id] in summary
+        assert characters[target_id] in summary
+    for scene in mapping_list(fixture["screenplay_units"], "scenes"):
+        assert scene["scene_id"] in scene_ids
+        for unit in mapping_list(scene, "units"):
+            speaker_id = unit.get("speaker_id")
+            if speaker_id is not None:
+                assert speaker_id in character_ids
+            references = mapping_value(unit, "references")
+            assert_reference_subset(references["fact_ids"], fact_ids, "fact_ids")
+            assert_reference_subset(references["clue_ids"], clue_ids, "clue_ids")
+            assert_reference_subset(
+                references["crime_event_ids"],
+                event_ids,
+                "crime_event_ids",
+            )
+            assert_reference_subset(references["harm_ids"], harm_ids, "harm_ids")
+            assert_reference_subset(
+                references["development_function_ids"],
+                development_ids,
+                "development_function_ids",
+            )
+            assert_reference_subset(
+                references["reveal_target_ids"],
+                reveal_ids,
+                "reveal_target_ids",
+            )
 
 
 def assert_fixture_source_style(fixture_id: str) -> None:
     """공통 Source-style 구조·원문·순서·가시성 불변식을 검증한다."""
     fixture = apply_feature_fixture(fixture_id)
-    spec = feature_spec(fixture_id)
     rendered = render_fixture(fixture)
     report = build_report(fixture, rendered)
     assert report["result"] == "NEEDS_REVIEW"
     assert report["issues"] == []
-    documents = {
-        "screenplay_units": fixture["screenplay_units"],
-        "relationships": fixture["relationships"],
-        "panel_cast": fixture["panel_cast"],
-        "reaction_segments": fixture["reaction_segments"],
-        "presentation_plan": fixture["presentation_plan"],
-    }
-    for document_name, schema_path in CANONICAL_SCHEMA_PATHS.items():
-        validator = Draft202012Validator(load_json_object(schema_path))
-        assert list(validator.iter_errors(documents[document_name])) == []
     assert "| 인물 | 역할 | 관계 |" in rendered
     rendered_lines = rendered.splitlines()
     for heading in ("정리 기준", "등장인물", "패널", "방송 대본"):
         assert rendered_lines.count(f"## {heading}") == 1
-    for text in string_list(spec, "required_visible_text"):
-        assert text in rendered
     for token in FORBIDDEN_VISIBLE_TOKENS:
         assert token not in rendered
     segment_mappings = mapping_records(report, "segment_mappings")
@@ -348,10 +318,7 @@ def assert_fixture_source_style(fixture_id: str) -> None:
             unit_text = unit["text"]
             assert isinstance(unit_text, str)
             assert unit_text in rendered
-    for reaction in mapping_list(
-        fixture["reaction_segments"],
-        "reaction_segments",
-    ):
+    for reaction in mapping_list(fixture["reaction_segments"], "reaction_segments"):
         for turn in mapping_list(reaction, "turns"):
             spoken_line = turn["spoken_line"]
             assert isinstance(spoken_line, str)
@@ -364,7 +331,7 @@ def assert_fixture_source_style(fixture_id: str) -> None:
 
 @pytest.mark.parametrize("fixture_id", ["R1", "R2"])
 def test_source_style_fixture_is_issue_free(fixture_id: str) -> None:
-    """R1·R2는 Raw Reference 없이 독립 Original Fiction Source 문서를 만든다."""
+    """R1·R2는 Raw Reference 없이 독립 Original Fiction 문서를 만든다."""
     assert_fixture_source_style(fixture_id)
 
 
@@ -374,42 +341,81 @@ def test_source_style_fixture_is_a_complete_independent_bundle(
 ) -> None:
     """R1·R2가 PRJ-006 의미 Source 없이 자체 Canonical 문서를 소유한다."""
     fixture = apply_feature_fixture(fixture_id)
-    assert INDEPENDENT_BUNDLE_DOCUMENTS <= set(fixture)
+    assert set(fixture) >= INDEPENDENT_BUNDLE_DOCUMENTS
     serialized = json.dumps(fixture, ensure_ascii=False, sort_keys=True)
-    assert PRJ_006_STORY_TOKENS.isdisjoint(
-        token for token in PRJ_006_STORY_TOKENS if token in serialized
-    )
+    assert all(token not in serialized for token in PRJ_006_STORY_TOKENS)
+    other_fixture_id = "R2" if fixture_id == "R1" else "R1"
+    other_record = fixture_record(other_fixture_id)
+    for token in string_list(other_record, "allowed_story_tokens"):
+        assert token not in serialized
     project_id = fixture["screenplay_units"]["project_id"]
+    fixture_documents: Mapping[str, object] = fixture
     for document_name in INDEPENDENT_BUNDLE_DOCUMENTS:
-        document = fixture[document_name]
+        document = fixture_documents[document_name]
         assert isinstance(document, dict)
         if "project_id" in document:
             assert document["project_id"] == project_id
+    assert_fixture_reference_integrity(fixture)
+
+
+@pytest.mark.parametrize("fixture_id", ["R1", "R2"])
+def test_source_style_fixture_canonical_json_matches_runtime_schemas(
+    fixture_id: str,
+) -> None:
+    """독립 Bundle의 Runtime Artifact를 각 정식 JSON Schema로 검증한다."""
+    fixture = apply_feature_fixture(fixture_id)
+    for artifact_name in ("project_manifest", "production_config"):
+        schema = load_json_object(ROOT / f"STANDARD/schemas/{artifact_name}.schema.json")
+        validator = Draft202012Validator(schema)
+        assert list(validator.iter_errors(fixture[artifact_name])) == []
+    contracts = load_artifact_contracts(ROOT)
+    config_contract = contracts["broadcast_readable_config"]
+    validate_artifact_content(
+        ROOT,
+        "fixture.schema_validation",
+        "broadcast_readable_config",
+        config_contract["media_type"],
+        fixture["config"],
+        config_contract,
+    )
+    fixture_documents: Mapping[str, object] = fixture
+    for artifact_name in sorted(RUNTIME_SCHEMA_DOCUMENTS):
+        contract = contracts[artifact_name]
+        validate_artifact_content(
+            ROOT,
+            "fixture.schema_validation",
+            artifact_name,
+            contract["media_type"],
+            fixture_documents[artifact_name],
+            contract,
+        )
 
 
 def test_r1_reentry_note_signal_and_retrospective_positions() -> None:
-    """R1의 Note Reveal·반복 신호 재해석·Scene 재진입 순서를 증명한다."""
+    """R1의 Note·반복 신호·Scene 재진입·후행 재해석을 증명한다."""
     fixture = apply_feature_fixture("R1")
     rendered = render_fixture(fixture)
     report = build_report(fixture, rendered)
-    assert "**최은결(쪽지)**" in rendered
-    assert rendered.count("### 장면 1 재개.") == 1
-    assert rendered.count("### 장면 2 재개.") == 1
+    assert "**김세라(쪽지)**" in rendered
+    assert rendered.count("### 장면 1 재개. 세 번째 종료음") == 2
+    assert "건조기 종료음이 두 번 일정하게 울린다." in rendered
     scene_mapping = mapping_records(report, "scene_mappings")[0]
     scene_fragment = byte_fragment(rendered, scene_mapping)
-    assert scene_fragment.index("세 번째 종이 짧게 끊긴다") < scene_fragment.index(
+    assert scene_fragment.index("세 번째 종료음 수기 확인") < scene_fragment.index(
         "수동 재시작 신호로 다시 읽힌다"
     )
 
 
 def test_r2_result_first_flashback_message_and_responsibility() -> None:
-    """R2의 결과 선제시·회상·Message 위협·책임 진술을 전역 순서로 증명한다."""
+    """R2의 결과 선제시·회상·Message 위협·책임 진술을 증명한다."""
     fixture = apply_feature_fixture("R2")
     rendered = render_fixture(fixture)
-    assert rendered.index("결과 장면") < rendered.index("사건 열두 시간 전")
-    assert "**서준혁(메시지)**" in rendered
-    assert "장부를 바꾸고 위협을 보낸 책임은 각자 말해야 합니다" in rendered
-    assert "서준혁: 연수원 장부를 함께 관리했지만" in rendered
+    assert rendered.index("폭설 다음 날 오전, 결과 장면") < rendered.index(
+        "결과 장면보다 열두 시간 전, 조사 인터뷰 직전"
+    )
+    assert "**문강석(메시지)**" in rendered
+    assert "장부를 바꾸고 위협 메시지를 보낸 책임은 각자 말해야 합니다" in rendered
+    assert "문강석과 차유진이 연수원 장부의 책임 진술" in rendered
 
 
 def test_r1_context_and_retrospective_negative_mutations_fail() -> None:
@@ -424,14 +430,11 @@ def test_r1_context_and_retrospective_negative_mutations_fail() -> None:
         build_report(fixture, missing_context)
     )
     retrospective = next(
-        line for line in rendered.splitlines() if "수동 재시작 신호" in line
+        line for line in rendered.splitlines() if "평범한 종료음의 반복" in line
     )
-    first_mapping = mapping_records(
-        build_report(fixture, rendered),
-        "unit_mappings",
-    )[0]
+    first_mapping = mapping_records(build_report(fixture, rendered), "unit_mappings")[0]
     first_unit = byte_fragment(rendered, first_mapping)
-    moved = replace_once(rendered, f"{retrospective}\n\n", "")
+    moved = replace_once(rendered, retrospective, "")
     moved = replace_mapped_fragment(
         moved,
         first_mapping,
@@ -457,8 +460,13 @@ def test_r2_relationship_panel_and_unsupported_negative_mutations_fail() -> None
     assert "BROADCAST_READABLE_V2_RELATIONSHIP_ROW_MISMATCH" in issue_codes(
         build_report(fixture, relationship_mutation)
     )
-    panel_line = "결과 장면을 먼저 보여 줬지만 빈 좌석의 주인을 섣불리 정하면 안 됩니다."
-    panel_mutation = replace_once(rendered, panel_line, f"{panel_line[:-1]}요.")
+    panel_line = next(
+        turn["spoken_line"]
+        for reaction in mapping_list(fixture["reaction_segments"], "reaction_segments")
+        for turn in mapping_list(reaction, "turns")
+    )
+    assert isinstance(panel_line, str)
+    panel_mutation = replace_once(rendered, panel_line, f"{panel_line} 변조")
     assert "BROADCAST_READABLE_V2_PANEL_TURN_OCCURRENCE_MISMATCH" in issue_codes(
         build_report(fixture, panel_mutation)
     )

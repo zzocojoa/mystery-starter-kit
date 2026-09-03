@@ -680,10 +680,11 @@ def fake_crime_broadcast_master(
     return "\n\n".join(layer_segments[f"SEG-{index:03d}"] for index in range(1, 7))
 
 
-def fake_edit_script(project_id: str, total_seconds: int) -> str:
-    """Presentation Plan과 일치하는 Edit Timecode 표를 만든다."""
-    plan = fake_presentation_plan(project_id, total_seconds)
-    raw_segments = plan.get("segments")
+def fake_edit_script_from_presentation_plan(
+    presentation_plan: Mapping[str, object],
+) -> str:
+    """요청 Context의 Presentation Plan과 일치하는 Edit Timecode 표를 만든다."""
+    raw_segments = presentation_plan.get("segments")
     if not isinstance(raw_segments, list):
         raise RuntimeExecutionError(
             "RUNTIME_CONFIGURATION_ERROR",
@@ -731,6 +732,13 @@ def fake_edit_script(project_id: str, total_seconds: int) -> str:
             f"| {segment_id} | {start // 60:02d}:{start % 60:02d}-{end // 60:02d}:{end % 60:02d} |"
         )
     return "\n".join(lines)
+
+
+def fake_edit_script(project_id: str, total_seconds: int) -> str:
+    """결정론적 기본 Presentation Plan의 Edit Timecode 표를 만든다."""
+    return fake_edit_script_from_presentation_plan(
+        fake_presentation_plan(project_id, total_seconds)
+    )
 
 
 def fake_runtime_evidence(
@@ -3481,6 +3489,17 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             },
         ]
     if task_id == "production.package":
+        presentation_plan = context_artifact(request, "presentation_plan")
+        if presentation_plan is None:
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "TASK",
+                "Production Package Fixture에는 Presentation Plan이 필요합니다.",
+                task_id,
+                "edit_script",
+                {},
+            )
         shooting_script = "SCN-01 통제실 와이드. SCN-02 이송 설비 클로즈업."
         if fake_production_footprint_enabled(request):
             scene_cards = context_artifact(request, "scene_cards")
@@ -3529,7 +3548,7 @@ def fixture_artifacts(task_id: str, request: LLMRequest) -> list[dict[str, objec
             {
                 "artifact_name": "edit_script",
                 "media_type": "text/markdown",
-                "content": fake_edit_script(project_id, target_runtime_seconds(metadata)),
+                "content": fake_edit_script_from_presentation_plan(presentation_plan),
             },
         ]
     if task_id == "production.package_expert":
