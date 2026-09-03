@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from copy import deepcopy
 from hashlib import sha256
 from pathlib import Path
-from typing import cast
+from typing import TypedDict, cast
 
 import pytest
 from jsonschema import Draft202012Validator
@@ -28,16 +28,12 @@ from RUNTIME.screenplay_renderers import (
     render_narration_layer,
     render_panel_layer,
 )
+from VALIDATORS.candidate_event_briefs import canonical_json_hash
 from VALIDATORS.io import load_json_object
 
 ROOT = Path(__file__).resolve().parents[1]
-CANONICAL_BUNDLES_PATH = (
-    ROOT / "tests/fixtures/broadcast_readable_v2/canonical_source_bundles.json"
-)
-PROFILE_PATH = (
-    ROOT
-    / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
-)
+CANONICAL_BUNDLES_PATH = ROOT / "tests/fixtures/broadcast_readable_v2/canonical_source_bundles.json"
+PROFILE_PATH = ROOT / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
 FORBIDDEN_VISIBLE_TOKENS = (
     "SCN-",
     "SEG-",
@@ -60,7 +56,12 @@ INDEPENDENT_BUNDLE_DOCUMENTS = {
     "production_config",
     "project_constraints",
     "config",
-    "source_truth_contract",
+    "variation_candidates",
+    "candidate_event_briefs",
+    "candidate_evaluation",
+    "candidate_approval",
+    "story_dna",
+    "case_input",
     "crime_event_contract",
     "facts",
     "characters",
@@ -75,6 +76,12 @@ INDEPENDENT_BUNDLE_DOCUMENTS = {
     "screenplay_units",
 }
 RUNTIME_SCHEMA_DOCUMENTS = {
+    "variation_candidates",
+    "candidate_event_briefs",
+    "candidate_evaluation",
+    "candidate_approval",
+    "story_dna",
+    "case_input",
     "project_constraints",
     "crime_event_contract",
     "facts",
@@ -135,7 +142,12 @@ class SourceFixture(PilotFixture):
     project_manifest: dict[str, object]
     production_config: dict[str, object]
     project_constraints: dict[str, object]
-    source_truth_contract: dict[str, object]
+    variation_candidates: dict[str, object]
+    candidate_event_briefs: dict[str, object]
+    candidate_evaluation: dict[str, object]
+    candidate_approval: dict[str, object]
+    story_dna: dict[str, object]
+    case_input: dict[str, object]
     crime_event_contract: dict[str, object]
     facts: dict[str, object]
     knowledge_matrix: dict[str, object]
@@ -149,6 +161,16 @@ class SourceFixture(PilotFixture):
     retention_plan: dict[str, object]
     character_state_transitions: dict[str, object]
     scene_cards: dict[str, object]
+
+
+class FixtureMetadata(TypedDict):
+    """Runtime Artifact와 분리된 Fixture 검증 Metadata."""
+
+    source_classification: str
+    allowed_story_tokens: list[str]
+    required_story_tokens_by_artifact: dict[str, list[str]]
+    forbidden_story_tokens_by_artifact: dict[str, list[str]]
+    expected_artifact_sha256: dict[str, str]
 
 
 def mapping_value(document: Mapping[str, object], field: str) -> dict[str, object]:
@@ -194,6 +216,14 @@ def fixture_record(fixture_id: str) -> dict[str, object]:
     ]
     assert len(matches) == 1
     return matches[0]
+
+
+def fixture_metadata(fixture_id: str) -> FixtureMetadata:
+    """Artifact Namespace 밖의 Fixture 검증 Metadata를 반환한다."""
+    record = fixture_record(fixture_id)
+    raw_metadata = record.get("fixture_metadata")
+    assert isinstance(raw_metadata, dict)
+    return cast(FixtureMetadata, raw_metadata)
 
 
 def render_fixture_machine_master(fixture: PilotFixture) -> str:
@@ -325,9 +355,146 @@ def assert_fixture_story_token_isolation(
     serialized = json.dumps(fixture, ensure_ascii=False, sort_keys=True)
     assert all(token not in serialized for token in PRJ_006_STORY_TOKENS)
     other_fixture_id = "R2" if fixture_id == "R1" else "R1"
-    other_record = fixture_record(other_fixture_id)
-    for token in string_list(other_record, "allowed_story_tokens"):
+    for token in fixture_metadata(other_fixture_id)["allowed_story_tokens"]:
         assert token not in serialized
+
+
+def assert_fixture_token_contract(fixture: SourceFixture, fixture_id: str) -> None:
+    """Artifact별 필수 Anchor와 외래 사건 Anchor 부재를 함께 검사한다."""
+    metadata = fixture_metadata(fixture_id)
+    fixture_documents: Mapping[str, object] = fixture
+    for artifact_name, tokens in metadata["required_story_tokens_by_artifact"].items():
+        serialized = json.dumps(
+            fixture_documents[artifact_name],
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+        assert all(token in serialized for token in tokens), artifact_name
+    for artifact_name, tokens in metadata["forbidden_story_tokens_by_artifact"].items():
+        serialized = json.dumps(
+            fixture_documents[artifact_name],
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+        assert all(token not in serialized for token in tokens), artifact_name
+
+
+def assert_panel_reveal_scope(fixture: SourceFixture) -> None:
+    """Panel Turn이 해당 Presentation 시점까지 공개된 Fact·Clue만 참조하는지 검사한다."""
+    reactions = {
+        str(reaction["reaction_segment_id"]): reaction
+        for reaction in mapping_list(fixture["reaction_segments"], "reaction_segments")
+    }
+    revealed_fact_ids: set[str] = set()
+    revealed_clue_ids: set[str] = set()
+    segments = sorted(
+        mapping_list(fixture["presentation_plan"], "segments"),
+        key=lambda segment: float(cast(float | int, segment["start_sec"])),
+    )
+    for segment in segments:
+        revealed_fact_ids.update(string_list(segment, "revealed_fact_ids"))
+        revealed_clue_ids.update(string_list(segment, "revealed_clue_ids"))
+        reaction_id = segment.get("reaction_segment_id")
+        if not isinstance(reaction_id, str):
+            continue
+        reaction = reactions[reaction_id]
+        for turn in mapping_list(reaction, "turns"):
+            assert set(string_list(turn, "known_fact_ids")) <= revealed_fact_ids
+            assert set(string_list(turn, "evidence_ids")) <= revealed_clue_ids
+
+
+def assert_character_state_trigger_integrity(fixture: SourceFixture) -> None:
+    """상태 전이 Trigger 참조와 같은 인물의 연속 상태를 검사한다."""
+    character_ids = artifact_ids(fixture["characters"], "characters", "character_id")
+    fact_ids = artifact_ids(fixture["facts"], "facts", "fact_id")
+    clue_ids = artifact_ids(fixture["clue_matrix"], "clues", "clue_id")
+    event_ids = {str(fixture["crime_event_contract"]["event_id"])}
+    prior_state_by_character: dict[str, str] = {}
+    transitions = sorted(
+        mapping_list(fixture["character_state_transitions"], "transitions"),
+        key=lambda transition: int(cast(int, transition["order"])),
+    )
+    for transition in transitions:
+        character_id = transition["character_id"]
+        state_before = transition["state_before"]
+        state_after = transition["state_after"]
+        assert isinstance(character_id, str)
+        assert isinstance(state_before, str)
+        assert isinstance(state_after, str)
+        assert character_id in character_ids
+        if character_id in prior_state_by_character:
+            assert state_before == prior_state_by_character[character_id]
+        prior_state_by_character[character_id] = state_after
+        triggers = mapping_value(transition, "triggers")
+        assert set(string_list(triggers, "fact_ids")) <= fact_ids
+        assert set(string_list(triggers, "clue_ids")) <= clue_ids
+        assert set(string_list(triggers, "crime_event_ids")) <= event_ids
+
+
+def assert_crime_realization_coverage(fixture: SourceFixture) -> None:
+    """Crime Contract의 Method·피해·기능이 Timeline·Scene·Unit에 실현됐는지 검사한다."""
+    contract = fixture["crime_event_contract"]
+    method = contract["non_actionable_method_summary"]
+    immediate_harm = contract["immediate_harm"]
+    lasting_harm = contract["lasting_harm"]
+    assert isinstance(method, str)
+    assert isinstance(immediate_harm, str)
+    assert isinstance(lasting_harm, str)
+    fact_statements = {str(fact["statement"]) for fact in mapping_list(fixture["facts"], "facts")}
+    timeline_descriptions = {
+        str(event["description"]) for event in mapping_list(fixture["actual_timeline"], "events")
+    }
+    realizations = [
+        realization
+        for scene in mapping_list(fixture["scene_cards"], "scenes")
+        if "crime_realization" in scene
+        for realization in mapping_list(scene, "crime_realization")
+    ]
+    screenplay_units = [
+        unit
+        for scene in mapping_list(fixture["screenplay_units"], "scenes")
+        for unit in mapping_list(scene, "units")
+    ]
+    screenplay_text = "\n".join(str(unit["text"]) for unit in screenplay_units)
+    assert method in fact_statements
+    assert method in timeline_descriptions
+    assert any(realization.get("action_evidence") == method for realization in realizations)
+    assert method in screenplay_text
+    assert immediate_harm in screenplay_text
+    assert lasting_harm in screenplay_text
+    development_ids = artifact_ids(
+        contract,
+        "development_functions",
+        "development_function_id",
+    )
+    scene_development_ids = {
+        development_id
+        for realization in realizations
+        for development_id in string_list(realization, "development_function_ids")
+    }
+    unit_development_ids = {
+        development_id
+        for unit in screenplay_units
+        for development_id in string_list(
+            mapping_value(unit, "references"),
+            "development_function_ids",
+        )
+    }
+    assert development_ids <= scene_development_ids
+    assert development_ids <= unit_development_ids
+
+
+def assert_fixture_semantic_consistency(
+    fixture: SourceFixture,
+    fixture_id: str,
+) -> None:
+    """작품 Anchor·공개 범위·상태·범죄 실현을 하나의 의미 계약으로 검사한다."""
+    assert_fixture_reference_integrity(fixture)
+    assert_fixture_story_token_isolation(fixture, fixture_id)
+    assert_fixture_token_contract(fixture, fixture_id)
+    assert_panel_reveal_scope(fixture)
+    assert_character_state_trigger_integrity(fixture)
+    assert_crime_realization_coverage(fixture)
 
 
 def assert_fixture_source_style(fixture_id: str) -> None:
@@ -383,7 +550,7 @@ def test_source_style_fixture_is_a_complete_independent_bundle(
         assert isinstance(document, dict)
         if "project_id" in document:
             assert document["project_id"] == project_id
-    assert_fixture_reference_integrity(fixture)
+    assert_fixture_semantic_consistency(fixture, fixture_id)
 
 
 @pytest.mark.parametrize("fixture_id", ["R1", "R2"])
@@ -395,6 +562,7 @@ def test_source_style_fixture_excludes_foreign_story_language(
     serialized = json.dumps(fixture, ensure_ascii=False, sort_keys=True)
 
     assert all(token not in serialized for token in FOREIGN_STORY_TOKENS[fixture_id])
+    assert_fixture_token_contract(fixture, fixture_id)
 
 
 @pytest.mark.parametrize("fixture_id", ["R1", "R2"])
@@ -425,6 +593,25 @@ def test_fixture_inventory_contains_gate_four_source_chain(fixture_id: str) -> N
     assert required_sources <= set(artifacts)
 
 
+@pytest.mark.parametrize("fixture_id", ["R1", "R2"])
+def test_fixture_metadata_hashes_match_canonical_artifacts(fixture_id: str) -> None:
+    """Metadata의 Expected Hash는 같은 Bundle의 Canonical Artifact와 일치한다."""
+    fixture = apply_feature_fixture(fixture_id)
+    fixture_documents: Mapping[str, object] = fixture
+    for artifact_name, expected_hash in fixture_metadata(fixture_id)[
+        "expected_artifact_sha256"
+    ].items():
+        document = fixture_documents[artifact_name]
+        assert isinstance(document, Mapping)
+        assert canonical_json_hash(document) == expected_hash
+
+
+@pytest.mark.parametrize("fixture_id", ["R1", "R2"])
+def test_source_style_fixture_passes_composite_semantics(fixture_id: str) -> None:
+    """R1·R2가 작품별 Composite Semantic Contract를 통과한다."""
+    assert_fixture_semantic_consistency(apply_feature_fixture(fixture_id), fixture_id)
+
+
 def test_prj_006_story_token_injection_fails_fixture_isolation() -> None:
     """PRJ-006 고유 인물명을 R1에 주입하면 독립성 검사가 실패한다."""
     fixture = apply_feature_fixture("R1")
@@ -433,6 +620,33 @@ def test_prj_006_story_token_injection_fails_fixture_isolation() -> None:
 
     with pytest.raises(AssertionError):
         assert_fixture_story_token_isolation(fixture, "R1")
+
+
+@pytest.mark.parametrize(
+    ("fixture_id", "foreign_anchor"),
+    [("R1", "마지막 좌석"), ("R2", "세 번째 종료음")],
+)
+def test_foreign_story_anchor_injection_fails_fixture_contract(
+    fixture_id: str,
+    foreign_anchor: str,
+) -> None:
+    """반대 작품의 사건 Anchor를 관련 Artifact에 주입하면 계약 검사가 실패한다."""
+    fixture = apply_feature_fixture(fixture_id)
+    facts = mapping_list(fixture["facts"], "facts")
+    facts[0]["statement"] = f"{facts[0]['statement']} {foreign_anchor}"
+
+    with pytest.raises(AssertionError):
+        assert_fixture_token_contract(fixture, fixture_id)
+
+
+def test_cross_fixture_character_injection_fails_fixture_isolation() -> None:
+    """다른 Fixture 인물명을 주입하면 Project Story 격리가 실패한다."""
+    fixture = apply_feature_fixture("R2")
+    characters = mapping_list(fixture["characters"], "characters")
+    characters[0]["name"] = "서도훈"
+
+    with pytest.raises(AssertionError):
+        assert_fixture_story_token_isolation(fixture, "R2")
 
 
 def test_unknown_clue_reference_fails_fixture_integrity() -> None:
@@ -447,6 +661,49 @@ def test_unknown_clue_reference_fails_fixture_integrity() -> None:
 
     with pytest.raises(AssertionError, match="clue_ids"):
         assert_fixture_reference_integrity(fixture)
+
+
+def test_panel_unrevealed_fact_reference_fails_fixture_semantics() -> None:
+    """Panel이 해당 Segment까지 미공개 Fact를 말하면 의미 검사가 실패한다."""
+    fixture = apply_feature_fixture("R2")
+    reactions = mapping_list(fixture["reaction_segments"], "reaction_segments")
+    result_first_turn = mapping_list(reactions[2], "turns")[0]
+    result_first_turn["known_fact_ids"] = ["FACT-01", "FACT-02"]
+
+    with pytest.raises(AssertionError):
+        assert_panel_reveal_scope(fixture)
+
+
+def test_cross_story_state_trigger_fails_fixture_semantics() -> None:
+    """다른 사건의 Clue를 상태 전이 Trigger로 주입하면 의미 검사가 실패한다."""
+    fixture = apply_feature_fixture("R1")
+    transitions = mapping_list(fixture["character_state_transitions"], "transitions")
+    triggers = mapping_value(transitions[1], "triggers")
+    triggers["clue_ids"] = ["CLUE-902"]
+
+    with pytest.raises(AssertionError):
+        assert_character_state_trigger_integrity(fixture)
+
+
+def test_disconnected_state_transition_fails_fixture_semantics() -> None:
+    """같은 인물의 전후 상태가 끊기면 Composite 의미 검사가 실패한다."""
+    fixture = apply_feature_fixture("R2")
+    transitions = mapping_list(fixture["character_state_transitions"], "transitions")
+    transitions[1]["state_before"] = "다른 사건의 상태"
+
+    with pytest.raises(AssertionError):
+        assert_character_state_trigger_integrity(fixture)
+
+
+def test_unrealized_crime_method_fails_fixture_semantics() -> None:
+    """Crime Contract Method가 Scene·Unit에 실현되지 않으면 의미 검사가 실패한다."""
+    fixture = apply_feature_fixture("R1")
+    fixture["crime_event_contract"]["non_actionable_method_summary"] = (
+        "Fixture 어디에도 실현되지 않은 사건 방식"
+    )
+
+    with pytest.raises(AssertionError):
+        assert_crime_realization_coverage(fixture)
 
 
 @pytest.mark.parametrize("fixture_id", ["R1", "R2"])
@@ -521,9 +778,7 @@ def test_r1_context_and_retrospective_negative_mutations_fail() -> None:
     assert "BROADCAST_READABLE_V2_CONTEXT_OCCURRENCE_MISMATCH" in issue_codes(
         build_report(fixture, missing_context)
     )
-    retrospective = next(
-        line for line in rendered.splitlines() if "평범한 종료음의 반복" in line
-    )
+    retrospective = next(line for line in rendered.splitlines() if "평범한 종료음의 반복" in line)
     first_mapping = mapping_records(build_report(fixture, rendered), "unit_mappings")[0]
     first_unit = byte_fragment(rendered, first_mapping)
     moved = replace_once(rendered, retrospective, "")
@@ -541,9 +796,7 @@ def test_r2_relationship_panel_and_unsupported_negative_mutations_fail() -> None
     """R2 관계 Row·Panel 원문 변조와 미지원 Segment를 각각 탐지한다."""
     fixture = apply_feature_fixture("R2")
     rendered = render_fixture(fixture)
-    relationship_row = next(
-        line for line in rendered.splitlines() if line.startswith("| 문강석 |")
-    )
+    relationship_row = next(line for line in rendered.splitlines() if line.startswith("| 문강석 |"))
     relationship_mutation = replace_once(
         rendered,
         relationship_row,
