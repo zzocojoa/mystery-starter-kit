@@ -617,3 +617,15 @@ Published Stack 이력은 재작성하지 않는다. PR #25를 additive commit�
 | `STORY_LIBRARY/story_history.jsonl` | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` |
 
 Registry의 `BROADCAST_READABLE_SCRIPT@1.0.0` Entry canonical SHA-256은 `b12bbefa02bd5d98f9dd27ac6824a71c7139049f8425af02d0b8025ea8368ef1`, `@2.0.0` Entry는 `877d8f989f992b0099170250811519048c4f546434ce3d79af1283c45d6278ed`다.
+
+### P1-1~P1-3 최종 폐쇄 결과
+
+- P1-1은 전역 문자열 재탐색을 제거하고 Presentation Segment Parser가 Context, Retrospective, Unit과 Panel Turn의 Owner·Container·고유 UTF-8 byte range를 직접 기록하게 했다. Prefix, 동일 Drama/Panel Block, Cast/Context 동일 text 정상 경로와 누락·순서·중복 range 실패가 전체 Report/Gate 경로에서 통과했다.
+- P1-2는 R1 `PRJ-901`과 R2 `PRJ-902`를 각각 자체 Original Fiction Canonical Source와 Machine Master를 가진 107,704-byte 정적 Bundle로 교체했다. 두 Fixture 모두 자체 Schema·Semantic 입력으로 GATE-04~09를 통과했고 R1은 Footprint 파일 없이 GATE-13·Manifest 1.2·Audit PASS까지 완주했다. PRJ-006 고유 Token과 자체 Contract 밖 Clue 주입은 실패한다.
+- P1-3은 Project State, Change Log, Process Trace, Config, Canonical Artifact와 열린 Task/Transaction을 포함한 optimistic Audit Snapshot을 도입했다. Admission/Gate Commit 중 Snapshot이 바뀌면 `AUDIT_SNAPSHOT_CHANGED`로 fail-closed하며 Audit는 Canonical State를 자동 수정하지 않는다. 성공 Admission 뒤 Config 삭제는 State Entry가 MISSING/부재하거나 마지막 Config가 disabled여도 오류다.
+- `revision_trigger`는 `CONFIG_ADMISSION`, `OWNER_RETURN`, `HUMAN_REVISION_REQUEST`, `SEMANTIC_CORRECTION`, `NORMAL_GATE_PROGRESS`를 구분한다. Config-only의 영향 없는 결과만 과거 실제 non-reuse Trace·Input Hash·Commit·Output Byte에 결속해 재사용하고, 명시된 Owner/Human/Semantic target은 같은 Byte여도 `AWAITING_LLM`이다. 누락·unknown Trigger와 Task/State Trigger 변조는 fail-closed한다.
+- 최종 소스 기준 PRJ-006 `validate`와 `audit`는 GATE-00~13 PASS, issue 0, Snapshot token `e3b420efe61c03069033e19044b026d53c3697cf751130d01ebac04dcb1868cd` 동일, State `EDITORIAL_REVIEW_REQUIRED`, Human 미승인, Production Ready false다. State와 Trace SHA-256은 전후 각각 `721d6b933531d48bccfedc0bb63564be3441d198eafd44d3fc627e558888be6c`, `cb2ec78602f72f7eed6f15eff56ece7e263eb6acfa5e5fff2749eb37abbf222b`로 동일했다.
+- Profile v1/v2, Registry, PRJ-006 `07_SCRIPT/**`, `09_PRODUCTION/**`, Story Library는 기준 SHA `381c91a92cf5c3368d47b7f0b417b0435f20e8fa` 대비 diff 0이고 Phase 0 Hash와 같다.
+- 로컬 최종 검증은 Ruff PASS, strict mypy 153 files PASS, pytest 최종 수집 684 tests, package 1.6.1 build PASS, dependency audit known vulnerability 0, Runtime Doctor PASS, `origin/main`과 PR #31 기준 SHA 대비 Registered Version Immutability PASS다.
+- 상세 함수별 Mandatory Matrix, 보호 Hash와 Closure Matrix는 저장소 루트 `BROADCAST_READABLE_P1_Closure_Report.md`에 기록했다. 보고서 포함 최종 Head의 Python 3.11/3.14 Run/Job ID는 Head 순환을 피하기 위해 Final Closure PR 본문에 기록한다.
+- Human Editorial Approval, `production-finalize`, Story Library `register`, PR Merge/Close는 실행하지 않았다.
