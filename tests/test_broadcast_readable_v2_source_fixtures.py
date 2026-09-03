@@ -397,7 +397,8 @@ def test_r1_reentry_note_signal_and_retrospective_positions() -> None:
     rendered = render_fixture(fixture)
     report = build_report(fixture, rendered)
     assert "**김세라(쪽지)**" in rendered
-    assert rendered.count("### 장면 1 재개. 세 번째 종료음") == 2
+    assert rendered.count("## 장면 1. 세 번째 종료음") == 1
+    assert rendered.count("### 장면 1 재개. 세 번째 종료음") == 1
     assert "건조기 종료음이 두 번 일정하게 울린다." in rendered
     scene_mapping = mapping_records(report, "scene_mappings")[0]
     scene_fragment = byte_fragment(rendered, scene_mapping)
