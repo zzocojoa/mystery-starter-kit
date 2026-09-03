@@ -278,7 +278,7 @@ def test_validate_audits_without_reconstructing_state(tmp_path: Path) -> None:
     assert variation_code == 0
     assert approve_code == 0
     assert precheck_code == 0
-    assert validate_code == 0
+    assert validate_code == 1
     assert register_code == 2
     validation = report["validation"]
     process_issues = report["process_issues"]

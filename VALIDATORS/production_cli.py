@@ -1251,8 +1251,7 @@ def run_validate(args: argparse.Namespace) -> int:
     report_path = args.project_path / "08_QA" / "audit_report.json"
     write_json_object(report_path, report)
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    validation = cast(Mapping[str, object], report["validation"])
-    return 0 if validation["result"] == "PASS" else 1
+    return 0 if report.get("result") == "PASS" else 1
 
 
 def run_candidate_eligibility(args: argparse.Namespace) -> int:
