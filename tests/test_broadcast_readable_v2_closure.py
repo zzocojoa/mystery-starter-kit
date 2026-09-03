@@ -10,7 +10,6 @@ from shutil import copytree, rmtree
 from typing import cast
 
 import pytest
-import VALIDATORS.gate_transaction as gate_transaction_module
 from runtime.support import create_runtime_project, create_runtime_repository
 from test_broadcast_readable_v2_runtime import project_task_outputs
 from test_broadcast_readable_v2_source_fixtures import (
@@ -25,6 +24,7 @@ from test_broadcast_readable_v2_validation import (
     render_fixture,
 )
 
+import VALIDATORS.gate_transaction as gate_transaction_module
 from RUNTIME.contracts import load_artifact_contracts, load_task_catalog
 from RUNTIME.engine import execute_run
 from RUNTIME.errors import RuntimeExecutionError
@@ -1446,6 +1446,8 @@ def test_identical_drama_and_panel_blocks_keep_container_ownership() -> None:
     )
     assert unit_mapping["container_type"] == "DRAMA"
     assert turn_mapping["container_type"] == "PANEL_REACTION"
+    assert unit_mapping["exact_occurrence_index"] == 1
+    assert turn_mapping["exact_occurrence_index"] == 1
     assert unit_mapping["actual_byte_range"] != turn_mapping["actual_byte_range"]
 
 

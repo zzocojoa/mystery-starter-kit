@@ -298,6 +298,27 @@ def test_v2_report_is_schema_valid_complete_and_issue_free() -> None:
         assert len(records) == expected_length
         if field != "relationship_mappings":
             assert all(byte_fragment(actual, record) for record in records)
+    ownership_fields = {
+        "owner_type",
+        "owner_id",
+        "container_type",
+        "segment_id",
+        "scene_id",
+        "rendered_block_sha256",
+        "actual_byte_range",
+        "container_local_order",
+        "global_presentation_order",
+        "same_block_occurrence_index_within_owner_type_or_container",
+    }
+    for field in ("unit_mappings", "panel_turn_mappings"):
+        records = mapping_records(report, field)
+        assert all(ownership_fields <= set(record) for record in records)
+        global_orders: list[int] = []
+        for record in records:
+            global_order = record["global_presentation_order"]
+            assert isinstance(global_order, int)
+            global_orders.append(global_order)
+        assert global_orders == sorted(global_orders)
     assert validate_report(report, fixture, actual) == []
 
 
@@ -591,7 +612,10 @@ def test_final_script_drift_and_saved_report_mutation_fail_stale_check() -> None
     )
 
 
-@pytest.mark.parametrize("mutation", ["offset", "occurrence", "membership"])
+@pytest.mark.parametrize(
+    "mutation",
+    ["offset", "occurrence", "membership", "container", "duplicate_range"],
+)
 def test_saved_report_mapping_mutations_fail_stale_check(mutation: str) -> None:
     """저장 Report의 Offset·발생 번호·Segment Membership 조작을 탐지한다."""
     fixture = pilot_fixture()
@@ -611,9 +635,15 @@ def test_saved_report_mapping_mutations_fail_stale_check(mutation: str) -> None:
         first["exact_occurrence_index"] = occurrence + 1
     elif mutation == "membership":
         first["segment_id"] = "SEG-999"
+    elif mutation == "container":
+        first["container_type"] = "NARRATION"
+    elif mutation == "duplicate_range":
+        second = mappings[1]
+        second["actual_byte_range"] = deepcopy(first["actual_byte_range"])
     else:
         raise AssertionError(f"알 수 없는 Mapping Mutation입니다: {mutation}")
 
-    assert "BROADCAST_READABLE_V2_REPORT_STALE" in validation_issue_codes(
-        validate_report(report, fixture, actual)
-    )
+    codes = validation_issue_codes(validate_report(report, fixture, actual))
+    assert "BROADCAST_READABLE_V2_REPORT_STALE" in codes
+    if mutation == "duplicate_range":
+        assert "BROADCAST_READABLE_V2_DUPLICATE_BYTE_RANGE" in codes

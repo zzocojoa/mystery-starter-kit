@@ -2,6 +2,7 @@
 
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
+from copy import deepcopy
 from hashlib import sha256
 from typing import cast
 
@@ -43,6 +44,18 @@ PROFILE_PATH = (
     "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
 )
 PROFILE_SCHEMA_PATH = "STANDARD/schemas/broadcast_readable_output_profile_2_0.schema.json"
+MAPPING_EXTENSION_FIELDS = {
+    "owner_type",
+    "owner_id",
+    "container_type",
+    "segment_id",
+    "scene_id",
+    "rendered_block_sha256",
+    "container_local_order",
+    "global_presentation_order",
+    "same_block_occurrence_index_within_owner_type_or_container",
+    "exact_occurrence_index",
+}
 
 
 def v2_issue(
@@ -462,31 +475,26 @@ def visible_matches(
     )
 
 
-def fragment_occurrence_issues(
-    actual_markdown: str,
-    expected_fragments: Sequence[str],
+def parsed_count_issue(
+    expected_count: int,
+    actual_count: int,
     code: str,
     label: str,
 ) -> list[ValidationIssue]:
-    """Canonical Fragment별 기대·실제 발생 횟수 차이를 Issue로 반환한다."""
-    issues: list[ValidationIssue] = []
-    expected_counts = Counter(expected_fragments)
-    for fragment, expected_count in expected_counts.items():
-        actual_count = len(block_occurrence_ranges(actual_markdown, fragment))
-        if actual_count != expected_count:
-            issues.append(
-                v2_issue(
-                    code,
-                    f"Actual {label}의 발생 횟수가 Canonical과 다릅니다.",
-                    READABLE_PATH,
-                    {
-                        "fragment_sha256": text_sha256(fragment),
-                        "expected_count": expected_count,
-                        "actual_count": actual_count,
-                    },
-                )
-            )
-    return issues
+    """Parser가 소유권을 확정한 Block 수와 Canonical 수를 비교한다."""
+    if actual_count == expected_count:
+        return []
+    return [
+        v2_issue(
+            code,
+            f"Actual {label}의 소유권 Mapping 수가 Canonical과 다릅니다.",
+            READABLE_PATH,
+            {
+                "expected_count": expected_count,
+                "actual_count": actual_count,
+            },
+        )
+    ]
 
 
 def actual_byte_range(
@@ -549,24 +557,16 @@ def consume_actual_block(
     )
 
 
-def global_occurrence_index(
-    actual_markdown: str,
-    block: str,
-    byte_range: Mapping[str, object],
+def next_owned_occurrence_index(
+    counts: defaultdict[tuple[str, str, str], int],
+    owner_type: str,
+    container_type: str,
+    rendered_block_sha256: str,
 ) -> int:
-    """Mapping 완료 뒤 공개 계약용 전역 Exact 발생 번호를 계산한다."""
-    expected_start = byte_range.get("byte_start")
-    expected_end = byte_range.get("byte_end")
-    for index, candidate in enumerate(
-        block_occurrence_ranges(actual_markdown, block),
-        1,
-    ):
-        if (
-            candidate["byte_start"] == expected_start
-            and candidate["byte_end"] == expected_end
-        ):
-            return index
-    raise ConfigurationError("BROADCAST_READABLE_V2_OCCURRENCE_INDEX_INVALID")
+    """소유권·Container·Block Hash 그룹 안의 다음 발생 번호를 반환한다."""
+    key = (owner_type, container_type, rendered_block_sha256)
+    counts[key] += 1
+    return counts[key]
 
 
 def duplicate_mapping_range_issues(
@@ -603,6 +603,36 @@ def duplicate_mapping_range_issues(
             {"duplicates": duplicates},
         )
     ]
+
+
+def expected_report_for_mapping_contract(
+    expected: Mapping[str, object],
+    report: Mapping[str, object],
+) -> dict[str, object]:
+    """저장 Report가 생략한 Optional Mapping 확장만 비교 기대값에서 제외한다."""
+    comparable = deepcopy(dict(expected))
+    for field in ("unit_mappings", "panel_turn_mappings"):
+        expected_records = comparable.get(field)
+        reported_records = report.get(field)
+        if not isinstance(expected_records, list) or not isinstance(
+            reported_records,
+            list,
+        ):
+            continue
+        for expected_record, reported_record in zip(
+            expected_records,
+            reported_records,
+            strict=False,
+        ):
+            if not isinstance(expected_record, dict) or not isinstance(
+                reported_record,
+                Mapping,
+            ):
+                continue
+            for extension_field in MAPPING_EXTENSION_FIELDS:
+                if extension_field not in reported_record:
+                    expected_record.pop(extension_field, None)
+    return comparable
 
 
 def independent_conformance(
@@ -642,7 +672,6 @@ def independent_conformance(
         group for group in groups if group.get("group_id") == "RETROSPECTIVE"
     )
     scene_fragments: dict[str, dict[str, str | None]] = {}
-    expected_contexts: list[str] = []
     expected_retrospectives: list[str] = []
     for scene_id, scene in scenes.items():
         order, title = scene_order_title(scene)
@@ -676,58 +705,25 @@ def independent_conformance(
             "sound": sound,
             "retrospective": retrospective,
         }
-        expected_contexts.extend((situation, sound))
         if retrospective is not None:
             expected_retrospectives.append(retrospective)
-    issues.extend(
-        fragment_occurrence_issues(
-            actual_markdown,
-            expected_contexts,
-            "BROADCAST_READABLE_V2_CONTEXT_OCCURRENCE_MISMATCH",
-            "Context Group",
-        )
-    )
-    issues.extend(
-        fragment_occurrence_issues(
-            actual_markdown,
-            expected_retrospectives,
-            "BROADCAST_READABLE_V2_RETROSPECTIVE_OCCURRENCE_MISMATCH",
-            "Retrospective",
-        )
-    )
 
     unit_blocks: dict[str, str] = {}
-    expected_unit_blocks: list[str] = []
+    expected_unit_ids: list[str] = []
     for records in unit_records.values():
         for _scene_id, unit in records:
             unit_id = required_string(unit, "unit_id")
             block = verifier_unit_block(unit, characters, render_contract)
             unit_blocks[unit_id] = block
-            expected_unit_blocks.append(block)
-    issues.extend(
-        fragment_occurrence_issues(
-            actual_markdown,
-            expected_unit_blocks,
-            "BROADCAST_READABLE_V2_UNIT_OCCURRENCE_MISMATCH",
-            "Unit Block",
-        )
-    )
+            expected_unit_ids.append(unit_id)
     panel_blocks: dict[str, str] = {}
-    expected_panel_blocks: list[str] = []
+    expected_panel_turn_ids: list[str] = []
     for reaction in reactions.values():
         for turn in mapping_items(reaction.get("turns"), "turns"):
             turn_id = required_string(turn, "turn_id")
             block = verifier_panel_turn_block(turn, panelists, render_contract)
             panel_blocks[turn_id] = block
-            expected_panel_blocks.append(block)
-    issues.extend(
-        fragment_occurrence_issues(
-            actual_markdown,
-            expected_panel_blocks,
-            "BROADCAST_READABLE_V2_PANEL_TURN_OCCURRENCE_MISMATCH",
-            "Panel Turn Block",
-        )
-    )
+            expected_panel_turn_ids.append(turn_id)
 
     body_heading = "## 방송 대본"
     body_heading_ranges = occurrence_ranges(actual_markdown, body_heading)
@@ -767,6 +763,9 @@ def independent_conformance(
     previous_scene_id: str | None = None
     panel_index = 1
     global_turn_order = 0
+    global_content_order = 0
+    container_orders: defaultdict[str, int] = defaultdict(int)
+    owned_occurrence_counts: defaultdict[tuple[str, str, str], int] = defaultdict(int)
     parsing_failed = cursor < 0
 
     for global_index, segment in enumerate(segments):
@@ -939,17 +938,32 @@ def independent_conformance(
                     break
                 special_actual[unit_type] += 1
                 content_ranges.append(unit_range)
+                rendered_block_sha256 = text_sha256(block)
+                container_orders[segment_type] += 1
+                global_content_order += 1
+                occurrence_index = next_owned_occurrence_index(
+                    owned_occurrence_counts,
+                    "UNIT",
+                    segment_type,
+                    rendered_block_sha256,
+                )
                 unit_mappings.append(
                     {
+                        "owner_type": "UNIT",
+                        "owner_id": unit_id,
+                        "container_type": segment_type,
                         "unit_id": unit_id,
                         "segment_id": segment_id,
+                        "scene_id": scene_id,
                         "canonical_order": unit.get("order"),
                         "text_sha256": text_sha256(required_string(unit, "text")),
-                        "exact_occurrence_index": global_occurrence_index(
-                            actual_markdown,
-                            block,
-                            unit_range,
+                        "rendered_block_sha256": rendered_block_sha256,
+                        "container_local_order": container_orders[segment_type],
+                        "global_presentation_order": global_content_order,
+                        "same_block_occurrence_index_within_owner_type_or_container": (
+                            occurrence_index
                         ),
+                        "exact_occurrence_index": occurrence_index,
                         "actual_byte_range": unit_range,
                     }
                 )
@@ -1015,14 +1029,35 @@ def independent_conformance(
                     parsing_failed = True
                     break
                 content_ranges.append(turn_range)
+                rendered_block_sha256 = text_sha256(block)
+                container_orders[segment_type] += 1
+                global_content_order += 1
+                occurrence_index = next_owned_occurrence_index(
+                    owned_occurrence_counts,
+                    "PANEL_TURN",
+                    segment_type,
+                    rendered_block_sha256,
+                )
                 panel_turn_mappings.append(
                     {
+                        "owner_type": "PANEL_TURN",
+                        "owner_id": turn_id,
+                        "container_type": segment_type,
                         "reaction_segment_id": reaction_id,
                         "turn_id": turn_id,
+                        "segment_id": segment_id,
+                        "scene_id": scene_id,
                         "global_order": global_turn_order,
                         "spoken_line_sha256": text_sha256(
                             required_string(turn, "spoken_line")
                         ),
+                        "rendered_block_sha256": rendered_block_sha256,
+                        "container_local_order": container_orders[segment_type],
+                        "global_presentation_order": global_content_order,
+                        "same_block_occurrence_index_within_owner_type_or_container": (
+                            occurrence_index
+                        ),
+                        "exact_occurrence_index": occurrence_index,
                         "actual_byte_range": turn_range,
                     }
                 )
@@ -1088,6 +1123,40 @@ def independent_conformance(
                 {"actual_cursor_byte": byte_offset(actual_markdown, cursor)},
             )
         )
+
+    mapped_context_count = len(scene_context_ranges) * 2
+    issues.extend(
+        parsed_count_issue(
+            len(scenes) * 2,
+            mapped_context_count,
+            "BROADCAST_READABLE_V2_CONTEXT_OCCURRENCE_MISMATCH",
+            "Context Group",
+        )
+    )
+    issues.extend(
+        parsed_count_issue(
+            len(expected_retrospectives),
+            len(scene_retrospective_ranges),
+            "BROADCAST_READABLE_V2_RETROSPECTIVE_OCCURRENCE_MISMATCH",
+            "Retrospective",
+        )
+    )
+    issues.extend(
+        parsed_count_issue(
+            len(expected_unit_ids),
+            len(unit_mappings),
+            "BROADCAST_READABLE_V2_UNIT_OCCURRENCE_MISMATCH",
+            "Unit Block",
+        )
+    )
+    issues.extend(
+        parsed_count_issue(
+            len(expected_panel_turn_ids),
+            len(panel_turn_mappings),
+            "BROADCAST_READABLE_V2_PANEL_TURN_OCCURRENCE_MISMATCH",
+            "Panel Turn Block",
+        )
+    )
 
     scene_mappings: list[dict[str, object]] = []
     segment_ranges_by_scene: defaultdict[str, list[dict[str, int]]] = defaultdict(list)
@@ -1364,6 +1433,14 @@ def validate_broadcast_readable_report_v2(
 ) -> list[ValidationIssue]:
     """저장 Report를 현재 입력·Output의 독립 재계산 결과와 대조한다."""
     result_issues: list[ValidationIssue] = []
+    reported_mappings: list[Mapping[str, object]] = []
+    for field in ("unit_mappings", "panel_turn_mappings"):
+        value = report.get(field)
+        if isinstance(value, list):
+            reported_mappings.extend(
+                item for item in value if isinstance(item, Mapping)
+            )
+    result_issues.extend(duplicate_mapping_range_issues(reported_mappings))
     if report.get("result") == "PASS":
         result_issues.append(
             v2_issue(
@@ -1406,14 +1483,15 @@ def validate_broadcast_readable_report_v2(
         *result_issues,
         *(list(raw_issues) if isinstance(raw_issues, list) else []),
     ]
-    if dict(report) != expected:
+    comparable_expected = expected_report_for_mapping_contract(expected, report)
+    if dict(report) != comparable_expected:
         issues.append(
             v2_issue(
                 "BROADCAST_READABLE_V2_REPORT_STALE",
                 "저장 v2 Report가 현재 입력·Actual Output Mapping과 다릅니다.",
                 REPORT_PATH,
                 {
-                    "expected_report_sha256": document_sha256(expected),
+                    "expected_report_sha256": document_sha256(comparable_expected),
                     "actual_report_sha256": document_sha256(report),
                 },
             )
