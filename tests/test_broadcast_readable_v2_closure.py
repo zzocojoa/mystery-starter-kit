@@ -267,8 +267,92 @@ def copied_committed_pilot_repository(tmp_path: Path) -> tuple[Path, Path]:
     ):
         copytree(ROOT / directory, repository_root / directory)
     project_path = repository_root / "PROJECTS/PRJ-006"
-    copytree(PILOT_ROOT, project_path)
+    copytree(
+        PILOT_ROOT,
+        project_path,
+        ignore=lambda _directory, names: {".runtime"}.intersection(names),
+    )
     return repository_root, project_path
+
+
+def install_gate_seven_reuse_record(
+    repository_root: Path,
+    project_path: Path,
+) -> None:
+    """Gate 7 선행 Task의 과거 실제 실행 근거를 격리 Repository에 구성한다."""
+    gate_id = "GATE-07"
+    process_revision = 4
+    task_ids = ("scene.design", "story.design_state_transitions")
+    traces = trace_records(repository_root, project_path)
+    prior_traces: dict[str, Mapping[str, object]] = {}
+    for task_id in task_ids:
+        matching_traces = [
+            trace
+            for trace in traces
+            if trace.get("process_revision") == process_revision
+            and trace.get("gate_id") == gate_id
+            and trace.get("task_id") == task_id
+            and trace.get("execution_mode") != "VALIDATED_REUSE"
+        ]
+        assert len(matching_traces) == 1
+        prior_traces[task_id] = matching_traces[0]
+
+    commit_shas = {trace.get("commit_sha") for trace in prior_traces.values()}
+    assert len(commit_shas) == 1
+    prior_commit_sha = next(iter(commit_shas))
+    assert isinstance(prior_commit_sha, str)
+
+    tasks = load_task_catalog(repository_root)
+    graph = load_json_object(repository_root / "STANDARD/dependency_graph.json")
+    definitions = graph["artifacts"]
+    assert isinstance(definitions, dict)
+    transaction_id = "CODEX-TASK-0000000000000007"
+    prior_workspace = (
+        project_path
+        / f".runtime/reuse_fixture/gates/{gate_id}/semantic-attempt-001/staged_project"
+    )
+    for task_id in task_ids:
+        for artifact_name in tasks[task_id]["writes"]:
+            definition = definitions[artifact_name]
+            assert isinstance(definition, dict)
+            relative_path = definition["path"]
+            assert isinstance(relative_path, str)
+            output_path = prior_workspace / relative_path
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_bytes((project_path / relative_path).read_bytes())
+
+    task_input_hashes: dict[str, dict[str, object]] = {}
+    for task_id, trace in prior_traces.items():
+        input_hashes = trace.get("input_hashes")
+        assert isinstance(input_hashes, dict)
+        task_input_hashes[task_id] = input_hashes
+    write_json_object(
+        project_path / f".runtime/codex_tasks/{transaction_id}/task.json",
+        {
+            "schema_family": "gate-transaction",
+            "schema_version": "1.0.0",
+            "transaction_id": transaction_id,
+            "project_id": "PRJ-006",
+            "gate_id": gate_id,
+            "process_revision": process_revision,
+            "task_ids": list(task_ids),
+            "completed_task_ids": list(task_ids),
+            "task_input_hashes": task_input_hashes,
+            "agent_ids": [str(tasks[task_id]["agent_id"]) for task_id in task_ids],
+            "allowed_reads": [],
+            "allowed_writes": [],
+            "input_hashes": {},
+            "canonical_hashes": {},
+            "workspace_hashes": {},
+            "forbidden_paths": [],
+            "workspace": str(prior_workspace.relative_to(repository_root)),
+            "status": "COMMITTED",
+            "changed_paths": [],
+            "commit_sha": prior_commit_sha,
+            "started_at": "2026-09-02T13:31:17Z",
+            "completed_at": "2026-09-02T13:31:43Z",
+        },
+    )
 
 
 def admission_canonical_bytes(project_path: Path) -> dict[str, bytes]:
@@ -1761,6 +1845,7 @@ def test_other_owner_return_blocks_target_and_reuses_unaffected_upstream_task(
 ) -> None:
     """다른 Owner 반환도 대상은 재실행하고 영향 없는 선행 Task는 재사용한다."""
     repository_root, project_path = copied_committed_pilot_repository(tmp_path)
+    install_gate_seven_reuse_record(repository_root, project_path)
     result = return_task_to_owner(
         repository_root,
         project_path,
