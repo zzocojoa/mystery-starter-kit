@@ -2495,6 +2495,41 @@ def test_source_style_fixture_passes_real_gate_transactions(
     assert report["issues"] == []
 
 
+@pytest.mark.parametrize(
+    ("fixture_id", "process_revision"),
+    [("R1", 94), ("R2", 95)],
+)
+def test_gate_four_contract_matches_fixture_source_hash(
+    tmp_path: Path,
+    fixture_id: str,
+    process_revision: int,
+) -> None:
+    """실제 GATE-04 CORE Contract는 Fixture가 선언한 상위 사건 입력과 결속된다."""
+    fixture = apply_feature_fixture(fixture_id)
+    repository_root, project_path = prepare_source_style_gate_project(
+        tmp_path,
+        fixture_id,
+        process_revision,
+    )
+    result = submit_gate_until_committed(
+        repository_root,
+        project_path,
+        "GATE-04",
+        "2026-09-03T03:40:00Z",
+        "2026-09-03T03:40:30Z",
+    )
+    actual_contract = load_json_object(
+        project_path / "01_CASE/crime_event_contract.json"
+    )
+    actual_facts = load_json_object(project_path / "01_CASE/facts.json")
+
+    assert result["status"] == "COMMITTED"
+    assert document_sha256(actual_facts) == document_sha256(fixture["facts"])
+    assert document_sha256(actual_contract) == document_sha256(
+        fixture["crime_event_contract"]
+    )
+
+
 def test_v2_enabled_requires_manifest_when_footprint_is_disabled() -> None:
     """v2 활성 경로는 Footprint와 무관하게 GATE-13 Manifest를 요구한다."""
     fixture = apply_feature_fixture("R1")

@@ -322,6 +322,61 @@ def test_v2_report_is_schema_valid_complete_and_issue_free() -> None:
     assert validate_report(report, fixture, actual) == []
 
 
+def test_current_report_uses_owner_bound_contract_version() -> None:
+    """현재 CORE용 Report는 Owner-bound 2.1.0 계약을 선언한다."""
+    fixture = pilot_fixture()
+    report = build_report(fixture, render_fixture(fixture))
+
+    assert report["schema_version"] == "2.1.0"
+    assert report["mapping_contract_version"] == "OWNER_BOUND_1"
+
+
+@pytest.mark.parametrize("field", ["owner_type", "container_type"])
+def test_current_report_schema_requires_owner_mapping_fields(field: str) -> None:
+    """현재 Report Mapping에서 Owner 계약 필드를 누락하면 Schema가 거부한다."""
+    fixture = pilot_fixture()
+    report = build_report(fixture, render_fixture(fixture))
+    first_mapping = mapping_records(report, "unit_mappings")[0]
+    first_mapping.pop(field)
+    validator = Draft202012Validator(load_json_object(REPORT_SCHEMA_PATH))
+
+    assert list(validator.iter_errors(report))
+
+
+def test_current_report_rejects_owner_id_mismatch_explicitly() -> None:
+    """Owner ID와 Unit ID의 의미 불일치를 명시적 Issue로 거부한다."""
+    fixture = pilot_fixture()
+    actual = render_fixture(fixture)
+    report = build_report(fixture, actual)
+    first_mapping = mapping_records(report, "unit_mappings")[0]
+    first_mapping["owner_id"] = "UNIT-999"
+
+    assert "BROADCAST_READABLE_V2_OWNER_ID_MISMATCH" in validation_issue_codes(
+        validate_report(report, fixture, actual)
+    )
+
+
+def test_current_report_container_order_restarts_for_each_segment() -> None:
+    """Container Local Order는 각 Segment에서 1부터 연속한다."""
+    fixture = pilot_fixture()
+    report = build_report(fixture, render_fixture(fixture))
+    mappings = [
+        *mapping_records(report, "unit_mappings"),
+        *mapping_records(report, "panel_turn_mappings"),
+    ]
+    orders_by_segment: dict[tuple[object, object], list[int]] = {}
+    for mapping in mappings:
+        raw_order = mapping["container_local_order"]
+        assert isinstance(raw_order, int)
+        key = (mapping["owner_type"], mapping["segment_id"])
+        orders_by_segment.setdefault(key, []).append(raw_order)
+
+    assert all(
+        orders == list(range(1, len(orders) + 1))
+        for orders in orders_by_segment.values()
+    )
+
+
 @pytest.mark.parametrize(
     ("old", "new", "expected_code"),
     [

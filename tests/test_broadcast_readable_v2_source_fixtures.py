@@ -107,6 +107,26 @@ PRJ_006_STORY_TOKENS = {
     "폐장 실내 수영장",
     "수영장 제어실",
 }
+FOREIGN_STORY_TOKENS = {
+    "R1": {
+        "7분의 공백",
+        "작업자",
+        "기계 로그",
+        "센서 작동 상태",
+        "점검 모드",
+        "이동 기록",
+    },
+    "R2": {
+        "7분의 공백",
+        "작업자",
+        "기계 로그",
+        "센서 차단",
+        "점검 모드",
+        "자발적 이탈",
+        "혼자 마감 근무",
+        "폐점 직전 출입구",
+    },
+}
 
 
 class SourceFixture(PilotFixture):
@@ -364,6 +384,45 @@ def test_source_style_fixture_is_a_complete_independent_bundle(
         if "project_id" in document:
             assert document["project_id"] == project_id
     assert_fixture_reference_integrity(fixture)
+
+
+@pytest.mark.parametrize("fixture_id", ["R1", "R2"])
+def test_source_style_fixture_excludes_foreign_story_language(
+    fixture_id: str,
+) -> None:
+    """각 Fixture의 전체 Runtime Artifact에 다른 사건 언어가 없다."""
+    fixture = apply_feature_fixture(fixture_id)
+    serialized = json.dumps(fixture, ensure_ascii=False, sort_keys=True)
+
+    assert all(token not in serialized for token in FOREIGN_STORY_TOKENS[fixture_id])
+
+
+@pytest.mark.parametrize("fixture_id", ["R1", "R2"])
+def test_fixture_inventory_excludes_synthetic_truth_artifact(fixture_id: str) -> None:
+    """Original Fiction Bundle은 가짜 Truth Contract를 Runtime Artifact로 두지 않는다."""
+    record = fixture_record(fixture_id)
+    artifacts = record["artifacts"]
+    assert isinstance(artifacts, dict)
+
+    assert "source_truth_contract" not in artifacts
+
+
+@pytest.mark.parametrize("fixture_id", ["R1", "R2"])
+def test_fixture_inventory_contains_gate_four_source_chain(fixture_id: str) -> None:
+    """Fixture는 GATE-04 Contract을 결정하는 상위 사건 입력을 자체 소유한다."""
+    record = fixture_record(fixture_id)
+    artifacts = record["artifacts"]
+    assert isinstance(artifacts, dict)
+    required_sources = {
+        "story_dna",
+        "case_input",
+        "facts",
+        "variation_candidates",
+        "candidate_event_briefs",
+        "candidate_approval",
+    }
+
+    assert required_sources <= set(artifacts)
 
 
 def test_prj_006_story_token_injection_fails_fixture_isolation() -> None:

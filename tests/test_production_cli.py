@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from project_factory import make_complete_project_artifacts, write_candidate_event_briefs
 
+import VALIDATORS.production_cli as production_cli_module
 from RUNTIME.providers.fake import fake_candidate_evaluation
 from VALIDATORS.candidate_approval import validate_candidate_approval
 from VALIDATORS.candidate_eligibility import (
@@ -1004,3 +1005,50 @@ def test_user_case_locked_values_flow_into_cli_variations(tmp_path: Path) -> Non
         and record["selection"]["incident_type"] == "DISAPPEARANCE"
         for record in records
     )
+
+
+def test_validate_cli_fails_when_process_audit_fails_after_validation_passes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """하위 Validation이 PASS여도 Process Audit FAIL이면 validate는 1을 반환한다."""
+    project_path = tmp_path / "PRJ-999"
+    (project_path / "08_QA").mkdir(parents=True)
+    audit_failure: dict[str, object] = {
+        "result": "FAIL",
+        "validation": {"result": "PASS", "issues": []},
+        "process": {
+            "result": "FAIL",
+            "issues": [{"code": "AUDIT_SNAPSHOT_CHANGED"}],
+        },
+    }
+
+    def audit_failure_result(
+        repository_root: Path,
+        audited_project_path: Path,
+        reference_source: Path | None,
+        channel_path: Path | None,
+        audited_at: str,
+    ) -> dict[str, object]:
+        """하위 Validation PASS와 Process Audit FAIL 결과를 반환한다."""
+        assert repository_root == ROOT
+        assert audited_project_path == project_path
+        assert reference_source is None
+        assert channel_path is None
+        assert audited_at.endswith("Z")
+        return audit_failure
+
+    monkeypatch.setattr(
+        production_cli_module,
+        "audit_project",
+        audit_failure_result,
+    )
+
+    exit_code = run_cli(["validate", str(project_path)])
+    printed = json.loads(capsys.readouterr().out)
+    saved = load_json_object(project_path / "08_QA/audit_report.json")
+
+    assert printed["result"] == "FAIL"
+    assert saved["result"] == "FAIL"
+    assert exit_code == 1
