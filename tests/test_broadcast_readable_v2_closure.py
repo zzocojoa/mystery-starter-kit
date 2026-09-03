@@ -3,10 +3,12 @@
 import json
 import os
 from collections.abc import Mapping, Sequence
+from contextlib import ExitStack
 from copy import deepcopy
 from pathlib import Path
 from shutil import copytree, rmtree
 from typing import cast
+from unittest.mock import patch
 
 import pytest
 from runtime.support import create_runtime_project, create_runtime_repository
@@ -15,8 +17,11 @@ from test_broadcast_readable_v2_source_fixtures import (
     SourceFixture,
     apply_feature_fixture,
     assert_panel_reveal_scope,
+    fixture_dimension_coherence_issues,
     fixture_metadata,
+    r1_dimension_targets,
     render_fixture_machine_master,
+    source_output_baseline_hashes,
 )
 from test_broadcast_readable_v2_validation import (
     PilotFixture,
@@ -28,6 +33,7 @@ from test_broadcast_readable_v2_validation import (
 
 import VALIDATORS.gate_transaction as gate_transaction_module
 from RUNTIME.contracts import load_artifact_contracts, load_task_catalog
+from RUNTIME.core_tasks import variation_output
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.event_store import utc_now
 from RUNTIME.models import GenerationOptions, LLMMessage, LLMRequest, OutputContract
@@ -44,7 +50,10 @@ from RUNTIME.transactions import (
     release_project_lock,
     write_artifact,
 )
-from VALIDATORS.broadcast_readable import production_readable_deliverable_issues
+from VALIDATORS.broadcast_readable import (
+    production_readable_deliverable_issues,
+    production_readable_deliverable_record,
+)
 from VALIDATORS.broadcast_readable_v2 import (
     block_occurrence_ranges,
     consume_actual_block,
@@ -80,7 +89,10 @@ from VALIDATORS.output_profiles import broadcast_readable_activation_mode
 from VALIDATORS.pipeline import load_existing_project_artifacts
 from VALIDATORS.presentation_validation import validate_presentation_design
 from VALIDATORS.production_cli import build_parser, run_cli
+from VALIDATORS.production_footprint import production_manifest_from_readable_v12
 from VALIDATORS.requirements import production_manifest_required
+from VALIDATORS.variation_engines.common import candidate_signature
+from VALIDATORS.variation_engines.v2_1_0 import derived_policy_profile
 
 ROOT = Path(__file__).resolve().parents[1]
 PILOT_ROOT = ROOT / "PROJECTS/PRJ-006"
@@ -757,6 +769,94 @@ def prepare_gate_project(
     return repository_root, project_path
 
 
+def r1_pending_candidate_source(
+    project_id: str,
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    project_constraints: Mapping[str, object],
+    source_case_brief: Mapping[str, object] | None,
+    source_truth_contract: Mapping[str, object] | None,
+) -> dict[str, object]:
+    """실제 생성 Pool의 R1 세 차원만 보정해 승인 전 Gateway 입력으로 제공한다."""
+    generated = variation_output(
+        project_id,
+        repository_root,
+        production_config,
+        project_constraints,
+        source_case_brief,
+        source_truth_contract,
+    )
+    candidates = deepcopy(mapping_list(generated, "candidates"))
+    selected = [item for item in candidates if item["candidate_id"] == "VAR-01"]
+    assert len(selected) == 1
+    raw_selection = selected[0]["selection"]
+    assert isinstance(raw_selection, dict)
+    selection = {**cast(dict[str, str], raw_selection), **r1_dimension_targets()}
+    profile = derived_policy_profile(selection, "ORIGINAL_FICTION")
+    selected[0].update(
+        selection=selection,
+        policy_profile=profile,
+        signature=candidate_signature(selection, profile),
+    )
+    assert generated["approved_candidate_id"] is None
+    assert all(item["selection_status"] == "PENDING" for item in candidates)
+    return {**generated, "candidates": candidates}
+
+
+def assert_r1_gate_artifact_hashes(
+    repository_root: Path,
+    project_path: Path,
+    gate_number: int,
+) -> None:
+    """각 Gate 직후 실제 Canonical 문서를 독립 R1 Fixture Hash와 비교한다."""
+    artifacts_by_gate: dict[int, tuple[str, ...]] = {
+        0: ("project_manifest", "production_config", "project_constraints"),
+        1: (
+            "variation_candidates",
+            "candidate_event_briefs",
+            "candidate_evaluation",
+            "candidate_approval",
+        ),
+        2: ("candidate_evaluation", "story_dna"),
+        3: ("candidate_approval", "story_dna", "case_input", "facts"),
+        4: ("crime_event_contract", "relationships"),
+        5: ("actual_timeline", "viewer_timeline", "clue_matrix"),
+        7: ("scene_cards", "reaction_segments", "presentation_plan"),
+        8: ("screenplay_units",),
+    }
+    artifacts = load_existing_project_artifacts(
+        project_path, load_json_object(repository_root / "STANDARD/dependency_graph.json")
+    )
+    fixture = apply_feature_fixture("R1")
+    fixture_documents: Mapping[str, object] = fixture
+    expected_hashes = fixture_metadata("R1")["expected_artifact_sha256"]
+    for artifact_name in artifacts_by_gate.get(gate_number, ()):
+        actual = artifacts[artifact_name]
+        assert isinstance(actual, Mapping)
+        source = fixture_documents[artifact_name]
+        assert isinstance(source, Mapping)
+        expected = document_sha256(source)
+        if artifact_name in expected_hashes:
+            assert expected == expected_hashes[artifact_name]
+        assert document_sha256(actual) == expected, (gate_number, artifact_name)
+    if gate_number == 4:
+        actual_fixture = cast(SourceFixture, {**fixture_documents, **artifacts})
+        assert fixture_dimension_coherence_issues(actual_fixture, r1_dimension_targets()) == []
+    machine_hash, readable_hash = source_output_baseline_hashes("R1")
+    if gate_number >= 8:
+        assert (
+            artifact_hash((project_path / "07_SCRIPT/final_script.md").read_bytes()) == machine_hash
+        )
+        assert (
+            artifact_hash((project_path / "07_SCRIPT/broadcast_readable_script.md").read_bytes())
+            == readable_hash
+        )
+    if gate_number >= 9:
+        expected_report = build_report(fixture, render_fixture(fixture))
+        actual_report = load_json_object(project_path / "08_QA/broadcast_readable_report.json")
+        assert document_sha256(actual_report) == document_sha256(expected_report)
+
+
 def prepare_source_style_gate_project(
     tmp_path: Path,
     fixture_id: str,
@@ -777,17 +877,32 @@ def prepare_source_style_gate_project(
             project_path / f"00_PROJECT/{artifact_name}.json",
             cast(dict[str, object], fixture_documents[artifact_name]),
         )
-    for gate_number in range(4):
-        gate_id = f"GATE-{gate_number:02d}"
-        result = submit_fixture_gate_until_committed(
-            repository_root,
-            project_path,
-            fixture,
-            gate_id,
-            f"2026-09-03T02:{gate_number:02d}:00Z",
-            f"2026-09-03T02:{gate_number:02d}:30Z",
-        )
-        assert result["status"] == "COMMITTED"
+    with ExitStack() as source_boundary:
+        if fixture_id == "R1":
+            source_boundary.enter_context(
+                patch(
+                    "RUNTIME.core_tasks.variation_output", side_effect=r1_pending_candidate_source
+                )
+            )
+            source_boundary.enter_context(
+                patch(
+                    "RUNTIME.core_tasks.utc_now",
+                    return_value=fixture["candidate_approval"]["approved_at"],
+                )
+            )
+        for gate_number in range(4):
+            gate_id = f"GATE-{gate_number:02d}"
+            result = submit_fixture_gate_until_committed(
+                repository_root,
+                project_path,
+                fixture,
+                gate_id,
+                f"2026-09-03T02:{gate_number:02d}:00Z",
+                f"2026-09-03T02:{gate_number:02d}:30Z",
+            )
+            assert result["status"] == "COMMITTED"
+            if fixture_id == "R1":
+                assert_r1_gate_artifact_hashes(repository_root, project_path, gate_number)
     assert document_sha256(
         load_json_object(project_path / "01_CASE/facts.json")
     ) == document_sha256(fixture["facts"])
@@ -2920,6 +3035,55 @@ def test_footprint_off_manifest_mutations_are_rejected(
     assert expected_code in issue_codes(issues)
 
 
+def assert_r1_complete_trace_input_chain(
+    repository_root: Path,
+    project_path: Path,
+    gate_twelve_validation: bytes,
+) -> None:
+    """전체 Trace 입력을 Canonical Byte와 비교하며 승인 전·최종 검증 전 버전을 구분한다."""
+    graph = load_json_object(repository_root / "STANDARD/dependency_graph.json")
+    definitions = graph["artifacts"]
+    assert isinstance(definitions, dict)
+    pending_variations = load_json_object(project_path / "00_PROJECT/variation_candidates.json")
+    pending_variations["approved_candidate_id"] = None
+    for candidate in mapping_list(pending_variations, "candidates"):
+        candidate["selection_status"] = "PENDING"
+    pending_bytes = (json.dumps(pending_variations, ensure_ascii=False, indent=2) + "\n").encode(
+        "utf-8"
+    )
+    preapproval_tasks = {
+        "variation.elaborate_crime_events",
+        "novelty.variation_precheck",
+        "variation.eligibility",
+        "variation.evaluate",
+        "variation.approve",
+    }
+    traces = trace_records(repository_root, project_path)
+    assert {trace["gate_id"] for trace in traces} == {f"GATE-{number:02d}" for number in range(14)}
+    for trace in traces:
+        assert trace["gate_result"] == "PASS"
+        input_hashes = trace["input_hashes"]
+        assert isinstance(input_hashes, Mapping)
+        for artifact_name, recorded_hash in input_hashes.items():
+            if artifact_name == "broadcast_readable_output_profile":
+                profile_path = (
+                    repository_root
+                    / "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json"
+                )
+                assert recorded_hash == artifact_hash(profile_path.read_bytes())
+                continue
+            definition = definitions[artifact_name]
+            assert isinstance(definition, dict)
+            relative_path = definition["path"]
+            assert isinstance(relative_path, str)
+            expected_bytes = (project_path / relative_path).read_bytes()
+            if artifact_name == "variation_candidates" and trace["task_id"] in preapproval_tasks:
+                expected_bytes = pending_bytes
+            if artifact_name == "validation_report" and trace["gate_id"] == "GATE-13":
+                expected_bytes = gate_twelve_validation
+            assert recorded_hash == artifact_hash(expected_bytes), (trace["task_id"], artifact_name)
+
+
 def test_full_runtime_reaches_gate_13_without_footprint_file(tmp_path: Path) -> None:
     """독립 R1 Source가 v2+Footprint-off 상태로 실제 GATE-13까지 완주한다."""
     fixture = apply_feature_fixture("R1")
@@ -2930,6 +3094,7 @@ def test_full_runtime_reaches_gate_13_without_footprint_file(tmp_path: Path) -> 
     footprint_path = project_path / "06_SCENE/production_footprint.json"
     assert not footprint_path.exists()
     expected_master = render_fixture_machine_master(fixture)
+    gate_twelve_validation = b""
     for gate_number in range(4, 14):
         gate_id = f"GATE-{gate_number:02d}"
         gate_result = submit_fixture_gate_until_committed(
@@ -2941,6 +3106,9 @@ def test_full_runtime_reaches_gate_13_without_footprint_file(tmp_path: Path) -> 
             utc_now(),
         )
         assert gate_result["status"] == "COMMITTED"
+        assert_r1_gate_artifact_hashes(repository_root, project_path, gate_number)
+        if gate_number == 12:
+            gate_twelve_validation = (project_path / "08_QA/validation_report.json").read_bytes()
     assert (project_path / "07_SCRIPT/final_script.md").read_text(
         encoding="utf-8"
     ) == expected_master
@@ -2958,6 +3126,7 @@ def test_full_runtime_reaches_gate_13_without_footprint_file(tmp_path: Path) -> 
     production_copy = project_path / "09_PRODUCTION/broadcast_readable_script.md"
     canonical_readable = project_path / "07_SCRIPT/broadcast_readable_script.md"
     assert production_copy.read_bytes() == canonical_readable.read_bytes()
+    assert artifact_hash(production_copy.read_bytes()) == source_output_baseline_hashes("R1")[1]
     manifest = load_json_object(project_path / "09_PRODUCTION/production_manifest.json")
     assert manifest["schema_version"] == "1.2.0"
     deliverables = mapping_list(manifest, "deliverables")
@@ -2967,11 +3136,27 @@ def test_full_runtime_reaches_gate_13_without_footprint_file(tmp_path: Path) -> 
         if item.get("artifact_name") == "production_broadcast_readable_script"
     )
     assert readable_deliverable["source_report_sha256"] == document_sha256(readable_report)
+    expected_report = build_report(fixture, render_fixture(fixture))
+    expected_manifest = production_manifest_from_readable_v12(
+        str(fixture["project_manifest"]["project_id"]),
+        production_readable_deliverable_record(
+            render_fixture(fixture),
+            document_sha256(expected_report),
+            "BROADCAST_READABLE_SCRIPT",
+            "2.0.0",
+        ),
+    )
+    assert document_sha256(manifest) == document_sha256(expected_manifest)
     state = load_json_object(project_path / "00_PROJECT/project_state.json")
     assert state["current_gate"] == "GATE-13"
     assert state["state"] == "EDITORIAL_REVIEW_REQUIRED"
     assert state.get("editorial_approved") is not True
     assert state.get("production_ready") is not True
+    readiness = state["readiness"]
+    assert isinstance(readiness, dict)
+    assert readiness["editorial_status"] == "EDITORIAL_REVIEW_REQUIRED"
+    assert readiness["process_status"] == "PROCESS_CONFORMANT"
+    assert_r1_complete_trace_input_chain(repository_root, project_path, gate_twelve_validation)
     gate_thirteen_traces = [
         trace
         for trace in trace_records(repository_root, project_path)
@@ -2991,6 +3176,7 @@ def test_full_runtime_reaches_gate_13_without_footprint_file(tmp_path: Path) -> 
         "production.build_manifest",
         ("broadcast_readable_report", "production_broadcast_readable_script"),
     )
+    before_audit = project_canonical_bytes(project_path)
     audit = audit_project(
         repository_root,
         project_path,
@@ -2999,3 +3185,4 @@ def test_full_runtime_reaches_gate_13_without_footprint_file(tmp_path: Path) -> 
         "2026-09-03T02:00:00Z",
     )
     assert audit["result"] == "PASS"
+    assert project_canonical_bytes(project_path) == before_audit
