@@ -361,7 +361,7 @@
       "agent_id": "mystery_designer",
       "executor": "LLM",
       "target_gate": "GATE-05",
-      "reads": ["production_config", "story_dna", "facts", "characters", "relationships", "knowledge_matrix", "crime_event_contract"],
+      "reads": ["production_config", "story_dna", "facts", "characters", "relationships", "knowledge_matrix"],
       "optional_reads": ["crime_event_contract", "verified_event_ledger", "source_truth_contract"],
       "writes": ["actual_timeline", "viewer_timeline", "audience_belief", "clue_matrix", "hypothesis_ledger", "causal_graph"],
       "depends_on_tasks": ["character.design", "story.bind_crime_event", "reference.resolve_clinical_subjects"],

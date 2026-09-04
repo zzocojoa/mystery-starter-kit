@@ -49,7 +49,7 @@ Runtime 시작 시 JSON Schema뿐 아니라 Task가 Agent Manifest 권한을 넓
 
 ### Screenplay Unit 실행 경로
 
-새 Scaffold는 `SCREENPLAY_UNITS` mode와 고정 Reenactment Output Profile을 사용한다. GATE-06의 LLM은 Character State Transition만, GATE-08의 LLM은 Canonical Screenplay Unit만 작성한다. 이후 `script.render_screenplay_layers → script.render_broadcast_master → script.render_reenactment_export`와 `script.render_broadcast_readable`은 CORE이며, Trace Marker와 파생 Markdown을 LLM 권한 밖에서 생성한다. GATE-09의 `continuity.validate_reenactment`는 Unit·Cast·Relationship·Event/Harm·Clue/Reveal·Profile·Broadcast Hash로 Report를 재구성하고, GATE-13의 `production.package_reenactment`는 검증된 원문을 byte-identical 사본으로만 전달한다.
+새 Scaffold는 `SCREENPLAY_UNITS` mode와 고정 Reenactment Output Profile을 사용한다. GATE-06의 `story.structure` LLM은 Beat Sheet와 Retention Plan을 작성한다. GATE-07에서는 `scene.design`이 Scene Card를 먼저 작성하고, 그 결과를 읽는 `story.design_state_transitions` LLM이 Character State Transition을 작성한다. GATE-08의 LLM은 Canonical Screenplay Unit만 작성한다. 이후 `script.render_screenplay_layers → script.render_broadcast_master → script.render_reenactment_export`와 `script.render_broadcast_readable`은 CORE이며, Trace Marker와 파생 Markdown을 LLM 권한 밖에서 생성한다. GATE-09의 `continuity.validate_reenactment`는 Unit·Cast·Relationship·Event/Harm·Clue/Reveal·Profile·Broadcast Hash로 Report를 재구성하고, GATE-13의 `production.package_reenactment`는 검증된 원문을 byte-identical 사본으로만 전달한다.
 
 `broadcast_readable_script.md`는 같은 Canonical Screenplay Unit, Character, Panel, Reaction, Presentation JSON과 명시적으로 고정한 `BROADCAST_READABLE_SCRIPT` Profile에서 Source-style 장면 Context, 실제 인물 이름과 Canonical Panel 발화를 결정론적으로 표시하는 정식 GATE-08 Artifact다. Profile의 제목·표·Context·발화·Panel Template이 실제 출력 bytes를 결정하며 내부 ID와 Original Fiction 불확실성 Marker를 차단한다. GATE-09의 `continuity.validate_broadcast_readable`은 Production Config, 다섯 Canonical 입력, Profile 문서·원본 파일, 출력 Hash와 Source-style Coverage를 `broadcast_readable_report.json`에 기록하고 현재 입력에서 Report를 다시 만들어 stale 결과를 거부한다. GATE-12 Validation은 이 QA Report에 의존하고, GATE-13의 `production.package_broadcast_readable`은 검증된 bytes만 Production 경로로 복사한다. Source·Report·Production Copy는 Profile Pin 변경을 포함한 Dependency Invalidation과 Project State Hash, Process Trace, Editorial Review Hash에 모두 연결된다. Gate 밖의 직접 쓰기 명령은 제공하지 않으며 기존 Broadcast Master의 Marker 문법과 bytes는 바꾸지 않는다.
 
@@ -58,9 +58,10 @@ Runtime 시작 시 JSON Schema뿐 아니라 Task가 Agent Manifest 권한을 넓
 기존 Production Config에 `script_source_mode`가 없으면 `LEGACY_MARKDOWN`으로 평가해 `script.write_layers → script.integrate`를 유지한다. 두 경로는 Task Condition으로 상호 배타적이며 같은 Gate 안의 LLM→CORE 전환도 하나의 Staging Overlay에 남아 Gate PASS 전에는 Canonical 중간 Artifact를 Commit하지 않는다.
 
 ```text
-GATE-06  LLM  character_state_transitions
+GATE-06  LLM  beat_sheet / retention_plan
    ↓
-GATE-07  LLM/CORE  scene_cards → production_footprint
+GATE-07  LLM/CORE  scene_cards → character_state_transitions
+                   → production_footprint (조건부 CORE) → panel/reaction/presentation
    ↓
 GATE-08  LLM  screenplay_units
                 ↓ CORE
@@ -84,7 +85,7 @@ EDITORIAL_REVIEW_REQUIRED
 
 | Artifact | 소유자 | 생성 시점 |
 |---|---|---|
-| `character_state_transitions` | Story Architect LLM | GATE-06 |
+| `character_state_transitions` | Story Architect LLM | GATE-07 |
 | `screenplay_units` | Script Writer LLM | GATE-08 |
 | Layer Script, Broadcast Master, 재연 Script, Readable Script | CORE Renderer | GATE-08 |
 | `reenactment_export_report`, `broadcast_readable_report` | CORE Validator | GATE-09 |

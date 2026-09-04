@@ -66,6 +66,7 @@ from VALIDATORS.pipeline import (
     ArtifactContent,
     artifact_document,
     artifact_text,
+    broadcast_readable_report_schema,
     nonempty_list_issues,
     nonempty_string_issues,
     optional_artifact_document,
@@ -1072,7 +1073,7 @@ def validate_gate(
                 issues.extend(
                     schema_issues(
                         readable_report,
-                        presentation_schemas["broadcast_readable_report"],
+                        broadcast_readable_report_schema(readable_report, presentation_schemas),
                         "08_QA/broadcast_readable_report.json",
                     )
                 )

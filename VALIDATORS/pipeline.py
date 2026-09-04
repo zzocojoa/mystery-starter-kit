@@ -326,6 +326,7 @@ def broadcast_readable_report_schema(
     """Report Schema Version에 맞는 Legacy·Current Schema를 반환한다."""
     schema_version = report.get("schema_version")
     schema_keys = {
+        "1.0.0": "broadcast_readable_report_1_0",
         "2.0.0": "broadcast_readable_report_2_0",
         "2.1.0": "broadcast_readable_report_2_1",
     }

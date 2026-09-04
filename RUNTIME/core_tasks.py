@@ -338,6 +338,9 @@ def runtime_validation_inputs(
             "broadcast_readable_report": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "broadcast_readable_report.schema.json"
             ),
+            "broadcast_readable_report_1_0": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "broadcast_readable_report.schema.json"
+            ),
             "broadcast_readable_report_2_0": load_json_object(
                 repository_root
                 / "STANDARD"
