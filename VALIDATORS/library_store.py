@@ -19,6 +19,8 @@ def is_config_only_process_revision(project_path: Path) -> bool:
     readiness = state.get("readiness")
     if not isinstance(readiness, Mapping):
         return False
+    if readiness.get("process_start_gate") != "GATE-08":
+        return False
     process_revision = readiness.get("process_revision")
     for record in reversed(change_log_records(project_path)):
         if record.get("event") != ADMISSION_EVENT:
