@@ -5,12 +5,34 @@ from copy import deepcopy
 from pathlib import Path
 from typing import cast
 
+import pytest
 from project_factory import make_complete_project_artifacts
+from test_reenactment_export import clue_matrix, crime_event_contract, facts_document
+from test_screenplay_renderers import (
+    characters_document,
+    output_profile,
+    presentation_plan,
+    reaction_segments,
+    relationships_document,
+    screenplay_document,
+)
 
+from RUNTIME.broadcast_readable_renderer import render_broadcast_readable_script
 from RUNTIME.core_tasks import runtime_validation_inputs
 from RUNTIME.gate_control import validate_gate
+from RUNTIME.screenplay_renderers import (
+    render_broadcast_master,
+    render_drama_layer,
+    render_narration_layer,
+    render_panel_layer,
+    render_reenactment_character_script,
+)
 from VALIDATORS.io import load_json_object
 from VALIDATORS.models import ValidationIssue
+from VALIDATORS.output_profiles import (
+    resolve_broadcast_readable_output_profile,
+    resolve_reenactment_output_profile,
+)
 from VALIDATORS.pipeline import ArtifactContent
 from VALIDATORS.presentation_validation import (
     absolute_time_issues,
@@ -107,6 +129,38 @@ def direct_gate_issues(
         reference_policy,
         novelty_thresholds,
     ) = runtime_validation_inputs(ROOT)
+    config = document(artifacts, "production_config")
+    resolved_profile = (
+        resolve_reenactment_output_profile(ROOT, config)
+        if isinstance(config.get("reenactment_output_profile_id"), str)
+        and isinstance(config.get("reenactment_output_profile_version"), str)
+        else None
+    )
+    if resolved_profile is not None:
+        presentation_schemas = dict(presentation_schemas)
+        presentation_schemas["reenactment_output_profile"] = resolved_profile[
+            "document"
+        ]
+        presentation_schemas["reenactment_output_profile_binding"] = {
+            "sha256": resolved_profile["sha256"]
+        }
+    resolved_readable_profile = (
+        resolve_broadcast_readable_output_profile(ROOT, config)
+        if isinstance(config.get("broadcast_readable_output_profile_id"), str)
+        and isinstance(
+            config.get("broadcast_readable_output_profile_version"),
+            str,
+        )
+        else None
+    )
+    if resolved_readable_profile is not None:
+        presentation_schemas = dict(presentation_schemas)
+        presentation_schemas["broadcast_readable_output_profile"] = (
+            resolved_readable_profile["document"]
+        )
+        presentation_schemas["broadcast_readable_output_profile_binding"] = {
+            "sha256": resolved_readable_profile["sha256"]
+        }
     return validate_gate(
         gate_id,
         artifacts,
@@ -121,6 +175,80 @@ def direct_gate_issues(
     )
 
 
+def new_mode_gate_artifacts() -> dict[str, ArtifactContent]:
+    """Screenplay Unit 경로의 GATE-08 직접 검증 Fixture를 만든다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    config = document(artifacts, "production_config")
+    config.update(
+        {
+            "script_source_mode": "SCREENPLAY_UNITS",
+            "reenactment_output_profile_id": "REENACTMENT_CHARACTER_SCRIPT",
+            "reenactment_output_profile_version": "1.0.0",
+            "broadcast_readable_output_profile_id": "BROADCAST_READABLE_SCRIPT",
+            "broadcast_readable_output_profile_version": "1.0.0",
+        }
+    )
+    project_id = cast(str, config["project_id"])
+    replacements = {
+        "screenplay_units": screenplay_document(),
+        "facts": facts_document(),
+        "characters": characters_document(),
+        "relationships": relationships_document(),
+        "crime_event_contract": crime_event_contract(),
+        "clue_matrix": clue_matrix(),
+        "presentation_plan": presentation_plan(),
+        "reaction_segments": reaction_segments(),
+    }
+    for artifact_name, value in replacements.items():
+        value["project_id"] = project_id
+        artifacts[artifact_name] = value
+    screenplay = document(artifacts, "screenplay_units")
+    plan = document(artifacts, "presentation_plan")
+    crime_contract = document(artifacts, "crime_event_contract")
+    reactions = document(artifacts, "reaction_segments")
+    characters = document(artifacts, "characters")
+    relationships = document(artifacts, "relationships")
+    panel_cast = document(artifacts, "panel_cast")
+    profile = output_profile()
+    readable_profile = resolve_broadcast_readable_output_profile(ROOT, config)
+    assert readable_profile is not None
+    drama = render_drama_layer(screenplay, plan, crime_contract)
+    narration = render_narration_layer(screenplay, plan, crime_contract)
+    panel = render_panel_layer(reactions, plan)
+    master = render_broadcast_master(
+        plan,
+        {
+            "drama_script": drama,
+            "narration_script": narration,
+            "panel_reaction_script": panel,
+        },
+    )
+    artifacts.update(
+        {
+            "drama_script": drama,
+            "narration_script": narration,
+            "panel_reaction_script": panel,
+            "draft_script": master,
+            "final_script": master,
+            "reenactment_character_script": render_reenactment_character_script(
+                screenplay,
+                characters,
+                relationships,
+                profile,
+            ),
+            "broadcast_readable_script": render_broadcast_readable_script(
+                screenplay,
+                characters,
+                panel_cast,
+                reactions,
+                plan,
+                readable_profile["document"],
+            ),
+        }
+    )
+    return artifacts
+
+
 def test_complete_presentation_contract_passes() -> None:
     """v2 Cast, Reaction, Timeline, Layer와 Broadcast Master는 모두 통과한다."""
     artifacts = make_complete_project_artifacts()
@@ -129,6 +257,63 @@ def test_complete_presentation_contract_passes() -> None:
     assert script_integrity_issues(artifacts) == []
     ratio = actual_panel_reaction_ratio(document(artifacts, "presentation_plan"))
     assert ratio == 0.2
+
+
+def test_state_transition_is_required_only_after_scene_design() -> None:
+    """GATE-06은 빈 Scene 참조를 검사하지 않고 GATE-07에서 Transition을 요구한다."""
+    artifacts = deepcopy(make_complete_project_artifacts())
+    config = document(artifacts, "production_config")
+    config["script_source_mode"] = "SCREENPLAY_UNITS"
+
+    gate_six_issues = direct_gate_issues(artifacts, "GATE-06")
+    gate_seven_issues = direct_gate_issues(artifacts, "GATE-07")
+
+    assert not any(
+        issue["artifact"] == "character_state_transitions"
+        or issue["artifact"] == "05_STORY/character_state_transitions.json"
+        for issue in gate_six_issues
+    )
+    assert any(
+        issue["code"] == "REQUIRED_CHANNEL_ARTIFACT_MISSING"
+        and issue["artifact"] == "character_state_transitions"
+        for issue in gate_seven_issues
+    )
+
+
+@pytest.mark.parametrize(
+    ("reference_field", "expected_code"),
+    (
+        ("fact_ids", "SCREENPLAY_FACT_REFERENCE_UNKNOWN"),
+        ("clue_ids", "SCREENPLAY_CLUE_REFERENCE_UNKNOWN"),
+        ("crime_event_ids", "SCREENPLAY_EVENT_REFERENCE_UNKNOWN"),
+        ("harm_ids", "SCREENPLAY_HARM_REFERENCE_UNKNOWN"),
+        (
+            "development_function_ids",
+            "SCREENPLAY_DEVELOPMENT_FUNCTION_REFERENCE_UNKNOWN",
+        ),
+        ("reveal_target_ids", "SCREENPLAY_REVEAL_TARGET_REFERENCE_UNKNOWN"),
+    ),
+)
+def test_gate_eight_rejects_every_unknown_screenplay_reference_family(
+    reference_field: str,
+    expected_code: str,
+) -> None:
+    """GATE-08은 모든 Unit 상위 참조 Family를 안정된 코드로 거부한다."""
+    artifacts = new_mode_gate_artifacts()
+    screenplay = document(artifacts, "screenplay_units")
+    scenes = screenplay["scenes"]
+    assert isinstance(scenes, list)
+    scene = scenes[0]
+    assert isinstance(scene, dict)
+    units = scene["units"]
+    assert isinstance(units, list)
+    unit = units[0]
+    assert isinstance(unit, dict)
+    references = unit["references"]
+    assert isinstance(references, dict)
+    references[reference_field] = ["UNKNOWN-99"]
+
+    assert expected_code in issue_codes(direct_gate_issues(artifacts, "GATE-08"))
 
 
 def test_panel_cast_speaker_function_and_ratio_failures_are_reported() -> None:

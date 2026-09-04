@@ -1,10 +1,29 @@
 """Staging Overlay에서 기존 결정론적 Validator를 Gate별로 실행."""
 
 from collections.abc import Mapping, Sequence
+from typing import cast
 
+from VALIDATORS.broadcast_readable import (
+    broadcast_readable_script_issues,
+    production_broadcast_readable_copy_issues,
+    production_readable_deliverable_issues,
+    validate_broadcast_readable_report,
+)
+from VALIDATORS.broadcast_readable_v2 import (
+    build_broadcast_readable_report_v2,
+    validate_broadcast_readable_report_v2,
+)
 from VALIDATORS.candidate_approval import validate_candidate_approval
 from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
-from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_evaluation import (
+    document_sha256,
+    validate_candidate_evaluation,
+)
+from VALIDATORS.candidate_event_briefs import (
+    approved_event_brief,
+    validate_candidate_event_briefs,
+    validate_candidate_event_case_projection,
+)
 from VALIDATORS.candidate_projection import (
     validate_approved_candidate_projection,
     validate_final_story_constraints,
@@ -16,10 +35,28 @@ from VALIDATORS.channel_policy_v2 import (
     validate_channel_policy_v2,
 )
 from VALIDATORS.channel_validation import validate_channel_consistency
+from VALIDATORS.character_state_transitions import (
+    validate_character_state_transitions,
+)
+from VALIDATORS.clue_recontextualization import validate_clue_recontextualization
 from VALIDATORS.continuity import validate_continuity
+from VALIDATORS.crime_event import (
+    explicit_crime_policy,
+    validate_channel_crime_evidence,
+    validate_crime_event_contract,
+    validate_crime_event_traceability,
+    validate_crime_role_bindings,
+    validate_crime_script_realization_report,
+    validate_scene_crime_realization,
+    validate_script_crime_realization,
+    validate_truth_basis,
+)
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
+    explicit_crime_runtime_evidence_issues,
     runtime_evidence_issues,
+    validate_editorial_crime_assessments,
+    validate_editorial_realization_evidence,
     validate_editorial_review,
 )
 from VALIDATORS.fact_validation import validate_fact_integrity
@@ -29,12 +66,14 @@ from VALIDATORS.pipeline import (
     ArtifactContent,
     artifact_document,
     artifact_text,
+    broadcast_readable_report_schema,
     nonempty_list_issues,
     nonempty_string_issues,
     optional_artifact_document,
     optional_artifact_text,
     optional_schema_issues,
     production_text_issues,
+    required_channel_artifact_issues,
     schema_issues,
     validate_compatibility_binding_current,
     validate_compatibility_gate,
@@ -57,7 +96,28 @@ from VALIDATORS.production_footprint import (
     validate_production_footprint,
 )
 from VALIDATORS.project_constraints import project_constraint_compiler_issues
+from VALIDATORS.reenactment_export import (
+    ScreenplayDerivedOutputs,
+    screenplay_derived_output_issues,
+    validate_reenactment_export_report,
+)
+from VALIDATORS.reenactment_runtime import reenactment_runtime_evidence_issues
 from VALIDATORS.reference_validation import build_story_element_profile
+from VALIDATORS.scene_realization import (
+    validate_channel_realization_evidence,
+    validate_narration_realization,
+    validate_panel_design_realization,
+    validate_panel_script_density,
+    validate_primary_story_engine,
+    validate_psychological_arc,
+    validate_scene_coverage,
+    validate_script_realization,
+    validate_script_realization_report,
+)
+from VALIDATORS.screenplay_units import (
+    validate_screenplay_unit_references,
+    validate_screenplay_units,
+)
 from VALIDATORS.source_truth import source_truth_requires_evidence
 from VALIDATORS.source_truth_contract import (
     validate_source_subject_mapping,
@@ -108,6 +168,200 @@ def script_nonempty_issues(artifacts: Mapping[str, ArtifactContent]) -> list[Val
             )
         )
     return issues
+
+
+def screenplay_unit_mode(production_config: Mapping[str, object]) -> bool:
+    """현재 Project가 구조화 Screenplay Unit 경로를 사용하는지 판정한다."""
+    return production_config.get("script_source_mode") == "SCREENPLAY_UNITS"
+
+
+def reenactment_profile_inputs(
+    presentation_schemas: Mapping[str, Mapping[str, object]],
+) -> tuple[Mapping[str, object], str]:
+    """Runtime이 미리 검증한 Output Profile 문서와 Hash를 읽는다."""
+    profile = presentation_schemas.get("reenactment_output_profile", {})
+    binding = presentation_schemas.get("reenactment_output_profile_binding", {})
+    profile_hash = binding.get("sha256")
+    if not isinstance(profile_hash, str):
+        raise ValueError("검증된 Reenactment Output Profile Hash가 없습니다.")
+    return profile, profile_hash
+
+
+def broadcast_readable_profile_inputs(
+    presentation_schemas: Mapping[str, Mapping[str, object]],
+) -> tuple[Mapping[str, object], str]:
+    """Runtime이 검증한 사람용 Broadcast Profile과 Hash를 읽는다."""
+    profile = presentation_schemas.get("broadcast_readable_output_profile", {})
+    binding = presentation_schemas.get(
+        "broadcast_readable_output_profile_binding",
+        {},
+    )
+    profile_hash = binding.get("sha256")
+    if not isinstance(profile_hash, str):
+        raise ValueError("검증된 Broadcast Readable Output Profile Hash가 없습니다.")
+    return profile, profile_hash
+
+
+def broadcast_readable_profile_enabled(
+    presentation_schemas: Mapping[str, Mapping[str, object]],
+) -> bool:
+    """현재 Project에서 검증된 Readable Profile이 활성인지 반환한다."""
+    return "broadcast_readable_output_profile" in presentation_schemas
+
+
+def report_validation_issues(
+    report: Mapping[str, object],
+) -> list[ValidationIssue]:
+    """생성된 Report의 공통 Issue 배열을 엄격한 형식으로 반환한다."""
+    raw_issues = report.get("issues")
+    if not isinstance(raw_issues, list):
+        return [
+            ValidationIssue(
+                severity="ERROR",
+                code="BROADCAST_READABLE_REPORT_ISSUES_INVALID",
+                message="Broadcast Readable Report Issue 배열이 없습니다.",
+                artifact="08_QA/broadcast_readable_report.json",
+                context={},
+            )
+        ]
+    return cast(list[ValidationIssue], raw_issues)
+
+
+def current_broadcast_readable_script_issues(
+    artifacts: Mapping[str, ArtifactContent],
+    production_config: Mapping[str, object],
+    output_profile: Mapping[str, object],
+    output_profile_hash: str,
+) -> list[ValidationIssue]:
+    """활성 Profile Version에 맞춰 GATE-08 Readable을 검증한다."""
+    readable_script = optional_artifact_text(
+        artifacts,
+        "broadcast_readable_script",
+    ) or ""
+    if output_profile.get("profile_version") == "2.0.0":
+        report = build_broadcast_readable_report_v2(
+            artifact_document(artifacts, "broadcast_readable_config"),
+            artifact_document(artifacts, "screenplay_units"),
+            artifact_document(artifacts, "characters"),
+            artifact_document(artifacts, "relationships"),
+            artifact_document(artifacts, "panel_cast"),
+            artifact_document(artifacts, "reaction_segments"),
+            artifact_document(artifacts, "presentation_plan"),
+            artifact_text(artifacts, "final_script"),
+            output_profile,
+            output_profile_hash,
+            readable_script,
+        )
+        return report_validation_issues(report)
+    return broadcast_readable_script_issues(
+        production_config,
+        artifact_document(artifacts, "screenplay_units"),
+        artifact_document(artifacts, "characters"),
+        artifact_document(artifacts, "panel_cast"),
+        artifact_document(artifacts, "reaction_segments"),
+        artifact_document(artifacts, "presentation_plan"),
+        output_profile,
+        output_profile_hash,
+        readable_script,
+    )
+
+
+def current_broadcast_readable_report_issues(
+    artifacts: Mapping[str, ArtifactContent],
+    production_config: Mapping[str, object],
+    output_profile: Mapping[str, object],
+    output_profile_hash: str,
+) -> list[ValidationIssue]:
+    """활성 Profile Version에 맞춰 저장 Readable Report를 재검증한다."""
+    report = artifact_document(artifacts, "broadcast_readable_report")
+    if output_profile.get("profile_version") == "2.0.0":
+        return validate_broadcast_readable_report_v2(
+            report,
+            artifact_document(artifacts, "broadcast_readable_config"),
+            artifact_document(artifacts, "screenplay_units"),
+            artifact_document(artifacts, "characters"),
+            artifact_document(artifacts, "relationships"),
+            artifact_document(artifacts, "panel_cast"),
+            artifact_document(artifacts, "reaction_segments"),
+            artifact_document(artifacts, "presentation_plan"),
+            artifact_text(artifacts, "final_script"),
+            output_profile,
+            output_profile_hash,
+            artifact_text(artifacts, "broadcast_readable_script"),
+        )
+    return validate_broadcast_readable_report(
+        report,
+        production_config,
+        artifact_document(artifacts, "screenplay_units"),
+        artifact_document(artifacts, "characters"),
+        artifact_document(artifacts, "panel_cast"),
+        artifact_document(artifacts, "reaction_segments"),
+        artifact_document(artifacts, "presentation_plan"),
+        output_profile,
+        output_profile_hash,
+        artifact_text(artifacts, "broadcast_readable_script"),
+    )
+
+
+def reenactment_text_issues(
+    artifacts: Mapping[str, ArtifactContent],
+) -> list[ValidationIssue]:
+    """재연용 Script가 비어 있지 않은지 검사한다."""
+    content = optional_artifact_text(artifacts, "reenactment_character_script")
+    if content is not None and content.strip():
+        return []
+    return [
+        ValidationIssue(
+            severity="ERROR",
+            code="REENACTMENT_SCRIPT_EMPTY",
+            message="재연용 인물별 대사 Script가 비어 있습니다.",
+            artifact="07_SCRIPT/reenactment_character_script.md",
+            context={},
+        )
+    ]
+
+
+def screenplay_derived_outputs(
+    artifacts: Mapping[str, ArtifactContent],
+) -> ScreenplayDerivedOutputs:
+    """현재 Gate의 모든 파생 Script를 정확한 출력 검증 입력으로 묶는다."""
+    outputs = ScreenplayDerivedOutputs(
+        drama_script=artifact_text(artifacts, "drama_script"),
+        narration_script=artifact_text(artifacts, "narration_script"),
+        panel_reaction_script=artifact_text(artifacts, "panel_reaction_script"),
+        draft_script=artifact_text(artifacts, "draft_script"),
+        final_script=artifact_text(artifacts, "final_script"),
+        reenactment_character_script=artifact_text(
+            artifacts,
+            "reenactment_character_script",
+        ),
+    )
+    expert_script = optional_artifact_text(artifacts, "expert_analysis_script")
+    if expert_script is not None:
+        outputs["expert_analysis_script"] = expert_script
+    return outputs
+
+
+def production_reenactment_copy_issues(
+    artifacts: Mapping[str, ArtifactContent],
+) -> list[ValidationIssue]:
+    """Production 재연 Script가 검증된 Script와 바이트 단위로 같은지 검사한다."""
+    source = optional_artifact_text(artifacts, "reenactment_character_script")
+    production = optional_artifact_text(
+        artifacts,
+        "production_reenactment_character_script",
+    )
+    if source and production and source == production:
+        return []
+    return [
+        ValidationIssue(
+            severity="ERROR",
+            code="PRODUCTION_REENACTMENT_COPY_MISMATCH",
+            message="Production 재연 Script가 검증된 Canonical 재연 Script와 다릅니다.",
+            artifact="09_PRODUCTION/reenactment_character_script.md",
+            context={},
+        )
+    ]
 
 
 def validate_gate(
@@ -167,8 +421,30 @@ def validate_gate(
         candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
         approval = artifact_document(artifacts, "candidate_approval")
         precheck = artifact_document(artifacts, "novelty_precheck")
+        event_briefs = optional_artifact_document(artifacts, "candidate_event_briefs")
         issues = [
             *validate_variation_gate(variations, channel),
+            *required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("candidate_event_briefs",),
+            ),
+            *optional_schema_issues(
+                artifacts,
+                "candidate_event_briefs",
+                presentation_schemas["candidate_event_briefs"],
+                "00_PROJECT/candidate_event_briefs.json",
+            ),
+            *(
+                validate_candidate_event_briefs(
+                    variations,
+                    event_briefs,
+                    explicit_crime_policy(channel),
+                )
+                if "candidate_event_briefs" in artifacts
+                else []
+            ),
             *schema_issues(
                 eligibility,
                 presentation_schemas["candidate_eligibility"],
@@ -191,6 +467,7 @@ def validate_gate(
             ),
             *validate_candidate_evaluation(
                 variations,
+                event_briefs if "candidate_event_briefs" in artifacts else None,
                 candidate_evaluation,
                 precheck,
                 eligibility,
@@ -200,18 +477,24 @@ def validate_gate(
                 project_constraints,
                 channel,
                 variations,
+                event_briefs if "candidate_event_briefs" in artifacts else None,
                 precheck,
                 eligibility,
             ),
             *validate_candidate_approval(
                 production_config,
                 variations,
+                event_briefs if "candidate_event_briefs" in artifacts else None,
                 precheck,
                 eligibility,
                 candidate_evaluation,
                 approval,
             ),
-            *validate_variation_precheck(variations, precheck),
+            *validate_variation_precheck(
+                variations,
+                event_briefs if "candidate_event_briefs" in artifacts else None,
+                precheck,
+            ),
             *variation_runtime_binding_issues(
                 production_config,
                 variations,
@@ -233,11 +516,13 @@ def validate_gate(
             *validate_user_case_constraints(production_config, story),
             *validate_reference_profile_alignment(story, reference_profile),
             *validate_variation_alignment(variations, story),
+            *validate_primary_story_engine(channel, story, {}),
             *validate_approved_candidate_projection(
                 production_config,
                 variations,
                 presentation_schemas["candidate_projection_contract"],
                 {"story_dna": story},
+                channel,
             ),
             *(
                 validate_truth_dimensions(
@@ -258,6 +543,9 @@ def validate_gate(
     sources = artifact_document(artifacts, "sources")
     claims = artifact_document(artifacts, "claim_evidence")
     if gate_id == "GATE-03":
+        variations = artifact_document(artifacts, "variation_candidates")
+        event_briefs = optional_artifact_document(artifacts, "candidate_event_briefs")
+        approved_brief = approved_event_brief(variations, event_briefs)
         issues = [
             *nonempty_string_issues(
                 case_input,
@@ -282,6 +570,17 @@ def validate_gate(
                 "clinical_labels",
                 presentation_schemas["clinical_labels"],
                 "01_CASE/clinical_labels.json",
+            ),
+            *validate_candidate_event_case_projection(
+                variations,
+                event_briefs,
+                case_input,
+                facts,
+            ),
+            *(
+                validate_truth_basis(production_config, approved_brief, facts)
+                if approved_brief is not None
+                else []
             ),
         ]
         source_truth = production_config.get("source_truth_classification")
@@ -320,6 +619,7 @@ def validate_gate(
                         else {}
                     ),
                 },
+                channel,
             )
         )
         return issues
@@ -334,6 +634,30 @@ def validate_gate(
             ),
             *nonempty_list_issues(
                 knowledge, "knowledge_events", "02_CHARACTER/knowledge_matrix.json"
+            ),
+            *required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("crime_event_contract",),
+            ),
+            *optional_schema_issues(
+                artifacts,
+                "crime_event_contract",
+                presentation_schemas["crime_event_contract"],
+                "01_CASE/crime_event_contract.json",
+            ),
+            *validate_crime_event_contract(
+                channel,
+                production_config,
+                artifact_document(artifacts, "variation_candidates"),
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                facts,
+                optional_artifact_document(artifacts, "candidate_event_briefs"),
+            ),
+            *validate_crime_role_bindings(
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                characters,
             ),
         ]
         if source_truth_requires_evidence(production_config.get("source_truth_classification")):
@@ -369,10 +693,28 @@ def validate_gate(
                 audience, "belief_states", "03_TIMELINE/audience_belief_timeline.json"
             ),
             *nonempty_list_issues(clues, "clues", "04_MYSTERY/clue_matrix.json"),
+            *(
+                schema_issues(
+                    clues,
+                    presentation_schemas["clue_matrix"],
+                    "04_MYSTERY/clue_matrix.json",
+                )
+                if "clue_matrix" in presentation_schemas
+                else []
+            ),
             *nonempty_list_issues(hypotheses, "hypotheses", "04_MYSTERY/hypothesis_ledger.json"),
             *nonempty_list_issues(causal, "nodes", "04_MYSTERY/causal_graph.json"),
             *nonempty_list_issues(causal, "edges", "04_MYSTERY/causal_graph.json"),
             *validate_causal_graph(causal),
+            *validate_crime_event_traceability(
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                characters,
+                case_input,
+                facts,
+                actual,
+                causal,
+                viewer,
+            ),
             *validate_approved_candidate_projection(
                 production_config,
                 artifact_document(artifacts, "variation_candidates"),
@@ -387,6 +729,7 @@ def validate_gate(
                         else {}
                     ),
                 },
+                channel,
             ),
         ]
         if source_truth_requires_evidence(production_config.get("source_truth_classification")):
@@ -407,6 +750,22 @@ def validate_gate(
         return [
             *nonempty_list_issues(beats, "beats", "05_STORY/beat_sheet.json"),
             *nonempty_list_issues(retention, "checkpoints", "05_STORY/retention_plan.json"),
+            *required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("psychological_arc",),
+            ),
+            *optional_schema_issues(
+                artifacts,
+                "psychological_arc",
+                presentation_schemas["psychological_arc"],
+                "05_STORY/psychological_arc.json",
+            ),
+            *validate_psychological_arc(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+            ),
         ]
     scenes = artifact_document(artifacts, "scene_cards")
     panel_cast = artifact_document(artifacts, "panel_cast")
@@ -415,6 +774,22 @@ def validate_gate(
     if gate_id == "GATE-07":
         return [
             *nonempty_list_issues(scenes, "scenes", "06_SCENE/scene_cards.json"),
+            *required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("character_state_transitions",),
+            ),
+            *(
+                optional_schema_issues(
+                    artifacts,
+                    "character_state_transitions",
+                    presentation_schemas["character_state_transitions"],
+                    "05_STORY/character_state_transitions.json",
+                )
+                if "character_state_transitions" in presentation_schemas
+                else []
+            ),
             *schema_issues(
                 panel_cast,
                 presentation_schemas["panel_cast"],
@@ -447,6 +822,30 @@ def validate_gate(
                 channel,
                 production_config,
             ),
+            *validate_clue_recontextualization(clues, scenes),
+            *validate_character_state_transitions(
+                production_config,
+                channel,
+                optional_artifact_document(artifacts, "character_state_transitions"),
+                characters,
+                facts,
+                clues,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                beats,
+                scenes,
+            ),
+            *validate_scene_coverage(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                scenes,
+                presentation,
+            ),
+            *validate_narration_realization(channel, presentation),
+            *validate_panel_design_realization(
+                channel,
+                reaction_segments,
+                presentation,
+            ),
             *validate_production_footprint(
                 artifact_document(artifacts, "project_constraints"),
                 optional_artifact_document(artifacts, "production_footprint"),
@@ -455,9 +854,15 @@ def validate_gate(
                 actual,
                 artifact_document(artifacts, "variation_candidates"),
             ),
+            *validate_scene_crime_realization(
+                channel,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                scenes,
+                presentation,
+            ),
         ]
     if gate_id == "GATE-08":
-        return [
+        issues = [
             *validate_presentation_design(
                 panel_cast,
                 reaction_segments,
@@ -483,7 +888,89 @@ def validate_gate(
                 artifact_text(artifacts, "draft_script"),
                 artifact_text(artifacts, "final_script"),
             ),
+            *validate_script_realization(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                scenes,
+                presentation,
+                artifact_text(artifacts, "final_script"),
+            ),
+            *validate_script_crime_realization(
+                channel,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                scenes,
+                presentation,
+                reaction_segments,
+                viewer,
+                artifact_text(artifacts, "final_script"),
+            ),
+            *validate_panel_script_density(
+                channel,
+                reaction_segments,
+                artifact_text(artifacts, "panel_reaction_script"),
+            ),
         ]
+        if screenplay_unit_mode(production_config):
+            output_profile, _profile_hash = reenactment_profile_inputs(
+                presentation_schemas,
+            )
+            screenplay_units = optional_artifact_document(artifacts, "screenplay_units")
+            issues.extend(
+                required_channel_artifact_issues(
+                    artifacts,
+                    production_config,
+                    channel,
+                    (
+                        "screenplay_units",
+                        "reenactment_character_script",
+                        "broadcast_readable_script",
+                    ),
+                )
+            )
+            issues.extend(
+                schema_issues(
+                    screenplay_units,
+                    presentation_schemas["screenplay_units"],
+                    "07_SCRIPT/screenplay_units.json",
+                )
+            )
+            issues.extend(validate_screenplay_units(screenplay_units))
+            issues.extend(
+                validate_screenplay_unit_references(
+                    screenplay_units,
+                    facts,
+                    clues,
+                    optional_artifact_document(artifacts, "crime_event_contract"),
+                    characters,
+                    presentation,
+                )
+            )
+            issues.extend(
+                screenplay_derived_output_issues(
+                    screenplay_units,
+                    presentation,
+                    reaction_segments,
+                    optional_artifact_document(artifacts, "crime_event_contract"),
+                    characters,
+                    relationships,
+                    output_profile,
+                    screenplay_derived_outputs(artifacts),
+                )
+            )
+            issues.extend(reenactment_text_issues(artifacts))
+            if broadcast_readable_profile_enabled(presentation_schemas):
+                readable_profile, readable_profile_hash = (
+                    broadcast_readable_profile_inputs(presentation_schemas)
+                )
+                issues.extend(
+                    current_broadcast_readable_script_issues(
+                        artifacts,
+                        production_config,
+                        readable_profile,
+                        readable_profile_hash,
+                    )
+                )
+        return issues
     if gate_id == "GATE-09":
         report = validate_continuity(
             production_config,
@@ -496,7 +983,109 @@ def validate_gate(
             scenes,
         )
         report_issues = report.get("issues")
-        return list(report_issues) if isinstance(report_issues, list) else []
+        realization_report = optional_artifact_document(
+            artifacts,
+            "script_realization_report",
+        )
+        issues = [
+            *(list(report_issues) if isinstance(report_issues, list) else []),
+            *required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("script_realization_report",),
+            ),
+            *optional_schema_issues(
+                artifacts,
+                "script_realization_report",
+                presentation_schemas["script_realization_report"],
+                "08_QA/script_realization_report.json",
+            ),
+            *validate_script_realization_report(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                scenes,
+                presentation,
+                artifact_text(artifacts, "final_script"),
+                realization_report,
+            ),
+            *validate_crime_script_realization_report(
+                channel,
+                project_id,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                scenes,
+                presentation,
+                reaction_segments,
+                viewer,
+                artifact_text(artifacts, "final_script"),
+                realization_report,
+            ),
+        ]
+        if screenplay_unit_mode(production_config):
+            output_profile, profile_hash = reenactment_profile_inputs(
+                presentation_schemas,
+            )
+            screenplay_units = optional_artifact_document(artifacts, "screenplay_units")
+            reenactment_report = optional_artifact_document(
+                artifacts,
+                "reenactment_export_report",
+            )
+            readable_report = optional_artifact_document(
+                artifacts,
+                "broadcast_readable_report",
+            )
+            issues.extend(
+                required_channel_artifact_issues(
+                    artifacts,
+                    production_config,
+                    channel,
+                    ("reenactment_export_report", "broadcast_readable_report"),
+                )
+            )
+            issues.extend(
+                schema_issues(
+                    reenactment_report,
+                    presentation_schemas["reenactment_export_report"],
+                    "08_QA/reenactment_export_report.json",
+                )
+            )
+            issues.extend(
+                validate_reenactment_export_report(
+                    reenactment_report,
+                    production_config,
+                    screenplay_units,
+                    facts,
+                    characters,
+                    relationships,
+                    optional_artifact_document(artifacts, "crime_event_contract"),
+                    clues,
+                    output_profile,
+                    profile_hash,
+                    presentation,
+                    reaction_segments,
+                    screenplay_derived_outputs(artifacts),
+                )
+            )
+            if broadcast_readable_profile_enabled(presentation_schemas):
+                readable_profile, readable_profile_hash = (
+                    broadcast_readable_profile_inputs(presentation_schemas)
+                )
+                issues.extend(
+                    schema_issues(
+                        readable_report,
+                        broadcast_readable_report_schema(readable_report, presentation_schemas),
+                        "08_QA/broadcast_readable_report.json",
+                    )
+                )
+                issues.extend(
+                    current_broadcast_readable_report_issues(
+                        artifacts,
+                        production_config,
+                        readable_profile,
+                        readable_profile_hash,
+                    )
+                )
+        return issues
     fingerprint = artifact_document(artifacts, "story_fingerprint")
     if gate_id == "GATE-10":
         novelty_report = evaluate_novelty(fingerprint, story_history, novelty_thresholds)
@@ -528,7 +1117,7 @@ def validate_gate(
             reference_policy,
         )
     if gate_id == "GATE-12":
-        return [
+        issues = [
             *validate_presentation_design(
                 panel_cast,
                 reaction_segments,
@@ -564,11 +1153,22 @@ def validate_gate(
                 channel,
                 build_channel_policy_inputs(artifacts),
             ),
+            *validate_panel_design_realization(
+                channel,
+                reaction_segments,
+                presentation,
+            ),
+            *validate_panel_script_density(
+                channel,
+                reaction_segments,
+                artifact_text(artifacts, "panel_reaction_script"),
+            ),
             *validate_approved_candidate_projection(
                 production_config,
                 artifact_document(artifacts, "variation_candidates"),
                 presentation_schemas["candidate_projection_contract"],
                 artifacts,
+                channel,
             ),
             *validate_final_story_constraints(
                 artifact_document(artifacts, "project_constraints"),
@@ -576,9 +1176,52 @@ def validate_gate(
                 presentation_schemas["candidate_projection_contract"],
                 artifacts,
             ),
+            *validate_script_realization_report(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                scenes,
+                presentation,
+                final_script,
+                optional_artifact_document(artifacts, "script_realization_report"),
+            ),
+            *validate_crime_script_realization_report(
+                channel,
+                project_id,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                scenes,
+                presentation,
+                reaction_segments,
+                viewer,
+                final_script,
+                optional_artifact_document(artifacts, "script_realization_report"),
+            ),
+            *validate_channel_realization_evidence(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                optional_artifact_document(artifacts, "script_realization_report"),
+                optional_artifact_document(artifacts, "channel_consistency_report"),
+            ),
+            *validate_channel_crime_evidence(
+                channel,
+                optional_artifact_document(artifacts, "script_realization_report"),
+                optional_artifact_document(artifacts, "channel_consistency_report"),
+            ),
         ]
+        if broadcast_readable_profile_enabled(presentation_schemas):
+            readable_profile, readable_profile_hash = (
+                broadcast_readable_profile_inputs(presentation_schemas)
+            )
+            issues.extend(
+                current_broadcast_readable_report_issues(
+                    artifacts,
+                    production_config,
+                    readable_profile,
+                    readable_profile_hash,
+                )
+            )
+        return issues
     if gate_id == "GATE-13":
-        return [
+        issues = [
             *validate_presentation_design(
                 panel_cast,
                 reaction_segments,
@@ -613,6 +1256,36 @@ def validate_gate(
             *validate_channel_policy_v2(
                 channel,
                 build_channel_policy_inputs(artifacts),
+            ),
+            *validate_script_realization_report(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                scenes,
+                presentation,
+                final_script,
+                optional_artifact_document(artifacts, "script_realization_report"),
+            ),
+            *validate_crime_script_realization_report(
+                channel,
+                project_id,
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                scenes,
+                presentation,
+                reaction_segments,
+                viewer,
+                final_script,
+                optional_artifact_document(artifacts, "script_realization_report"),
+            ),
+            *validate_channel_realization_evidence(
+                channel,
+                optional_artifact_document(artifacts, "psychological_arc"),
+                optional_artifact_document(artifacts, "script_realization_report"),
+                optional_artifact_document(artifacts, "channel_consistency_report"),
+            ),
+            *validate_channel_crime_evidence(
+                channel,
+                optional_artifact_document(artifacts, "script_realization_report"),
+                optional_artifact_document(artifacts, "channel_consistency_report"),
             ),
             *production_text_issues(
                 artifacts,
@@ -631,10 +1304,25 @@ def validate_gate(
                 editorial_artifact_hashes(artifacts),
                 artifacts,
             ),
+            *validate_editorial_realization_evidence(
+                channel,
+                artifact_document(artifacts, "editorial_review"),
+                optional_artifact_document(artifacts, "psychological_arc"),
+            ),
+            *validate_editorial_crime_assessments(
+                channel,
+                artifact_document(artifacts, "editorial_review"),
+                optional_artifact_document(artifacts, "crime_event_contract"),
+                artifacts,
+            ),
             *runtime_evidence_issues(
                 artifact_document(artifacts, "editorial_review"),
                 presentation,
                 artifact_text(artifacts, "panel_reaction_script"),
+            ),
+            *explicit_crime_runtime_evidence_issues(
+                channel,
+                artifact_document(artifacts, "editorial_review"),
             ),
             *validate_final_production_footprint(
                 artifact_document(artifacts, "project_constraints"),
@@ -647,6 +1335,72 @@ def validate_gate(
                 artifact_text(artifacts, "shooting_script"),
             ),
         ]
+        if screenplay_unit_mode(production_config):
+            issues.extend(
+                required_channel_artifact_issues(
+                    artifacts,
+                    production_config,
+                    channel,
+                    (
+                        "production_reenactment_character_script",
+                        "production_broadcast_readable_script",
+                    ),
+                )
+            )
+            issues.extend(production_reenactment_copy_issues(artifacts))
+            issues.extend(
+                reenactment_runtime_evidence_issues(
+                    production_config,
+                    artifact_document(artifacts, "reenactment_export_report"),
+                    artifact_document(artifacts, "editorial_review"),
+                )
+            )
+        if broadcast_readable_profile_enabled(presentation_schemas):
+            readable_profile, readable_profile_hash = (
+                broadcast_readable_profile_inputs(presentation_schemas)
+            )
+            issues.extend(
+                current_broadcast_readable_report_issues(
+                    artifacts,
+                    production_config,
+                    readable_profile,
+                    readable_profile_hash,
+                )
+            )
+            issues.extend(
+                production_broadcast_readable_copy_issues(
+                    optional_artifact_text(artifacts, "broadcast_readable_script"),
+                    optional_artifact_text(
+                        artifacts,
+                        "production_broadcast_readable_script",
+                    ),
+                )
+            )
+            if readable_profile.get("profile_version") == "2.0.0":
+                readable_report = artifact_document(
+                    artifacts,
+                    "broadcast_readable_report",
+                )
+                issues.extend(
+                    production_readable_deliverable_issues(
+                        optional_artifact_document(
+                            artifacts,
+                            "production_manifest",
+                        ),
+                        optional_artifact_text(
+                            artifacts,
+                            "broadcast_readable_script",
+                        ),
+                        optional_artifact_text(
+                            artifacts,
+                            "production_broadcast_readable_script",
+                        ),
+                        document_sha256(readable_report),
+                        "BROADCAST_READABLE_SCRIPT",
+                        "2.0.0",
+                    )
+                )
+        return issues
     raise ValueError(f"알 수 없는 Gate입니다: {gate_id}")
 
 

@@ -19,7 +19,7 @@
       "const": "presentation-plan"
     },
     "schema_version": {
-      "const": "2.0.0"
+      "enum": ["2.0.0", "2.1.0"]
     },
     "project_id": {
       "type": "string",
@@ -59,6 +59,14 @@
       "items": {
         "type": "string",
         "pattern": "^[A-Z]+-[0-9]{2,}$"
+      }
+    },
+    "revealTargetList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^REVEAL-TARGET-[0-9]{2,}$"
       }
     },
     "presentationSegment": {
@@ -117,6 +125,44 @@
         },
         "revealed_clue_ids": {
           "$ref": "#/$defs/identifierList"
+        },
+        "referenced_fact_ids": {
+          "$ref": "#/$defs/identifierList"
+        },
+        "referenced_clue_ids": {
+          "$ref": "#/$defs/identifierList"
+        },
+        "referenced_reveal_target_ids": {
+          "$ref": "#/$defs/revealTargetList"
+        },
+        "revealed_reveal_target_ids": {
+          "$ref": "#/$defs/revealTargetList"
+        },
+        "intentional_prereveal_ids": {
+          "$ref": "#/$defs/revealTargetList"
+        },
+        "psychological_stage_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^PSTAGE-[0-9]{3,}$"}
+        },
+        "psychological_stage_types": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+        },
+        "crime_development_function_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^CDEV-[0-9]{3,}$"}
+        },
+        "narration_function": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "narrator_character_id": {
+          "type": "string",
+          "pattern": "^[A-Z]+-[0-9]{2,}$"
         }
       },
       "allOf": [

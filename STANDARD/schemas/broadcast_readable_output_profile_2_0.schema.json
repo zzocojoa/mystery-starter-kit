@@ -1,0 +1,415 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/broadcast-readable-output-profile-2.0.0.json",
+  "title": "Broadcast Readable Output Profile 2.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "profile_id",
+    "profile_version",
+    "locale",
+    "source_style_contract",
+    "document_contract",
+    "render_contract",
+    "segment_contract",
+    "visibility_contract"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "broadcast-readable-output-profile"},
+    "schema_version": {"const": "2.0.0"},
+    "profile_id": {"const": "BROADCAST_READABLE_SCRIPT"},
+    "profile_version": {"const": "2.0.0"},
+    "locale": {"const": "ko-KR"},
+    "source_style_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordering_source",
+        "unit_text_policy",
+        "character_name_source",
+        "relationship_source",
+        "panel_name_source",
+        "scene_start_context_position",
+        "retrospective_position",
+        "scene_reentry_policy",
+        "internal_identifier_visibility",
+        "unknown_identity_policy"
+      ],
+      "properties": {
+        "ordering_source": {"const": "PRESENTATION_PLAN_GLOBAL"},
+        "unit_text_policy": {"const": "CANONICAL_EXACT"},
+        "character_name_source": {"const": "CHARACTERS_NAME"},
+        "relationship_source": {"const": "RELATIONSHIPS_DISPLAY_SUMMARY"},
+        "panel_name_source": {"const": "PANEL_CAST_DISPLAY_NAME"},
+        "scene_start_context_position": {"const": "BEFORE_FIRST_SCENE_SEGMENT"},
+        "retrospective_position": {"const": "AFTER_LAST_SCENE_SEGMENT"},
+        "scene_reentry_policy": {"const": "CONTINUATION_HEADING"},
+        "internal_identifier_visibility": {"const": "HIDDEN"},
+        "unknown_identity_policy": {"const": "FAIL"}
+      }
+    },
+    "document_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title_template",
+        "required_headings",
+        "organizing_principle_templates",
+        "character_table_columns",
+        "character_table_row_template",
+        "character_table_divider",
+        "relationship_separator",
+        "panel_table_columns",
+        "panel_table_row_template",
+        "panel_table_divider",
+        "scene_heading_template",
+        "scene_resume_heading_template",
+        "scene_reference_template",
+        "context_entry_template",
+        "context_separator",
+        "context_labels",
+        "no_previous_scene_label",
+        "context_groups"
+      ],
+      "properties": {
+        "title_template": {
+          "type": "string",
+          "pattern": "\\{title\\}"
+        },
+        "required_headings": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "prefixItems": [
+            {"const": "정리 기준"},
+            {"const": "등장인물"},
+            {"const": "패널"},
+            {"const": "방송 대본"}
+          ]
+        },
+        "organizing_principle_templates": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "character_table_columns": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {"const": "인물"},
+            {"const": "역할"},
+            {"const": "관계"}
+          ]
+        },
+        "character_table_row_template": {
+          "type": "string",
+          "allOf": [
+            {"pattern": "\\{name\\}"},
+            {"pattern": "\\{role\\}"},
+            {"pattern": "\\{relationships\\}"}
+          ]
+        },
+        "character_table_divider": {"const": "|---|---|---|"},
+        "relationship_separator": {"type": "string", "minLength": 1},
+        "panel_table_columns": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {"const": "패널"},
+            {"const": "역할"}
+          ]
+        },
+        "panel_table_row_template": {
+          "type": "string",
+          "allOf": [
+            {"pattern": "\\{display_name\\}"},
+            {"pattern": "\\{voice_style\\}"}
+          ]
+        },
+        "panel_table_divider": {"const": "|---|---|"},
+        "scene_heading_template": {
+          "type": "string",
+          "allOf": [
+            {"pattern": "\\{order\\}"},
+            {"pattern": "\\{title\\}"}
+          ]
+        },
+        "scene_resume_heading_template": {
+          "type": "string",
+          "allOf": [
+            {"pattern": "\\{order\\}"},
+            {"pattern": "\\{title\\}"}
+          ]
+        },
+        "scene_reference_template": {
+          "type": "string",
+          "allOf": [
+            {"pattern": "\\{order\\}"},
+            {"pattern": "\\{title\\}"}
+          ]
+        },
+        "context_entry_template": {
+          "type": "string",
+          "allOf": [
+            {"pattern": "\\{label\\}"},
+            {"pattern": "\\{value\\}"}
+          ]
+        },
+        "context_separator": {"type": "string", "minLength": 1},
+        "context_labels": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "location_description",
+            "time_description",
+            "previous_scene_id",
+            "opening_character_state",
+            "opening_emotional_state",
+            "audience_information_gain",
+            "background_music_description",
+            "sound_cues",
+            "action_summary",
+            "retrospective_meaning"
+          ],
+          "properties": {
+            "location_description": {"$ref": "#/$defs/nonEmptyString"},
+            "time_description": {"$ref": "#/$defs/nonEmptyString"},
+            "previous_scene_id": {"$ref": "#/$defs/nonEmptyString"},
+            "opening_character_state": {"$ref": "#/$defs/nonEmptyString"},
+            "opening_emotional_state": {"$ref": "#/$defs/nonEmptyString"},
+            "audience_information_gain": {"$ref": "#/$defs/nonEmptyString"},
+            "background_music_description": {"$ref": "#/$defs/nonEmptyString"},
+            "sound_cues": {"$ref": "#/$defs/nonEmptyString"},
+            "action_summary": {"$ref": "#/$defs/nonEmptyString"},
+            "retrospective_meaning": {"$ref": "#/$defs/nonEmptyString"}
+          }
+        },
+        "no_previous_scene_label": {"$ref": "#/$defs/nonEmptyString"},
+        "context_groups": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {"$ref": "#/$defs/situationContextGroup"},
+            {"$ref": "#/$defs/soundActionContextGroup"},
+            {"$ref": "#/$defs/retrospectiveContextGroup"}
+          ]
+        }
+      }
+    },
+    "render_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dialogue_template",
+        "character_authored_template",
+        "direction_template",
+        "sound_template",
+        "screen_text_template",
+        "delivery_template",
+        "delivery_line_separator",
+        "panel_section_heading_template",
+        "panel_turn_template",
+        "special_unit_labels",
+        "show_internal_reaction_function"
+      ],
+      "properties": {
+        "dialogue_template": {"$ref": "#/$defs/dialogueTemplate"},
+        "character_authored_template": {"$ref": "#/$defs/characterAuthoredTemplate"},
+        "direction_template": {"$ref": "#/$defs/textTemplate"},
+        "sound_template": {"$ref": "#/$defs/textTemplate"},
+        "screen_text_template": {"$ref": "#/$defs/textTemplate"},
+        "delivery_template": {"type": "string", "pattern": "\\{instruction\\}"},
+        "delivery_line_separator": {"$ref": "#/$defs/nonEmptyString"},
+        "panel_section_heading_template": {"type": "string", "pattern": "\\{index\\}"},
+        "panel_turn_template": {
+          "type": "string",
+          "allOf": [
+            {"pattern": "\\{display_name\\}"},
+            {"pattern": "\\{spoken_line\\}"}
+          ]
+        },
+        "special_unit_labels": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "NARRATION",
+            "INNER_MONOLOGUE",
+            "HALLUCINATION",
+            "MESSAGE",
+            "CHAT",
+            "NOTE",
+            "RECORDING"
+          ],
+          "properties": {
+            "NARRATION": {"$ref": "#/$defs/nonEmptyString"},
+            "INNER_MONOLOGUE": {"$ref": "#/$defs/nonEmptyString"},
+            "HALLUCINATION": {"$ref": "#/$defs/nonEmptyString"},
+            "MESSAGE": {"$ref": "#/$defs/nonEmptyString"},
+            "CHAT": {"$ref": "#/$defs/nonEmptyString"},
+            "NOTE": {"$ref": "#/$defs/nonEmptyString"},
+            "RECORDING": {"$ref": "#/$defs/nonEmptyString"}
+          }
+        },
+        "show_internal_reaction_function": {"const": false}
+      }
+    },
+    "segment_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supported_segment_types", "unsupported_segment_policy"],
+      "properties": {
+        "supported_segment_types": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {"const": "DRAMA"},
+            {"const": "NARRATION"},
+            {"const": "PANEL_REACTION"}
+          ]
+        },
+        "unsupported_segment_policy": {"const": "FAIL"}
+      }
+    },
+    "visibility_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "forbidden_visible_prefixes",
+        "forbidden_html_comment_tokens",
+        "original_fiction_forbidden_uncertainty_markers"
+      ],
+      "properties": {
+        "forbidden_visible_prefixes": {
+          "type": "array",
+          "minItems": 11,
+          "uniqueItems": true,
+          "allOf": [
+            {"contains": {"const": "SCN-"}},
+            {"contains": {"const": "SEG-"}},
+            {"contains": {"const": "UNIT-"}},
+            {"contains": {"const": "CHAR-"}},
+            {"contains": {"const": "PANEL-"}},
+            {"contains": {"const": "RSEG-"}},
+            {"contains": {"const": "FACT-"}},
+            {"contains": {"const": "CLUE-"}},
+            {"contains": {"const": "HARM-"}},
+            {"contains": {"const": "CDEV-"}},
+            {"contains": {"const": "REVEAL-"}}
+          ],
+          "items": {"type": "string", "minLength": 1}
+        },
+        "forbidden_html_comment_tokens": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {"const": "<!--"},
+            {"const": "-->"}
+          ]
+        },
+        "original_fiction_forbidden_uncertainty_markers": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {"const": "[청취 불명확]"},
+            {"const": "[화자 불명확]"}
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "textTemplate": {"type": "string", "pattern": "\\{text\\}"},
+    "dialogueTemplate": {
+      "type": "string",
+      "allOf": [
+        {"pattern": "\\{speaker_name\\}"},
+        {"pattern": "\\{delivery_block\\}"},
+        {"pattern": "\\{text\\}"}
+      ]
+    },
+    "characterAuthoredTemplate": {
+      "type": "string",
+      "allOf": [
+        {"pattern": "\\{speaker_name\\}"},
+        {"pattern": "\\{label\\}"},
+        {"pattern": "\\{delivery_block\\}"},
+        {"pattern": "\\{text\\}"}
+      ]
+    },
+    "situationContextGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group_id", "position", "template", "fields", "omit_when_empty"],
+      "properties": {
+        "group_id": {"const": "SITUATION"},
+        "position": {"const": "SCENE_START"},
+        "template": {"type": "string", "pattern": "\\{content\\}"},
+        "fields": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "prefixItems": [
+            {"const": "location_description"},
+            {"const": "time_description"},
+            {"const": "previous_scene_id"},
+            {"const": "opening_character_state"},
+            {"const": "opening_emotional_state"},
+            {"const": "audience_information_gain"}
+          ]
+        },
+        "omit_when_empty": {"const": false}
+      }
+    },
+    "soundActionContextGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group_id", "position", "template", "fields", "omit_when_empty"],
+      "properties": {
+        "group_id": {"const": "SOUND_ACTION"},
+        "position": {"const": "SCENE_START"},
+        "template": {"type": "string", "pattern": "\\{content\\}"},
+        "fields": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {"const": "background_music_description"},
+            {"const": "sound_cues"},
+            {"const": "action_summary"}
+          ]
+        },
+        "omit_when_empty": {"const": false}
+      }
+    },
+    "retrospectiveContextGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group_id", "position", "template", "fields", "omit_when_empty"],
+      "properties": {
+        "group_id": {"const": "RETROSPECTIVE"},
+        "position": {"const": "SCENE_END"},
+        "template": {"type": "string", "pattern": "\\{content\\}"},
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "prefixItems": [
+            {"const": "retrospective_meaning"}
+          ]
+        },
+        "omit_when_empty": {"const": true}
+      }
+    }
+  }
+}

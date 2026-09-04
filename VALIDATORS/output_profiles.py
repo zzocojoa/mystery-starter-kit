@@ -1,0 +1,334 @@
+"""Versioned Output Profile Pin, Registry와 파일 무결성을 검증한다."""
+
+from collections.abc import Mapping
+from hashlib import sha256
+from pathlib import Path
+from typing import Literal, TypedDict, cast
+
+from VALIDATORS.compatibility import parse_semantic_version
+from VALIDATORS.exceptions import ConfigurationError
+from VALIDATORS.io import load_json_object
+from VALIDATORS.schema_validation import collect_schema_errors
+
+ScriptSourceMode = Literal["LEGACY_MARKDOWN", "SCREENPLAY_UNITS"]
+BroadcastReadableActivationMode = Literal[
+    "DISABLED",
+    "V1_COMPATIBILITY",
+    "V2_CONFIG",
+]
+
+
+class ResolvedOutputProfile(TypedDict):
+    """검증된 Output Profile과 고정 식별 정보."""
+
+    profile_id: str
+    profile_version: str
+    sha256: str
+    relative_path: str
+    schema_relative_path: str
+    document: dict[str, object]
+
+
+def script_source_mode(production_config: Mapping[str, object]) -> ScriptSourceMode:
+    """필드가 없는 기존 Project를 Legacy Markdown으로 해석한다."""
+    value = production_config.get("script_source_mode", "LEGACY_MARKDOWN")
+    if value not in {"LEGACY_MARKDOWN", "SCREENPLAY_UNITS"}:
+        raise ConfigurationError(
+            "SCRIPT_SOURCE_MODE_INVALID: production_config.script_source_mode는 "
+            "LEGACY_MARKDOWN 또는 SCREENPLAY_UNITS여야 합니다."
+        )
+    return cast(ScriptSourceMode, value)
+
+
+def repository_profile_path(
+    repository_root: Path,
+    relative_path: str,
+    error_prefix: str,
+) -> Path:
+    """Registry 경로를 Repository 내부 JSON 파일로 제한한다."""
+    candidate = Path(relative_path)
+    if candidate.is_absolute() or ".." in candidate.parts or candidate.suffix != ".json":
+        raise ConfigurationError(
+            f"{error_prefix}_PATH_INVALID: path={relative_path}"
+        )
+    root = repository_root.resolve()
+    resolved = (root / candidate).resolve()
+    if not resolved.is_relative_to(root):
+        raise ConfigurationError(
+            f"{error_prefix}_PATH_INVALID: path={relative_path}"
+        )
+    return resolved
+
+
+def registered_profile_schema_path(
+    repository_root: Path,
+    version_entry: Mapping[str, object],
+    fallback_schema_name: str,
+    error_prefix: str,
+) -> tuple[str, Path]:
+    """Version Entry가 지정한 Schema를 Repository의 표준 Schema로 제한한다."""
+    configured = version_entry.get("schema_path")
+    if configured is None:
+        relative_path = f"STANDARD/schemas/{fallback_schema_name}"
+    elif isinstance(configured, str):
+        relative_path = configured
+    else:
+        raise ConfigurationError(
+            f"{error_prefix}_SCHEMA_UNSUPPORTED: schema_path={configured!r}"
+        )
+    candidate = Path(relative_path)
+    repository = repository_root.resolve()
+    if (
+        candidate.is_absolute()
+        or ".." in candidate.parts
+        or candidate.suffix != ".json"
+        or candidate.parts[:2] != ("STANDARD", "schemas")
+    ):
+        raise ConfigurationError(
+            f"{error_prefix}_SCHEMA_UNSUPPORTED: schema_path={relative_path}"
+        )
+    schema_path = (repository / candidate).resolve()
+    if not schema_path.is_relative_to(repository) or not schema_path.is_file():
+        raise ConfigurationError(
+            f"{error_prefix}_SCHEMA_UNSUPPORTED: schema_path={relative_path}"
+        )
+    return relative_path, schema_path
+
+
+def schema_valid_document(
+    document_path: Path,
+    schema_path: Path,
+    code: str,
+) -> dict[str, object]:
+    """문서를 읽어 대응 JSON Schema 위반을 계약 오류로 변환한다."""
+    document = load_json_object(document_path)
+    schema = load_json_object(schema_path)
+    errors = collect_schema_errors(document, schema, str(document_path))
+    if errors:
+        raise ConfigurationError(f"{code}: errors={errors}")
+    return document
+
+
+def required_profile_pin(
+    production_config: Mapping[str, object],
+    field: str,
+    error_prefix: str,
+) -> str:
+    """SCREENPLAY_UNITS mode에서 필수 Profile Pin 문자열을 읽는다."""
+    value = production_config.get(field)
+    if not isinstance(value, str):
+        raise ConfigurationError(
+            f"{error_prefix}_PIN_MISSING: production_config.{field}가 없습니다."
+        )
+    return value
+
+
+def resolve_registered_output_profile(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    profile_id_field: str,
+    profile_version_field: str,
+    profile_schema_name: str,
+    error_prefix: str,
+) -> ResolvedOutputProfile | None:
+    """공용 Registry에서 명시적으로 고정한 Output Profile을 해석한다."""
+    if script_source_mode(production_config) == "LEGACY_MARKDOWN":
+        return None
+    profile_id = required_profile_pin(
+        production_config,
+        profile_id_field,
+        error_prefix,
+    )
+    profile_version = required_profile_pin(
+        production_config,
+        profile_version_field,
+        error_prefix,
+    )
+    parse_semantic_version(profile_version)
+    registry = schema_valid_document(
+        repository_root / "CHANNELS/mystery_main/output_profiles/registry.json",
+        repository_root
+        / "STANDARD/schemas/reenactment_output_profile_registry.schema.json",
+        f"{error_prefix}_REGISTRY_INVALID",
+    )
+    profiles = registry.get("profiles")
+    profile_entry = profiles.get(profile_id) if isinstance(profiles, Mapping) else None
+    versions = profile_entry.get("versions") if isinstance(profile_entry, Mapping) else None
+    version_entry = versions.get(profile_version) if isinstance(versions, Mapping) else None
+    if not isinstance(version_entry, Mapping):
+        raise ConfigurationError(
+            f"{error_prefix}_PIN_INVALID: "
+            f"profile_id={profile_id}, profile_version={profile_version}"
+        )
+    relative_path = version_entry.get("path")
+    expected_hash = version_entry.get("sha256")
+    if not isinstance(relative_path, str) or not isinstance(expected_hash, str):
+        raise ConfigurationError(
+            f"{error_prefix}_REGISTRY_INVALID: "
+            f"profile_id={profile_id}, profile_version={profile_version}"
+        )
+    profile_path = repository_profile_path(
+        repository_root,
+        relative_path,
+        error_prefix,
+    )
+    try:
+        actual_hash = sha256(profile_path.read_bytes()).hexdigest()
+    except OSError as error:
+        raise ConfigurationError(
+            f"{error_prefix}_MISSING: path={relative_path}"
+        ) from error
+    if actual_hash != expected_hash:
+        raise ConfigurationError(
+            f"{error_prefix}_HASH_MISMATCH: "
+            f"path={relative_path}, expected={expected_hash}, actual={actual_hash}"
+        )
+    schema_relative_path, profile_schema_path = registered_profile_schema_path(
+        repository_root,
+        version_entry,
+        profile_schema_name,
+        error_prefix,
+    )
+    document = schema_valid_document(
+        profile_path,
+        profile_schema_path,
+        f"{error_prefix}_INVALID",
+    )
+    identity_matches = (
+        document.get("profile_id") == profile_id
+        and document.get("profile_version") == profile_version
+    )
+    if not identity_matches:
+        raise ConfigurationError(
+            f"{error_prefix}_IDENTITY_MISMATCH: "
+            f"profile_id={profile_id}, profile_version={profile_version}, "
+            f"path={relative_path}"
+        )
+    return ResolvedOutputProfile(
+        profile_id=profile_id,
+        profile_version=profile_version,
+        sha256=actual_hash,
+        relative_path=relative_path,
+        schema_relative_path=schema_relative_path,
+        document=document,
+    )
+
+
+def resolve_reenactment_output_profile(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+) -> ResolvedOutputProfile | None:
+    """Production Config Pin으로 Hash 검증된 Output Profile을 해석한다."""
+    return resolve_registered_output_profile(
+        repository_root,
+        production_config,
+        "reenactment_output_profile_id",
+        "reenactment_output_profile_version",
+        "reenactment_output_profile.schema.json",
+        "REENACTMENT_OUTPUT_PROFILE",
+    )
+
+
+def resolve_broadcast_readable_output_profile(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+) -> ResolvedOutputProfile | None:
+    """Production Config Pin으로 사람용 Broadcast Profile을 해석한다."""
+    return resolve_registered_output_profile(
+        repository_root,
+        production_config,
+        "broadcast_readable_output_profile_id",
+        "broadcast_readable_output_profile_version",
+        "broadcast_readable_output_profile.schema.json",
+        "BROADCAST_READABLE_OUTPUT_PROFILE",
+    )
+
+
+def broadcast_readable_activation_mode(
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, object],
+) -> BroadcastReadableActivationMode:
+    """별도 Config 우선순위와 기존 v1 Pin Pair로 활성화 경로를 판정한다."""
+    readable_config = artifacts.get("broadcast_readable_config")
+    if readable_config is not None:
+        if not isinstance(readable_config, Mapping):
+            raise ConfigurationError(
+                "BROADCAST_READABLE_CONFIG_INVALID: Config는 객체여야 합니다."
+            )
+        enabled = readable_config.get("enabled")
+        if not isinstance(enabled, bool):
+            raise ConfigurationError(
+                "BROADCAST_READABLE_CONFIG_INVALID: enabled는 boolean이어야 합니다."
+            )
+        if not enabled:
+            return "DISABLED"
+        if not isinstance(readable_config.get("profile_id"), str) or not isinstance(
+            readable_config.get("profile_version"),
+            str,
+        ):
+            raise ConfigurationError(
+                "BROADCAST_READABLE_PROFILE_PIN_MISSING: "
+                "활성 Config에는 profile_id와 profile_version이 필요합니다."
+            )
+        return "V2_CONFIG"
+    profile_id_present = "broadcast_readable_output_profile_id" in production_config
+    profile_version_present = (
+        "broadcast_readable_output_profile_version" in production_config
+    )
+    if profile_id_present != profile_version_present:
+        raise ConfigurationError(
+            "BROADCAST_READABLE_PROFILE_PIN_MISSING: "
+            "Production Config의 v1 Profile Pin Pair가 불완전합니다."
+        )
+    if not profile_id_present:
+        return "DISABLED"
+    if script_source_mode(production_config) != "SCREENPLAY_UNITS":
+        return "DISABLED"
+    return "V1_COMPATIBILITY"
+
+
+def resolve_active_broadcast_readable_output_profile(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, object],
+) -> ResolvedOutputProfile | None:
+    """별도 v2 Config 우선순위로 현재 Readable Output Profile을 해석한다."""
+    mode = broadcast_readable_activation_mode(production_config, artifacts)
+    if mode == "DISABLED":
+        return None
+    if mode == "V1_COMPATIBILITY":
+        return resolve_broadcast_readable_output_profile(
+            repository_root,
+            production_config,
+        )
+    readable_config = artifacts["broadcast_readable_config"]
+    if not isinstance(readable_config, Mapping):
+        raise ConfigurationError(
+            "BROADCAST_READABLE_CONFIG_INVALID: Config는 객체여야 합니다."
+        )
+    config_schema = load_json_object(
+        repository_root / "STANDARD/schemas/broadcast_readable_config.schema.json"
+    )
+    errors = collect_schema_errors(
+        readable_config,
+        config_schema,
+        "broadcast_readable_config",
+    )
+    if errors:
+        raise ConfigurationError(
+            f"BROADCAST_READABLE_CONFIG_INVALID: errors={errors}"
+        )
+    project_id = production_config.get("project_id")
+    if readable_config.get("project_id") != project_id:
+        raise ConfigurationError(
+            "BROADCAST_READABLE_CONFIG_INVALID: "
+            f"production_project_id={project_id!r}, "
+            f"config_project_id={readable_config.get('project_id')!r}"
+        )
+    next_config = dict(production_config)
+    next_config["script_source_mode"] = "SCREENPLAY_UNITS"
+    next_config["broadcast_readable_output_profile_id"] = readable_config["profile_id"]
+    next_config["broadcast_readable_output_profile_version"] = readable_config[
+        "profile_version"
+    ]
+    return resolve_broadcast_readable_output_profile(repository_root, next_config)

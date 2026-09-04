@@ -38,7 +38,19 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "broadcast_readable_config": {"$ref": "#/$defs/sha256"},
+        "broadcast_readable_output_profile": {"$ref": "#/$defs/sha256"},
+        "psychological_arc": {"$ref": "#/$defs/sha256"},
+        "character_state_transitions": {"$ref": "#/$defs/sha256"},
+        "crime_event_contract": {"$ref": "#/$defs/sha256"},
+        "scene_cards": {"$ref": "#/$defs/sha256"},
         "final_script": {"$ref": "#/$defs/sha256"},
+        "screenplay_units": {"$ref": "#/$defs/sha256"},
+        "broadcast_readable_script": {"$ref": "#/$defs/sha256"},
+        "broadcast_readable_report": {"$ref": "#/$defs/sha256"},
+        "reenactment_character_script": {"$ref": "#/$defs/sha256"},
+        "reenactment_export_report": {"$ref": "#/$defs/sha256"},
+        "script_realization_report": {"$ref": "#/$defs/sha256"},
         "actual_timeline": {"$ref": "#/$defs/sha256"},
         "viewer_timeline": {"$ref": "#/$defs/sha256"},
         "audience_belief": {"$ref": "#/$defs/sha256"},
@@ -55,10 +67,18 @@
         "production_panel_reaction_script": {"$ref": "#/$defs/sha256"},
         "production_expert_analysis_script": {"$ref": "#/$defs/sha256"},
         "subtitle_script": {"$ref": "#/$defs/sha256"},
-        "edit_script": {"$ref": "#/$defs/sha256"}
+        "edit_script": {"$ref": "#/$defs/sha256"},
+        "production_reenactment_character_script": {"$ref": "#/$defs/sha256"},
+        "production_broadcast_readable_script": {"$ref": "#/$defs/sha256"}
       }
     },
     "runtime_evidence": {"$ref": "#/$defs/runtimeEvidence"},
+    "reenactment_runtime_evidence": {"$ref": "#/$defs/reenactmentRuntimeEvidence"},
+    "semantic_assessments": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/semanticAssessment"}
+    },
     "result": {"enum": ["PENDING", "PASS", "FAIL"]},
     "checks": {
       "type": "object",
@@ -101,6 +121,11 @@
   },
   "$defs": {
     "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "segmentIdList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^SEG-[A-Z0-9_-]+$"}
+    },
     "check": {
       "type": "object",
       "additionalProperties": false,
@@ -122,7 +147,17 @@
       "properties": {
         "artifact": {
           "enum": [
+            "psychological_arc",
+            "character_state_transitions",
+            "crime_event_contract",
+            "scene_cards",
             "final_script",
+            "screenplay_units",
+            "broadcast_readable_script",
+            "broadcast_readable_report",
+            "reenactment_character_script",
+            "reenactment_export_report",
+            "script_realization_report",
             "actual_timeline",
             "viewer_timeline",
             "audience_belief",
@@ -139,7 +174,9 @@
             "production_panel_reaction_script",
             "production_expert_analysis_script",
             "subtitle_script",
-            "edit_script"
+            "edit_script",
+            "production_reenactment_character_script",
+            "production_broadcast_readable_script"
           ]
         },
         "selector_type": {
@@ -148,9 +185,12 @@
             "SEGMENT_ID",
             "REACTION_SEGMENT_ID",
             "SCENE_ID",
+            "PSYCHOLOGICAL_STAGE_ID",
             "EVENT_ID",
             "FACT_ID",
-            "CLUE_ID"
+            "CLUE_ID",
+            "REVEAL_TARGET_ID",
+            "UNIT_ID"
           ]
         },
         "selector_id": {"type": "string", "minLength": 1},
@@ -175,6 +215,9 @@
           ]
         },
         "duration_sec": {"type": "number", "exclusiveMinimum": 0},
+        "time_class": {"enum": ["ACTION", "NON_SPEAKING"]},
+        "support_status": {"enum": ["SUPPORTED", "UNSUPPORTED"]},
+        "source_reference": {"type": "string", "minLength": 1},
         "notes": {"type": "string", "minLength": 1}
       }
     },
@@ -200,9 +243,11 @@
         "planned_duration_sec": {"type": "number", "exclusiveMinimum": 0},
         "spoken_word_count": {"type": "integer", "minimum": 1},
         "estimated_spoken_duration_sec": {
-          "type": "number",
+          "type": ["number", "null"],
           "exclusiveMinimum": 0
         },
+        "action_duration_sec": {"type": "number", "minimum": 0},
+        "non_speaking_duration_sec": {"type": "number", "minimum": 0},
         "measured_duration_sec": {
           "type": ["number", "null"],
           "exclusiveMinimum": 0
@@ -233,6 +278,8 @@
         "panel_segments"
       ],
       "properties": {
+        "language_unit": {"const": "KOREAN_EOJEOL"},
+        "estimation_assumptions": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
         "method": {
           "enum": ["PENDING", "WORD_COUNT_ESTIMATE", "TABLE_READ", "RECORDED_AUDIO"]
         },
@@ -260,6 +307,125 @@
           "type": "array",
           "items": {"$ref": "#/$defs/panelSegmentRuntime"}
         }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"method": {"const": "WORD_COUNT_ESTIMATE"}},
+            "required": ["method"]
+          },
+          "then": {
+            "properties": {
+              "reading_rate_wpm": {"type": "number", "exclusiveMinimum": 0},
+              "estimated_panel_spoken_duration_sec": {"type": "number", "exclusiveMinimum": 0},
+              "measured_panel_duration_sec": {"type": "null"},
+              "panel_segments": {
+                "items": {
+                  "properties": {
+                    "estimated_spoken_duration_sec": {"type": "number", "exclusiveMinimum": 0},
+                    "measured_duration_sec": {"type": "null"}
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"method": {"enum": ["TABLE_READ", "RECORDED_AUDIO"]}},
+            "required": ["method"]
+          },
+          "then": {
+            "properties": {
+              "estimated_panel_spoken_duration_sec": {"type": "null"},
+              "measured_panel_duration_sec": {"type": "number", "exclusiveMinimum": 0},
+              "panel_segments": {
+                "items": {
+                  "properties": {
+                    "estimated_spoken_duration_sec": {"type": "null"},
+                    "measured_duration_sec": {"type": "number", "exclusiveMinimum": 0}
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "reenactmentRuntimeEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "input_artifact_hashes",
+        "reenactment_export_report_sha256",
+        "included_segment_ids",
+        "excluded_segment_ids",
+        "planned_duration_sec",
+        "estimated_duration_sec",
+        "measured_duration_sec"
+      ],
+      "properties": {
+        "method": {
+          "enum": ["WORD_COUNT_ESTIMATE", "TABLE_READ", "RECORDED_AUDIO"]
+        },
+        "input_artifact_hashes": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"},
+          "additionalProperties": {"$ref": "#/$defs/sha256"}
+        },
+        "reenactment_export_report_sha256": {"$ref": "#/$defs/sha256"},
+        "included_segment_ids": {"$ref": "#/$defs/segmentIdList"},
+        "excluded_segment_ids": {"$ref": "#/$defs/segmentIdList"},
+        "planned_duration_sec": {"type": "number", "minimum": 0},
+        "estimated_duration_sec": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0
+        },
+        "measured_duration_sec": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"method": {"const": "WORD_COUNT_ESTIMATE"}},
+            "required": ["method"]
+          },
+          "then": {
+            "properties": {
+              "estimated_duration_sec": {"type": "number", "exclusiveMinimum": 0},
+              "measured_duration_sec": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"method": {"enum": ["TABLE_READ", "RECORDED_AUDIO"]}},
+            "required": ["method"]
+          },
+          "then": {
+            "properties": {
+              "estimated_duration_sec": {"type": "null"},
+              "measured_duration_sec": {"type": "number", "exclusiveMinimum": 0}
+            }
+          }
+        }
+      ]
+    },
+    "semanticAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assessment_id", "category", "subject_id", "status", "evidence", "notes"],
+      "properties": {
+        "assessment_id": {"type": "string", "pattern": "^ASSESS-[0-9]{2,}$"},
+        "category": {"enum": ["CRIME_EVENT_REALIZATION", "CRIME_ACTION", "HARM_RESULT", "DEVELOPMENT_FUNCTION", "NARRATION_FUNCTION", "PANEL_FUNCTION", "REVEAL_TIMING", "PREMATURE_DISCLOSURE_SCAN", "CLUE_AND_EVIDENCE_COHERENCE"]},
+        "subject_id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["EVIDENCED", "MISSING", "NEEDS_REVIEW", "NOT_DISCLOSED", "INTENTIONAL_PREREVEAL", "PREMATURE_DISCLOSURE"]},
+        "evidence": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/evidenceReference"}},
+        "notes": {"type": "string", "minLength": 1}
       }
     }
   },

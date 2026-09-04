@@ -1,0 +1,18 @@
+{
+  "$schema": "../../../STANDARD/schemas/project_constraints.schema.json",
+  "schema_family": "project-constraints",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-006",
+  "must_use": [],
+  "must_not_use": [],
+  "production_limits": {
+    "max_locations": 5,
+    "max_major_characters": 7,
+    "max_production_complexity": "HIGH",
+    "max_special_effect_level": "MEDIUM",
+    "allow_child_actor": false,
+    "allow_moving_vehicle": false,
+    "max_graphic_violence": "NON_GRAPHIC",
+    "enforce_final_footprint": true
+  }
+}

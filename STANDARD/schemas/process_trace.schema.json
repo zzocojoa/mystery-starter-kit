@@ -62,8 +62,15 @@
         "pattern": "^(00_PROJECT|01_CASE|02_CHARACTER|03_TIMELINE|04_MYSTERY|05_STORY|06_SCENE|07_SCRIPT|08_QA|09_PRODUCTION)/.+"
       }
     },
+    "execution_mode": {
+      "enum": ["EXECUTED", "VALIDATED_REUSE"]
+    },
+    "reused_trace_id": {
+      "type": "string",
+      "pattern": "^TRACE-[A-F0-9]{16}$"
+    },
     "validator_version": {
-      "const": "1.0.0"
+      "enum": ["1.0.0", "1.1.0"]
     },
     "gate_result": {
       "const": "PASS"

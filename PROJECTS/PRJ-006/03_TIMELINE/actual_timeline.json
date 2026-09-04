@@ -1,0 +1,166 @@
+{
+  "project_id": "PRJ-006",
+  "events": [
+    {
+      "event_id": "EVT-01",
+      "crime_event_id": "EVENT-01",
+      "event_type": "MOTIVE_OR_TRIGGER",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [],
+      "start_minute": 0,
+      "end_minute": 5,
+      "location_id": "LOC-CONTROL",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "description": "강태수가 조작 전 안전 점검표의 감사 제출 계획을 알고 두 직원에게 피해자들을 분리하라고 지시한다."
+    },
+    {
+      "event_id": "EVT-02",
+      "crime_event_id": "EVENT-01",
+      "event_type": "CRIME_EVENT",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "start_minute": 5,
+      "end_minute": 12,
+      "location_id": "LOC-POOL",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "description": "세 가해자가 폐장 구역 접근 권한으로 두 피해자를 분리하고 비선정적 치명 폭력을 가한다."
+    },
+    {
+      "event_id": "EVT-03",
+      "crime_event_id": "EVENT-01",
+      "event_type": "HARM_RESULT",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "start_minute": 12,
+      "end_minute": 15,
+      "location_id": "LOC-POOL",
+      "participant_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "description": "한지석은 사망하고 정세린은 중상을 입은 채 관리 통로로 빠져나간다."
+    },
+    {
+      "event_id": "EVT-04",
+      "crime_event_id": "EVENT-01",
+      "event_type": "CONCEALMENT_OR_DENIAL",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "start_minute": 15,
+      "end_minute": 22,
+      "location_id": "LOC-CONTROL",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "description": "폐장 음악 시각과 점검표를 바꾸고 박도윤의 단독 사고 대응처럼 진술을 맞춘다."
+    },
+    {
+      "event_id": "EVT-05",
+      "crime_event_id": "EVENT-01",
+      "event_type": "DISCOVERY_PATH",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "start_minute": 22,
+      "end_minute": 35,
+      "location_id": "LOC-ARCHIVE",
+      "participant_ids": [
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "description": "한서윤과 정세린이 소매 단추, 음악 중단 시각, 유리 반사와 원본 점검표를 겹쳐 공격 순서를 복원한다."
+    },
+    {
+      "event_id": "EVT-06",
+      "crime_event_id": "EVENT-01",
+      "event_type": "RESPONSIBILITY_CONFIRMATION",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "victim_ids": [
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "start_minute": 35,
+      "end_minute": 42,
+      "location_id": "LOC-POOL",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "description": "재구성된 위치와 각자의 물리 흔적이 세 가해자의 지시·공격·은폐 책임을 확정한다."
+    }
+  ]
+}

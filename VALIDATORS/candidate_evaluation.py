@@ -4,6 +4,10 @@ import hashlib
 import json
 from collections.abc import Mapping
 
+from VALIDATORS.candidate_event_briefs import (
+    candidate_event_brief_hashes,
+    canonical_json_hash,
+)
 from VALIDATORS.models import ValidationIssue
 from VALIDATORS.novelty import variation_precheck_source_hash
 
@@ -17,6 +21,20 @@ SCORE_FIELDS: tuple[str, ...] = (
     "novelty_score",
     "production_score",
 )
+EVENT_SCORE_FIELDS: tuple[str, ...] = (
+    "crime_event_centrality_score",
+    "character_risk_conflict_score",
+    "scene_realizability_score",
+    "reveal_persuasion_score",
+    "production_score",
+)
+EVENT_WEIGHTS: Mapping[str, float] = {
+    "crime_event_centrality_score": 25.0,
+    "character_risk_conflict_score": 25.0,
+    "scene_realizability_score": 20.0,
+    "reveal_persuasion_score": 15.0,
+    "production_score": 15.0,
+}
 SCORE_TOLERANCE = 0.01
 
 
@@ -48,15 +66,27 @@ def document_sha256(document: Mapping[str, object]) -> str:
 
 def candidate_evaluation_input_hashes(
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
 ) -> dict[str, str]:
     """권한 판정과 분리된 Soft 평가 입력 Hash를 계산한다."""
-    return {
+    hashes = {
         "variation_candidates": variation_precheck_source_hash(variations),
         "novelty_precheck": document_sha256(novelty_precheck),
         "candidate_eligibility": document_sha256(candidate_eligibility),
     }
+    if candidate_event_briefs is not None:
+        hashes["candidate_event_briefs"] = canonical_json_hash(candidate_event_briefs)
+        hashes.update(
+            {
+                f"candidate_event_brief_{candidate_id.lower().replace('-', '_')}": value
+                for candidate_id, value in candidate_event_brief_hashes(
+                    candidate_event_briefs
+                ).items()
+            }
+        )
+    return hashes
 
 
 def candidate_ids(document: Mapping[str, object]) -> set[str]:
@@ -116,6 +146,7 @@ def validate_evaluation_completeness(
 
 
 def validate_weighted_scores(
+    variations: Mapping[str, object],
     evaluation: Mapping[str, object],
     records: list[Mapping[str, object]],
 ) -> list[ValidationIssue]:
@@ -129,15 +160,20 @@ def validate_weighted_scores(
                 {},
             )
         ]
+    score_fields = (
+        EVENT_SCORE_FIELDS
+        if variations.get("variation_engine_version") == "2.1.0"
+        else SCORE_FIELDS
+    )
     normalized_weights: dict[str, float] = {}
-    for field in SCORE_FIELDS:
+    for field in score_fields:
         value = number_value(weights.get(field))
         if value is None:
             return [
                 make_candidate_issue(
                     "CANDIDATE_WEIGHTS_INVALID",
                     "모든 Candidate 평가 Dimension에 숫자 가중치가 필요합니다.",
-                    {"fields": list(SCORE_FIELDS)},
+                    {"fields": list(score_fields)},
                 )
             ]
         normalized_weights[field] = value
@@ -151,12 +187,29 @@ def validate_weighted_scores(
                 {"weight_sum": round(total_weight, 4)},
             )
         )
+    if score_fields == EVENT_SCORE_FIELDS:
+        mismatched_weights = {
+            field: {
+                "expected": EVENT_WEIGHTS[field],
+                "actual": normalized_weights[field],
+            }
+            for field in score_fields
+            if abs(normalized_weights[field] - EVENT_WEIGHTS[field]) > SCORE_TOLERANCE
+        }
+        if mismatched_weights:
+            issues.append(
+                make_candidate_issue(
+                    "CANDIDATE_EVENT_WEIGHTS_INVALID",
+                    "Channel 2.1 사건 중심 Candidate 가중치가 표준과 다릅니다.",
+                    {"mismatches": mismatched_weights},
+                )
+            )
     for record in records:
         candidate_id = record.get("candidate_id")
         evidence = record.get("dimension_evidence")
         missing_evidence = [
             field
-            for field in SCORE_FIELDS
+            for field in score_fields
             if not isinstance(evidence, Mapping)
             or not isinstance(evidence.get(field), list)
             or not evidence.get(field)
@@ -173,16 +226,16 @@ def validate_weighted_scores(
                 )
             )
         normalized_scores: dict[str, float] = {}
-        for field in SCORE_FIELDS:
+        for field in score_fields:
             score = number_value(record.get(field))
             if score is not None:
                 normalized_scores[field] = score
-        if len(normalized_scores) != len(SCORE_FIELDS):
+        if len(normalized_scores) != len(score_fields):
             continue
         recomputed = round(
             sum(
                 normalized_scores[field] * normalized_weights[field] / 100.0
-                for field in SCORE_FIELDS
+                for field in score_fields
             ),
             2,
         )
@@ -204,6 +257,7 @@ def validate_weighted_scores(
 
 def validate_input_hashes(
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     evaluation: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
@@ -211,14 +265,14 @@ def validate_input_hashes(
     """Soft 평가가 현재 Core 입력에 결속되었는지 검증한다."""
     expected_hashes = candidate_evaluation_input_hashes(
         variations,
+        candidate_event_briefs,
         novelty_precheck,
         candidate_eligibility,
     )
     actual_hashes = evaluation.get("input_hashes")
     issues: list[ValidationIssue] = []
     if not isinstance(actual_hashes, Mapping) or any(
-        actual_hashes.get(name) != expected
-        for name, expected in expected_hashes.items()
+        actual_hashes.get(name) != expected for name, expected in expected_hashes.items()
     ):
         issues.append(
             make_candidate_issue(
@@ -261,9 +315,7 @@ def validate_recommendation(
 ) -> list[ValidationIssue]:
     """추천 후보가 Core 적격 후보 중 최고 Soft 점수인지 검증한다."""
     recommended_id = evaluation.get("recommended_candidate_id")
-    recommended_records = [
-        record for record in records if record.get("decision") == "RECOMMENDED"
-    ]
+    recommended_records = [record for record in records if record.get("decision") == "RECOMMENDED"]
     issues: list[ValidationIssue] = []
     if (
         not isinstance(recommended_id, str)
@@ -323,6 +375,7 @@ def validate_recommendation(
 
 def validate_candidate_evaluation(
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     evaluation: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
@@ -331,9 +384,10 @@ def validate_candidate_evaluation(
     records = evaluation_records(evaluation)
     return [
         *validate_evaluation_completeness(variations, records),
-        *validate_weighted_scores(evaluation, records),
+        *validate_weighted_scores(variations, evaluation, records),
         *validate_input_hashes(
             variations,
+            candidate_event_briefs,
             evaluation,
             novelty_precheck,
             candidate_eligibility,

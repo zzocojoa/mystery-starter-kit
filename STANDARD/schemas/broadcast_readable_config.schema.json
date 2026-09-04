@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/broadcast-readable-config-1.0.0.json",
+  "title": "Broadcast Readable Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "enabled"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "broadcast-readable-config"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "enabled": {"type": "boolean"},
+    "profile_id": {"const": "BROADCAST_READABLE_SCRIPT"},
+    "profile_version": {"const": "2.0.0"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"enabled": {"const": true}},
+        "required": ["enabled"]
+      },
+      "then": {
+        "required": ["profile_id", "profile_version"]
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {"required": ["profile_id"]},
+            {"required": ["profile_version"]}
+          ]
+        }
+      }
+    }
+  ]
+}

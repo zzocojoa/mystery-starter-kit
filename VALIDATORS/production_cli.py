@@ -19,9 +19,9 @@ from RUNTIME.transactions import (
     commit_gate_transaction,
     release_project_lock,
 )
-from VALIDATORS.candidate_approval import build_candidate_approval
+from VALIDATORS.candidate_approval import approval_input_hashes, build_candidate_approval
 from VALIDATORS.candidate_eligibility import (
-    build_candidate_eligibility,
+    build_candidate_eligibility_bound,
     validate_candidate_eligibility,
 )
 from VALIDATORS.candidate_evaluation import document_sha256, validate_candidate_evaluation
@@ -38,11 +38,14 @@ from VALIDATORS.compatibility import (
     evaluate_channel_binding,
     make_project_compatibility_report,
 )
+from VALIDATORS.config_admission import admit_broadcast_readable_config
+from VALIDATORS.crime_event import explicit_crime_policy
 from VALIDATORS.dependency import (
     artifact_hash,
     dependency_artifacts,
     invalidate_artifact_dependents,
     mark_artifact_clean,
+    reconcile_project_state_artifacts,
     transitive_dependents,
 )
 from VALIDATORS.editorial import (
@@ -86,8 +89,13 @@ from VALIDATORS.library_store import (
     sync_novelty_production_ready,
     sync_novelty_revision,
 )
-from VALIDATORS.models import ProjectCompatibilityReport, ProjectState, ValidationIssue
-from VALIDATORS.novelty import evaluate_variation_precheck
+from VALIDATORS.models import (
+    ProjectCompatibilityReport,
+    ProjectState,
+    RevisionTrigger,
+    ValidationIssue,
+)
+from VALIDATORS.novelty import evaluate_variation_precheck_bound
 from VALIDATORS.pipeline import load_selected_project_artifacts
 from VALIDATORS.reference_validation import sanitize_reference_profile
 from VALIDATORS.scaffold import create_project_scaffold
@@ -217,6 +225,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     task_open_parser.add_argument("project_path", type=Path)
     task_open_parser.add_argument("gate_id")
+    task_open_parser.add_argument("--reference-source", type=Path)
 
     task_status_parser = subparsers.add_parser(
         "task-status",
@@ -226,7 +235,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     task_submit_parser = subparsers.add_parser(
         "task-submit",
-        help="현재 Gate Workspace를 검증하고 원자 Commit합니다.",
+        help="현재 작성 Task를 제출하고 Gate 완료 시에만 원자 Commit합니다.",
     )
     task_submit_parser.add_argument("project_path", type=Path)
     task_submit_parser.add_argument("gate_id")
@@ -259,6 +268,15 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     audit_parser.add_argument("--reference-source", type=Path)
+
+    readable_config_parser = subparsers.add_parser(
+        "broadcast-readable-config-set",
+        help="Broadcast Readable Config를 검증된 Transaction으로 승인합니다.",
+    )
+    readable_config_parser.add_argument("project_path", type=Path)
+    readable_config_parser.add_argument("--input", type=Path, required=True)
+    readable_config_parser.add_argument("--actor", required=True)
+    readable_config_parser.add_argument("--reason", required=True)
 
     rebuild_parser = subparsers.add_parser(
         "rebuild-state",
@@ -301,6 +319,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Story와 Script를 보존하며 Legacy v1.1 Project 계약을 이전합니다.",
     )
     legacy_migrate_parser.add_argument("project_path", type=Path)
+
     return parser
 
 
@@ -492,6 +511,16 @@ def invalidate_channel_pin_state(
         "process_revision": state["readiness"]["process_revision"] + 1,
     }
     next_state["updated_at"] = updated_at
+    next_state["revision_trigger"] = RevisionTrigger(
+        type="SEMANTIC_CORRECTION",
+        source_id=f"CHANNEL-PIN:{updated_at}",
+        target_owner_agent=None,
+        target_gate="GATE-00",
+        target_task_ids=[],
+        actor=None,
+        reason="Channel Pin 변경으로 전체 의미 계약을 다시 검증합니다.",
+        triggered_at=updated_at,
+    )
     return next_state
 
 
@@ -708,7 +737,10 @@ def synchronize_project_state(
     updated_at: str,
 ) -> ProjectState:
     """검증 결과와 Artifact Hash를 Project State Machine에 반영한다."""
-    initial_state = load_project_state(project_path)
+    initial_state = reconcile_project_state_artifacts(
+        dependency_graph,
+        load_project_state(project_path),
+    )
     state = clean_existing_artifacts(
         project_path,
         dependency_graph,
@@ -1219,8 +1251,7 @@ def run_validate(args: argparse.Namespace) -> int:
     report_path = args.project_path / "08_QA" / "audit_report.json"
     write_json_object(report_path, report)
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    validation = cast(Mapping[str, object], report["validation"])
-    return 0 if validation["result"] == "PASS" else 1
+    return 0 if report.get("result") == "PASS" else 1
 
 
 def run_candidate_eligibility(args: argparse.Namespace) -> int:
@@ -1231,9 +1262,26 @@ def run_candidate_eligibility(args: argparse.Namespace) -> int:
     )
     channel, _manifest, _path = resolve_project_channel(ROOT, config, None)
     variations = load_json_object(args.project_path / "00_PROJECT" / "variation_candidates.json")
+    event_brief_path = args.project_path / "00_PROJECT" / "candidate_event_briefs.json"
+    candidate_event_briefs = (
+        load_json_object(event_brief_path)
+        if explicit_crime_policy(channel) is not None and event_brief_path.is_file()
+        else None
+    )
+    if explicit_crime_policy(channel) is not None and candidate_event_briefs is None:
+        raise GateTransactionError(
+            "CANDIDATE_EVENT_BRIEFS_REQUIRED",
+            "Explicit Crime Candidate 적격성에는 Event Brief가 필요합니다.",
+            {"path": str(event_brief_path)},
+        )
     novelty = load_json_object(args.project_path / "08_QA" / "novelty_precheck.json")
-    eligibility = build_candidate_eligibility(
-        config, project_constraints, channel, variations, novelty
+    eligibility = build_candidate_eligibility_bound(
+        config,
+        project_constraints,
+        channel,
+        variations,
+        candidate_event_briefs,
+        novelty,
     )
     output_path = args.project_path / "08_QA" / "candidate_eligibility.json"
     write_json_object(output_path, eligibility)
@@ -1276,6 +1324,18 @@ def run_approve(args: argparse.Namespace) -> int:
     )
     path = args.project_path / "00_PROJECT" / "variation_candidates.json"
     document = load_json_object(path)
+    event_brief_path = args.project_path / "00_PROJECT" / "candidate_event_briefs.json"
+    candidate_event_briefs = (
+        load_json_object(event_brief_path)
+        if explicit_crime_policy(channel) is not None and event_brief_path.is_file()
+        else None
+    )
+    if explicit_crime_policy(channel) is not None and candidate_event_briefs is None:
+        raise GateTransactionError(
+            "CANDIDATE_EVENT_BRIEFS_REQUIRED",
+            "Explicit Crime Candidate 승인에는 Event Brief가 필요합니다.",
+            {"path": str(event_brief_path)},
+        )
     evaluation_path = args.project_path / "00_PROJECT" / "candidate_evaluation.json"
     evaluation = load_json_object(evaluation_path)
     evaluations = evaluation.get("evaluations")
@@ -1306,24 +1366,21 @@ def run_approve(args: argparse.Namespace) -> int:
     state_path = args.project_path / "00_PROJECT" / "project_state.json"
     log_path = args.project_path / "00_PROJECT" / "change_log.jsonl"
     current_state = load_project_state(args.project_path)
-    approval_source_paths = (
-        args.project_path / "00_PROJECT" / "production_config.json",
-        channel_path,
-        path,
-        evaluation_path,
-        novelty_path,
-        eligibility_path,
-        state_path,
-        log_path,
-    )
+    approval_documents: dict[Path, Mapping[str, object]] = {
+        args.project_path / "00_PROJECT" / "production_config.json": production_config,
+        channel_path: channel,
+        path: document,
+        evaluation_path: evaluation,
+        novelty_path: novelty_precheck,
+        eligibility_path: candidate_eligibility,
+        state_path: current_state,
+    }
+    if candidate_event_briefs is not None:
+        approval_documents[event_brief_path] = candidate_event_briefs
+    approval_source_paths = (*approval_documents, log_path)
     approval_document_hashes = {
-        approval_source_paths[0]: document_sha256(production_config),
-        approval_source_paths[1]: document_sha256(channel),
-        approval_source_paths[2]: document_sha256(document),
-        approval_source_paths[3]: document_sha256(evaluation),
-        approval_source_paths[4]: document_sha256(novelty_precheck),
-        approval_source_paths[5]: document_sha256(candidate_eligibility),
-        approval_source_paths[6]: document_sha256(current_state),
+        source_path: document_sha256(source_document)
+        for source_path, source_document in approval_documents.items()
     }
     approval_source_hashes = canonical_file_hashes(approval_source_paths)
     eligibility_schema_errors = collect_schema_errors(
@@ -1353,6 +1410,7 @@ def run_approve(args: argparse.Namespace) -> int:
         load_json_object(args.project_path / "00_PROJECT" / "project_constraints.json"),
         channel,
         document,
+        candidate_event_briefs,
         novelty_precheck,
         candidate_eligibility,
     )
@@ -1365,6 +1423,7 @@ def run_approve(args: argparse.Namespace) -> int:
         )
     evaluation_issues = validate_candidate_evaluation(
         document,
+        candidate_event_briefs,
         evaluation,
         novelty_precheck,
         candidate_eligibility,
@@ -1441,14 +1500,14 @@ def run_approve(args: argparse.Namespace) -> int:
             decision="APPROVED",
             actor=str(args.actor),
             reason=str(args.reason),
-            bound_input_hashes={
-                "production_config": document_sha256(production_config),
-                "channel_dna": document_sha256(channel),
-                "variation_candidates": document_sha256(document),
-                "novelty_precheck": document_sha256(novelty_precheck),
-                "candidate_eligibility": document_sha256(candidate_eligibility),
-                "candidate_evaluation": document_sha256(evaluation),
-            },
+            bound_input_hashes=approval_input_hashes(
+                production_config,
+                document,
+                candidate_event_briefs,
+                novelty_precheck,
+                candidate_eligibility,
+                evaluation,
+            ),
             created_at=changed_at,
         )
         if human_decision
@@ -1464,6 +1523,7 @@ def run_approve(args: argparse.Namespace) -> int:
         changed_at,
         production_config,
         document,
+        candidate_event_briefs,
         novelty_precheck,
         candidate_eligibility,
         evaluation,
@@ -1524,7 +1584,7 @@ def run_approve(args: argparse.Namespace) -> int:
     try:
         current_document_hashes = {
             source_path: document_sha256(load_json_object(source_path))
-            for source_path in approval_source_paths[:-1]
+            for source_path in approval_documents
         }
         if (
             canonical_file_hashes(approval_source_paths) != approval_source_hashes
@@ -1587,8 +1647,15 @@ def run_reference_profile(args: argparse.Namespace) -> int:
 def run_precheck(args: argparse.Namespace) -> int:
     """전체 Variation의 Story History Novelty Precheck를 실행한다."""
     candidates = load_json_object(args.project_path / "00_PROJECT" / "variation_candidates.json")
-    report = evaluate_variation_precheck(
+    report = evaluate_variation_precheck_bound(
         candidates,
+        (
+            load_json_object(
+                args.project_path / "00_PROJECT" / "candidate_event_briefs.json"
+            )
+            if (args.project_path / "00_PROJECT" / "candidate_event_briefs.json").is_file()
+            else None
+        ),
         load_story_history(ROOT / "STORY_LIBRARY" / "novelty_index.json"),
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
     )
@@ -1654,7 +1721,13 @@ def run_register(args: argparse.Namespace) -> int:
 def run_task_open(args: argparse.Namespace) -> int:
     """현재 Gate의 Codex Task Workspace를 연다."""
     gate_index(args.gate_id)
-    record = task_open(ROOT, args.project_path, args.gate_id, utc_now())
+    record = task_open(
+        ROOT,
+        args.project_path,
+        args.gate_id,
+        utc_now(),
+        args.reference_source if isinstance(args.reference_source, Path) else None,
+    )
     print(json.dumps(record, ensure_ascii=False, indent=2))
     return 0
 
@@ -1677,6 +1750,9 @@ def run_task_submit(args: argparse.Namespace) -> int:
         submitted_at,
         args.reference_source if isinstance(args.reference_source, Path) else None,
     )
+    if result.get("status") != "COMMITTED":
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
     sync_novelty_gate(
         repository_root_for_project(args.project_path),
         args.project_path,
@@ -1753,6 +1829,19 @@ def run_audit(args: argparse.Namespace) -> int:
     write_json_object(args.project_path / "08_QA" / "audit_report.json", report)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report["result"] == "PASS" else 1
+
+
+def run_broadcast_readable_config_set(args: argparse.Namespace) -> int:
+    """Broadcast Readable Config Admission Transaction을 실행한다."""
+    result = admit_broadcast_readable_config(
+        args.project_path,
+        args.input,
+        args.actor,
+        args.reason,
+        utc_now(),
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
 
 
 def run_rebuild_state(args: argparse.Namespace) -> int:
@@ -1954,6 +2043,8 @@ def run_cli(argv: Sequence[str]) -> int:
             return run_task_return(args)
         if args.command == "audit":
             return run_audit(args)
+        if args.command == "broadcast-readable-config-set":
+            return run_broadcast_readable_config_set(args)
         if args.command == "rebuild-state":
             return run_rebuild_state(args)
         if args.command == "editorial-approve":

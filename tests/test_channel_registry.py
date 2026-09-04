@@ -31,15 +31,15 @@ def test_existing_project_keeps_v1_1_after_v2_activation() -> None:
     )
 
 
-def test_v2_snapshot_is_exact_active_dna_copy() -> None:
-    """2.0.0 Snapshot은 현재 활성 DNA와 Byte 단위로 같아야 한다."""
+def test_v21_snapshot_is_exact_active_dna_copy() -> None:
+    """2.1.0 Snapshot은 현재 활성 DNA와 Byte 단위로 같아야 한다."""
     active = ROOT / "CHANNELS" / "mystery_main" / "channel_dna.json"
     snapshot = (
         ROOT
         / "CHANNELS"
         / "mystery_main"
         / "versions"
-        / "2.0.0"
+        / "2.1.0"
         / "channel_dna.json"
     )
 
@@ -61,9 +61,9 @@ def test_v1_1_snapshot_remains_distinct_and_registered() -> None:
         ROOT / "CHANNELS" / "mystery_main" / "channel_manifest.json"
     )
 
-    assert active["content_version"] == "2.0.0"
+    assert active["content_version"] == "2.1.0"
     assert legacy["content_version"] == "1.1.0"
-    assert manifest["active_content_version"] == "2.0.0"
+    assert manifest["active_content_version"] == "2.1.0"
 
 
 def test_unregistered_pin_never_falls_back_to_active_version() -> None:

@@ -1,0 +1,550 @@
+{
+  "schema_family": "project-state",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-006",
+  "state": "EDITORIAL_REVIEW_REQUIRED",
+  "current_gate": "GATE-13",
+  "updated_at": "2026-09-03T01:01:45.259532Z",
+  "readiness": {
+    "artifact_status": "ARTIFACT_COMPLETE",
+    "contract_status": "CONTRACT_VALIDATED",
+    "process_status": "PROCESS_CONFORMANT",
+    "editorial_status": "EDITORIAL_REVIEW_REQUIRED",
+    "process_start_gate": "GATE-08",
+    "process_revision": 6
+  },
+  "artifacts": {
+    "project_manifest": {
+      "status": "CLEAN",
+      "content_hash": "c5c370ed2c87365faaeb594d4a520d96eaa877686ac4eb31d0427ff521a2328b",
+      "invalidated_by": []
+    },
+    "compatibility_report": {
+      "status": "CLEAN",
+      "content_hash": "0e7e7c701ed76f835d454d8735c34544f87240cb65d3d7034f08405830a9ba9f",
+      "invalidated_by": []
+    },
+    "production_config": {
+      "status": "CLEAN",
+      "content_hash": "4669e2ddc47fb428da3f03c4653dff9ef787745c28daeecef93f1c52b0820daa",
+      "invalidated_by": []
+    },
+    "project_constraints": {
+      "status": "CLEAN",
+      "content_hash": "df0f1498d1d8e9f1bc21abd9cbf7450d5a6d246f789b11c308d9952282da7d05",
+      "invalidated_by": []
+    },
+    "reference_profile": {
+      "status": "CLEAN",
+      "content_hash": "620cfc4572de125c74b2eddb2d48f3f30e5ba689f73ebb1abb627c7238647bae",
+      "invalidated_by": []
+    },
+    "source_case_brief": {
+      "status": "DIRTY",
+      "content_hash": null,
+      "invalidated_by": [
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
+      ]
+    },
+    "verified_fact_ledger": {
+      "status": "DIRTY",
+      "content_hash": null,
+      "invalidated_by": [
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger"
+      ]
+    },
+    "source_subjects": {
+      "status": "DIRTY",
+      "content_hash": null,
+      "invalidated_by": [
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
+      ]
+    },
+    "verified_event_ledger": {
+      "status": "DIRTY",
+      "content_hash": null,
+      "invalidated_by": [
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_fact_ledger"
+      ]
+    },
+    "source_truth_contract": {
+      "status": "DIRTY",
+      "content_hash": null,
+      "invalidated_by": [
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
+      ]
+    },
+    "variation_candidates": {
+      "status": "CLEAN",
+      "content_hash": "dd4ee787fc2937692d24d04f9f0b17acf2419b0678a37a9e178e124784c0a944",
+      "invalidated_by": []
+    },
+    "candidate_event_briefs": {
+      "status": "CLEAN",
+      "content_hash": "db2b19d77c6d25fe58a205520d50a7198a70e35296789c7c988567eefba814b9",
+      "invalidated_by": []
+    },
+    "candidate_evaluation": {
+      "status": "CLEAN",
+      "content_hash": "a321a13532675b564bee1b0b625f5a048fda1eaea86da7990cfdab9de353f226",
+      "invalidated_by": []
+    },
+    "candidate_approval": {
+      "status": "CLEAN",
+      "content_hash": "3b1dcaa15a3c7e98aa9075fbb24b7877877397e44ef5694b38ee6934b0031c42",
+      "invalidated_by": []
+    },
+    "novelty_precheck": {
+      "status": "CLEAN",
+      "content_hash": "52a492c42c2ba85579b4685363d8703d309061adc9a3b3bbb4f059c2ef9ae014",
+      "invalidated_by": []
+    },
+    "candidate_eligibility": {
+      "status": "CLEAN",
+      "content_hash": "533a0cbecb33044cc0e19a36b747490552f4eec3eeb471db4fb66e20a3d6d170",
+      "invalidated_by": []
+    },
+    "story_dna": {
+      "status": "CLEAN",
+      "content_hash": "3502b494bae59eb9489a533ca66ced58ee7fd4f7415bc7e2cf574de70bfe0671",
+      "invalidated_by": []
+    },
+    "story_fingerprint": {
+      "status": "CLEAN",
+      "content_hash": "be5d9195e20c713b9a1e73ce8909766fa7a0a204d7f616e4891c45fa3cbd2cee",
+      "invalidated_by": []
+    },
+    "case_input": {
+      "status": "CLEAN",
+      "content_hash": "ac3ed9b6a8598d9e83738caba4442e4de03bcaf7286510f3718dc12f71c65294",
+      "invalidated_by": []
+    },
+    "facts": {
+      "status": "CLEAN",
+      "content_hash": "7108013533d7f07efac0867bcb5ce417509cc892810a7192dc43b8ef95411d36",
+      "invalidated_by": []
+    },
+    "crime_event_contract": {
+      "status": "CLEAN",
+      "content_hash": "ac8d3ae662583c0b8a4b0186d9b26331d0e3c6536ed477367b0e7b81dac1f285",
+      "invalidated_by": []
+    },
+    "crime_psychology": {
+      "status": "DIRTY",
+      "content_hash": null,
+      "invalidated_by": [
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
+      ]
+    },
+    "sources": {
+      "status": "CLEAN",
+      "content_hash": "1b4561cf626d0703a5ee95bd9b78d59dbb042eb7508f22a3cba9fb51c7cfa795",
+      "invalidated_by": []
+    },
+    "claim_evidence": {
+      "status": "CLEAN",
+      "content_hash": "f4f1dc817b1111ef74abe2f2ab9b2a0b8a5d0e089462de78fb0d250de2f45976",
+      "invalidated_by": []
+    },
+    "source_disclosure": {
+      "status": "CLEAN",
+      "content_hash": "b01f8c3886c893a1974abb12200861273fb808a5b6d6bf7bba0aed8fbabaa4dc",
+      "invalidated_by": []
+    },
+    "clinical_labels": {
+      "status": "DIRTY",
+      "content_hash": null,
+      "invalidated_by": [
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
+      ]
+    },
+    "characters": {
+      "status": "CLEAN",
+      "content_hash": "71bb1217bae5d299f0f0a054a7afdbb6f282c906084a7d853a9a19f8407a7219",
+      "invalidated_by": []
+    },
+    "relationships": {
+      "status": "CLEAN",
+      "content_hash": "3927a5a7efee00a1c31723cfb724fcf3f3ef653a62dd04dda72854e070de6c18",
+      "invalidated_by": []
+    },
+    "knowledge_matrix": {
+      "status": "CLEAN",
+      "content_hash": "8fc5d489135edf0dca5539f310eb7acc236119ae8e7e41779af27ffb9e2a073b",
+      "invalidated_by": []
+    },
+    "actual_timeline": {
+      "status": "CLEAN",
+      "content_hash": "96864ce988b0914d54f6704dc8abd4cf184d5ac9c5fb578e68a5156a9d065a46",
+      "invalidated_by": []
+    },
+    "viewer_timeline": {
+      "status": "CLEAN",
+      "content_hash": "6b724401a620b35c880bd2a4fd1e4bf753f309821ec448731b000bb054ae8ca5",
+      "invalidated_by": []
+    },
+    "audience_belief": {
+      "status": "CLEAN",
+      "content_hash": "de719e97853c2047663b3ad87d30d3299417e170b2ed9f987d438629ba5a52c4",
+      "invalidated_by": []
+    },
+    "clue_matrix": {
+      "status": "CLEAN",
+      "content_hash": "f254bed1c8513247671e5aa2a9779e7c249de6e0736685ea01881f12427164ce",
+      "invalidated_by": []
+    },
+    "hypothesis_ledger": {
+      "status": "CLEAN",
+      "content_hash": "3efcc617620512f60219b80e86920c8cd1e510713da750e177de7dda8c2839b1",
+      "invalidated_by": []
+    },
+    "causal_graph": {
+      "status": "CLEAN",
+      "content_hash": "1b292499f8ec2bfc30a8130335c7298f7cc7f8f918c7cf10fa40de0970969493",
+      "invalidated_by": []
+    },
+    "beat_sheet": {
+      "status": "CLEAN",
+      "content_hash": "64c0cb8f476cd036c1ca98223a5eb4d087024d37e3ce4d4cd1d4cd5d9800b49e",
+      "invalidated_by": []
+    },
+    "retention_plan": {
+      "status": "CLEAN",
+      "content_hash": "1aeffaeb43c28d38701813ae0fa2f1aa4c93560db7b0d1edbded4faadeaf38d9",
+      "invalidated_by": []
+    },
+    "psychological_arc": {
+      "status": "DIRTY",
+      "content_hash": null,
+      "invalidated_by": [
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
+      ]
+    },
+    "character_state_transitions": {
+      "status": "CLEAN",
+      "content_hash": "abbbdf2bc0c0563132b1fdb3ca288ede3a603638c4d27a29ac6a2fc48f3c40c3",
+      "invalidated_by": []
+    },
+    "scene_cards": {
+      "status": "CLEAN",
+      "content_hash": "e30fbb09901888b8d4af0ed6e00f8f3e50154b587ec6154bd001e36b7653ef53",
+      "invalidated_by": []
+    },
+    "production_footprint": {
+      "status": "CLEAN",
+      "content_hash": "9d80553e4146f582f1702299b4a28c3f328295e539c2c7169b6dbc8ad9c37406",
+      "invalidated_by": []
+    },
+    "panel_cast": {
+      "status": "CLEAN",
+      "content_hash": "b7bc89a27e684b72cfb2c853e9fc5c031c111fd8338371b5df3785405bf695ff",
+      "invalidated_by": []
+    },
+    "reaction_segments": {
+      "status": "CLEAN",
+      "content_hash": "e9e7862076bfd607f4ba1201a838aa2dd5955a5754347ad51ef5d3d2aa97bc0b",
+      "invalidated_by": []
+    },
+    "presentation_plan": {
+      "status": "CLEAN",
+      "content_hash": "b40ff83891a57c96a7646431c3a59ca53847376870c3b5e9a9d1540bee430f87",
+      "invalidated_by": []
+    },
+    "expert_segments": {
+      "status": "DIRTY",
+      "content_hash": null,
+      "invalidated_by": [
+        "candidate_approval",
+        "candidate_eligibility",
+        "candidate_evaluation",
+        "candidate_event_briefs",
+        "claim_evidence",
+        "clinical_labels",
+        "novelty_precheck",
+        "reference_profile",
+        "source_case_brief",
+        "source_disclosure",
+        "source_subjects",
+        "source_truth_contract",
+        "sources",
+        "variation_candidates",
+        "verified_event_ledger",
+        "verified_fact_ledger"
+      ]
+    },
+    "drama_script": {
+      "status": "CLEAN",
+      "content_hash": "da3e02203c8e7b6a480fb90d607501f3a2e850e4f3e3c0c0ac35efc6f98bfe1b",
+      "invalidated_by": []
+    },
+    "narration_script": {
+      "status": "CLEAN",
+      "content_hash": "5c532952b199d06a1bc7582d7dbd0b7453a55a3eba63977b89e8088ad4b2acc5",
+      "invalidated_by": []
+    },
+    "panel_reaction_script": {
+      "status": "CLEAN",
+      "content_hash": "46f2b81d521d0ff60cf0af41effb6ba0484320349128397029eff099fc72be86",
+      "invalidated_by": []
+    },
+    "expert_analysis_script": {
+      "status": "DIRTY",
+      "content_hash": null,
+      "invalidated_by": [
+        "broadcast_readable_script",
+        "draft_script",
+        "drama_script",
+        "final_script",
+        "narration_script",
+        "panel_reaction_script",
+        "reenactment_character_script",
+        "screenplay_units"
+      ]
+    },
+    "screenplay_units": {
+      "status": "CLEAN",
+      "content_hash": "c478aff60b0af9adba79e20dcc01622dd282460e93e0037e9f70e078910163ad",
+      "invalidated_by": []
+    },
+    "draft_script": {
+      "status": "CLEAN",
+      "content_hash": "df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602",
+      "invalidated_by": []
+    },
+    "final_script": {
+      "status": "CLEAN",
+      "content_hash": "df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602",
+      "invalidated_by": []
+    },
+    "reenactment_character_script": {
+      "status": "CLEAN",
+      "content_hash": "0a97c9702158a3f45b6613016fea5b9d67f85e6f3316f88ea9bd80b7bd9e5618",
+      "invalidated_by": []
+    },
+    "reenactment_export_report": {
+      "status": "CLEAN",
+      "content_hash": "97aaca9b89a2bdcae4df4eeebe1b22047a3ef3b74fab9d35c819ef7e17b995ed",
+      "invalidated_by": []
+    },
+    "script_realization_report": {
+      "status": "CLEAN",
+      "content_hash": "93abb2df42370617307674ac28ebe7171651650ce205c6a79ba0ed783211daaf",
+      "invalidated_by": []
+    },
+    "continuity_report": {
+      "status": "CLEAN",
+      "content_hash": "f35da44acc6d45751f7c3197a29618ab61acacbdc0098459d0b3dcd7d2ea5e72",
+      "invalidated_by": []
+    },
+    "novelty_report": {
+      "status": "CLEAN",
+      "content_hash": "b5449f98ce5f42b9badeb8757f53f233aaca53c9286aa4f35702f249094d3620",
+      "invalidated_by": []
+    },
+    "reference_collision_report": {
+      "status": "CLEAN",
+      "content_hash": "beb42bae9ec97ae4e22cb83a8ac6f3348ea9505880817303371612f9a2d305f5",
+      "invalidated_by": []
+    },
+    "channel_consistency_report": {
+      "status": "CLEAN",
+      "content_hash": "cab9170b48b86ce04f2456cce88f2865a2d00c49eff0c68d3b298b1aa6a326e5",
+      "invalidated_by": []
+    },
+    "validation_report": {
+      "status": "CLEAN",
+      "content_hash": "eec9c2d1d0611d95b149f457b8d4b0c48424b1619f14c88bbaabdbc8ae6e6bce",
+      "invalidated_by": []
+    },
+    "shooting_script": {
+      "status": "CLEAN",
+      "content_hash": "f140912435fa39b91e17bbdc9237080489fe043b808500ed1a8678b5ac5338ba",
+      "invalidated_by": []
+    },
+    "production_manifest": {
+      "status": "CLEAN",
+      "content_hash": "aa3a277f9043c5b949881681cf28661d1b726ab247de4627724fe0438d765fb8",
+      "invalidated_by": []
+    },
+    "narration": {
+      "status": "CLEAN",
+      "content_hash": "316efbb7854f9f01ce19441bb7c9d6b19bb491a39674070b77a02de9068639d9",
+      "invalidated_by": []
+    },
+    "production_panel_reaction_script": {
+      "status": "CLEAN",
+      "content_hash": "42e344427fa5e4bde332a03597ed363f083038987482f5fab836aef9eb42f7cc",
+      "invalidated_by": []
+    },
+    "production_expert_analysis_script": {
+      "status": "DIRTY",
+      "content_hash": null,
+      "invalidated_by": [
+        "broadcast_readable_script",
+        "draft_script",
+        "drama_script",
+        "expert_analysis_script",
+        "final_script",
+        "narration_script",
+        "panel_reaction_script",
+        "reenactment_character_script",
+        "screenplay_units",
+        "validation_report"
+      ]
+    },
+    "subtitle_script": {
+      "status": "CLEAN",
+      "content_hash": "b3f0805ece7afb6612703bc852686c9c4bc9ca8ebf80ba5f901a92def6c26417",
+      "invalidated_by": []
+    },
+    "edit_script": {
+      "status": "CLEAN",
+      "content_hash": "39f2d642a0d51cb3592de24758744083bcb81ff4d3db2ad870c75d5057bca652",
+      "invalidated_by": []
+    },
+    "production_reenactment_character_script": {
+      "status": "CLEAN",
+      "content_hash": "0a97c9702158a3f45b6613016fea5b9d67f85e6f3316f88ea9bd80b7bd9e5618",
+      "invalidated_by": []
+    },
+    "editorial_review": {
+      "status": "CLEAN",
+      "content_hash": "221452486eea9aa91e8580c31a6aa73caf2525b65520d11dcb4613b8dbdf1f32",
+      "invalidated_by": []
+    },
+    "broadcast_readable_script": {
+      "status": "CLEAN",
+      "content_hash": "5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41",
+      "invalidated_by": []
+    },
+    "broadcast_readable_report": {
+      "status": "CLEAN",
+      "content_hash": "4ffeeb983fc7ad33b78f14090646fcee7f2c7794e55ec3b58a491c473d3b363a",
+      "invalidated_by": []
+    },
+    "production_broadcast_readable_script": {
+      "status": "CLEAN",
+      "content_hash": "5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41",
+      "invalidated_by": []
+    },
+    "broadcast_readable_config": {
+      "status": "CLEAN",
+      "content_hash": "5d261391b973cdf8bbad0c1ef1020b1bf53b8656656edd764bfbe022a17b0803",
+      "invalidated_by": []
+    }
+  }
+}

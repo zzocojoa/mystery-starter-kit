@@ -18,7 +18,7 @@ from VALIDATORS.dependency import (
     mark_artifact_clean,
 )
 from VALIDATORS.io import load_json_object, write_json_object
-from VALIDATORS.models import ProjectState
+from VALIDATORS.models import ProjectState, RevisionTrigger
 from VALIDATORS.state_machine import advance_gate
 
 
@@ -428,13 +428,24 @@ def next_project_state(
             output_hash,
             updated_at,
         )
-    return advance_gate(
+    advanced = advance_gate(
         next_state,
         gate_id,
         True,
         updated_at,
         required_artifacts,
     )
+    advanced["revision_trigger"] = RevisionTrigger(
+        type="NORMAL_GATE_PROGRESS",
+        source_id=f"{gate_id}:{updated_at}",
+        target_owner_agent=None,
+        target_gate=gate_id,
+        target_task_ids=[],
+        actor=None,
+        reason="정상 Gate 검증과 Commit으로 진행했습니다.",
+        triggered_at=updated_at,
+    )
+    return advanced
 
 
 def transaction_root(project_path: Path, transaction_id: str) -> Path:

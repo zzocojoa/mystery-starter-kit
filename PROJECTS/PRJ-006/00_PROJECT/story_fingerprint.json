@@ -1,0 +1,79 @@
+{
+  "schema_family": "story-fingerprint",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-006",
+  "story": {
+    "mystery_type": "HOW",
+    "architecture": "ARCH-02_FALSE_SOLUTION",
+    "protagonist_role": "VICTIM_FAMILY",
+    "primary_twist": "TW-02_WITNESS_ACCOUNT_CORRECTED",
+    "timeline_style": "FRAGMENTED",
+    "incident_type": "MURDER",
+    "setting": "PUBLIC_SPACE",
+    "culprit_structure": "MULTIPLE",
+    "setting_logic": [
+      "CLOSED_POOL_AFTER_HOURS",
+      "GLASS_REFLECTION_SIGHTLINES"
+    ],
+    "information_mechanism": [
+      "PHYSICAL_EVIDENCE_CHAIN",
+      "LIMITED_WITNESS_ACCOUNT"
+    ],
+    "relationship_engine": "PROTECTIVE_CONFLICT",
+    "pressure_engine": "COUNTDOWN",
+    "dramatic_engine": "SAFETY_COLLAPSE"
+  },
+  "beat_signature": [
+    "COLD_OPEN",
+    "FAMILY_ENTRY",
+    "TIMESTAMP_ANOMALY",
+    "LIMITED_WITNESS",
+    "FALSE_SOLUTION",
+    "SECOND_ACTOR",
+    "CLUE_RECONTEXTUALIZATION",
+    "COLLUSION_REVEAL",
+    "MOTIVE_DISCLOSURE",
+    "EVENT_RECONSTRUCTION",
+    "HARM_AND_RESPONSIBILITY"
+  ],
+  "causal": {
+    "root_cause": "관리 책임자가 안전 기록 조작과 내부 고발을 막으려 세 직원의 공모를 조직했다.",
+    "mechanism": "폐장 접근 권한을 악용해 두 피해자를 분리 공격하고 살인과 중상 피해를 만들었다.",
+    "concealment": "폐장 음악 시각과 점검표를 바꾸고 한 직원의 단독 사고처럼 진술을 맞췄다.",
+    "discovery_path": "유리 반사 목격을 소매 단추, 음악 중단 시각, 원본 점검표와 교차해 역할을 재구성했다.",
+    "resolution": "세 사람의 지시·공격·은폐 책임이 독립된 물리 흔적과 제한된 목격으로 확정됐다."
+  },
+  "semantic_causal": {
+    "normalized_roles": [
+      "DIRECTING_OFFENDER",
+      "COMPLICIT_OFFENDERS",
+      "DECEASED_WHISTLEBLOWER",
+      "SURVIVING_WITNESS",
+      "FAMILY_INVESTIGATOR"
+    ],
+    "character_function_chain": [
+      "DISCOVERED_MANIPULATION",
+      "PLANNED_REPORT",
+      "SEPARATED_VICTIMS",
+      "COMMITTED_ATTACK",
+      "STAGED_ACCIDENT",
+      "PRESERVED_EVIDENCE",
+      "RECONSTRUCTED_ROLES"
+    ],
+    "audience_hypothesis_transitions": [
+      "SINGLE_OFFENDER",
+      "SECOND_ACTOR_DISCOVERED",
+      "MANAGER_COVERUP_ONLY",
+      "THREE_PERSON_COLLUSION_CONFIRMED"
+    ],
+    "edge_sequence": [
+      "ROOT_CAUSE>MOTIVE_OR_TRIGGER",
+      "MOTIVE_OR_TRIGGER>CRIME_EVENT",
+      "CRIME_EVENT>HARM_RESULT",
+      "HARM_RESULT>CONCEALMENT_OR_DENIAL",
+      "CONCEALMENT_OR_DENIAL>DISCOVERY_PATH",
+      "DISCOVERY_PATH>RESPONSIBILITY_CONFIRMATION",
+      "RESPONSIBILITY_CONFIRMATION>RESOLUTION"
+    ]
+  }
+}

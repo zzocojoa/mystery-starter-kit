@@ -56,6 +56,7 @@ from RUNTIME.models import (
     TokenUsage,
 )
 from RUNTIME.output_gateway import (
+    artifact_schema_reference,
     encoded_artifact,
     validate_agent_result,
     validate_core_outputs,
@@ -83,6 +84,7 @@ from RUNTIME.transactions import (
 )
 from VALIDATORS.agent_validation import manifest_agents
 from VALIDATORS.change_log import change_log_bytes
+from VALIDATORS.config_admission import broadcast_readable_config_admission_issues
 from VALIDATORS.dependency import artifact_hash, dependency_artifacts
 from VALIDATORS.exceptions import StarterKitError
 from VALIDATORS.gate_transaction import (
@@ -571,7 +573,7 @@ async def execute_llm_task(
                     project_path,
                     dependency_graph,
                     gate_outputs,
-                    task_id == "variation.evaluate",
+                    task_id in {"variation.elaborate_crime_events", "variation.evaluate"},
                 ),
                 revision_issues,
                 starting_attempt,
@@ -713,6 +715,7 @@ async def execute_existing_run(
     runtime_validation_inputs_for_project(
         repository_root,
         production_config,
+        load_existing_project_artifacts(project_path, dependency_graph),
         None,
     )
     source_mode = production_config.get("story_source_mode")
@@ -769,6 +772,13 @@ async def execute_existing_run(
             state,
             completed_artifacts,
         )
+        drift.extend(
+            broadcast_readable_config_admission_issues(
+                repository_root,
+                project_path,
+                state,
+            )
+        )
         if drift:
             raise RuntimeExecutionError(
                 "INPUT_HASH_CHANGED",
@@ -807,6 +817,7 @@ async def execute_existing_run(
         ) = runtime_validation_inputs_for_project(
             repository_root,
             production_config,
+            load_existing_project_artifacts(project_path, dependency_graph),
             None,
         )
         for gate_id in gate_ids(from_gate, current_run["to_gate"]):
@@ -958,8 +969,7 @@ async def execute_existing_run(
                                     "variation.approve",
                                     approval_state["input_hashes"],
                                 )
-                                if approval_state is not None
-                                and approval_state["input_hashes"]
+                                if approval_state is not None and approval_state["input_hashes"]
                                 else None
                             )
                         try:
@@ -1188,17 +1198,13 @@ async def execute_existing_run(
                         None,
                         None,
                         {
-                            "process_start_gate": next_state["readiness"][
-                                "process_start_gate"
-                            ],
+                            "process_start_gate": next_state["readiness"]["process_start_gate"],
                             "through_gate": gate_id,
                             "missing_gate_traces": missing_traces,
                         },
                     )
                 next_state["readiness"]["process_status"] = (
-                    "PROCESS_CONFORMANT"
-                    if conformant and gate_id == "GATE-13"
-                    else "NONCONFORMANT"
+                    "PROCESS_CONFORMANT" if conformant and gate_id == "GATE-13" else "NONCONFORMANT"
                 )
                 change_log_path = project_path / "00_PROJECT" / "change_log.jsonl"
                 existing_change_log = (
@@ -1236,7 +1242,12 @@ async def execute_existing_run(
                 for artifact_name, content in gate_outputs.items():
                     provenance = output_provenance[artifact_name]
                     contract = artifact_contracts[artifact_name]
-                    schema_reference = contract["schema"]
+                    schema_reference = artifact_schema_reference(
+                        contract,
+                        content if isinstance(content, Mapping) else {},
+                        cast(str, provenance["task_id"]),
+                        artifact_name,
+                    ) if contract["media_type"] == "application/json" else None
                     schema_hash = None
                     if schema_reference is not None:
                         schema_path = repository_root / schema_reference.split("#", maxsplit=1)[0]

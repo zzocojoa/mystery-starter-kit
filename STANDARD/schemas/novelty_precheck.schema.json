@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.local/schemas/novelty-precheck-1.1.0.json",
-  "title": "Variation Novelty Precheck Report v1.1",
+  "$id": "https://example.local/schemas/novelty-precheck-1.1-1.2.json",
+  "title": "Variation Novelty Precheck Report v1.1/v1.2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -15,9 +15,16 @@
   ],
   "properties": {
     "schema_family": {"const": "novelty-precheck"},
-    "schema_version": {"const": "1.1.0"},
+    "schema_version": {"enum": ["1.1.0", "1.2.0"]},
     "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
     "source_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "candidate_event_briefs_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "candidate_event_brief_hashes": {
+      "type": "object",
+      "minProperties": 3,
+      "propertyNames": {"pattern": "^VAR-[0-9]{2,}$"},
+      "additionalProperties": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+    },
     "result": {"enum": ["PASS", "FAIL"]},
     "candidate_results": {
       "type": "array",
@@ -29,10 +36,22 @@
         "properties": {
           "candidate_id": {"type": "string", "pattern": "^VAR-[0-9]{2,}$"},
           "result": {"enum": ["PASS", "FAIL"]},
+          "comparison_status": {"enum": ["COMPARISON_COMPLETE", "NO_COMPARISON_DATA"]},
           "comparisons": {"type": "array"}
         }
       }
     },
     "issues": {"type": "array"}
-  }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"schema_version": {"const": "1.2.0"}}, "required": ["schema_version"]},
+      "then": {
+        "required": ["candidate_event_briefs_hash", "candidate_event_brief_hashes"],
+        "properties": {
+          "candidate_results": {"items": {"required": ["comparison_status"]}}
+        }
+      }
+    }
+  ]
 }

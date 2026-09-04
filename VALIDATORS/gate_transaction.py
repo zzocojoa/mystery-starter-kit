@@ -4,6 +4,7 @@ import json
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from datetime import datetime
+from hashlib import sha256
 from pathlib import Path
 from typing import cast
 from uuid import uuid4
@@ -37,15 +38,24 @@ from RUNTIME.transactions import (
     release_project_lock,
     write_artifact,
 )
+from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_event_briefs import validate_candidate_event_briefs
 from VALIDATORS.channel_registry import resolve_project_channel
+from VALIDATORS.config_admission import broadcast_readable_config_admission_issues
+from VALIDATORS.crime_event import explicit_crime_policy
 from VALIDATORS.dependency import (
     artifact_hash,
     artifact_required_for_project,
     dependency_artifacts,
+    reconcile_project_state_artifacts,
 )
+from VALIDATORS.editorial import editorial_artifact_hashes
 from VALIDATORS.exceptions import ConfigurationError, GateTransactionError
 from VALIDATORS.io import load_json_object, write_json_object
-from VALIDATORS.models import ProductionValidationReport, ProjectState
+from VALIDATORS.models import ProductionValidationReport, ProjectState, RevisionTrigger
+from VALIDATORS.output_profiles import (
+    resolve_active_broadcast_readable_output_profile,
+)
 from VALIDATORS.pipeline import (
     load_existing_project_artifacts,
     load_project_artifacts,
@@ -61,7 +71,7 @@ from VALIDATORS.state_machine import (
 )
 
 PROCESS_TRACE_PATH = "00_PROJECT/process_trace.jsonl"
-VALIDATOR_VERSION = "1.0.0"
+VALIDATOR_VERSION = "1.1.0"
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -506,24 +516,75 @@ def audit_artifact_names(
     )
 
 
+def audit_snapshot_token(
+    project_path: Path,
+    dependency_graph: Mapping[str, object],
+) -> str:
+    """Canonical·Trace·Transaction 경계의 결정론적 Audit Snapshot Hash를 만든다."""
+    relative_paths = {
+        "00_PROJECT/project_state.json",
+        "00_PROJECT/change_log.jsonl",
+        PROCESS_TRACE_PATH,
+        "00_PROJECT/broadcast_readable_config.json",
+    }
+    for definition in dependency_artifacts(dependency_graph).values():
+        relative_path = definition.get("path")
+        if isinstance(relative_path, str):
+            relative_paths.add(relative_path)
+    for pattern in (
+        ".runtime/codex_tasks/*/task.json",
+        ".runtime/transactions/*/transaction.json",
+    ):
+        relative_paths.update(
+            path.relative_to(project_path).as_posix()
+            for path in project_path.glob(pattern)
+            if path.is_file()
+        )
+    entries: list[dict[str, object]] = []
+    for relative_path in sorted(relative_paths):
+        path = project_path / relative_path
+        if not path.is_file():
+            entries.append({"path": relative_path, "exists": False})
+            continue
+        try:
+            content = path.read_bytes()
+        except OSError as error:
+            raise ConfigurationError(
+                "Audit Snapshot 파일을 읽지 못했습니다: "
+                f"path={path}, detail={error}"
+            ) from error
+        entries.append(
+            {
+                "path": relative_path,
+                "exists": True,
+                "sha256": sha256(content).hexdigest(),
+            }
+        )
+    serialized = json.dumps(
+        entries,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return sha256(serialized).hexdigest()
+
+
 def task_open_unlocked(
     repository_root: Path,
     project_path: Path,
     gate_id: str,
     started_at: str,
+    reference_source: Path | None,
 ) -> dict[str, object]:
     """Project Lock 안에서 격리 Workspace와 권한 Snapshot을 생성한다."""
     validate_runtime_contracts(repository_root)
     production_config = load_json_object(
         project_path / "00_PROJECT" / "production_config.json"
     )
-    runtime_validation_inputs_for_project(
-        repository_root,
-        production_config,
-        None,
-    )
     active = open_task_record(repository_root, project_path)
     if active is not None:
+        if active["gate_id"] == gate_id:
+            return active
         raise GateTransactionError(
             "GATE_TRANSACTION_ALREADY_OPEN",
             "기존 Gate Transaction을 먼저 제출하거나 중단해야 합니다.",
@@ -532,10 +593,22 @@ def task_open_unlocked(
                 "gate_id": active["gate_id"],
             },
         )
-    state = project_state(project_path)
     dependency_graph = load_json_object(
         repository_root / "STANDARD" / "dependency_graph.json"
     )
+    runtime_validation_inputs_for_project(
+        repository_root,
+        production_config,
+        load_existing_project_artifacts(project_path, dependency_graph),
+        None,
+    )
+    stored_state = project_state(project_path)
+    state = reconcile_project_state_artifacts(dependency_graph, stored_state)
+    if state != stored_state:
+        write_json_object(
+            project_path / "00_PROJECT" / "project_state.json",
+            state,
+        )
     required_gate = expected_gate(state)["gate_id"]
     if gate_id != required_gate:
         raise GateTransactionError(
@@ -561,16 +634,22 @@ def task_open_unlocked(
         state,
         completed_artifacts,
     )
+    drift.extend(
+        broadcast_readable_config_admission_issues(
+            repository_root,
+            project_path,
+            state,
+        )
+    )
     if drift:
         raise GateTransactionError(
             "GATE_TRANSACTION_INPUT_DRIFT",
             "Project State와 Canonical Artifact Hash가 일치하지 않습니다.",
             {"artifacts": drift},
         )
-    allowed_reads = string_union(tasks, "reads")
+    gate_reads = string_union(tasks, "reads")
     gate_writes = string_union(tasks, "writes")
-    allowed_writes = string_union(tasks_for_executor(tasks, "LLM"), "writes")
-    external_reads = sorted(set(allowed_reads) - set(gate_writes))
+    external_reads = sorted(set(gate_reads) - set(gate_writes))
     input_hashes = capture_artifact_hashes(
         project_path,
         external_reads,
@@ -587,19 +666,28 @@ def task_open_unlocked(
     )
     record: dict[str, object] = {
         "schema_family": "gate-transaction",
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "transaction_id": transaction_id,
         "project_id": state["project_id"],
         "gate_id": gate_id,
         "process_revision": state["readiness"]["process_revision"],
+        "revision_trigger": deepcopy(state.get("revision_trigger")),
         "task_ids": list(tasks),
+        "current_task_id": None,
+        "completed_task_ids": [],
+        "task_statuses": {task_id: "PENDING" for task_id in tasks},
+        "task_input_hashes": {},
+        "task_changed_paths": {},
+        "task_execution_modes": {},
+        "reused_trace_ids": {},
+        "gate_phase": "RUNNING_CORE",
         "agent_ids": sorted({task["agent_id"] for task in tasks.values()}),
-        "allowed_reads": allowed_reads,
-        "allowed_writes": allowed_writes,
+        "allowed_reads": [],
+        "allowed_writes": [],
         "input_hashes": input_hashes,
         "canonical_hashes": project_file_hashes(project_path),
         "workspace_hashes": project_file_hashes(workspace),
-        "forbidden_paths": forbidden_paths(dependency_graph, allowed_writes),
+        "forbidden_paths": forbidden_paths(dependency_graph, []),
         "workspace": str(workspace),
         "status": "OPEN",
         "changed_paths": [],
@@ -609,7 +697,15 @@ def task_open_unlocked(
     }
     validate_task_record(repository_root, record, transaction_id)
     write_json_object(task_record_path(project_path, transaction_id), record)
-    return record
+    return advance_gate_tasks(
+        repository_root,
+        project_path,
+        workspace,
+        tasks,
+        record,
+        dependency_graph,
+        reference_source,
+    )
 
 
 def task_open(
@@ -617,6 +713,7 @@ def task_open(
     project_path: Path,
     gate_id: str,
     started_at: str,
+    reference_source: Path | None,
 ) -> dict[str, object]:
     """단일 Writer Lock으로 현재 Gate의 Codex Task를 연다."""
     lock_owner = f"CODEX-OPEN-{uuid4().hex[:16].upper()}"
@@ -627,6 +724,7 @@ def task_open(
             project_path,
             gate_id,
             started_at,
+            reference_source,
         )
     finally:
         release_project_lock(lock_path, lock_owner)
@@ -810,51 +908,474 @@ def read_workspace_outputs(
     return outputs
 
 
-def generate_core_outputs(
+def task_available_reads(
+    workspace: Path,
+    task: RuntimeTask,
+    dependency_graph: Mapping[str, object],
+) -> list[str]:
+    """현재 Workspace에 존재하는 필수·선택 Task 입력을 반환한다."""
+    existing = load_existing_project_artifacts(workspace, dependency_graph)
+    optional_reads = [
+        artifact_name
+        for artifact_name in task.get("optional_reads", [])
+        if artifact_name in existing
+    ]
+    return sorted(set(task["reads"]) | set(optional_reads))
+
+
+def task_artifact_hashes(
+    repository_root: Path,
+    workspace: Path,
+    task: RuntimeTask,
+    dependency_graph: Mapping[str, object],
+) -> dict[str, str]:
+    """현재 Task가 실제로 읽는 Workspace Artifact Hash를 계산한다."""
+    available_reads = task_available_reads(workspace, task, dependency_graph)
+    hashes = capture_artifact_hashes(
+        workspace,
+        available_reads,
+        dependency_graph,
+    )
+    declared_reads = set(task["reads"]) | set(task.get("optional_reads", []))
+    if "broadcast_readable_config" not in declared_reads:
+        return hashes
+    artifacts = load_existing_project_artifacts(workspace, dependency_graph)
+    production_config = artifacts.get("production_config")
+    if not isinstance(production_config, Mapping):
+        raise ConfigurationError("Production Config 객체가 필요합니다.")
+    resolved = resolve_active_broadcast_readable_output_profile(
+        repository_root,
+        production_config,
+        artifacts,
+    )
+    if resolved is not None:
+        hashes["broadcast_readable_output_profile"] = resolved["sha256"]
+    return hashes
+
+
+def generate_core_task_output(
+    repository_root: Path,
+    project_path: Path,
+    workspace: Path,
+    task_id: str,
+    task: RuntimeTask,
+    dependency_graph: Mapping[str, object],
+    reference_source: Path | None,
+    transaction_id: str,
+    input_hashes: Mapping[str, str],
+) -> dict[str, str]:
+    """단일 CORE Task를 실행해 검증된 출력을 Workspace에 기록한다."""
+    definitions = dependency_artifacts(dependency_graph)
+    contracts = load_artifact_contracts(repository_root)
+    overlay = load_existing_project_artifacts(workspace, dependency_graph)
+    generated_paths: dict[str, str] = {}
+    generated = core_task_outputs(
+        task_id,
+        repository_root,
+        project_path,
+        overlay,
+        dependency_graph,
+        reference_source,
+        None,
+        transaction_id,
+        input_hashes,
+    )
+    validate_core_outputs(
+        repository_root,
+        task_id,
+        task,
+        generated,
+        contracts,
+    )
+    for artifact_name, content in generated.items():
+        definition = definitions.get(artifact_name)
+        relative_path = None if definition is None else definition.get("path")
+        if not isinstance(relative_path, str):
+            raise ConfigurationError(
+                f"CORE Artifact path 문자열이 필요합니다: artifact={artifact_name}"
+            )
+        write_artifact(workspace / relative_path, content)
+        generated_paths[relative_path] = artifact_name
+    return generated_paths
+
+
+def validate_llm_task_outputs(
+    repository_root: Path,
+    workspace: Path,
+    task_id: str,
+    dependency_graph: Mapping[str, object],
+) -> None:
+    """중간 LLM Task에서 현재까지 가능한 의미·Hash 검증을 수행한다."""
+    artifacts = load_existing_project_artifacts(workspace, dependency_graph)
+    production_config = load_json_object(
+        workspace / "00_PROJECT" / "production_config.json"
+    )
+    channel, _manifest, _channel_path = resolve_project_channel(
+        repository_root,
+        production_config,
+        None,
+    )
+    issues: list[Mapping[str, object]] = []
+    if task_id == "variation.elaborate_crime_events":
+        variations = artifacts.get("variation_candidates")
+        briefs = artifacts.get("candidate_event_briefs")
+        if isinstance(variations, Mapping) and isinstance(briefs, Mapping):
+            issues.extend(
+                validate_candidate_event_briefs(
+                    variations,
+                    briefs,
+                    explicit_crime_policy(channel),
+                )
+            )
+    if task_id == "variation.evaluate":
+        variations = artifacts.get("variation_candidates")
+        briefs = artifacts.get("candidate_event_briefs")
+        evaluation = artifacts.get("candidate_evaluation")
+        novelty = artifacts.get("novelty_precheck")
+        eligibility = artifacts.get("candidate_eligibility")
+        if all(
+            isinstance(value, Mapping)
+            for value in (variations, evaluation, novelty, eligibility)
+        ):
+            issues.extend(
+                validate_candidate_evaluation(
+                    cast(Mapping[str, object], variations),
+                    briefs if isinstance(briefs, Mapping) else None,
+                    cast(Mapping[str, object], evaluation),
+                    cast(Mapping[str, object], novelty),
+                    cast(Mapping[str, object], eligibility),
+                )
+            )
+    if issues:
+        first = issues[0]
+        raise GateTransactionError(
+            str(first.get("code", "GATE_REJECTED")),
+            str(first.get("message", "LLM Task 출력 검증에 실패했습니다.")),
+            dict(cast(Mapping[str, object], first.get("context", {}))),
+        )
+
+
+def task_inputs_support_validated_reuse(
+    task_id: str,
+    prior_inputs: Mapping[str, object],
+    current_input_hashes: Mapping[str, str],
+    workspace: Path,
+    dependency_graph: Mapping[str, object],
+) -> bool:
+    """동일 입력 또는 검토 결과가 결속한 신규 선언 입력의 재사용을 판정한다."""
+    normalized_prior = {str(key): str(value) for key, value in prior_inputs.items()}
+    if normalized_prior == dict(current_input_hashes):
+        return True
+    if task_id != "editorial.review":
+        return False
+    prior_names = set(normalized_prior)
+    current_names = set(current_input_hashes)
+    newly_declared_inputs = {
+        "broadcast_readable_config",
+        "broadcast_readable_output_profile",
+    }
+    if (
+        current_names - prior_names != newly_declared_inputs
+        or prior_names - current_names
+        or any(
+            normalized_prior[name] != current_input_hashes[name]
+            for name in prior_names
+        )
+    ):
+        return False
+    artifacts = load_existing_project_artifacts(workspace, dependency_graph)
+    review = artifacts.get("editorial_review")
+    if not isinstance(review, Mapping):
+        return False
+    raw_hashes = review.get("artifact_hashes")
+    if not isinstance(raw_hashes, Mapping):
+        return False
+    actual_hashes = {str(key): str(value) for key, value in raw_hashes.items()}
+    return actual_hashes == editorial_artifact_hashes(artifacts)
+
+
+def revision_trigger_allows_validated_reuse(
+    task_id: str,
+    task: RuntimeTask,
+    task_revision_trigger: object,
+    state_revision_trigger: object,
+) -> bool:
+    """현재 Revision 원인과 Task 범위가 과거 실행 재사용을 허용하는지 판정한다."""
+    if not isinstance(task_revision_trigger, Mapping) or not isinstance(
+        state_revision_trigger,
+        Mapping,
+    ):
+        return False
+    if dict(task_revision_trigger) != dict(state_revision_trigger):
+        return False
+    trigger_type = task_revision_trigger.get("type")
+    if trigger_type in {"CONFIG_ADMISSION", "NORMAL_GATE_PROGRESS"}:
+        return True
+    if trigger_type not in {
+        "OWNER_RETURN",
+        "HUMAN_REVISION_REQUEST",
+        "SEMANTIC_CORRECTION",
+    }:
+        return False
+    raw_target_task_ids = task_revision_trigger.get("target_task_ids")
+    target_owner_agent = task_revision_trigger.get("target_owner_agent")
+    if not isinstance(raw_target_task_ids, list) or not all(
+        isinstance(value, str) for value in raw_target_task_ids
+    ):
+        return False
+    if target_owner_agent is not None and not isinstance(target_owner_agent, str):
+        return False
+    if not raw_target_task_ids and target_owner_agent is None:
+        return False
+    if task_id in raw_target_task_ids:
+        return False
+    return task["agent_id"] != target_owner_agent
+
+
+def matching_validated_reuse_trace_id(
+    repository_root: Path,
+    project_path: Path,
+    workspace: Path,
+    task_id: str,
+    task: RuntimeTask,
+    current_input_hashes: Mapping[str, str],
+    dependency_graph: Mapping[str, object],
+    revision_trigger: object,
+) -> str | None:
+    """동일 입력·출력 Byte를 가진 과거 실제 LLM 실행 Trace를 찾는다."""
+    if not revision_trigger_allows_validated_reuse(
+        task_id,
+        task,
+        revision_trigger,
+        project_state(project_path).get("revision_trigger"),
+    ):
+        return None
+    definitions = dependency_artifacts(dependency_graph)
+    for record in reversed(all_task_records(repository_root, project_path)):
+        if record.get("status") != "COMMITTED":
+            continue
+        completed = record.get("completed_task_ids")
+        if not isinstance(completed, list) or task_id not in completed:
+            continue
+        input_hashes = record.get("task_input_hashes")
+        prior_inputs = (
+            input_hashes.get(task_id)
+            if isinstance(input_hashes, Mapping)
+            else None
+        )
+        if not isinstance(prior_inputs, Mapping) or not task_inputs_support_validated_reuse(
+            task_id,
+            prior_inputs,
+            current_input_hashes,
+            workspace,
+            dependency_graph,
+        ):
+            continue
+        raw_workspace = record.get("workspace")
+        if not isinstance(raw_workspace, str):
+            continue
+        prior_workspace = Path(raw_workspace)
+        if not prior_workspace.is_absolute():
+            prior_workspace = repository_root / prior_workspace
+        outputs_match = True
+        for artifact_name in task["writes"]:
+            definition = definitions.get(artifact_name)
+            relative_path = (
+                definition.get("path")
+                if isinstance(definition, Mapping)
+                else None
+            )
+            if not isinstance(relative_path, str):
+                outputs_match = False
+                break
+            try:
+                current_bytes = (workspace / relative_path).read_bytes()
+                prior_bytes = (prior_workspace / relative_path).read_bytes()
+            except OSError:
+                outputs_match = False
+                break
+            if current_bytes != prior_bytes:
+                outputs_match = False
+                break
+        if not outputs_match:
+            continue
+        prior_revision = record.get("process_revision")
+        prior_commit_sha = record.get("commit_sha")
+        matching_traces = [
+            trace
+            for trace in trace_records(repository_root, project_path)
+            if trace.get("task_id") == task_id
+            and trace.get("process_revision") == prior_revision
+            and trace.get("commit_sha") == prior_commit_sha
+            and trace.get("input_hashes") == dict(prior_inputs)
+            and trace.get("execution_mode") != "VALIDATED_REUSE"
+        ]
+        if matching_traces:
+            return cast(str, matching_traces[-1]["trace_id"])
+    return None
+
+
+def advance_gate_tasks(
     repository_root: Path,
     project_path: Path,
     workspace: Path,
     tasks: Mapping[str, RuntimeTask],
-    outputs: dict[str, object],
+    record: Mapping[str, object],
     dependency_graph: Mapping[str, object],
     reference_source: Path | None,
-) -> dict[str, str]:
-    """CORE Task를 계약 순서로 실행하고 검증된 출력을 Workspace에 기록한다."""
-    definitions = dependency_artifacts(dependency_graph)
-    contracts = load_artifact_contracts(repository_root)
-    generated_paths: dict[str, str] = {}
+) -> dict[str, object]:
+    """실행 가능한 CORE를 순서대로 수행하고 첫 LLM Task에서 멈춘다."""
+    updated = deepcopy(dict(record))
+    completed = list(cast(list[str], updated["completed_task_ids"]))
+    completed_set = set(completed)
+    statuses = dict(cast(Mapping[str, str], updated["task_statuses"]))
+    task_hashes = dict(
+        cast(Mapping[str, Mapping[str, str]], updated["task_input_hashes"])
+    )
+    task_changes = dict(cast(Mapping[str, list[str]], updated["task_changed_paths"]))
+    execution_modes = dict(
+        cast(Mapping[str, str], updated.get("task_execution_modes", {}))
+    )
+    reused_trace_ids = dict(
+        cast(Mapping[str, str], updated.get("reused_trace_ids", {}))
+    )
+    transaction_id = cast(str, updated["transaction_id"])
     for task_id, task in tasks.items():
-        if task["executor"] != "CORE":
+        if task_id in completed_set:
             continue
-        generated = core_task_outputs(
-            task_id,
+        internal_dependencies = {
+            dependency
+            for dependency in task["depends_on_tasks"]
+            if dependency in tasks
+        }
+        if not internal_dependencies.issubset(completed_set):
+            continue
+        current_hashes = task_artifact_hashes(
             repository_root,
-            project_path,
-            outputs,
-            dependency_graph,
-            reference_source,
-            None,
-            "CODEX-MANUAL",
-            {"manual_context": artifact_hash(task_id.encode("utf-8"))},
-        )
-        validate_core_outputs(
-            repository_root,
-            task_id,
+            workspace,
             task,
-            generated,
-            contracts,
+            dependency_graph,
         )
-        for artifact_name, content in generated.items():
-            definition = definitions.get(artifact_name)
-            relative_path = None if definition is None else definition.get("path")
-            if not isinstance(relative_path, str):
-                raise ConfigurationError(
-                    f"CORE Artifact path 문자열이 필요합니다: artifact={artifact_name}"
+        task_hashes[task_id] = current_hashes
+        if task["executor"] == "LLM":
+            reused_trace_id = matching_validated_reuse_trace_id(
+                repository_root,
+                project_path,
+                workspace,
+                task_id,
+                task,
+                current_hashes,
+                dependency_graph,
+                updated.get("revision_trigger"),
+            )
+            if reused_trace_id is not None:
+                read_workspace_outputs(
+                    repository_root,
+                    workspace,
+                    task["writes"],
+                    {task_id: task},
+                    dependency_graph,
                 )
-            write_artifact(workspace / relative_path, content)
-            outputs[artifact_name] = content
-            generated_paths[relative_path] = artifact_name
-    return generated_paths
+                validate_llm_task_outputs(
+                    repository_root,
+                    workspace,
+                    task_id,
+                    dependency_graph,
+                )
+                statuses[task_id] = "COMPLETED"
+                completed.append(task_id)
+                completed_set.add(task_id)
+                task_changes[task_id] = []
+                execution_modes[task_id] = "VALIDATED_REUSE"
+                reused_trace_ids[task_id] = reused_trace_id
+                continue
+            statuses[task_id] = "AWAITING_LLM"
+            updated.update(
+                {
+                    "current_task_id": task_id,
+                    "completed_task_ids": completed,
+                    "task_statuses": statuses,
+                    "task_input_hashes": task_hashes,
+                    "task_changed_paths": task_changes,
+                    "task_execution_modes": execution_modes,
+                    "reused_trace_ids": reused_trace_ids,
+                    "gate_phase": "AWAITING_LLM",
+                    "allowed_reads": task_available_reads(
+                        workspace,
+                        task,
+                        dependency_graph,
+                    ),
+                    "allowed_writes": sorted(task["writes"]),
+                    "forbidden_paths": forbidden_paths(
+                        dependency_graph,
+                        task["writes"],
+                    ),
+                    "workspace_hashes": project_file_hashes(workspace),
+                }
+            )
+            validate_task_record(repository_root, updated, transaction_id)
+            write_json_object(task_record_path(project_path, transaction_id), updated)
+            return updated
+        statuses[task_id] = "RUNNING_CORE"
+        updated["current_task_id"] = task_id
+        updated["gate_phase"] = "RUNNING_CORE"
+        try:
+            generated_paths = generate_core_task_output(
+                repository_root,
+                project_path,
+                workspace,
+                task_id,
+                task,
+                dependency_graph,
+                reference_source,
+                transaction_id,
+                current_hashes,
+            )
+        except RuntimeExecutionError as error:
+            if error.code == "HUMAN_INPUT_REQUIRED":
+                statuses[task_id] = "WAITING_HUMAN"
+                updated.update(
+                    {
+                        "task_statuses": statuses,
+                        "task_input_hashes": task_hashes,
+                        "gate_phase": "WAITING_HUMAN",
+                        "allowed_reads": task_available_reads(
+                            workspace,
+                            task,
+                            dependency_graph,
+                        ),
+                        "allowed_writes": [],
+                        "forbidden_paths": forbidden_paths(dependency_graph, []),
+                        "workspace_hashes": project_file_hashes(workspace),
+                    }
+                )
+                validate_task_record(repository_root, updated, transaction_id)
+                write_json_object(task_record_path(project_path, transaction_id), updated)
+            raise
+        statuses[task_id] = "COMPLETED"
+        completed.append(task_id)
+        completed_set.add(task_id)
+        task_changes[task_id] = sorted(generated_paths)
+        execution_modes[task_id] = "EXECUTED"
+    updated.update(
+        {
+            "current_task_id": None,
+            "completed_task_ids": completed,
+            "task_statuses": statuses,
+            "task_input_hashes": task_hashes,
+            "task_changed_paths": task_changes,
+            "task_execution_modes": execution_modes,
+            "reused_trace_ids": reused_trace_ids,
+            "gate_phase": "READY_TO_COMMIT",
+            "allowed_reads": [],
+            "allowed_writes": [],
+            "forbidden_paths": forbidden_paths(dependency_graph, []),
+            "workspace_hashes": project_file_hashes(workspace),
+        }
+    )
+    validate_task_record(repository_root, updated, transaction_id)
+    write_json_object(task_record_path(project_path, transaction_id), updated)
+    return updated
 
 
 def trace_records(
@@ -952,35 +1473,53 @@ def build_gate_traces(
     completed_at: str,
 ) -> list[dict[str, object]]:
     """Gate Bundle의 각 Runtime Task에 대한 Process Trace를 만든다."""
-    input_hashes = cast(Mapping[str, str], record["input_hashes"])
+    task_input_hashes = cast(
+        Mapping[str, Mapping[str, str]],
+        record.get("task_input_hashes", {}),
+    )
+    task_changed_paths = cast(
+        Mapping[str, list[str]],
+        record.get("task_changed_paths", {}),
+    )
+    execution_modes = cast(
+        Mapping[str, str],
+        record.get("task_execution_modes", {}),
+    )
+    reused_trace_ids = cast(
+        Mapping[str, str],
+        record.get("reused_trace_ids", {}),
+    )
     traces: list[dict[str, object]] = []
     for task_id, task in tasks.items():
-        task_changes = sorted(
-            path
-            for path, artifact_name in changed_artifacts.items()
-            if artifact_name in task["writes"]
-        )
-        traces.append(
-            {
+        trace = {
                 "trace_id": f"TRACE-{uuid4().hex[:16].upper()}",
                 "project_id": record["project_id"],
                 "task_id": task_id,
                 "agent_id": task["agent_id"],
                 "gate_id": record["gate_id"],
                 "process_revision": record["process_revision"],
-                "input_hashes": {
-                    artifact_name: input_hashes[artifact_name]
-                    for artifact_name in task["reads"]
-                    if artifact_name in input_hashes
-                },
-                "changed_paths": task_changes,
+                "input_hashes": dict(task_input_hashes.get(task_id, {})),
+                "changed_paths": sorted(
+                    task_changed_paths.get(
+                        task_id,
+                        [
+                            path
+                            for path, artifact_name in changed_artifacts.items()
+                            if artifact_name in task["writes"]
+                        ],
+                    )
+                ),
+                "execution_mode": execution_modes.get(task_id, "EXECUTED"),
                 "validator_version": VALIDATOR_VERSION,
                 "gate_result": "PASS",
                 "commit_sha": commit_sha,
                 "started_at": record["started_at"],
                 "completed_at": completed_at,
             }
-        )
+        reused_trace_id = reused_trace_ids.get(task_id)
+        if reused_trace_id is not None:
+            trace["reused_trace_id"] = reused_trace_id
+        traces.append(trace)
     return traces
 
 
@@ -1055,6 +1594,7 @@ def validate_gate_overlay(
     ) = runtime_validation_inputs_for_project(
         repository_root,
         production_config,
+        existing_artifacts,
         None,
     )
     reference_material = (
@@ -1145,16 +1685,117 @@ def task_submit(
         gate_tasks = tasks_for_gate(repository_root, project_path, gate_id)
         verify_canonical_snapshot(active, project_path, dependency_graph, catalog)
         workspace = Path(cast(str, active["workspace"]))
-        baseline_hashes = cast(Mapping[str, str], active["workspace_hashes"])
-        changed_paths = changed_file_paths(
-            baseline_hashes,
+        gate_phase = active.get("gate_phase")
+        if gate_phase == "WAITING_HUMAN":
+            raise GateTransactionError(
+                "HUMAN_INPUT_REQUIRED",
+                "현재 CORE Task는 검증된 Human Input을 기다리고 있습니다.",
+                {"task_id": active.get("current_task_id")},
+            )
+        if gate_phase == "AWAITING_LLM":
+            current_task_id = active.get("current_task_id")
+            if not isinstance(current_task_id, str) or current_task_id not in gate_tasks:
+                raise GateTransactionError(
+                    "GATE_TRANSACTION_RECORD_INVALID",
+                    "현재 작성 대상 Task ID가 올바르지 않습니다.",
+                    {"current_task_id": current_task_id},
+                )
+            current_task = gate_tasks[current_task_id]
+            baseline_hashes = cast(Mapping[str, str], active["workspace_hashes"])
+            task_changed_paths = changed_file_paths(
+                baseline_hashes,
+                project_file_hashes(workspace),
+            )
+            classify_changed_paths(
+                task_changed_paths,
+                gate_id,
+                cast(list[str], active["allowed_writes"]),
+                {current_task_id: current_task},
+                catalog,
+                dependency_graph,
+            )
+            read_workspace_outputs(
+                repository_root,
+                workspace,
+                current_task["writes"],
+                {current_task_id: current_task},
+                dependency_graph,
+            )
+            validate_llm_task_outputs(
+                repository_root,
+                workspace,
+                current_task_id,
+                dependency_graph,
+            )
+            progressed = deepcopy(active)
+            completed_task_ids = list(
+                cast(list[str], progressed["completed_task_ids"])
+            )
+            completed_task_ids.append(current_task_id)
+            statuses = dict(cast(Mapping[str, str], progressed["task_statuses"]))
+            statuses[current_task_id] = "COMPLETED"
+            changed_by_task = dict(
+                cast(Mapping[str, list[str]], progressed["task_changed_paths"])
+            )
+            changed_by_task[current_task_id] = task_changed_paths
+            execution_modes = dict(
+                cast(Mapping[str, str], progressed.get("task_execution_modes", {}))
+            )
+            execution_modes[current_task_id] = "EXECUTED"
+            progressed.update(
+                {
+                    "completed_task_ids": completed_task_ids,
+                    "task_statuses": statuses,
+                    "task_changed_paths": changed_by_task,
+                    "task_execution_modes": execution_modes,
+                    "current_task_id": None,
+                    "gate_phase": "RUNNING_CORE",
+                    "allowed_reads": [],
+                    "allowed_writes": [],
+                    "forbidden_paths": forbidden_paths(dependency_graph, []),
+                    "workspace_hashes": project_file_hashes(workspace),
+                }
+            )
+            active = advance_gate_tasks(
+                repository_root,
+                project_path,
+                workspace,
+                gate_tasks,
+                progressed,
+                dependency_graph,
+                reference_source,
+            )
+            if active.get("gate_phase") == "AWAITING_LLM":
+                return active
+        if active.get("gate_phase") != "READY_TO_COMMIT":
+            raise GateTransactionError(
+                "GATE_TRANSACTION_RECORD_INVALID",
+                "Gate Transaction이 Commit 가능한 단계가 아닙니다.",
+                {"gate_phase": active.get("gate_phase")},
+            )
+        unexpected_changes = changed_file_paths(
+            cast(Mapping[str, str], active["workspace_hashes"]),
             project_file_hashes(workspace),
         )
-        allowed_writes = cast(list[str], active["allowed_writes"])
-        changed_artifacts = classify_changed_paths(
+        if unexpected_changes:
+            classify_changed_paths(
+                unexpected_changes,
+                gate_id,
+                [],
+                gate_tasks,
+                catalog,
+                dependency_graph,
+            )
+        canonical_hashes = cast(Mapping[str, str], active["canonical_hashes"])
+        changed_paths = changed_file_paths(
+            canonical_hashes,
+            project_file_hashes(workspace),
+        )
+        gate_writes = string_union(gate_tasks, "writes")
+        classify_changed_paths(
             changed_paths,
             gate_id,
-            allowed_writes,
+            gate_writes,
             gate_tasks,
             catalog,
             dependency_graph,
@@ -1162,20 +1803,9 @@ def task_submit(
         outputs = read_workspace_outputs(
             repository_root,
             workspace,
-            allowed_writes,
+            gate_writes,
             gate_tasks,
             dependency_graph,
-        )
-        changed_artifacts.update(
-            generate_core_outputs(
-                repository_root,
-                project_path,
-                workspace,
-                gate_tasks,
-                outputs,
-                dependency_graph,
-                reference_source,
-            )
         )
         validate_gate_overlay(
             repository_root,
@@ -1217,7 +1847,7 @@ def task_submit(
         traces = build_gate_traces(
             active,
             gate_tasks,
-            changed_artifacts,
+            {},
             commit_sha,
             completed_at,
         )
@@ -1264,6 +1894,7 @@ def task_submit(
         )
         committed = deepcopy(active)
         committed["status"] = "COMMITTED"
+        committed["gate_phase"] = "COMMITTED"
         committed["changed_paths"] = changed_paths
         committed["commit_sha"] = commit_sha
         committed["completed_at"] = completed_at
@@ -1311,6 +1942,8 @@ def task_abort_unlocked(
         )
     aborted = deepcopy(active)
     aborted["status"] = "ABORTED"
+    if aborted.get("schema_version") == "1.1.0":
+        aborted["gate_phase"] = "ABORTED"
     aborted["completed_at"] = completed_at
     validate_task_record(
         repository_root,
@@ -1366,15 +1999,31 @@ def owner_revision_gate(
     return max(candidates, key=gate_index)
 
 
+def owner_revision_task_ids(
+    gate_tasks: Mapping[str, RuntimeTask],
+    owner_agent: str,
+    target_gate: str,
+) -> list[str]:
+    """Owner 반환 Gate에서 반드시 재실행할 LLM Task 식별자를 반환한다."""
+    return sorted(
+        task_id
+        for task_id, task in gate_tasks.items()
+        if task["executor"] == "LLM"
+        and task["agent_id"] == owner_agent
+        and task["target_gate"] == target_gate
+    )
+
+
 def revision_state(
     state: ProjectState,
     target_gate: str,
     catalog: Mapping[str, RuntimeTask],
+    dependency_graph: Mapping[str, object],
     updated_at: str,
 ) -> ProjectState:
     """Owner 재작업을 위해 목표 Gate 이후 상태를 무효화한다."""
     target_index = gate_index(target_gate)
-    next_state = deepcopy(state)
+    next_state = reconcile_project_state_artifacts(dependency_graph, state)
     next_state["schema_version"] = "1.2.0"
     next_state["current_gate"] = (
         "NONE" if target_index == 0 else GATES[target_index - 1]["gate_id"]
@@ -1430,7 +2079,13 @@ def return_task_to_owner_unlocked(
             "Owner 반환에는 owner_agent, actor, reason이 모두 필요합니다.",
             {"owner_agent": owner_agent, "actor": actor, "reason": reason},
         )
-    state = project_state(project_path)
+    dependency_graph = load_json_object(
+        repository_root / "STANDARD" / "dependency_graph.json"
+    )
+    state = reconcile_project_state_artifacts(
+        dependency_graph,
+        project_state(project_path),
+    )
     if state["state"] in {"EDITORIAL_APPROVED", "PRODUCTION_READY"}:
         raise GateTransactionError(
             "OWNER_RETURN_STATE_INVALID",
@@ -1451,6 +2106,11 @@ def return_task_to_owner_unlocked(
             {"current_gate": through_gate},
         )
     target_gate = owner_revision_gate(catalog, owner_agent, through_gate)
+    target_task_ids = owner_revision_task_ids(
+        tasks_for_gate(repository_root, project_path, target_gate),
+        owner_agent,
+        target_gate,
+    )
     if active is not None:
         aborted = deepcopy(active)
         aborted["status"] = "ABORTED"
@@ -1464,7 +2124,24 @@ def return_task_to_owner_unlocked(
             task_record_path(project_path, cast(str, aborted["transaction_id"])),
             aborted,
         )
-    next_state = revision_state(state, target_gate, catalog, returned_at)
+    next_state = revision_state(
+        state,
+        target_gate,
+        catalog,
+        dependency_graph,
+        returned_at,
+    )
+    next_state["revision_trigger"] = RevisionTrigger(
+        type="OWNER_RETURN",
+        source_id=f"OWNER-RETURN-{uuid4().hex[:16].upper()}",
+        target_owner_agent=owner_agent,
+        target_gate=target_gate,
+        target_task_ids=target_task_ids,
+        actor=actor,
+        reason=reason,
+        triggered_at=returned_at,
+        returned_at=returned_at,
+    )
     write_json_object(
         project_path / "00_PROJECT" / "project_state.json",
         next_state,
@@ -1475,6 +2152,7 @@ def return_task_to_owner_unlocked(
         "actor": actor,
         "reason": reason,
         "target_gate": target_gate,
+        "target_task_ids": target_task_ids,
         "current_gate": next_state["current_gate"],
         "process_revision": next_state["readiness"]["process_revision"],
         "aborted_transaction_id": (
@@ -1553,6 +2231,7 @@ def full_validation_report(
     ) = runtime_validation_inputs_for_project(
         repository_root,
         production_config,
+        load_existing_project_artifacts(project_path, dependency_graph),
         channel_path,
     )
     artifacts = load_project_artifacts(project_path, dependency_graph, channel)
@@ -1580,15 +2259,23 @@ def audit_project(
     audited_at: str,
 ) -> dict[str, object]:
     """Artifact 정합성과 Process Conformance를 Project State와 분리해 판정한다."""
-    state = project_state(project_path)
     dependency_graph = load_json_object(
         repository_root / "STANDARD" / "dependency_graph.json"
     )
+    snapshot_start_token = audit_snapshot_token(project_path, dependency_graph)
+    state = project_state(project_path)
     drift = canonical_artifact_drift(
         project_path,
         dependency_graph,
         state,
         audit_artifact_names(repository_root, project_path, dependency_graph),
+    )
+    drift.extend(
+        broadcast_readable_config_admission_issues(
+            repository_root,
+            project_path,
+            state,
+        )
     )
     validation = full_validation_report(
         repository_root,
@@ -1604,22 +2291,6 @@ def audit_project(
         state["readiness"]["process_revision"],
     )
     timestamp_issues = process_timestamp_issues(project_path, traces)
-    conformant = trace_conformant and not drift and not timestamp_issues
-    artifact_complete = (
-        validation["gate_results"].get("GATE-13") == "PASS" and not drift
-    )
-    contract_validated = validation["result"] == "PASS" and not drift
-    editorial_approved = (
-        state["readiness"]["editorial_status"] == "EDITORIAL_APPROVED"
-    )
-    production_ready = (
-        artifact_complete
-        and contract_validated
-        and conformant
-        and editorial_approved
-        and state["state"] == "PRODUCTION_READY"
-    )
-    technical_pass = artifact_complete and contract_validated and conformant
     process_issues: list[dict[str, object]] = []
     process_issues.extend(timestamp_issues)
     if not trace_conformant:
@@ -1638,13 +2309,48 @@ def audit_project(
                 "artifacts": drift,
             }
         )
+    snapshot_end_token = audit_snapshot_token(project_path, dependency_graph)
+    snapshot_consistent = snapshot_start_token == snapshot_end_token
+    if not snapshot_consistent:
+        process_issues.append(
+            {
+                "code": "AUDIT_SNAPSHOT_CHANGED",
+                "message": "Audit 도중 Canonical Revision 또는 Transaction 상태가 변경됐습니다.",
+                "snapshot_start_token": snapshot_start_token,
+                "snapshot_end_token": snapshot_end_token,
+            }
+        )
+    conformant = (
+        trace_conformant
+        and not drift
+        and not timestamp_issues
+        and snapshot_consistent
+    )
+    artifact_complete = (
+        validation["gate_results"].get("GATE-13") == "PASS" and not drift
+    )
+    contract_validated = validation["result"] == "PASS" and not drift
+    editorial_approved = (
+        state["readiness"]["editorial_status"] == "EDITORIAL_APPROVED"
+    )
+    production_ready = (
+        artifact_complete
+        and contract_validated
+        and conformant
+        and editorial_approved
+        and state["state"] == "PRODUCTION_READY"
+    )
+    technical_pass = artifact_complete and contract_validated and conformant
     return {
         "schema_family": "process-audit",
         "schema_version": "1.0.0",
         "project_id": state["project_id"],
         "audited_at": audited_at,
         "result": "PASS" if technical_pass else "FAIL",
-        "state_unchanged": True,
+        "snapshot_start_token": snapshot_start_token,
+        "snapshot_end_token": snapshot_end_token,
+        "state_unchanged": snapshot_consistent,
+        "snapshot_consistent": snapshot_consistent,
         "current_gate": state["current_gate"],
         "project_state": state["state"],
         "artifact_complete": artifact_complete,

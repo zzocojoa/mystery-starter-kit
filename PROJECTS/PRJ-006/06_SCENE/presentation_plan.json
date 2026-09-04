@@ -1,0 +1,407 @@
+{
+  "$schema": "../../../STANDARD/schemas/presentation_plan.schema.json",
+  "schema_family": "presentation-plan",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-006",
+  "modes": [
+    "DRAMA",
+    "NARRATION",
+    "PANEL_REACTION"
+  ],
+  "segments": [
+    {
+      "segment_id": "SEG-001",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-01",
+      "start_sec": 0,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-02"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-01",
+        "CLUE-02"
+      ],
+      "crime_development_function_ids": [
+        "CDEV-001"
+      ]
+    },
+    {
+      "segment_id": "SEG-002",
+      "segment_type": "NARRATION",
+      "scene_id": "SCN-01",
+      "start_sec": 90,
+      "duration_sec": 54,
+      "source_artifact": "narration_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [],
+      "referenced_clue_ids": [],
+      "narrator_character_id": "CHAR-06",
+      "narration_function": "FEAR"
+    },
+    {
+      "segment_id": "SEG-003",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-01",
+      "reaction_segment_id": "RSEG-001",
+      "start_sec": 144,
+      "duration_sec": 40,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [
+        "FACT-02"
+      ],
+      "referenced_clue_ids": [
+        "CLUE-01",
+        "CLUE-02"
+      ]
+    },
+    {
+      "segment_id": "SEG-004",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-02",
+      "start_sec": 184,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-08"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-04"
+      ]
+    },
+    {
+      "segment_id": "SEG-005",
+      "segment_type": "NARRATION",
+      "scene_id": "SCN-02",
+      "start_sec": 274,
+      "duration_sec": 54,
+      "source_artifact": "narration_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [],
+      "referenced_clue_ids": [],
+      "narrator_character_id": "CHAR-06",
+      "narration_function": "MEMORY"
+    },
+    {
+      "segment_id": "SEG-006",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-03",
+      "start_sec": 328,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-07"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-05"
+      ],
+      "referenced_clue_ids": [
+        "CLUE-01"
+      ]
+    },
+    {
+      "segment_id": "SEG-007",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-03",
+      "reaction_segment_id": "RSEG-002",
+      "start_sec": 418,
+      "duration_sec": 40,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [
+        "FACT-07"
+      ],
+      "referenced_clue_ids": [
+        "CLUE-01",
+        "CLUE-05"
+      ]
+    },
+    {
+      "segment_id": "SEG-008",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-04",
+      "start_sec": 458,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-05"
+      ],
+      "revealed_clue_ids": [
+        "CLUE-03"
+      ],
+      "crime_development_function_ids": [
+        "CDEV-002"
+      ]
+    },
+    {
+      "segment_id": "SEG-009",
+      "segment_type": "NARRATION",
+      "scene_id": "SCN-04",
+      "start_sec": 548,
+      "duration_sec": 54,
+      "source_artifact": "narration_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [],
+      "referenced_clue_ids": [],
+      "narrator_character_id": "CHAR-05",
+      "narration_function": "MEMORY"
+    },
+    {
+      "segment_id": "SEG-010",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-04",
+      "reaction_segment_id": "RSEG-003",
+      "start_sec": 602,
+      "duration_sec": 40,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [
+        "FACT-05"
+      ],
+      "referenced_clue_ids": [
+        "CLUE-03"
+      ]
+    },
+    {
+      "segment_id": "SEG-011",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-05",
+      "start_sec": 642,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_clue_ids": [
+        "CLUE-04",
+        "CLUE-05"
+      ]
+    },
+    {
+      "segment_id": "SEG-012",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-05",
+      "reaction_segment_id": "RSEG-004",
+      "start_sec": 732,
+      "duration_sec": 40,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [
+        "FACT-08"
+      ],
+      "referenced_clue_ids": [
+        "CLUE-04",
+        "CLUE-05"
+      ]
+    },
+    {
+      "segment_id": "SEG-013",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-06",
+      "start_sec": 772,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-06"
+      ],
+      "revealed_clue_ids": [],
+      "referenced_clue_ids": [
+        "CLUE-02",
+        "CLUE-03"
+      ]
+    },
+    {
+      "segment_id": "SEG-014",
+      "segment_type": "NARRATION",
+      "scene_id": "SCN-06",
+      "start_sec": 862,
+      "duration_sec": 54,
+      "source_artifact": "narration_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [],
+      "referenced_clue_ids": [],
+      "narrator_character_id": "CHAR-06",
+      "narration_function": "SELF_DOUBT"
+    },
+    {
+      "segment_id": "SEG-015",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-06",
+      "reaction_segment_id": "RSEG-005",
+      "start_sec": 916,
+      "duration_sec": 40,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [
+        "FACT-06"
+      ],
+      "referenced_clue_ids": [
+        "CLUE-02",
+        "CLUE-03"
+      ]
+    },
+    {
+      "segment_id": "SEG-016",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-07",
+      "start_sec": 956,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [
+        "FACT-07"
+      ],
+      "referenced_clue_ids": [
+        "CLUE-01"
+      ]
+    },
+    {
+      "segment_id": "SEG-017",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-07",
+      "reaction_segment_id": "RSEG-006",
+      "start_sec": 1046,
+      "duration_sec": 40,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [
+        "FACT-07"
+      ],
+      "referenced_clue_ids": [
+        "CLUE-01"
+      ]
+    },
+    {
+      "segment_id": "SEG-018",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-08",
+      "start_sec": 1086,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-04"
+      ],
+      "revealed_clue_ids": [],
+      "referenced_clue_ids": [
+        "CLUE-01",
+        "CLUE-02"
+      ],
+      "revealed_reveal_target_ids": [
+        "REVEAL-TARGET-01"
+      ]
+    },
+    {
+      "segment_id": "SEG-019",
+      "segment_type": "PANEL_REACTION",
+      "scene_id": "SCN-08",
+      "reaction_segment_id": "RSEG-007",
+      "start_sec": 1176,
+      "duration_sec": 40,
+      "source_artifact": "panel_reaction_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [
+        "FACT-04"
+      ],
+      "referenced_clue_ids": [
+        "CLUE-01",
+        "CLUE-02"
+      ]
+    },
+    {
+      "segment_id": "SEG-020",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-09",
+      "start_sec": 1216,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-03"
+      ],
+      "revealed_clue_ids": [],
+      "referenced_clue_ids": [
+        "CLUE-03"
+      ],
+      "revealed_reveal_target_ids": [
+        "REVEAL-TARGET-02"
+      ],
+      "crime_development_function_ids": [
+        "CDEV-003"
+      ]
+    },
+    {
+      "segment_id": "SEG-021",
+      "segment_type": "NARRATION",
+      "scene_id": "SCN-09",
+      "start_sec": 1306,
+      "duration_sec": 54,
+      "source_artifact": "narration_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [],
+      "referenced_clue_ids": [],
+      "narrator_character_id": "CHAR-05",
+      "narration_function": "RETROSPECTIVE_REFLECTION"
+    },
+    {
+      "segment_id": "SEG-022",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-10",
+      "start_sec": 1360,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [
+        "FACT-01"
+      ],
+      "revealed_clue_ids": [],
+      "referenced_clue_ids": [
+        "CLUE-04"
+      ],
+      "revealed_reveal_target_ids": [
+        "REVEAL-TARGET-03"
+      ],
+      "crime_development_function_ids": [
+        "CDEV-004"
+      ]
+    },
+    {
+      "segment_id": "SEG-023",
+      "segment_type": "DRAMA",
+      "scene_id": "SCN-11",
+      "start_sec": 1450,
+      "duration_sec": 90,
+      "source_artifact": "drama_script",
+      "revealed_fact_ids": [],
+      "revealed_clue_ids": [],
+      "referenced_fact_ids": [
+        "FACT-02",
+        "FACT-04"
+      ],
+      "referenced_clue_ids": [
+        "CLUE-01",
+        "CLUE-02",
+        "CLUE-03",
+        "CLUE-04"
+      ],
+      "revealed_reveal_target_ids": [
+        "REVEAL-TARGET-04"
+      ],
+      "crime_development_function_ids": [
+        "CDEV-001",
+        "CDEV-003"
+      ]
+    }
+  ]
+}

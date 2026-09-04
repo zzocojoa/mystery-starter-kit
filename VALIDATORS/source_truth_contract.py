@@ -9,6 +9,7 @@ from VALIDATORS.models import ValidationIssue
 
 TRUTH_DIMENSION_FIELDS: dict[str, str] = {
     "incident_type": "verified_incident_type",
+    "primary_crime": "verified_incident_type",
     "setting": "verified_setting",
     "responsible_agent_structure": "verified_responsible_agent_structure",
     "legal_outcome": "verified_legal_outcome",
@@ -74,8 +75,7 @@ def source_truth_evidence_bundle_sha256(
     )
     if missing or invalid:
         raise ValueError(
-            "Source Truth Artifact Hash가 완전하지 않습니다: "
-            f"missing={missing}, invalid={invalid}"
+            f"Source Truth Artifact Hash가 완전하지 않습니다: missing={missing}, invalid={invalid}"
         )
     payload = "\n".join(
         f"{artifact_name}={artifact_hashes[artifact_name]}"
@@ -92,9 +92,7 @@ def bind_source_truth_contract(
     bound_hashes = source_truth_bound_artifact_hashes(artifacts)
     bound_contract = deepcopy(dict(contract))
     bound_contract["bound_artifact_hashes"] = bound_hashes
-    bound_contract["evidence_bundle_sha256"] = source_truth_evidence_bundle_sha256(
-        bound_hashes
-    )
+    bound_contract["evidence_bundle_sha256"] = source_truth_evidence_bundle_sha256(bound_hashes)
     bound_contract["contract_sha256"] = source_truth_contract_sha256(bound_contract)
     return bound_contract
 
@@ -107,7 +105,8 @@ def truth_dimension_is_locked(
     if contract.get("source_truth_classification") == "VERIFIED_TRUE_CASE":
         return True
     locked = contract.get("locked_dimensions")
-    return isinstance(locked, list) and dimension in locked
+    normalized_dimension = "incident_type" if dimension == "primary_crime" else dimension
+    return isinstance(locked, list) and normalized_dimension in locked
 
 
 def source_truth_project_constraints(
@@ -199,9 +198,7 @@ def validate_source_truth_contract_integrity(
         "verified_fact_ledger": verified_fact_ledger,
     }
     missing_artifacts = sorted(
-        artifact_name
-        for artifact_name, document in artifact_documents.items()
-        if document is None
+        artifact_name for artifact_name, document in artifact_documents.items() if document is None
     )
     if contract is None:
         missing_artifacts.append("source_truth_contract")
@@ -468,8 +465,24 @@ def validate_truth_dimensions(
 ) -> list[ValidationIssue]:
     """검증된 구조 Dimension과 UNKNOWN 경계를 생성 Artifact에 적용한다."""
     issues: list[ValidationIssue] = []
+    psychology_responsible = (
+        crime_psychology.get("responsible_agent_structure")
+        if crime_psychology is not None
+        else None
+    )
+    case_responsible = (
+        case_input.get("responsible_agent_structure") if case_input is not None else None
+    )
+    responsible_agent_structure = (
+        psychology_responsible if isinstance(psychology_responsible, str) else case_responsible
+    )
     targets: dict[str, tuple[object, str, bool]] = {
         "incident_type": (
+            story_dimension_value(story, "incident_type") if story is not None else None,
+            "VERIFIED_INCIDENT_CHANGED",
+            story is not None,
+        ),
+        "primary_crime": (
             story_dimension_value(story, "incident_type") if story is not None else None,
             "VERIFIED_INCIDENT_CHANGED",
             story is not None,
@@ -480,13 +493,9 @@ def validate_truth_dimensions(
             story is not None,
         ),
         "responsible_agent_structure": (
-            crime_psychology.get("responsible_agent_structure")
-            if crime_psychology is not None
-            else case_input.get("responsible_agent_structure")
-            if case_input is not None
-            else None,
+            responsible_agent_structure,
             "VERIFIED_SUBJECT_ROLE_CHANGED",
-            crime_psychology is not None or case_input is not None,
+            isinstance(responsible_agent_structure, str),
         ),
         "legal_outcome": (
             case_input.get("legal_outcome") if case_input is not None else None,
@@ -511,7 +520,7 @@ def validate_truth_dimensions(
                     {"dimension": dimension, "expected": expected, "actual": actual},
                 )
             )
-        if case_input is not None and dimension in {"incident_type", "setting"}:
+        if case_input is not None and dimension in {"incident_type", "primary_crime", "setting"}:
             case_actual = case_input.get(dimension)
             if (
                 isinstance(expected, str)

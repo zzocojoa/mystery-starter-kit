@@ -44,9 +44,12 @@ Compatibility Contract는 Required Capability 이름을 소유하고 Channel Sch
 
 ```mermaid
 flowchart LR
-    O[task-open] --> W[격리 Workspace]
+    O[task-open] --> K[의존 가능한 CORE]
+    K --> W[현재 LLM Task 격리 Workspace]
     W --> A[Allowlist / Future / Owner / Input Hash]
-    A --> G[현재 Gate Validator]
+    A --> S[task-submit]
+    S --> K
+    K -->|Gate 전체 Task 완료| G[현재 Gate Validator]
     G -->|PASS| C[Atomic Commit]
     C --> T[Process Trace]
     T --> N[다음 Gate Task]

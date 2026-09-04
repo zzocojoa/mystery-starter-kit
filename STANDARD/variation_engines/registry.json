@@ -27,6 +27,19 @@
         ],
         "implementation_sha256": "effc56c6063bdf5ca7a4a91d08ee9de41101a9dc7f3303168a73ef72f0aeeed9"
       }
+    },
+    "2.1.0": {
+      "algorithm_id": "EXPLICIT_CRIME_EVENT_FIRST_V21",
+      "path": "STANDARD/variation_engines/2.1.0.json",
+      "algorithm_sha256": "7274292e3a44bddb2ef8038d57e80a3bbb8abba0c8a667aeafcd3a7474beb5f6",
+      "implementation": {
+        "entrypoint": "VALIDATORS.variation_engines.v2_1_0:generate_eligible_candidate_pool",
+        "files": [
+          "VALIDATORS/variation_engines/v2_1_0.py",
+          "VALIDATORS/variation_engines/common.py"
+        ],
+        "implementation_sha256": "06533fe8f4dc1106f8e4df0b9f8fe7b7caabc6169318dfd0c76ca6b56b1699d6"
+      }
     }
   }
 }

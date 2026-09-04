@@ -1,0 +1,89 @@
+{
+  "project_id": "PRJ-006",
+  "reveals": [
+    {
+      "reveal_id": "REV-01",
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "fact_id": "FACT-02",
+      "information": "정세린이 중상을 입고 폐장 수영장에서 나온다.",
+      "effect": "단순 사고가 아니라 다른 피해가 있을 수 있음을 인지한다."
+    },
+    {
+      "reveal_id": "REV-09",
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "fact_id": "FACT-08",
+      "information": "한지석이 조작 전 안전 점검표 사본을 남기고 감사팀 제출을 준비했다.",
+      "effect": "사건 전부터 숨기려던 안전 기록이 있었음을 관객이 안다."
+    },
+    {
+      "reveal_id": "REV-02",
+      "scene_id": "SCN-03",
+      "scene_order": 3,
+      "fact_id": "FACT-07",
+      "information": "폐장 음악이 공식 기록보다 일찍 끊겼다.",
+      "effect": "사건 시각과 직원 진술 사이의 7분 공백을 의심한다."
+    },
+    {
+      "reveal_id": "REV-03",
+      "scene_id": "SCN-04",
+      "scene_order": 4,
+      "fact_id": "FACT-05",
+      "information": "정세린은 얼굴이 아니라 유리 벽에 비친 소매를 봤다.",
+      "effect": "목격의 한계를 보존하면서 단독범 확신을 낮춘다."
+    },
+    {
+      "reveal_id": "REV-04",
+      "scene_id": "SCN-06",
+      "scene_order": 6,
+      "fact_id": "FACT-06",
+      "information": "관리 통로의 단추가 오민재 작업복의 빈 자리와 맞는다.",
+      "effect": "박도윤 단독범 가설에 두 번째 행위자가 추가된다."
+    },
+    {
+      "reveal_id": "REV-05",
+      "scene_id": "SCN-08",
+      "scene_order": 8,
+      "fact_id": "FACT-04",
+      "reveal_target_id": "REVEAL-TARGET-01",
+      "target_type": "CULPRIT",
+      "intentional_prereveal": false,
+      "information": "세 소매와 각 흔적이 강태수·오민재·박도윤의 역할을 처음으로 하나의 공모로 묶는다.",
+      "effect": "단독범 가설이 붕괴하고 세 공범의 신원이 관객에게 드러난다."
+    },
+    {
+      "reveal_id": "REV-06",
+      "scene_id": "SCN-09",
+      "scene_order": 9,
+      "fact_id": "FACT-03",
+      "reveal_target_id": "REVEAL-TARGET-02",
+      "target_type": "MOTIVE",
+      "intentional_prereveal": false,
+      "information": "원본 점검표가 안전 기록 조작과 내부 고발 차단 동기를 밝힌다.",
+      "effect": "관리 책임자의 지시 동기가 확정된다."
+    },
+    {
+      "reveal_id": "REV-07",
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "fact_id": "FACT-01",
+      "reveal_target_id": "REVEAL-TARGET-03",
+      "target_type": "METHOD",
+      "intentional_prereveal": false,
+      "information": "폐장 권한을 이용한 분리 공격과 사고 위장 순서가 복원된다.",
+      "effect": "우발적 충돌이 아닌 계획된 공동 행동으로 전환된다."
+    },
+    {
+      "reveal_id": "REV-08",
+      "scene_id": "SCN-11",
+      "scene_order": 11,
+      "fact_id": "FACT-02",
+      "reveal_target_id": "REVEAL-TARGET-04",
+      "target_type": "HARM_RESULT",
+      "intentional_prereveal": false,
+      "information": "한지석의 사망과 정세린의 중상이 같은 공격의 두 피해 결과로 확인된다.",
+      "effect": "살인과 생존자 상해의 인과가 함께 닫힌다."
+    }
+  ]
+}

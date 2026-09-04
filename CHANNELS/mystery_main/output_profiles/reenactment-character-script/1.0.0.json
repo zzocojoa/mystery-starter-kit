@@ -1,0 +1,90 @@
+{
+  "$schema": "../../../../STANDARD/schemas/reenactment_output_profile.schema.json",
+  "schema_family": "reenactment-output-profile",
+  "schema_version": "1.0.0",
+  "profile_id": "REENACTMENT_CHARACTER_SCRIPT",
+  "profile_version": "1.0.0",
+  "locale": "ko-KR",
+  "document_contract": {
+    "required_headings": [
+      "작품 정보",
+      "등장인물",
+      "장면별 인물 대사"
+    ],
+    "cast_table": {
+      "columns": [
+        "인물",
+        "역할",
+        "관계"
+      ],
+      "sort_by": "FIRST_APPEARANCE_THEN_CHARACTER_ID",
+      "unknown_character_policy": "FAIL"
+    },
+    "scene_heading_template": "## 장면 {order}. {title}",
+    "scene_context_fields": [
+      "location_description",
+      "time_description",
+      "previous_scene_id",
+      "background_music_description",
+      "sound_cues",
+      "opening_character_state",
+      "opening_emotional_state",
+      "action_summary",
+      "audience_information_gain",
+      "retrospective_meaning"
+    ]
+  },
+  "render_contract": {
+    "direction_template": "[지문] {text}",
+    "sound_template": "[음향] {text}",
+    "speaker_template": "{speaker_name}: {text}",
+    "character_authored_template": "[{label}] {speaker_name}: {text}",
+    "special_unit_labels": {
+      "NARRATION": "내레이션",
+      "INNER_MONOLOGUE": "속마음",
+      "HALLUCINATION": "환청·환각",
+      "MESSAGE": "메시지",
+      "CHAT": "채팅",
+      "NOTE": "메모",
+      "RECORDING": "녹음",
+      "SCREEN_TEXT": "화면 문구"
+    }
+  },
+  "filter_contract": {
+    "included_layers": [
+      "DRAMA",
+      "NARRATION"
+    ],
+    "excluded_layers": [
+      "PANEL_REACTION",
+      "EXPERT_ANALYSIS",
+      "AUDIENCE_PROMPT"
+    ],
+    "included_unit_types": [
+      "ACTION",
+      "SOUND",
+      "DIALOGUE",
+      "NARRATION",
+      "INNER_MONOLOGUE",
+      "HALLUCINATION",
+      "MESSAGE",
+      "CHAT",
+      "NOTE",
+      "RECORDING",
+      "SCREEN_TEXT"
+    ],
+    "excluded_unit_types": [],
+    "strip_internal_markers": true,
+    "forbidden_internal_markers": [
+      "<!-- CRIME_TRACE",
+      "<!-- FACT:",
+      "<!-- CLUE:",
+      "<!-- STAGE:",
+      "<!-- UNIT:"
+    ],
+    "original_fiction_forbidden_uncertainty_markers": [
+      "[청취 불명확]",
+      "[화자 불명확]"
+    ]
+  }
+}

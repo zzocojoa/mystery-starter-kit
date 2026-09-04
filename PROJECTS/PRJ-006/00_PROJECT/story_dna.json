@@ -1,0 +1,113 @@
+{
+  "$schema": "../../../STANDARD/schemas/story_dna.schema.json",
+  "schema_family": "story-dna",
+  "schema_version": "1.3.0",
+  "project_id": "PRJ-006",
+  "story_source_mode": "ORIGINAL",
+  "story_dna": {
+    "mystery_type": "HOW",
+    "architecture": "ARCH-02_FALSE_SOLUTION",
+    "protagonist_role": "VICTIM_FAMILY",
+    "perspective": "THIRD_PERSON_LIMITED",
+    "narrator_reliability": "RELIABLE",
+    "timeline_style": "FRAGMENTED",
+    "incident_type": "MURDER",
+    "setting": "PUBLIC_SPACE",
+    "setting_logic": [
+      "CLOSED_POOL_AFTER_HOURS",
+      "GLASS_REFLECTION_SIGHTLINES"
+    ],
+    "culprit_structure": "MULTIPLE",
+    "causal_truth": "관리 책임자와 두 야간 직원은 안전 기록 조작을 숨기려고 두 내부 고발자를 분리 공격하고 폐장 사고로 위장했다.",
+    "primary_twist": "TW-02_WITNESS_ACCOUNT_CORRECTED",
+    "secondary_twists": [
+      "TW-05_CLOSING_MUSIC_RETIMED"
+    ],
+    "information_mechanism": [
+      "PHYSICAL_EVIDENCE_CHAIN",
+      "LIMITED_WITNESS_ACCOUNT"
+    ],
+    "clue_mechanism": [
+      "BEHAVIORAL",
+      "PHYSICAL_OBJECT",
+      "SOUND_TIMING"
+    ],
+    "motive_class": "DOMINATION",
+    "emotional_engine": "FAMILY_DEMAND_FOR_ACCOUNTABILITY",
+    "relationship_engine": {
+      "primary": "PROTECTIVE_CONFLICT",
+      "secondary": [
+        "WORKPLACE_COLLUSION",
+        "SIBLING_TRUST"
+      ],
+      "protagonist_counterpart_role": "SURVIVING_EMPLOYEE"
+    },
+    "pressure_engine": {
+      "source": "COUNTDOWN",
+      "escalation": "COUNTDOWN",
+      "stakes": [
+        "EVIDENCE_ERASURE",
+        "WITNESS_RETALIATION",
+        "PUBLIC_SAFETY"
+      ]
+    },
+    "dramatic_engine": {
+      "primary": "SAFETY_COLLAPSE",
+      "secondary": [
+        "EVENT_RECONSTRUCTION",
+        "OFFENDER_RESPONSIBILITY"
+      ],
+      "audience_emotion_curve": [
+        "SHOCK",
+        "SUSPICION",
+        "FALSE_CERTAINTY",
+        "CORRECTION",
+        "ACCOUNTABILITY"
+      ]
+    },
+    "thematic_question": "가족의 분노가 아니라 검증 가능한 흔적은 어떻게 공모한 사람들의 책임을 나누어 밝히는가?",
+    "audience_experience": {
+      "initial_belief": "한 야간 직원이 폐장 뒤 단독으로 두 피해자를 공격했다.",
+      "midpoint_shift": "생존자가 본 것은 얼굴이 아니라 유리 벽에 나뉘어 비친 세 작업복 소매였음이 드러난다.",
+      "final_reframe": "폐장 음악 중단과 작업복 흔적은 우발적 단독 범행이 아니라 관리 책임자가 지휘한 공동 살인 은폐의 순서였다."
+    },
+    "reveal_mode": "OFFENDER_IDENTIFICATION",
+    "ending_type": "BITTERSWEET",
+    "threat_type": "CRIME",
+    "trusted_domain": "EMPLOYMENT",
+    "safe_domain_expectation": "폐장 점검 규칙과 동료의 출입 권한은 직원의 안전을 지켜야 한다.",
+    "early_warning_signals": [
+      "MISSING_SAFETY_LOG",
+      "INTERRUPTED_CLOSING_MUSIC",
+      "UNCLAIMED_WET_UNIFORM"
+    ],
+    "boundary_erosion_steps": [
+      "SHIFT_RECORD_EDITED",
+      "VICTIMS_SEPARATED",
+      "EXIT_ROUTE_BLOCKED"
+    ],
+    "control_tactics": [
+      "ACCESS_AUTHORITY_ABUSE",
+      "ALIBI_COORDINATION",
+      "ACCIDENT_STAGING"
+    ],
+    "victim_exit_barriers": [
+      "LOCKED_SERVICE_CORRIDOR",
+      "DIVIDED_WITNESSES"
+    ],
+    "harm_mechanism": "폐장 구역 접근 권한을 악용한 분리 공격으로 한 피해자가 사망하고 다른 피해자가 중상을 입는다.",
+    "responsible_agent": "안전 기록 조작을 지시한 관리 책임자와 이를 실행·은폐한 두 야간 직원",
+    "responsible_agent_payoff": "유리 반사, 단추, 음악 중단 시각이 세 사람의 위치와 역할을 각각 확정한다.",
+    "victim_agency_outcome": "생존 피해자는 불완전한 기억을 과장하지 않고 본 범위와 물리 흔적을 분리해 공동 책임 입증에 참여한다.",
+    "psychological_pressure": "생존자는 보지 못한 얼굴을 지어내라는 주변의 압박과 증거 삭제 시간 제한을 견뎌야 한다.",
+    "risk_signal_payoff": "중단된 폐장 음악과 사라진 단추가 공격 시작과 은폐 이동을 가리키는 범죄 단서로 회수된다.",
+    "source_disclosure_mode": "ORIGINAL_FICTION",
+    "clinical_label_classification": [],
+    "expert_debrief_plan": {
+      "status": "NOT_APPLICABLE",
+      "claim_ids": [],
+      "na_reason": "Original Fiction 범죄 재연이며 외부 전문가의 사실 Claim을 사용하지 않는다."
+    },
+    "episode_theme": "OFFENDER_RESPONSIBILITY"
+  }
+}

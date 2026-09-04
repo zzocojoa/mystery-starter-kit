@@ -299,6 +299,7 @@ class ArtifactContract(TypedDict):
 
     media_type: str
     schema: str | None
+    schema_versions: NotRequired[dict[str, str]]
     validators: list[str]
     commit_policy: str
     max_bytes: int

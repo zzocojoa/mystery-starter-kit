@@ -100,21 +100,21 @@ def evidence_input_document(
         "claims": [
             {
                 "fact_id": "FACT-01",
-                "claim": "기계 로그에는 7분 공백이 있었다.",
+                "claim": "피고인이 피해자를 폭행했다.",
                 "classification": "FACT",
                 "evidence_source_ids": ["SRC-01"],
                 "basis_fact_ids": [],
-                "evidence_scope": "공식 요약의 사건 경과 부분",
+                "evidence_scope": "공식 판결 요약의 폭행 사실 부분",
                 "confidence": "HIGH",
                 "presented_as_fact": True,
             },
             {
                 "fact_id": "FACT-02",
-                "claim": "안전 센서는 점검 모드였다.",
+                "claim": "피해자는 치료가 필요한 상해를 입었다.",
                 "classification": "FACT",
                 "evidence_source_ids": ["SRC-01"],
                 "basis_fact_ids": [],
-                "evidence_scope": "공식 요약의 설비 상태 부분",
+                "evidence_scope": "공식 판결 요약의 피해 결과 부분",
                 "confidence": "HIGH",
                 "presented_as_fact": True,
             },
@@ -123,14 +123,14 @@ def evidence_input_document(
             {
                 "source_subject_id": "SUBJECT-01",
                 "pseudonym": "지안",
-                "source_role": "SUSPECT",
+                "source_role": "OFFENDER",
                 "related_fact_ids": ["FACT-01"],
                 "identity_disclosure_level": "PSEUDONYMIZED",
             },
             {
                 "source_subject_id": "SUBJECT-02",
                 "pseudonym": "태호",
-                "source_role": "MISSING_COWORKER",
+                "source_role": "VICTIM",
                 "related_fact_ids": ["FACT-02"],
                 "identity_disclosure_level": "PSEUDONYMIZED",
             },
@@ -138,17 +138,17 @@ def evidence_input_document(
         "verified_events": [
             {
                 "verified_event_id": "VEVT-01",
-                "statement": "기계 로그에는 7분 공백이 있었다.",
+                "statement": "피고인이 피해자를 폭행했다.",
                 "sequence": 1,
-                "setting": "FACTORY",
-                "participant_source_subject_ids": ["SUBJECT-01"],
+                "setting": "WORKPLACE",
+                "participant_source_subject_ids": ["SUBJECT-01", "SUBJECT-02"],
                 "source_claim_ids": ["FACT-01"],
             },
             {
                 "verified_event_id": "VEVT-02",
-                "statement": "안전 센서는 점검 모드였다.",
+                "statement": "피해자는 치료가 필요한 상해를 입었다.",
                 "sequence": 2,
-                "setting": "FACTORY",
+                "setting": "WORKPLACE",
                 "participant_source_subject_ids": ["SUBJECT-02"],
                 "source_claim_ids": ["FACT-02"],
             },
@@ -166,12 +166,12 @@ def evidence_input_document(
                 {
                     "from_source_subject_id": "SUBJECT-01",
                     "to_source_subject_id": "SUBJECT-02",
-                    "relationship_type": "TRUST_TO_RESPONSIBILITY",
+                    "relationship_type": "WORKPLACE_ACQUAINTANCE",
                     "source_claim_ids": ["FACT-01"],
                 }
             ],
-            "verified_incident_type": "FRAUD",
-            "verified_setting": "FACTORY",
+            "verified_incident_type": "ASSAULT",
+            "verified_setting": "WORKPLACE",
             "verified_responsible_agent_structure": "SINGLE_AGENT",
             "verified_legal_outcome": None,
             "flexible_dimensions": [],
@@ -259,7 +259,13 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
         .read_text(encoding="utf-8")
         .splitlines()
     )
-    assert len(trace_lines) == 32
+    assert len(trace_lines) == 37
+    for relative_path in (
+        "07_SCRIPT/broadcast_readable_script.md",
+        "08_QA/broadcast_readable_report.json",
+        "09_PRODUCTION/broadcast_readable_script.md",
+    ):
+        assert not (project_path / relative_path).exists()
     novelty_entries = novelty_index["entries"]
     assert isinstance(novelty_entries, list)
     runtime_entry = next(
@@ -270,12 +276,22 @@ def test_fake_provider_runs_gate_zero_through_thirteen(tmp_path: Path) -> None:
     assert runtime_entry["status"] == "EDITORIAL_PENDING"
     assert isinstance(runtime_entry["fingerprint"], dict)
     for relative_path in (
-        "01_CASE/crime_psychology.json",
+        "01_CASE/crime_event_contract.json",
         "01_CASE/source_disclosure.json",
-        "01_CASE/clinical_labels.json",
+        "05_STORY/character_state_transitions.json",
+        "07_SCRIPT/screenplay_units.json",
+        "07_SCRIPT/reenactment_character_script.md",
+        "08_QA/reenactment_export_report.json",
+        "09_PRODUCTION/reenactment_character_script.md",
     ):
         assert (project_path / relative_path).is_file()
+    assert (
+        project_path / "07_SCRIPT/reenactment_character_script.md"
+    ).read_bytes() == (
+        project_path / "09_PRODUCTION/reenactment_character_script.md"
+    ).read_bytes()
     for relative_path in (
+        "01_CASE/clinical_labels.json",
         "06_SCENE/expert_segments.json",
         "07_SCRIPT/expert_analysis_script.md",
         "09_PRODUCTION/expert_analysis_script.md",

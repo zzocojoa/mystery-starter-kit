@@ -103,6 +103,12 @@
         },
         "EPISODE_THEME_POLICY": {
           "$ref": "#/$defs/episodeThemePolicy"
+        },
+        "SCENE_REALIZATION_POLICY": {
+          "$ref": "#/$defs/sceneRealizationPolicy"
+        },
+        "EXPLICIT_CRIME_EVENT_POLICY": {
+          "$ref": "#/$defs/explicitCrimeEventPolicy"
         }
       }
     }
@@ -257,6 +263,21 @@
         },
         "required_function_any_of": {
           "$ref": "#/$defs/enumList"
+        },
+        "minimum_spoken_density": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maximum_non_speech_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minimum_exchange_segment_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
         }
       }
     },
@@ -434,6 +455,147 @@
         "require_episode_theme": {"type": "boolean"}
       }
     },
+    "sceneRealizationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "required_stages",
+        "critical_stages",
+        "minimum_distinct_drama_scenes",
+        "maximum_stages_per_scene",
+        "minimum_psychology_drama_ratio",
+        "minimum_pre_harm_drama_ratio",
+        "drama_realization_required",
+        "narration_only_satisfaction",
+        "panel_only_satisfaction",
+        "minimum_realization_score"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "required_stages": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "TRUST_FORMATION"},
+            {"const": "EARLY_WARNING"},
+            {"const": "RATIONALIZATION"},
+            {"const": "BOUNDARY_EROSION"},
+            {"const": "CONTROL_OR_DEPENDENCY"},
+            {"const": "PSYCHOLOGICAL_CONSEQUENCE"},
+            {"const": "HARM_OR_CRIME"},
+            {"const": "RECOGNITION_AND_RESISTANCE"},
+            {"const": "AGENCY_RECOVERY"}
+          ],
+          "items": false,
+          "minItems": 9,
+          "maxItems": 9
+        },
+        "critical_stages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/psychologicalStageType"}
+        },
+        "minimum_distinct_drama_scenes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maximum_stages_per_scene": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minimum_psychology_drama_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minimum_pre_harm_drama_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "drama_realization_required": {"const": true},
+        "narration_only_satisfaction": {"const": false},
+        "panel_only_satisfaction": {"const": false},
+        "minimum_realization_score": {
+          "type": "number",
+          "minimum": 85,
+          "maximum": 100
+        }
+      }
+    },
+    "explicitCrimeEventPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "core_crimes",
+        "require_central_event",
+        "allow_overlapping_crimes",
+        "method_detail_level",
+        "required_reveal_targets",
+        "development_functions_by_family",
+        "nonlinear_development_allowed",
+        "require_survival",
+        "require_direct_reporting",
+        "require_forgiveness",
+        "require_recovery"
+      ],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "core_crimes": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/explicitCrimeType"}
+        },
+        "require_central_event": {"type": "boolean"},
+        "allow_overlapping_crimes": {"type": "boolean"},
+        "method_detail_level": {"const": "NON_ACTIONABLE_SUMMARY_ONLY"},
+        "required_reveal_targets": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {"enum": ["CULPRIT", "MOTIVE", "METHOD", "HARM_RESULT"]}
+        },
+        "development_functions_by_family": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["MURDER", "LIBERTY_CRIME", "RELATIONAL_VIOLENCE", "ACCESS_CRIME"],
+          "properties": {
+            "MURDER": {"$ref": "#/$defs/developmentFunctionList"},
+            "LIBERTY_CRIME": {"$ref": "#/$defs/developmentFunctionList"},
+            "RELATIONAL_VIOLENCE": {"$ref": "#/$defs/developmentFunctionList"},
+            "ACCESS_CRIME": {"$ref": "#/$defs/developmentFunctionList"}
+          }
+        },
+        "nonlinear_development_allowed": {"type": "boolean"},
+        "require_survival": {"type": "boolean"},
+        "require_direct_reporting": {"type": "boolean"},
+        "require_forgiveness": {"type": "boolean"},
+        "require_recovery": {"type": "boolean"}
+      }
+    },
+    "explicitCrimeType": {
+      "enum": [
+        "MURDER",
+        "KIDNAPPING",
+        "CONFINEMENT",
+        "ASSAULT",
+        "STALKING",
+        "HOME_INVASION",
+        "DATING_VIOLENCE",
+        "DOMESTIC_VIOLENCE"
+      ]
+    },
+    "developmentFunctionList": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+    },
     "enumName": {
       "type": "string",
       "pattern": "^[A-Z][A-Z0-9_]*$"
@@ -452,6 +614,19 @@
         "MEDIA_DESCRIPTION",
         "NARRATOR_OPINION",
         "UNVERIFIED_LABEL"
+      ]
+    },
+    "psychologicalStageType": {
+      "enum": [
+        "TRUST_FORMATION",
+        "EARLY_WARNING",
+        "RATIONALIZATION",
+        "BOUNDARY_EROSION",
+        "CONTROL_OR_DEPENDENCY",
+        "PSYCHOLOGICAL_CONSEQUENCE",
+        "HARM_OR_CRIME",
+        "RECOGNITION_AND_RESISTANCE",
+        "AGENCY_RECOVERY"
       ]
     },
     "genericPolicy": {

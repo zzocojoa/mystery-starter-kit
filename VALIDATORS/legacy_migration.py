@@ -5,7 +5,7 @@ from copy import deepcopy
 
 from VALIDATORS.dependency import artifact_hash, build_initial_project_state, mark_artifact_clean
 from VALIDATORS.exceptions import ConfigurationError
-from VALIDATORS.models import ProjectState
+from VALIDATORS.models import ProjectState, RevisionTrigger
 from VALIDATORS.variation import (
     legacy_candidate_signature,
     runtime_candidate_metadata,
@@ -120,6 +120,16 @@ def normalized_legacy_state(
     next_state["current_gate"] = current_state["current_gate"]
     next_state["readiness"] = deepcopy(current_state["readiness"])
     next_state["readiness"]["process_revision"] = current_state["readiness"]["process_revision"] + 1
+    next_state["revision_trigger"] = RevisionTrigger(
+        type="SEMANTIC_CORRECTION",
+        source_id=f"LEGACY-MIGRATION:{updated_at}",
+        target_owner_agent=None,
+        target_gate=None,
+        target_task_ids=[],
+        actor=None,
+        reason="Legacy Provenance Migration으로 의미 계약을 다시 검증합니다.",
+        triggered_at=updated_at,
+    )
     for artifact_name, artifact_state in current_state["artifacts"].items():
         if artifact_name in next_state["artifacts"]:
             next_state["artifacts"][artifact_name] = deepcopy(artifact_state)

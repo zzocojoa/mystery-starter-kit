@@ -1,17 +1,42 @@
 """LLM이 필요하지 않은 Runtime Task를 기존 Validator로 실행."""
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
+from hashlib import sha256
 from pathlib import Path
-from typing import cast
+from typing import TypeVar, cast
 
+from RUNTIME.broadcast_readable_v2_renderer import (
+    render_broadcast_readable_script_versioned,
+)
 from RUNTIME.errors import RuntimeErrorCode, RuntimeExecutionError
-from RUNTIME.event_store import load_run, utc_now
+from RUNTIME.event_store import utc_now
 from RUNTIME.gate_control import validation_report_through
 from RUNTIME.human_inputs import current_evidence_input, evidence_artifact_outputs
 from RUNTIME.models import RuntimeApproval
+from RUNTIME.screenplay_renderers import (
+    package_production_reenactment_script,
+    render_broadcast_master,
+    render_drama_layer,
+    render_narration_layer,
+    render_panel_layer,
+    render_reenactment_character_script,
+)
+from VALIDATORS.broadcast_readable import (
+    build_broadcast_readable_report,
+    production_readable_deliverable_record,
+    validate_broadcast_readable_report,
+)
+from VALIDATORS.broadcast_readable_v2 import (
+    build_broadcast_readable_report_v2,
+    validate_broadcast_readable_report_v2,
+)
 from VALIDATORS.candidate_approval import build_candidate_approval
-from VALIDATORS.candidate_eligibility import build_candidate_eligibility
-from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_eligibility import build_candidate_eligibility_bound
+from VALIDATORS.candidate_evaluation import (
+    document_sha256,
+    validate_candidate_evaluation,
+)
+from VALIDATORS.candidate_event_briefs import build_bound_crime_event_contract
 from VALIDATORS.channel_policy_v2 import (
     build_channel_policy_inputs,
     validate_channel_policy_v2,
@@ -27,30 +52,53 @@ from VALIDATORS.compatibility import (
     make_project_compatibility_report,
 )
 from VALIDATORS.continuity import validate_continuity
+from VALIDATORS.crime_event import (
+    build_crime_script_realization_report,
+    crime_channel_evidence,
+    explicit_crime_policy,
+)
 from VALIDATORS.exceptions import ConfigurationError, StoryLibraryError
 from VALIDATORS.io import load_json_object
 from VALIDATORS.library import novelty_history
 from VALIDATORS.novelty import (
     build_story_fingerprint,
     evaluate_novelty,
-    evaluate_variation_precheck,
+    evaluate_variation_precheck_bound,
+)
+from VALIDATORS.output_profiles import (
+    resolve_active_broadcast_readable_output_profile,
+    resolve_reenactment_output_profile,
 )
 from VALIDATORS.pipeline import ArtifactContent, load_existing_project_artifacts
 from VALIDATORS.production_footprint import (
     build_production_footprint,
+    production_manifest_from_readable_v12,
     production_manifest_from_scene_cards,
+    production_manifest_from_scene_cards_v11,
+)
+from VALIDATORS.reenactment_export import (
+    ScreenplayDerivedOutputs,
+    build_reenactment_export_report,
 )
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
     sanitize_reference_profile,
     validate_reference_collision,
 )
+from VALIDATORS.requirements import production_footprint_is_enforced
+from VALIDATORS.scene_realization import (
+    build_script_realization_report,
+    channel_realization_evidence,
+)
+from VALIDATORS.screenplay_units import validate_screenplay_unit_references
 from VALIDATORS.source_truth import require_source_truth_classification
 from VALIDATORS.variation import (
     approve_variation_candidate,
     generate_eligible_candidate_pool,
 )
 from VALIDATORS.variation_registry import resolve_variation_runtime
+
+RendererOutput = TypeVar("RendererOutput")
 
 
 def production_configuration_error(
@@ -132,6 +180,84 @@ def text_artifact(
     return value
 
 
+def reenactment_output_profile(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    task_id: str,
+) -> tuple[Mapping[str, object], str]:
+    """고정 Profile을 Runtime 오류 경계에서 해석한다."""
+    try:
+        resolved = resolve_reenactment_output_profile(
+            repository_root,
+            production_config,
+        )
+    except ConfigurationError as error:
+        raise production_configuration_error(
+            error,
+            task_id,
+            "production_config",
+        ) from error
+    if resolved is None:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Screenplay Unit Task에는 고정 Reenactment Output Profile이 필요합니다.",
+            task_id,
+            "production_config",
+            {},
+        )
+    return resolved["document"], resolved["sha256"]
+
+
+def broadcast_readable_output_profile(
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, ArtifactContent],
+    task_id: str,
+) -> tuple[Mapping[str, object], str, str]:
+    """고정 사람용 Broadcast Profile을 Runtime 오류 경계에서 해석한다."""
+    try:
+        resolved = resolve_active_broadcast_readable_output_profile(
+            repository_root,
+            production_config,
+            artifacts,
+        )
+    except ConfigurationError as error:
+        raise production_configuration_error(
+            error,
+            task_id,
+            "production_config",
+        ) from error
+    if resolved is None:
+        raise RuntimeExecutionError(
+            "RUNTIME_CONFIGURATION_ERROR",
+            False,
+            "TASK",
+            "Screenplay Unit Task에는 고정 Broadcast Readable Output Profile이 필요합니다.",
+            task_id,
+            "production_config",
+            {},
+        )
+    return (
+        resolved["document"],
+        resolved["sha256"],
+        resolved["profile_version"],
+    )
+
+
+def renderer_output(
+    task_id: str,
+    artifact_name: str,
+    renderer: Callable[[], RendererOutput],
+) -> RendererOutput:
+    """Renderer 구성 오류를 원래 Code를 보존한 Runtime 오류로 변환한다."""
+    try:
+        return renderer()
+    except ConfigurationError as error:
+        raise production_configuration_error(error, task_id, artifact_name) from error
+
+
 def story_history(repository_root: Path) -> list[Mapping[str, object]]:
     """Abandoned를 제외한 Novelty Index 비교 기록을 읽는다."""
     index = load_json_object(repository_root / "STORY_LIBRARY" / "novelty_index.json")
@@ -185,11 +311,53 @@ def runtime_validation_inputs(
             "candidate_approval": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "candidate_approval.schema.json"
             ),
+            "candidate_event_briefs": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "candidate_event_briefs.schema.json"
+            ),
             "novelty_precheck": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "novelty_precheck.schema.json"
             ),
             "crime_psychology": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "crime_psychology.schema.json"
+            ),
+            "crime_event_contract": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "crime_event_contract.schema.json"
+            ),
+            "psychological_arc": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "psychological_arc.schema.json"
+            ),
+            "character_state_transitions": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "character_state_transitions.schema.json"
+            ),
+            "screenplay_units": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "screenplay_units.schema.json"
+            ),
+            "reenactment_export_report": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "reenactment_export_report.schema.json"
+            ),
+            "broadcast_readable_report": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "broadcast_readable_report.schema.json"
+            ),
+            "broadcast_readable_report_1_0": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "broadcast_readable_report.schema.json"
+            ),
+            "broadcast_readable_report_2_0": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "broadcast_readable_report_2_0.schema.json"
+            ),
+            "broadcast_readable_report_2_1": load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "broadcast_readable_report_2_1.schema.json"
+            ),
+            "clue_matrix": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "clue_matrix.schema.json"
+            ),
+            "script_realization_report": load_json_object(
+                repository_root / "STANDARD" / "schemas" / "script_realization_report.schema.json"
             ),
             "source_disclosure": load_json_object(
                 repository_root / "STANDARD" / "schemas" / "source_disclosure.schema.json"
@@ -223,6 +391,7 @@ def runtime_validation_inputs(
 def runtime_validation_inputs_for_project(
     repository_root: Path,
     production_config: Mapping[str, object],
+    artifacts: Mapping[str, object],
     channel_override: Path | None,
 ) -> tuple[
     Mapping[str, object],
@@ -253,6 +422,32 @@ def runtime_validation_inputs_for_project(
     )
     selected_schemas["variation_catalog"] = variation_runtime["catalog"]
     selected_schemas["variation_runtime"] = dict(variation_runtime)
+    reenactment_profile = resolve_reenactment_output_profile(
+        repository_root,
+        production_config,
+    )
+    if reenactment_profile is not None:
+        selected_schemas["reenactment_output_profile"] = reenactment_profile["document"]
+        selected_schemas["reenactment_output_profile_binding"] = {
+            "sha256": reenactment_profile["sha256"],
+        }
+    readable_profile = resolve_active_broadcast_readable_output_profile(
+        repository_root,
+        production_config,
+        artifacts,
+    )
+    if readable_profile is not None:
+        selected_schemas["broadcast_readable_output_profile"] = readable_profile["document"]
+        selected_schemas["broadcast_readable_output_profile_binding"] = {
+            "sha256": readable_profile["sha256"],
+        }
+        if readable_profile["profile_version"] == "2.0.0":
+            selected_schemas["broadcast_readable_report"] = load_json_object(
+                repository_root
+                / "STANDARD"
+                / "schemas"
+                / "broadcast_readable_report_2_1.schema.json"
+            )
     return (
         channel,
         story_schema,
@@ -411,6 +606,7 @@ def variation_output(
 
 def approved_variation_output(
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     candidate_evaluation: Mapping[str, object],
     novelty_precheck: Mapping[str, object],
     candidate_eligibility: Mapping[str, object],
@@ -418,6 +614,7 @@ def approved_variation_output(
     """검증된 평가가 추천한 Candidate 하나를 승인한다."""
     issues = validate_candidate_evaluation(
         variations,
+        candidate_event_briefs,
         candidate_evaluation,
         novelty_precheck,
         candidate_eligibility,
@@ -627,6 +824,340 @@ def resolved_clinical_labels_output(
     return {**dict(clinical_labels), "labels": labels}
 
 
+def screenplay_layer_outputs(
+    task_id: str,
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, ArtifactContent],
+) -> dict[str, object]:
+    """Screenplay Unit에서 방송 계층 세 개를 결정론적으로 만든다."""
+    reenactment_output_profile(repository_root, production_config, task_id)
+    screenplay_units = mapping_artifact(artifacts, "screenplay_units")
+    presentation_plan = mapping_artifact(artifacts, "presentation_plan")
+    crime_event_contract = mapping_artifact(artifacts, "crime_event_contract")
+    reaction_segments = mapping_artifact(artifacts, "reaction_segments")
+    reference_issues = validate_screenplay_unit_references(
+        screenplay_units,
+        mapping_artifact(artifacts, "facts"),
+        mapping_artifact(artifacts, "clue_matrix"),
+        crime_event_contract,
+        mapping_artifact(artifacts, "characters"),
+        presentation_plan,
+    )
+    if reference_issues:
+        first_issue = reference_issues[0]
+        raise RuntimeExecutionError(
+            "GATE_REJECTED",
+            False,
+            "TASK",
+            first_issue["message"],
+            task_id,
+            "screenplay_units",
+            {
+                "validation_code": first_issue["code"],
+                **first_issue["context"],
+            },
+        )
+    return {
+        "drama_script": renderer_output(
+            task_id,
+            "drama_script",
+            lambda: render_drama_layer(
+                screenplay_units,
+                presentation_plan,
+                crime_event_contract,
+            ),
+        ),
+        "narration_script": renderer_output(
+            task_id,
+            "narration_script",
+            lambda: render_narration_layer(
+                screenplay_units,
+                presentation_plan,
+                crime_event_contract,
+            ),
+        ),
+        "panel_reaction_script": renderer_output(
+            task_id,
+            "panel_reaction_script",
+            lambda: render_panel_layer(reaction_segments, presentation_plan),
+        ),
+    }
+
+
+def broadcast_master_outputs(
+    task_id: str,
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, ArtifactContent],
+) -> dict[str, object]:
+    """방송 계층을 Presentation 순서의 동일 Draft와 Final로 결합한다."""
+    reenactment_output_profile(repository_root, production_config, task_id)
+    layers = {
+        "drama_script": text_artifact(artifacts, "drama_script"),
+        "narration_script": text_artifact(artifacts, "narration_script"),
+        "panel_reaction_script": text_artifact(artifacts, "panel_reaction_script"),
+    }
+    if "expert_analysis_script" in artifacts:
+        layers["expert_analysis_script"] = text_artifact(
+            artifacts,
+            "expert_analysis_script",
+        )
+    master = renderer_output(
+        task_id,
+        "final_script",
+        lambda: render_broadcast_master(
+            mapping_artifact(artifacts, "presentation_plan"),
+            layers,
+        ),
+    )
+    return {"draft_script": master, "final_script": master}
+
+
+def reenactment_script_output(
+    task_id: str,
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, ArtifactContent],
+) -> str:
+    """고정 Profile과 Canonical 인물 정보에서 재연용 Markdown을 만든다."""
+    output_profile, _profile_hash = reenactment_output_profile(
+        repository_root,
+        production_config,
+        task_id,
+    )
+    return renderer_output(
+        task_id,
+        "reenactment_character_script",
+        lambda: render_reenactment_character_script(
+            mapping_artifact(artifacts, "screenplay_units"),
+            mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "relationships"),
+            output_profile,
+        ),
+    )
+
+
+def broadcast_readable_output(
+    task_id: str,
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, ArtifactContent],
+) -> str:
+    """동일 Canonical JSON에서 사람용 Broadcast Artifact를 만든다."""
+    output_profile, _profile_hash, _profile_version = broadcast_readable_output_profile(
+        repository_root,
+        production_config,
+        artifacts,
+        task_id,
+    )
+    return renderer_output(
+        task_id,
+        "broadcast_readable_script",
+        lambda: render_broadcast_readable_script_versioned(
+            mapping_artifact(artifacts, "screenplay_units"),
+            mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "relationships"),
+            mapping_artifact(artifacts, "panel_cast"),
+            mapping_artifact(artifacts, "reaction_segments"),
+            mapping_artifact(artifacts, "presentation_plan"),
+            output_profile,
+        ),
+    )
+
+
+def broadcast_readable_report_output(
+    task_id: str,
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, ArtifactContent],
+) -> dict[str, object]:
+    """현재 Canonical 입력과 사람용 Broadcast에 결속된 QA Report를 만든다."""
+    output_profile, profile_hash, profile_version = broadcast_readable_output_profile(
+        repository_root,
+        production_config,
+        artifacts,
+        task_id,
+    )
+    if profile_version == "2.0.0":
+        return build_broadcast_readable_report_v2(
+            mapping_artifact(artifacts, "broadcast_readable_config"),
+            mapping_artifact(artifacts, "screenplay_units"),
+            mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "relationships"),
+            mapping_artifact(artifacts, "panel_cast"),
+            mapping_artifact(artifacts, "reaction_segments"),
+            mapping_artifact(artifacts, "presentation_plan"),
+            text_artifact(artifacts, "final_script"),
+            output_profile,
+            profile_hash,
+            text_artifact(artifacts, "broadcast_readable_script"),
+        )
+    return build_broadcast_readable_report(
+        production_config,
+        mapping_artifact(artifacts, "screenplay_units"),
+        mapping_artifact(artifacts, "characters"),
+        mapping_artifact(artifacts, "panel_cast"),
+        mapping_artifact(artifacts, "reaction_segments"),
+        mapping_artifact(artifacts, "presentation_plan"),
+        output_profile,
+        profile_hash,
+        text_artifact(artifacts, "broadcast_readable_script"),
+    )
+
+
+def reenactment_report_output(
+    task_id: str,
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, ArtifactContent],
+) -> dict[str, object]:
+    """현재 Unit·Profile·파생 출력에 결속된 재연 Export Report를 만든다."""
+    output_profile, profile_hash = reenactment_output_profile(
+        repository_root,
+        production_config,
+        task_id,
+    )
+    outputs = ScreenplayDerivedOutputs(
+        drama_script=text_artifact(artifacts, "drama_script"),
+        narration_script=text_artifact(artifacts, "narration_script"),
+        panel_reaction_script=text_artifact(artifacts, "panel_reaction_script"),
+        draft_script=text_artifact(artifacts, "draft_script"),
+        final_script=text_artifact(artifacts, "final_script"),
+        reenactment_character_script=text_artifact(
+            artifacts,
+            "reenactment_character_script",
+        ),
+    )
+    if "expert_analysis_script" in artifacts:
+        outputs["expert_analysis_script"] = text_artifact(
+            artifacts,
+            "expert_analysis_script",
+        )
+    return build_reenactment_export_report(
+        production_config,
+        mapping_artifact(artifacts, "screenplay_units"),
+        mapping_artifact(artifacts, "facts"),
+        mapping_artifact(artifacts, "characters"),
+        mapping_artifact(artifacts, "relationships"),
+        mapping_artifact(artifacts, "crime_event_contract"),
+        mapping_artifact(artifacts, "clue_matrix"),
+        output_profile,
+        profile_hash,
+        mapping_artifact(artifacts, "presentation_plan"),
+        mapping_artifact(artifacts, "reaction_segments"),
+        outputs,
+    )
+
+
+def production_reenactment_output(
+    task_id: str,
+    artifacts: Mapping[str, ArtifactContent],
+) -> str:
+    """검증된 재연 Script만 Production 경로에 바이트 그대로 전달한다."""
+    mapping_artifact(artifacts, "validation_report")
+    report = mapping_artifact(artifacts, "reenactment_export_report")
+    markdown = text_artifact(artifacts, "reenactment_character_script")
+    report_issues = report.get("issues")
+    runtime_status = report.get("runtime_status")
+    runtime_result = runtime_status.get("status") if isinstance(runtime_status, Mapping) else None
+    expected_hash = report.get("output_markdown_sha256")
+    actual_hash = sha256(markdown.encode("utf-8")).hexdigest()
+    if (
+        report.get("result") != "NEEDS_REVIEW"
+        or not isinstance(report_issues, list)
+        or report_issues
+        or runtime_result not in {"NOT_CONFIGURED", "ESTIMATED", "MEASURED_MATCH"}
+        or expected_hash != actual_hash
+    ):
+        raise RuntimeExecutionError(
+            "GATE_REJECTED",
+            False,
+            "TASK",
+            "현재 재연 Script와 결속된 무결성 Report가 필요합니다.",
+            task_id,
+            "reenactment_export_report",
+            {
+                "report_result": report.get("result"),
+                "runtime_status": runtime_result,
+                "expected_hash": expected_hash,
+                "actual_hash": actual_hash,
+            },
+        )
+    return renderer_output(
+        task_id,
+        "production_reenactment_character_script",
+        lambda: package_production_reenactment_script(markdown),
+    )
+
+
+def production_broadcast_readable_output(
+    task_id: str,
+    repository_root: Path,
+    production_config: Mapping[str, object],
+    artifacts: Mapping[str, ArtifactContent],
+) -> str:
+    """검증된 사람용 Broadcast만 Production 경로에 byte 그대로 전달한다."""
+    validation_report = mapping_artifact(artifacts, "validation_report")
+    report = mapping_artifact(artifacts, "broadcast_readable_report")
+    readable_script = text_artifact(artifacts, "broadcast_readable_script")
+    output_profile, profile_hash, profile_version = broadcast_readable_output_profile(
+        repository_root,
+        production_config,
+        artifacts,
+        task_id,
+    )
+    report_issues = (
+        validate_broadcast_readable_report_v2(
+            report,
+            mapping_artifact(artifacts, "broadcast_readable_config"),
+            mapping_artifact(artifacts, "screenplay_units"),
+            mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "relationships"),
+            mapping_artifact(artifacts, "panel_cast"),
+            mapping_artifact(artifacts, "reaction_segments"),
+            mapping_artifact(artifacts, "presentation_plan"),
+            text_artifact(artifacts, "final_script"),
+            output_profile,
+            profile_hash,
+            readable_script,
+        )
+        if profile_version == "2.0.0"
+        else validate_broadcast_readable_report(
+            report,
+            production_config,
+            mapping_artifact(artifacts, "screenplay_units"),
+            mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "panel_cast"),
+            mapping_artifact(artifacts, "reaction_segments"),
+            mapping_artifact(artifacts, "presentation_plan"),
+            output_profile,
+            profile_hash,
+            readable_script,
+        )
+    )
+    required_report_result = "NEEDS_REVIEW" if profile_version == "2.0.0" else "PASS"
+    if (
+        validation_report.get("result") != "PASS"
+        or report.get("result") != required_report_result
+        or report_issues
+    ):
+        raise RuntimeExecutionError(
+            "GATE_REJECTED",
+            False,
+            "TASK",
+            "현재 사람용 Broadcast와 결속된 무결성 QA Report가 필요합니다.",
+            task_id,
+            "broadcast_readable_report",
+            {
+                "validation_result": validation_report.get("result"),
+                "report_result": report.get("result"),
+                "issue_codes": [issue["code"] for issue in report_issues],
+            },
+        )
+    return readable_script
+
+
 def core_task_outputs(
     task_id: str,
     repository_root: Path,
@@ -678,8 +1209,13 @@ def core_task_outputs(
         }
     if task_id == "novelty.variation_precheck":
         return {
-            "novelty_precheck": evaluate_variation_precheck(
+            "novelty_precheck": evaluate_variation_precheck_bound(
                 mapping_artifact(artifacts, "variation_candidates"),
+                (
+                    mapping_artifact(artifacts, "candidate_event_briefs")
+                    if "candidate_event_briefs" in artifacts
+                    else None
+                ),
                 story_history(repository_root),
                 load_json_object(repository_root / "STANDARD" / "novelty_thresholds.json"),
             )
@@ -691,11 +1227,16 @@ def core_task_outputs(
             None,
         )
         return {
-            "candidate_eligibility": build_candidate_eligibility(
+            "candidate_eligibility": build_candidate_eligibility_bound(
                 production_config,
                 mapping_artifact(artifacts, "project_constraints"),
                 channel,
                 mapping_artifact(artifacts, "variation_candidates"),
+                (
+                    mapping_artifact(artifacts, "candidate_event_briefs")
+                    if explicit_crime_policy(channel) is not None
+                    else None
+                ),
                 mapping_artifact(artifacts, "novelty_precheck"),
             )
         }
@@ -706,6 +1247,11 @@ def core_task_outputs(
         eligibility = mapping_artifact(artifacts, "candidate_eligibility")
         approved, _candidate_id = approved_variation_output(
             variations,
+            (
+                mapping_artifact(artifacts, "candidate_event_briefs")
+                if "candidate_event_briefs" in artifacts
+                else None
+            ),
             evaluation,
             novelty,
             eligibility,
@@ -757,6 +1303,11 @@ def core_task_outputs(
                 approved_at,
                 production_config,
                 variations,
+                (
+                    mapping_artifact(artifacts, "candidate_event_briefs")
+                    if "candidate_event_briefs" in artifacts
+                    else None
+                ),
                 novelty,
                 mapping_artifact(artifacts, "candidate_eligibility"),
                 evaluation,
@@ -764,25 +1315,48 @@ def core_task_outputs(
                 runtime_approval,
             ),
         }
+    if task_id == "story.bind_crime_event":
+        raw_source_truth_contract = artifacts.get("source_truth_contract")
+        source_truth_contract = (
+            raw_source_truth_contract if isinstance(raw_source_truth_contract, Mapping) else {}
+        )
+        contract, issues = build_bound_crime_event_contract(
+            project_id,
+            mapping_artifact(artifacts, "variation_candidates"),
+            mapping_artifact(artifacts, "candidate_event_briefs"),
+            mapping_artifact(artifacts, "case_input"),
+            mapping_artifact(artifacts, "facts"),
+            mapping_artifact(artifacts, "characters"),
+            mapping_artifact(artifacts, "relationships"),
+            source_truth_contract,
+        )
+        if issues or contract is None:
+            first_issue = issues[0]
+            raise RuntimeExecutionError(
+                "GATE_REJECTED",
+                False,
+                "TASK",
+                first_issue["message"],
+                task_id,
+                "crime_event_contract",
+                {
+                    "validation_code": first_issue["code"],
+                    **first_issue["context"],
+                },
+            )
+        return {"crime_event_contract": contract}
     if task_id in {
         "reference.intake_evidence",
         "reference.initialize_fiction_evidence",
         "reference.build_source_disclosure",
         "reference.build_clinical_labels",
     }:
-        run = load_run(project_path, run_id)
-        evidence_state = run["tasks"].get("reference.intake_evidence")
-        evidence_hashes = (
-            evidence_state["input_hashes"]
-            if evidence_state is not None and evidence_state["input_hashes"]
-            else input_hashes
-        )
         bundle = evidence_outputs(
             project_id,
             production_config.get("source_truth_classification"),
             project_path,
             run_id,
-            evidence_hashes,
+            input_hashes,
         )
         selected_outputs = {
             "reference.intake_evidence": (
@@ -808,6 +1382,38 @@ def core_task_outputs(
                 mapping_artifact(artifacts, "characters"),
             )
         }
+    if task_id == "script.render_screenplay_layers":
+        return screenplay_layer_outputs(
+            task_id,
+            repository_root,
+            production_config,
+            artifacts,
+        )
+    if task_id == "script.render_broadcast_master":
+        return broadcast_master_outputs(
+            task_id,
+            repository_root,
+            production_config,
+            artifacts,
+        )
+    if task_id == "script.render_reenactment_export":
+        return {
+            "reenactment_character_script": reenactment_script_output(
+                task_id,
+                repository_root,
+                production_config,
+                artifacts,
+            )
+        }
+    if task_id == "script.render_broadcast_readable":
+        return {
+            "broadcast_readable_script": broadcast_readable_output(
+                task_id,
+                repository_root,
+                production_config,
+                artifacts,
+            )
+        }
     if task_id == "scene.compute_production_footprint":
         try:
             footprint = build_production_footprint(
@@ -826,13 +1432,48 @@ def core_task_outputs(
     if task_id == "production.build_manifest":
         text_artifact(artifacts, "shooting_script")
         try:
-            manifest = production_manifest_from_scene_cards(
-                project_id,
-                mapping_artifact(artifacts, "production_footprint"),
-                mapping_artifact(artifacts, "scene_cards"),
-                mapping_artifact(artifacts, "characters"),
-                mapping_artifact(artifacts, "actual_timeline"),
+            resolved_readable = resolve_active_broadcast_readable_output_profile(
+                repository_root,
+                production_config,
+                artifacts,
             )
+            if resolved_readable is not None and resolved_readable["profile_version"] == "2.0.0":
+                production_readable = text_artifact(
+                    artifacts,
+                    "production_broadcast_readable_script",
+                )
+                readable_report = mapping_artifact(
+                    artifacts,
+                    "broadcast_readable_report",
+                )
+                deliverable = production_readable_deliverable_record(
+                    production_readable,
+                    document_sha256(readable_report),
+                    resolved_readable["profile_id"],
+                    resolved_readable["profile_version"],
+                )
+                if production_footprint_is_enforced(artifacts):
+                    manifest = production_manifest_from_scene_cards_v11(
+                        project_id,
+                        mapping_artifact(artifacts, "production_footprint"),
+                        mapping_artifact(artifacts, "scene_cards"),
+                        mapping_artifact(artifacts, "characters"),
+                        mapping_artifact(artifacts, "actual_timeline"),
+                        deliverable,
+                    )
+                else:
+                    manifest = production_manifest_from_readable_v12(
+                        project_id,
+                        deliverable,
+                    )
+            else:
+                manifest = production_manifest_from_scene_cards(
+                    project_id,
+                    mapping_artifact(artifacts, "production_footprint"),
+                    mapping_artifact(artifacts, "scene_cards"),
+                    mapping_artifact(artifacts, "characters"),
+                    mapping_artifact(artifacts, "actual_timeline"),
+                )
         except ConfigurationError as error:
             raise production_configuration_error(
                 error,
@@ -840,6 +1481,69 @@ def core_task_outputs(
                 "production_manifest",
             ) from error
         return {"production_manifest": manifest}
+    if task_id == "production.package_reenactment":
+        return {
+            "production_reenactment_character_script": production_reenactment_output(
+                task_id,
+                artifacts,
+            )
+        }
+    if task_id == "production.package_broadcast_readable":
+        return {
+            "production_broadcast_readable_script": (
+                production_broadcast_readable_output(
+                    task_id,
+                    repository_root,
+                    production_config,
+                    artifacts,
+                )
+            )
+        }
+    if task_id == "continuity.realization":
+        channel, _manifest, _channel_path = resolve_project_channel(
+            repository_root,
+            production_config,
+            None,
+        )
+        if explicit_crime_policy(channel) is not None:
+            report = build_crime_script_realization_report(
+                project_id,
+                channel,
+                mapping_artifact(artifacts, "crime_event_contract"),
+                mapping_artifact(artifacts, "scene_cards"),
+                mapping_artifact(artifacts, "presentation_plan"),
+                mapping_artifact(artifacts, "reaction_segments"),
+                mapping_artifact(artifacts, "viewer_timeline"),
+                text_artifact(artifacts, "final_script"),
+            )
+        else:
+            report = build_script_realization_report(
+                project_id,
+                channel,
+                mapping_artifact(artifacts, "psychological_arc"),
+                mapping_artifact(artifacts, "scene_cards"),
+                mapping_artifact(artifacts, "presentation_plan"),
+                text_artifact(artifacts, "final_script"),
+            )
+        return {"script_realization_report": report}
+    if task_id == "continuity.validate_reenactment":
+        return {
+            "reenactment_export_report": reenactment_report_output(
+                task_id,
+                repository_root,
+                production_config,
+                artifacts,
+            )
+        }
+    if task_id == "continuity.validate_broadcast_readable":
+        return {
+            "broadcast_readable_report": broadcast_readable_report_output(
+                task_id,
+                repository_root,
+                production_config,
+                artifacts,
+            )
+        }
     if task_id == "continuity.deterministic":
         report = validate_continuity(
             production_config,
@@ -891,13 +1595,19 @@ def core_task_outputs(
                 build_channel_policy_inputs(artifacts),
             )
         )
-        return {
-            "channel_consistency_report": {
-                "project_id": project_id,
-                "result": "FAIL" if issues else "PASS",
-                "issues": issues,
-            }
+        channel_report: dict[str, object] = {
+            "project_id": project_id,
+            "result": "FAIL" if issues else "PASS",
+            "issues": issues,
         }
+        script_report = artifacts.get("script_realization_report")
+        if isinstance(script_report, Mapping):
+            channel_report["scene_realization_evidence"] = channel_realization_evidence(
+                script_report
+            )
+            if explicit_crime_policy(channel) is not None:
+                channel_report["crime_realization_evidence"] = crime_channel_evidence(script_report)
+        return {"channel_consistency_report": channel_report}
     if task_id in {"orchestrator.validation", "production.finalize"}:
         (
             validation_channel,
@@ -909,6 +1619,7 @@ def core_task_outputs(
         ) = runtime_validation_inputs_for_project(
             repository_root,
             production_config,
+            artifacts,
             None,
         )
         target_gate = "GATE-12" if task_id == "orchestrator.validation" else "GATE-13"

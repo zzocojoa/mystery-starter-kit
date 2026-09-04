@@ -1,8 +1,11 @@
 # Mystery Starter Kit
 
-- Package: `1.5.0`
+- Package: `1.6.1`
 - Production Standard: `1.3.3`
-- Active Channel Content: `2.0.0`
+- Active Channel Content: `2.1.0`
+- Reenactment Output Profile: `REENACTMENT_CHARACTER_SCRIPT 1.0.0`
+- Broadcast Readable Output Profile: `BROADCAST_READABLE_SCRIPT 1.0.0`
+- Runtime Interface: `1.0.0`
 
 [![CI](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/zzocojoa/mystery-starter-kit/actions/workflows/ci.yml)
 
@@ -37,17 +40,56 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 현재 Gate Validator를 통과한 뒤 Task를 제출하고 Process Trace를 확인하라.
 ```
 
-각 Gate는 다음 Transaction으로 실행한다. `task-open`이 출력한 `workspace`에서 허용 파일만 수정한 뒤 같은 Gate로 제출한다.
+각 Gate는 하나의 Transaction으로 실행한다. `task-open`은 의존 순서의 CORE Task를 먼저 실행하고, 처음 만나는 LLM Task 하나의 `allowed_reads`와 `allowed_writes`만 연다. 출력된 `workspace`에서 현재 허용 파일만 수정한 뒤 같은 Gate로 제출한다.
 
 ```bash
 .venv/bin/mystery-kit task-open PROJECTS/PRJ-002 GATE-05
 .venv/bin/mystery-kit task-status PROJECTS/PRJ-002
-# 출력된 Staging Workspace의 allowed_writes만 Codex가 편집한다.
+# 출력된 Staging Workspace의 현재 allowed_writes만 Codex가 편집한다.
+.venv/bin/mystery-kit task-submit PROJECTS/PRJ-002 GATE-05
+# 응답이 AWAITING_LLM이면 새 current_task_id의 allowed_writes만 작성하고 다시 제출한다.
+.venv/bin/mystery-kit task-status PROJECTS/PRJ-002
 .venv/bin/mystery-kit task-submit PROJECTS/PRJ-002 GATE-05
 .venv/bin/mystery-kit task-return PROJECTS/PRJ-002 script_writer --actor critic --reason "대본 수정 필요"
 ```
 
-제출은 현재 Gate, writes Allowlist, Artifact Owner, Future Gate 수정, 입력 Hash Drift, Schema와 현재 Gate Validator를 검사한다. 다음 Task를 열기 전에도 이미 통과한 Canonical Artifact를 Project State Hash와 대조한다. PASS일 때만 Artifact·Project State·`00_PROJECT/process_trace.jsonl`을 기존 Write-ahead Transaction으로 함께 Commit한다. 작업을 폐기하려면 `task-abort`를 사용한다. Critic Issue는 `task-return`으로 Owner Agent Gate에 반환하며, 새 `process_revision`의 Trace만 재작업 적합성에 사용한다. `AUTO_CONTINUE`는 PASS 뒤 다음 Gate Task를 사용자 재확인 없이 열 수 있다는 뜻이며 여러 Gate를 한꺼번에 작성한다는 뜻이 아니다.
+각 제출은 현재 Task의 writes Allowlist, Artifact Owner, Future Gate 수정, 입력 Hash Drift와 Schema를 검사한다. 통과하면 같은 Workspace에서 후속 CORE를 실행하고, 다음 LLM Task가 있으면 Canonical 중간 Commit 없이 새 `current_task_id`와 최소 권한을 반환한다. Gate의 모든 Task와 Gate Validator가 PASS한 경우에만 Artifact·Project State·`00_PROJECT/process_trace.jsonl`을 기존 Write-ahead Transaction으로 함께 Commit한다. 다음 Gate를 열기 전에는 이미 통과한 Canonical Artifact를 Project State Hash와 대조한다. 작업을 폐기하려면 `task-abort`를 사용한다. Critic Issue는 `task-return`으로 Owner Agent Gate에 반환하며, 새 `process_revision`의 Trace만 재작업 적합성에 사용한다. `AUTO_CONTINUE`는 정상 Task 통과 뒤 의존 가능한 CORE 또는 다음 LLM Task로 진행할 수 있다는 뜻이며 여러 Gate를 한꺼번에 작성한다는 뜻이 아니다.
+
+새 Scaffold는 `script_source_mode: SCREENPLAY_UNITS`, `REENACTMENT_CHARACTER_SCRIPT 1.0.0`, `BROADCAST_READABLE_SCRIPT 1.0.0`을 각각 고정한다. GATE-08에서 Codex가 작성하는 유일한 새 창작 출력은 `screenplay_units.json`이다. 제출 뒤 CORE가 Layer Script, Broadcast Master, `reenactment_character_script.md`와 사람이 읽는 `broadcast_readable_script.md`를 만든다. Readable Script는 같은 Canonical Screenplay Unit, Character, Panel Cast, Reaction Segment, Presentation Plan만 사용하며 독립 Profile이 정한 제목·표·Scene Context·발화·Panel 표시 형식으로 실제 이름과 Canonical 원문을 방송 순서대로 표시한다.
+
+GATE-09는 Readable Script, Production Config, 다섯 Canonical 입력, Profile 문서 Hash와 Registry 원본 Hash, Source-style Coverage를 `broadcast_readable_report.json`에 결속하고 현재 입력에서 Report를 재구성해 stale 또는 위조를 거부한다. GATE-12 통합 Validation은 이 Report에 의존한다. GATE-13은 검증된 Readable bytes만 `09_PRODUCTION/broadcast_readable_script.md`에 그대로 복사하고 Editorial Review가 원본·Report·Production Copy Hash를 모두 검토한다. 이 세 파일은 Artifact Contract, Dependency Graph, Runtime Task, Project State와 Gate Transaction의 관리 대상이며 Gate 밖에서 직접 다시 쓰는 보조 CLI는 제공하지 않는다. 기존 `final_script.md`의 Contract·Marker·Renderer·bytes는 유지하고, `LEGACY_MARKDOWN` Project에는 이 경로를 요구하지 않는다.
+
+재연극 목표시간이 필요하면 `target_reenactment_minutes`와 `reenactment_runtime_tolerance_ratio`를 함께 설정한다. 이 값은 방송 전체의 `target_runtime_minutes`와 별도이며 방송 목표를 넘을 수 없다. CORE는 Output Profile이 포함한 Unit이 결속된 Drama·Narration Segment만 합산하고 Panel 등 제외 Segment를 Report에 따로 기록한다. Editorial evidence는 `WORD_COUNT_ESTIMATE`, `TABLE_READ`, `RECORDED_AUDIO`를 구분하며, Unit·Profile·Presentation 입력이 바뀌면 기존 측정 Hash를 거부한다.
+
+#### Workflow 선택, Migration과 Rollback
+
+신규 `init` Project는 Screenplay Unit 경로를 사용한다. 기존 Project는 `script_source_mode` 필드가 없으면 자동 변경 없이 `LEGACY_MARKDOWN`으로 남는다. Channel Pin만 이전할 때는 Story를 수정하지 않는 전용 명령을 사용하고, 실행 뒤 Compatibility와 영향받은 Gate를 다시 검증한다.
+
+```bash
+PYTHONPATH=. .venv/bin/mystery-kit migrate-channel-pin PROJECTS/PRJ-002 \
+  --channel-content-version 2.1.0
+PYTHONPATH=. .venv/bin/mystery-kit compat PROJECTS/PRJ-002
+PYTHONPATH=. .venv/bin/mystery-kit validate PROJECTS/PRJ-002
+```
+
+Legacy Project를 Screenplay Unit 경로로 일괄 변환하거나 진행 중 Project를 자동 Rollback하는 CLI는 제공하지 않는다. 전환은 별도 변경 승인 아래 `production_config`의 mode와 Reenactment·Broadcast Readable Output Profile Pin을 함께 바꾸고, State Transition·Script 이후 downstream Artifact를 새 Process Revision에서 재생성해야 한다. Rollback도 `LEGACY_MARKDOWN`을 명시한 새 Revision에서 같은 범위를 재생성하는 방식이며, 이전 Canonical Artifact와 Trace를 삭제하거나 다른 Version 계약을 암묵적으로 합치지 않는다. 가장 안전한 신규 도입 경로는 새 Scaffold다.
+
+Broadcast Readable v2는 기존 Production Config Pin을 바꾸지 않고 Project별 `00_PROJECT/broadcast_readable_config.json`으로 명시적으로 선택한다. `enabled=true`, `profile_id=BROADCAST_READABLE_SCRIPT`, `profile_version=2.0.0`의 완전한 조합만 v2를 활성화한다. Config가 없으면 기존 v1 Pin 경로를 그대로 사용하고, disabled Config는 기존 v1 Pin보다 우선해 Readable Chain을 비활성화한다. 부분 Pin이나 알 수 없는 Version에는 fallback하지 않고 오류를 반환한다.
+
+Config를 새로 적용하거나 활성/비활성 상태를 바꿀 때는 Canonical 파일을 직접 복사하거나 Project State를 수정하지 않고 공식 Admission 명령을 사용한다.
+
+```bash
+.venv/bin/mystery-kit broadcast-readable-config-set PROJECTS/PRJ-006 \
+  --input /absolute/path/to/broadcast_readable_config.json \
+  --actor codex-app \
+  --reason "Broadcast Readable v2 활성화"
+```
+
+Admission은 Config Schema·Project·등록 Profile Hash를 확인하고 Project Lock 아래 Recoverable Transaction으로 Config, State, Change Log를 함께 Commit한다. 동일 Byte라도 State 또는 Admission 근거가 없으면 다시 승인하며, 모든 결속이 이미 유효할 때만 `NO_OP`이다. Lock 충돌이나 Stale Input은 명시적으로 실패하고 준비 중 Transaction은 다음 Admission에서 복구한다. Config 변경 뒤에는 출력된 `process_start_gate`부터 Gate를 순서대로 다시 실행하며, `rebuild-state --force`로 대체하지 않는다.
+
+v2 전환은 Readable 전용 변경이다. `screenplay_units`, Character·Relationship·Panel·Presentation을 입력으로 새 사람용 Markdown을 만들지만, Machine `final_script.md`, Drama·Narration·Panel Layer와 Reenactment bytes는 수정하지 않는다. v2 QA Report의 정상 결과는 Human 검토 전 상태인 `NEEDS_REVIEW`이며, GATE-13은 동일 bytes의 Production Copy와 Report/Profile Hash가 결속된 Manifest만 만든다. Human `editorial-approve`, 사용자-facing `production-finalize`, `register`는 별도 절차다.
+
+완성 예시는 [PRJ-006](PROJECTS/PRJ-006/)이다. 이 Original Fiction Pilot은 GATE-00~13과 기술적 Editorial Review를 통과했지만 `WORD_COUNT_ESTIMATE`만 보유하므로 상태가 `EDITORIAL_REVIEW_REQUIRED`이며 Production Ready 예제가 아니다.
 
 ### 3. 감사, Editorial 승인과 등록
 
@@ -63,7 +105,7 @@ Task Record의 reads와 writes를 확장하지 말고 Canonical Project와 State
 
 `validate`는 현재 파일 집합의 14개 Gate 정합성을 진단하고 `validation_report.json`과 파생 QA Report를 기록한다. `audit`는 같은 Artifact 검증에 Gate별 Process Trace 완전성을 더해 `audit_report.json`에 기록한다. 둘 다 `current_gate`, Project Status, Artifact `CLEAN` 상태나 기존 실행 이력을 바꾸지 않는다. 손상된 State를 Artifact에서 명시적으로 복구할 때만 `rebuild-state PROJECT --force`를 사용하며, 이 명령도 Process Trace나 Human Editorial 승인을 만들어 내지 않는다.
 
-GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Editorial Review v1.2는 검토자·검토 시각·Artifact Hash와 `artifact + selector_type + selector_id + excerpt_hash`를 보존한다. Validator는 Selector를 현재 Artifact에서 다시 해석해 근거 위조와 유효하지 않은 ID를 차단한다. `WORD_COUNT_ESTIMATE`는 Editorial PASS 증거로는 사용할 수 있지만 Production Finalize를 허용하지 않는다. Finalize에는 Segment별 `measured_duration_sec`가 완전한 `TABLE_READ` 또는 `RECORDED_AUDIO`가 필요하다.
+GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Editorial Review v1.2는 검토자·검토 시각·Artifact Hash와 `artifact + selector_type + selector_id + excerpt_hash`를 보존한다. Validator는 Selector를 현재 Artifact에서 다시 해석해 근거 위조와 유효하지 않은 ID를 차단한다. `WORD_COUNT_ESTIMATE`는 Editorial PASS 증거로는 사용할 수 있지만 Production Finalize를 허용하지 않는다. Finalize에는 방송 Panel과 설정된 재연극 Runtime 모두 `TABLE_READ` 또는 `RECORDED_AUDIO` 실측이 필요하다.
 
 Continuity Critic의 `editorial_review.json`이 PASS여도 이는 기술적 Editorial 검토 결과일 뿐 Human Approval이 아니다. Human Actor와 Reason을 기록한 `editorial-approve` 전에는 승인되지 않는다. `production-finalize`는 `ARTIFACT_COMPLETE + CONTRACT_VALIDATED + PROCESS_CONFORMANT + EDITORIAL_APPROVED`를 모두 요구한다. `register`는 이 조건으로 확정된 `PRODUCTION_READY` Project만 Story Library에 추가한다. 종료 코드는 성공 `0`, 검증 실패 `1`, 입력·구성·Transaction 오류 `2`다.
 
@@ -116,13 +158,15 @@ Codex App이 필요에 따라 호출할 수 있는 결정론적 제작 보조 �
 .venv/bin/mystery-kit variations PROJECTS/PRJ-002 \
   --seed "공장 교대 중 사라진 작업자" \
   --count 5
+# EXPLICIT_CRIME_EVENT_POLICY가 활성화되면 Codex가 후보별
+# 00_PROJECT/candidate_event_briefs.json을 먼저 작성한다.
 .venv/bin/mystery-kit precheck PROJECTS/PRJ-002
 .venv/bin/mystery-kit candidate-eligibility PROJECTS/PRJ-002
 # Codex가 00_PROJECT/candidate_evaluation.json의 Soft 평가 근거를 작성한다.
 .venv/bin/mystery-kit approve PROJECTS/PRJ-002 VAR-03
 ```
 
-후보 생성과 Soft 점수·근거는 Variation Designer/Codex의 후보 데이터다. `candidate_eligibility.json`의 Hard Filter·Novelty 적격성 및 `candidate_approval.json`의 최종 승인 권한은 Runtime Core가 소유한다. 추천 후보가 아닌 적격 후보를 승인할 때만 `approve ... --override --actor ... --reason ...`을 명시한다.
+후보 생성과 Soft 점수·근거는 Variation Designer/Codex의 후보 데이터다. Explicit Crime 경로의 Candidate Event Brief는 Novelty, 적격성, 평가와 승인 Hash에 결속되므로 Brief 변경 뒤에는 해당 단계를 다시 실행해야 한다. `candidate_eligibility.json`의 Hard Filter·Novelty 적격성 및 `candidate_approval.json`의 최종 승인 권한은 Runtime Core가 소유한다. 추천 후보가 아닌 적격 후보를 승인할 때만 `approve ... --override --actor ... --reason ...`을 명시한다.
 
 Reference 기반 Project는 후보 생성 전에 원문 JSON을 Project 밖에 보관하고 정제 Profile만 만든다.
 
@@ -156,7 +200,7 @@ Project와 무관하게 Channel Contract만 진단할 때는 다음 명령을 �
 - `STANDARD/`: v1.3.3 표준, Contract, Policy, Catalog, Dependency Graph, JSON Schema
 - `CHANNELS/`: 활성/사용 가능 Content Version Registry와 독립 Version Channel DNA
 - `AGENTS/`: 10개 Agent Prompt와 계약 Manifest
-- `TEMPLATES/PROJECT/`: 신규 Project용 Channel 2.0, Variation Engine/Catalog 2.0 `00_PROJECT`~`09_PRODUCTION` Scaffold. 최종 Production Footprint 검증을 기본 활성화한다.
+- `TEMPLATES/PROJECT/`: 신규 Project용 Channel 2.1, Variation Engine/Catalog 2.1, Screenplay Unit `00_PROJECT`~`09_PRODUCTION` Scaffold. 최종 Production Footprint 검증을 기본 활성화한다.
 - `VALIDATORS/`: CLI, 상태 머신, Pipeline과 QA Engine
 - `RUNTIME/`: Provider 독립 실행 엔진, 계약, Schema, Adapter, 보안 경계
 - `RUNTIME_ADAPTERS/`: [선택적 In-process·Sidecar Provider 확장 Interface 가이드](RUNTIME_ADAPTERS/README.md)

@@ -1,0 +1,119 @@
+{
+  "project_id": "PRJ-006",
+  "facts": [
+    {
+      "fact_id": "FACT-01",
+      "statement": "세 가해자는 폐장 구역의 접근 권한을 악용해 두 피해자를 분리하고 비선정적 치명 폭력을 가한다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "0f57f15270110f6929dd206f5be892b056b76ef6a33ecb444d95a2d46c7f8341",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_type": "CRIME_ACTION",
+      "crime_fact_types": [
+        "CRIME_ACTION"
+      ]
+    },
+    {
+      "fact_id": "FACT-02",
+      "statement": "두 번째 피해자는 공격 과정에서 중대한 신체 손상을 입지만 현장을 벗어난다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "de400cbfee18d1c59a99d70fed63cf12a7cccd48a1775e22700de187a40ab93d",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_type": "HARM_RESULT",
+      "crime_fact_types": [
+        "HARM_RESULT"
+      ]
+    },
+    {
+      "fact_id": "FACT-03",
+      "statement": "관리 책임자와 두 공범은 안전 기록 조작을 숨기고 내부 고발을 막기 위해 피해자들을 공격한다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "fdc087b07a24e775452ea69d20aa06fd6a5edcceee7f775d82400b8b12ab968c",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_type": "MOTIVE_STATUS",
+      "crime_fact_types": [
+        "MOTIVE_STATUS"
+      ]
+    },
+    {
+      "fact_id": "FACT-04",
+      "statement": "생존자의 제한된 목격과 작업복 흔적, 조작 전 안전 기록이 세 공범의 공동 책임을 확정한다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "ce45ac97e5dd875d1b9d40f3656d0f693920dbe7ca4613f93f1c31b11aeb1e6a",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_type": "RESPONSIBILITY",
+      "crime_fact_types": [
+        "RESPONSIBILITY"
+      ]
+    },
+    {
+      "fact_id": "FACT-05",
+      "statement": "생존 피해자가 본 것은 얼굴이 아니라 유리 벽에 나뉘어 비친 세 작업복 소매였다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "5a8a8143a153b3d29d1299e7e66e14bb38cd1c0ba70855739d913c1d46708f68",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-06",
+      "statement": "젖은 작업복의 소매 단추 하나가 사라졌고 같은 단추가 관리 통로에서 발견된다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "9bd78493b455236fd10921e88141c19551d1f623a11b2a7c5e4a003bb7c01ee9",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-07",
+      "statement": "폐장 음악은 공식 기록보다 일찍 끊겼고 그 직후 공격 구역의 출입이 분리된다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "98024e4b221efdd0a7ffac8cb161b4f28b7682cde6e30897c3bbd29b26af26fe",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-08",
+      "statement": "원본 안전 점검표는 사망 피해자가 기록 조작을 발견해 감사팀에 보고하려 했음을 보여 준다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "f7231aff3d962906646b7d35ddd0838db4c1f1e8d98dcde074aafe217390d8a6",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    }
+  ],
+  "crime_fact_trace": [
+    {
+      "crime_fact_type": "CRIME_ACTION",
+      "fact_ids": [
+        "FACT-01"
+      ]
+    },
+    {
+      "crime_fact_type": "HARM_RESULT",
+      "fact_ids": [
+        "FACT-02"
+      ]
+    },
+    {
+      "crime_fact_type": "MOTIVE_STATUS",
+      "fact_ids": [
+        "FACT-03"
+      ]
+    },
+    {
+      "crime_fact_type": "RESPONSIBILITY",
+      "fact_ids": [
+        "FACT-04"
+      ]
+    }
+  ]
+}

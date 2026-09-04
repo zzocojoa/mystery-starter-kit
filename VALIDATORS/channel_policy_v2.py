@@ -38,6 +38,7 @@ class ChannelPolicyInputs(TypedDict):
     story_document: Mapping[str, object]
     case_input: Mapping[str, object]
     crime_psychology: Mapping[str, object]
+    crime_event_contract: Mapping[str, object]
     claim_evidence: Mapping[str, object]
     source_disclosure: Mapping[str, object]
     clinical_labels: Mapping[str, object]
@@ -79,6 +80,10 @@ def build_channel_policy_inputs(
         story_document=policy_mapping_artifact(artifacts, "story_dna"),
         case_input=policy_mapping_artifact(artifacts, "case_input"),
         crime_psychology=policy_mapping_artifact(artifacts, "crime_psychology"),
+        crime_event_contract=policy_mapping_artifact(
+            artifacts,
+            "crime_event_contract",
+        ),
         claim_evidence=policy_mapping_artifact(artifacts, "claim_evidence"),
         source_disclosure=policy_mapping_artifact(artifacts, "source_disclosure"),
         clinical_labels=policy_mapping_artifact(artifacts, "clinical_labels"),
@@ -604,6 +609,64 @@ def validate_victim_policy(
     return issues
 
 
+def validate_event_victim_policy(
+    policy: Mapping[str, object],
+    crime_event: Mapping[str, object],
+    characters: Mapping[str, object],
+    final_script: str,
+) -> list[ValidationIssue]:
+    """사건 계약에서 피해자 존엄, 가해 책임 공개와 금지 표현을 검증한다."""
+    issues: list[ValidationIssue] = []
+    known_characters = character_ids(characters)
+    actor_ids = set(string_values(crime_event, "actor_ids"))
+    victim_ids = set(string_values(crime_event, "victim_ids"))
+    reveal_types = {
+        target_type
+        for target in mapping_records(crime_event, "reveal_targets")
+        if isinstance((target_type := target.get("target_type")), str)
+    }
+    if policy.get("require_agency_outcome") is True and not victim_ids.intersection(
+        known_characters
+    ):
+        issues.append(
+            make_policy_issue(
+                "VICTIM_AGENCY_OUTCOME_MISSING",
+                "피해 결과는 실제 피해자 Character에 연결되어야 합니다.",
+                "01_CASE/crime_event_contract.json",
+                {"victim_ids": sorted(victim_ids)},
+            )
+        )
+    if policy.get("require_responsible_agent_payoff") is True and (
+        not actor_ids.intersection(known_characters) or "CULPRIT" not in reveal_types
+    ):
+        issues.append(
+            make_policy_issue(
+                "RESPONSIBLE_AGENT_PAYOFF_MISSING",
+                "가해 책임 주체와 후반 책임 공개가 사건 계약에 필요합니다.",
+                "01_CASE/crime_event_contract.json",
+                {
+                    "actor_ids": sorted(actor_ids),
+                    "reveal_types": sorted(reveal_types),
+                },
+            )
+        )
+    prohibited = [
+        phrase
+        for phrase in string_values(policy, "prohibited_phrases")
+        if phrase.casefold() in final_script.casefold()
+    ]
+    if prohibited:
+        issues.append(
+            make_policy_issue(
+                "VICTIM_BLAMING_LANGUAGE",
+                "피해자에게 범죄 책임을 전가하는 금지 표현이 있습니다.",
+                "07_SCRIPT/final_script.md",
+                {"phrases": prohibited},
+            )
+        )
+    return issues
+
+
 def claim_sources(claim_evidence: Mapping[str, object]) -> dict[str, set[str]]:
     """Claim ID를 Evidence Source ID 집합에 대응한다."""
     result: dict[str, set[str]] = {}
@@ -1003,15 +1066,26 @@ def validate_channel_policy_v2(
         )
     victim_policy = enabled_policy(capabilities, "VICTIM_CENTERED_POLICY")
     if victim_policy is not None:
-        issues.extend(
-            validate_victim_policy(
-                victim_policy,
-                crime,
-                inputs["characters"],
-                inputs["scene_cards"],
-                inputs["final_script"],
+        event_policy = enabled_policy(capabilities, "EXPLICIT_CRIME_EVENT_POLICY")
+        if event_policy is not None:
+            issues.extend(
+                validate_event_victim_policy(
+                    victim_policy,
+                    inputs["crime_event_contract"],
+                    inputs["characters"],
+                    inputs["final_script"],
+                )
             )
-        )
+        else:
+            issues.extend(
+                validate_victim_policy(
+                    victim_policy,
+                    crime,
+                    inputs["characters"],
+                    inputs["scene_cards"],
+                    inputs["final_script"],
+                )
+            )
     risk_policy = enabled_policy(
         capabilities,
         "RISK_SIGNAL_AND_PUBLIC_VALUE_POLICY",

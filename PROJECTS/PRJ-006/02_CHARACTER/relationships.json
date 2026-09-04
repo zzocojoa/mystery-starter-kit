@@ -1,0 +1,57 @@
+{
+  "$schema": "../../../STANDARD/schemas/relationships.schema.json",
+  "schema_family": "relationships",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-006",
+  "relationships": [
+    {
+      "relationship_id": "REL-01",
+      "from": "CHAR-01",
+      "to": "CHAR-04",
+      "engine": "WORKPLACE_AUTHORITY_TO_LETHAL_SILENCING",
+      "display_summary": "안전 책임자와 내부 고발자였으나 기록 조작을 숨기려는 살인 책임으로 끊어진 관계"
+    },
+    {
+      "relationship_id": "REL-02",
+      "from": "CHAR-02",
+      "to": "CHAR-05",
+      "engine": "COWORKER_TRUST_TO_ASSAULT_BETRAYAL",
+      "display_summary": "같은 야간 근무를 맡던 동료가 생존자의 퇴로를 막고 공격에 가담한 관계"
+    },
+    {
+      "relationship_id": "REL-03",
+      "from": "CHAR-03",
+      "to": "CHAR-04",
+      "engine": "SAFETY_PARTNER_TO_COMPLICIT_OFFENDER",
+      "display_summary": "서로의 안전 점검을 확인하던 동료가 기록을 바꾸고 은폐에 가담한 관계"
+    },
+    {
+      "relationship_id": "REL-04",
+      "from": "CHAR-01",
+      "to": "CHAR-02",
+      "engine": "MANAGER_PRESSURE_TO_COLLUSION",
+      "display_summary": "관리자가 계약과 책임을 빌미로 직원을 공동 범행과 거짓 진술에 끌어들인 관계"
+    },
+    {
+      "relationship_id": "REL-05",
+      "from": "CHAR-01",
+      "to": "CHAR-03",
+      "engine": "MANAGER_PRESSURE_TO_COLLUSION",
+      "display_summary": "안전 기록 조작을 함께 숨기며 지시와 실행 책임을 나눈 관리자와 직원 관계"
+    },
+    {
+      "relationship_id": "REL-06",
+      "from": "CHAR-06",
+      "to": "CHAR-04",
+      "engine": "SIBLING_LOSS_TO_EVIDENCE_STEWARDSHIP",
+      "display_summary": "오빠의 죽음을 추측 대신 원본 기록으로 밝혀 책임을 묻는 남매 관계"
+    },
+    {
+      "relationship_id": "REL-07",
+      "from": "CHAR-06",
+      "to": "CHAR-05",
+      "engine": "PROTECTIVE_CONFLICT_TO_WITNESS_ALLIANCE",
+      "display_summary": "처음에는 불완전한 기억을 의심하지만 목격의 한계를 존중하며 함께 진실을 복원하는 관계"
+    }
+  ]
+}

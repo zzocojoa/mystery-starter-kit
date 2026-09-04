@@ -1,0 +1,48 @@
+{
+  "$schema": "../../../STANDARD/schemas/panel_cast.schema.json",
+  "schema_family": "panel-cast",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-006",
+  "panelists": [
+    {
+      "panelist_id": "PANEL-01",
+      "display_name": "민석",
+      "persona": "LOGIC_ANALYST",
+      "voice_style": "공개된 시각과 물리 흔적만 짧게 연결한다.",
+      "allowed_functions": [
+        "ANOMALY_DETECTION",
+        "HYPOTHESIS_GENERATION",
+        "SUSPECT_DISCUSSION",
+        "CONTRADICTION_DETECTION"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    },
+    {
+      "panelist_id": "PANEL-02",
+      "display_name": "서진",
+      "persona": "EMOTIONAL_PROXY",
+      "voice_style": "피해자의 위험과 선택을 과장 없이 관객의 언어로 받아준다.",
+      "allowed_functions": [
+        "EMOTIONAL_REACTION",
+        "MORAL_REACTION",
+        "RISK_SIGNAL_RECOGNITION",
+        "VICTIM_CONTEXTUALIZATION"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    },
+    {
+      "panelist_id": "PANEL-03",
+      "display_name": "도윤",
+      "persona": "SKEPTIC",
+      "voice_style": "너무 빠른 단정을 밀어내고 새 단서가 출현하면 가설을 수정한다.",
+      "allowed_functions": [
+        "SUSPECT_DISCUSSION",
+        "HYPOTHESIS_REVISION",
+        "BELIEF_CORRECTION",
+        "EXPECTATION_BUILDING",
+        "TENSION_RELEASE"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    }
+  ]
+}

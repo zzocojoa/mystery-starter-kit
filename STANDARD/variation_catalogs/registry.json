@@ -19,6 +19,13 @@
       "supported_channel_content_versions": {"min_inclusive": "2.0.0", "max_exclusive": "3.0.0"},
       "supported_engine_versions": {"min_inclusive": "2.0.0", "max_exclusive": "3.0.0"},
       "required_capabilities": ["CRIME_PSYCHOLOGY_POLICY"]
+    },
+    "2.1.0": {
+      "path": "STANDARD/variation_catalogs/2.1.0.json",
+      "catalog_sha256": "f2a033372d6d589748ea87fe7ec984be00e1710f56a1a40547a9eb2988cac683",
+      "supported_channel_content_versions": {"min_inclusive": "2.1.0", "max_exclusive": "3.0.0"},
+      "supported_engine_versions": {"min_inclusive": "2.1.0", "max_exclusive": "3.0.0"},
+      "required_capabilities": ["EXPLICIT_CRIME_EVENT_POLICY"]
     }
   }
 }

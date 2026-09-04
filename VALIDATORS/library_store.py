@@ -1,7 +1,9 @@
 """Novelty Index와 Published Library의 파일 저장 경계."""
 
+from collections.abc import Mapping
 from pathlib import Path
 
+from VALIDATORS.config_admission import ADMISSION_EVENT, change_log_records
 from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.library import mark_novelty_production_ready, update_novelty_for_gate
 
@@ -9,6 +11,24 @@ from VALIDATORS.library import mark_novelty_production_ready, update_novelty_for
 def novelty_index_path(repository_root: Path) -> Path:
     """Repository Novelty Index의 절대 경로를 반환한다."""
     return repository_root / "STORY_LIBRARY" / "novelty_index.json"
+
+
+def is_config_only_process_revision(project_path: Path) -> bool:
+    """현재 Revision이 Readable Config Admission에서 시작됐는지 판정한다."""
+    state = load_json_object(project_path / "00_PROJECT/project_state.json")
+    readiness = state.get("readiness")
+    if not isinstance(readiness, Mapping):
+        return False
+    process_revision = readiness.get("process_revision")
+    for record in reversed(change_log_records(project_path)):
+        if record.get("event") != ADMISSION_EVENT:
+            continue
+        detail = record.get("detail")
+        return (
+            isinstance(detail, Mapping)
+            and detail.get("process_revision") == process_revision
+        )
+    return False
 
 
 def sync_novelty_gate(
@@ -19,6 +39,8 @@ def sync_novelty_gate(
 ) -> None:
     """Gate Commit 후 Novelty Lifecycle을 Repository Index에 기록한다."""
     if gate_id not in {"GATE-02", "GATE-10", "GATE-13"}:
+        return
+    if is_config_only_process_revision(project_path):
         return
     path = novelty_index_path(repository_root)
     story_document = load_json_object(project_path / "00_PROJECT" / "story_dna.json")

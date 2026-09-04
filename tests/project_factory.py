@@ -1,12 +1,15 @@
 """Production Pipeline 테스트용 완전한 Project Artifact Factory."""
 
+import json
 from copy import deepcopy
 from hashlib import sha256
 from pathlib import Path
 
+from RUNTIME.models import GenerationOptions, LLMMessage, LLMRequest, OutputContract
 from RUNTIME.providers.fake import (
     fake_broadcast_master,
     fake_candidate_evaluation,
+    fake_candidate_event_briefs,
     fake_edit_script,
     fake_editorial_review,
     fake_panel_cast,
@@ -17,7 +20,7 @@ from RUNTIME.providers.fake import (
 from VALIDATORS.candidate_approval import build_candidate_approval
 from VALIDATORS.candidate_eligibility import build_candidate_eligibility
 from VALIDATORS.compatibility import channel_dna_sha256
-from VALIDATORS.io import load_json_object
+from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.novelty import build_story_fingerprint, evaluate_variation_precheck
 from VALIDATORS.pipeline import ArtifactContent
 from VALIDATORS.variation import (
@@ -27,6 +30,55 @@ from VALIDATORS.variation import (
 from VALIDATORS.variation_registry import resolve_variation_runtime
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def write_candidate_event_briefs(project_path: Path) -> None:
+    """직접 CLI 회귀용 외부 Writer Event Brief를 작성한다."""
+    variations = load_json_object(
+        project_path / "00_PROJECT" / "variation_candidates.json"
+    )
+    project_id = variations.get("project_id")
+    assert isinstance(project_id, str)
+    context = json.dumps(
+        [{"artifact_name": "variation_candidates", "content": variations}],
+        ensure_ascii=False,
+    )
+    request = LLMRequest(
+        request_id="REQ-CANDIDATE-EVENT-BRIEFS",
+        idempotency_key="IDEMPOTENCY-CANDIDATE-EVENT-BRIEFS",
+        model_ref="fixture",
+        messages=(
+            LLMMessage(
+                role="user",
+                content=(
+                    '<CONTEXT_DATA instructional="false">\n'
+                    f"{context}\n"
+                    "</CONTEXT_DATA>"
+                ),
+            ),
+        ),
+        output_contract=OutputContract(
+            mode="JSON_OBJECT",
+            name="candidate_event_briefs",
+            json_schema=None,
+        ),
+        generation=GenerationOptions(
+            max_output_tokens=10000,
+            temperature=0.0,
+            top_p=1.0,
+            seed=None,
+            stop=(),
+        ),
+        tools=(),
+        deadline_ms=5000,
+        metadata={"task_id": "variation.elaborate_crime_events"},
+        extensions={},
+    )
+    briefs = fake_candidate_event_briefs(request, project_id, "ORIGINAL_FICTION")
+    write_json_object(
+        project_path / "00_PROJECT" / "candidate_event_briefs.json",
+        briefs,
+    )
 
 
 def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
@@ -126,6 +178,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
     candidate_evaluation = fake_candidate_evaluation(
         project_id,
         variations,
+        None,
         novelty_precheck,
         candidate_eligibility,
     )
@@ -145,6 +198,7 @@ def make_complete_project_artifacts() -> dict[str, ArtifactContent]:
         "2025-01-01T00:00:00Z",
         production_config,
         variations,
+        None,
         novelty_precheck,
         candidate_eligibility,
         candidate_evaluation,

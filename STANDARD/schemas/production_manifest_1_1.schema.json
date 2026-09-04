@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/production-manifest-1.1.0.json",
+  "title": "Production Manifest 1.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "source_footprint_sha256",
+    "scenes",
+    "deliverables"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "production-manifest"},
+    "schema_version": {"const": "1.1.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "source_footprint_sha256": {"$ref": "#/$defs/sha256"},
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/scene"}
+    },
+    "deliverables": {
+      "type": "array",
+      "minItems": 1,
+      "contains": {"$ref": "#/$defs/readableDeliverable"},
+      "minContains": 1,
+      "maxContains": 1,
+      "items": {"$ref": "#/$defs/readableDeliverable"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*-[0-9]{2,}$"},
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scene_id",
+        "location_id",
+        "cast_ids",
+        "child_actor_use",
+        "vehicle_scene",
+        "special_effect_level",
+        "graphic_violence",
+        "production_complexity"
+      ],
+      "properties": {
+        "scene_id": {"type": "string", "pattern": "^SCN-[0-9]{2,}$"},
+        "location_id": {"type": "string", "minLength": 1},
+        "cast_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        },
+        "child_actor_use": {"enum": ["NONE", "SUPPORTING", "PRIMARY"]},
+        "vehicle_scene": {"enum": ["NONE", "STATIC", "MOVING"]},
+        "special_effect_level": {"enum": ["NONE", "LOW", "MEDIUM", "HIGH"]},
+        "graphic_violence": {"enum": ["NONE", "IMPLIED", "NON_GRAPHIC", "GRAPHIC"]},
+        "production_complexity": {"enum": ["LOW", "MEDIUM", "HIGH", "EXTREME"]}
+      }
+    },
+    "readableDeliverable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_name",
+        "path",
+        "sha256",
+        "source_report_sha256",
+        "profile_id",
+        "profile_version"
+      ],
+      "properties": {
+        "artifact_name": {"const": "production_broadcast_readable_script"},
+        "path": {"const": "09_PRODUCTION/broadcast_readable_script.md"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "source_report_sha256": {"$ref": "#/$defs/sha256"},
+        "profile_id": {"const": "BROADCAST_READABLE_SCRIPT"},
+        "profile_version": {"const": "2.0.0"}
+      }
+    }
+  }
+}

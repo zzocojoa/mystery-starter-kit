@@ -34,6 +34,38 @@ def crime_v2_candidate_policy_applies(
     )
 
 
+def production_footprint_is_enforced(artifacts: Mapping[str, object]) -> bool:
+    """Project Constraints가 최종 Scene Footprint를 강제하는지 반환한다."""
+    constraints = artifacts.get("project_constraints")
+    limits = (
+        constraints.get("production_limits")
+        if isinstance(constraints, Mapping)
+        else None
+    )
+    return (
+        isinstance(limits, Mapping)
+        and limits.get("enforce_final_footprint") is True
+    )
+
+
+def broadcast_readable_v2_is_active(artifacts: Mapping[str, object]) -> bool:
+    """검증 대상으로 선택된 v2 Config 활성 상태인지 반환한다."""
+    config = artifacts.get("broadcast_readable_config")
+    return (
+        isinstance(config, Mapping)
+        and config.get("enabled") is True
+        and config.get("profile_id") == "BROADCAST_READABLE_SCRIPT"
+        and config.get("profile_version") == "2.0.0"
+    )
+
+
+def production_manifest_required(artifacts: Mapping[str, object]) -> bool:
+    """Footprint 또는 활성 v2 Deliverable 때문에 Manifest가 필요한지 반환한다."""
+    return production_footprint_is_enforced(
+        artifacts
+    ) or broadcast_readable_v2_is_active(artifacts)
+
+
 def requirement_matches(
     predicate: object,
     production_config: Mapping[str, object],
@@ -74,6 +106,26 @@ def requirement_matches(
         if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
             raise ConfigurationError("story_source_mode_in은 문자열 배열이어야 합니다.")
         return production_config.get("story_source_mode") in value
+    if operator == "config_equals":
+        if (
+            not isinstance(value, list)
+            or len(value) != 2
+            or not isinstance(value[0], str)
+        ):
+            raise ConfigurationError("config_equals는 [field, value]여야 합니다.")
+        field: str = value[0]
+        expected: object = value[1]
+        return production_config.get(field) == expected
+    if operator == "config_fields_present":
+        if (
+            not isinstance(value, list)
+            or not value
+            or not all(isinstance(item, str) for item in value)
+        ):
+            raise ConfigurationError(
+                "config_fields_present는 비어 있지 않은 문자열 배열이어야 합니다."
+            )
+        return all(field in production_config for field in value)
     if operator == "channel_version_at_least":
         version = production_config.get("channel_content_version")
         if not isinstance(value, str) or not isinstance(version, str):
@@ -92,13 +144,24 @@ def requirement_matches(
         if not isinstance(value, str):
             raise ConfigurationError("artifact_exists는 문자열이어야 합니다.")
         return value in artifacts
+    if operator == "artifact_field_equals":
+        if (
+            not isinstance(value, list)
+            or len(value) != 3
+            or not isinstance(value[0], str)
+            or not isinstance(value[1], str)
+        ):
+            raise ConfigurationError(
+                "artifact_field_equals는 [artifact, field, value]여야 합니다."
+            )
+        artifact = artifacts.get(value[0])
+        return isinstance(artifact, Mapping) and artifact.get(value[1]) == value[2]
     if operator == "production_footprint_enforced":
         if value is not True:
             raise ConfigurationError("production_footprint_enforced는 true여야 합니다.")
-        constraints = artifacts.get("project_constraints")
-        limits = constraints.get("production_limits") if isinstance(constraints, Mapping) else None
-        return (
-            isinstance(limits, Mapping)
-            and limits.get("enforce_final_footprint") is True
-        )
+        return production_footprint_is_enforced(artifacts)
+    if operator == "production_manifest_required":
+        if value is not True:
+            raise ConfigurationError("production_manifest_required는 true여야 합니다.")
+        return production_manifest_required(artifacts)
     raise ConfigurationError(f"알 수 없는 Requirement Operator입니다: operator={operator!r}")

@@ -30,7 +30,7 @@
       "const": "gate-transaction"
     },
     "schema_version": {
-      "const": "1.0.0"
+      "enum": ["1.0.0", "1.1.0"]
     },
     "transaction_id": {
       "type": "string",
@@ -48,6 +48,12 @@
       "type": "integer",
       "minimum": 1
     },
+    "revision_trigger": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/revisionTrigger"}
+      ]
+    },
     "task_ids": {
       "type": "array",
       "minItems": 1,
@@ -56,6 +62,49 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "current_task_id": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "completed_task_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "task_statuses": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": ["PENDING", "RUNNING_CORE", "AWAITING_LLM", "WAITING_HUMAN", "COMPLETED"]
+      }
+    },
+    "task_input_hashes": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/hashMap"}
+    },
+    "task_changed_paths": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "uniqueItems": true,
+        "items": {"type": "string", "minLength": 1}
+      }
+    },
+    "task_execution_modes": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": ["EXECUTED", "VALIDATED_REUSE"]
+      }
+    },
+    "reused_trace_ids": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^TRACE-[A-F0-9]{16}$"
+      }
+    },
+    "gate_phase": {
+      "enum": ["RUNNING_CORE", "AWAITING_LLM", "WAITING_HUMAN", "READY_TO_COMMIT", "COMMITTED", "ABORTED"]
     },
     "agent_ids": {
       "type": "array",
@@ -117,6 +166,24 @@
       "format": "date-time"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"schema_version": {"const": "1.1.0"}},
+        "required": ["schema_version"]
+      },
+      "then": {
+        "required": [
+          "current_task_id",
+          "completed_task_ids",
+          "task_statuses",
+          "task_input_hashes",
+          "task_changed_paths",
+          "gate_phase"
+        ]
+      }
+    }
+  ],
   "$defs": {
     "artifactNames": {
       "type": "array",
@@ -141,6 +208,67 @@
       "additionalProperties": {
         "type": "string",
         "pattern": "^[a-f0-9]{64}$"
+      }
+    },
+    "revisionTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "source_id",
+        "target_owner_agent",
+        "target_gate",
+        "target_task_ids",
+        "actor",
+        "reason",
+        "triggered_at"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "CONFIG_ADMISSION",
+            "OWNER_RETURN",
+            "HUMAN_REVISION_REQUEST",
+            "SEMANTIC_CORRECTION",
+            "NORMAL_GATE_PROGRESS"
+          ]
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_owner_agent": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "target_gate": {
+          "type": ["string", "null"],
+          "pattern": "^GATE-(0[0-9]|1[0-3])$"
+        },
+        "target_task_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "actor": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "triggered_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "returned_at": {
+          "type": "string",
+          "format": "date-time"
+        }
       }
     }
   }

@@ -28,6 +28,22 @@
     "variation_engine_version": {"$ref": "#/$defs/semanticVersion"},
     "variation_catalog_version": {"$ref": "#/$defs/semanticVersion"},
     "approval_policy": {"enum": ["AUTO_CONTINUE", "HUMAN_REVIEW"]},
+    "script_source_mode": {
+      "enum": ["LEGACY_MARKDOWN", "SCREENPLAY_UNITS"],
+      "default": "LEGACY_MARKDOWN"
+    },
+    "reenactment_output_profile_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "reenactment_output_profile_version": {"$ref": "#/$defs/semanticVersion"},
+    "broadcast_readable_output_profile_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "broadcast_readable_output_profile_version": {
+      "$ref": "#/$defs/semanticVersion"
+    },
     "story_source_mode": {
       "enum": ["ORIGINAL", "USER_CASE", "REFERENCE_INSPIRED", "TRUE_STORY", "INSPIRED_BY_TRUE_EVENTS"]
     },
@@ -54,7 +70,21 @@
       "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
     },
     "target_runtime_minutes": {"type": "number", "exclusiveMinimum": 0},
-    "runtime_tolerance_ratio": {"type": "number", "minimum": 0, "exclusiveMaximum": 1}
+    "runtime_tolerance_ratio": {"type": "number", "minimum": 0, "exclusiveMaximum": 1},
+    "target_reenactment_minutes": {"type": "number", "exclusiveMinimum": 0},
+    "reenactment_runtime_tolerance_ratio": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMaximum": 1
+    }
+  },
+  "dependentRequired": {
+    "broadcast_readable_output_profile_id": [
+      "broadcast_readable_output_profile_version"
+    ],
+    "broadcast_readable_output_profile_version": [
+      "broadcast_readable_output_profile_id"
+    ]
   },
   "allOf": [
     {
@@ -100,6 +130,37 @@
         "properties": {
           "source_truth_classification": {"const": "INSPIRED_BY_TRUE_EVENTS"}
         }
+      }
+    },
+    {
+      "if": {
+        "required": ["script_source_mode"],
+        "properties": {
+          "script_source_mode": {"const": "SCREENPLAY_UNITS"}
+        }
+      },
+      "then": {
+        "required": [
+          "reenactment_output_profile_id",
+          "reenactment_output_profile_version"
+        ]
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {"required": ["reenactment_output_profile_id"]},
+            {"required": ["reenactment_output_profile_version"]},
+            {"required": ["broadcast_readable_output_profile_id"]},
+            {"required": ["broadcast_readable_output_profile_version"]}
+          ]
+        }
+      }
+    },
+    {
+      "if": {"required": ["target_reenactment_minutes"]},
+      "then": {"required": ["reenactment_runtime_tolerance_ratio"]},
+      "else": {
+        "not": {"required": ["reenactment_runtime_tolerance_ratio"]}
       }
     }
   ],

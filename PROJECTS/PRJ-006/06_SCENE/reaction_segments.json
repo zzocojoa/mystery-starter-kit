@@ -1,0 +1,310 @@
+{
+  "$schema": "../../../STANDARD/schemas/reaction_segments.schema.json",
+  "schema_family": "reaction-segments",
+  "schema_version": "2.1.0",
+  "project_id": "PRJ-006",
+  "reaction_segments": [
+    {
+      "reaction_segment_id": "RSEG-001",
+      "after_scene_id": "SCN-01",
+      "order": 1,
+      "start_sec": 144,
+      "duration_sec": 40,
+      "segment_function": "EMOTIONAL_REACTION",
+      "hypothesis_before": "폐장 중 발생한 사고다.",
+      "hypothesis_after": "생존자의 중상과 단추는 의도적 공격 가능성을 연다.",
+      "tone": "SHOCKED",
+      "turns": [
+        {
+          "turn_id": "TURN-001-01",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "살아 나온 정세린이 먼저 보입니다. 저 중상을 두고 단순 사고라고 닫을 수는 없어요. 한지석은 돌아오지 못했고, 정세린은 같은 통로에서 가까스로 빠져나왔습니다.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-02"
+          ],
+          "tone": "ALARMED"
+        },
+        {
+          "turn_id": "TURN-001-02",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "음악 중단과 배수구 단추가 같은 장면에 남았습니다. 우연이 두 개라면 순서를 봐야 합니다. 누가 먼저 움직였고, 누가 현장을 정리했는지가 이 사건의 핵심입니다.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-02"
+          ],
+          "known_fact_ids": [
+            "FACT-02"
+          ],
+          "tone": "FOCUSED",
+          "responds_to_turn_id": "TURN-001-01"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-002",
+      "after_scene_id": "SCN-03",
+      "order": 2,
+      "start_sec": 418,
+      "duration_sec": 40,
+      "segment_function": "HYPOTHESIS_GENERATION",
+      "hypothesis_before": "음악 기록은 단순한 오류일 수 있다.",
+      "hypothesis_after": "음악을 멈춘 사람과 젖은 작업복의 주인이 같을 수 있다.",
+      "tone": "SUSPICIOUS",
+      "turns": [
+        {
+          "turn_id": "TURN-002-01",
+          "panelist_id": "PANEL-01",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "7분 차이를 기록 실수로만 보기 어렵습니다. 누군가 음악을 멈춘 뒤 시각을 바꿨을 가능성을 봐야 해요. 실제 중단 시점과 공식 기록 사이에서 누군가에게 필요한 공백이 생겼습니다.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-02",
+            "FACT-07"
+          ],
+          "tone": "ANALYTICAL"
+        },
+        {
+          "turn_id": "TURN-002-02",
+          "panelist_id": "PANEL-03",
+          "function": "SUSPECT_DISCUSSION",
+          "spoken_line": "그래도 젖은 작업복 하나로 박도윤을 확정하면 안 됩니다. 지금은 의심이지 답이 아니에요. 정상 점검에서 젖었을 가능성과 누군가 일부러 시선을 유도했을 가능성을 함께 남겨야 합니다.",
+          "evidence_ids": [
+            "CLUE-05"
+          ],
+          "known_fact_ids": [
+            "FACT-07"
+          ],
+          "tone": "CAUTIOUS",
+          "responds_to_turn_id": "TURN-002-01"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-003",
+      "after_scene_id": "SCN-04",
+      "order": 3,
+      "start_sec": 602,
+      "duration_sec": 40,
+      "segment_function": "ANOMALY_DETECTION",
+      "hypothesis_before": "목격자가 한 명의 얼굴을 봤다.",
+      "hypothesis_after": "목격자는 얼굴이 아니라 서로 다른 소매의 동선을 봤다.",
+      "tone": "CAREFUL",
+      "turns": [
+        {
+          "turn_id": "TURN-003-01",
+          "panelist_id": "PANEL-02",
+          "function": "VICTIM_CONTEXTUALIZATION",
+          "spoken_line": "정세린은 자신의 첫 진술을 스스로 정정했어요. 이건 목격의 한계를 숨기지 않은 선택입니다. 얼굴을 봤다는 확신을 거두고, 유리 벽에 비친 세 방향의 소매만 사실로 남겼습니다.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-02",
+            "FACT-05"
+          ],
+          "tone": "EMPATHETIC"
+        },
+        {
+          "turn_id": "TURN-003-02",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "얼굴은 없지만 소매가 세 방향입니다. 하나의 반사인지 여러 사람의 움직임인지를 갈라야 합니다. 영상의 순서와 통로 구조를 대조하면 세 사람이 각기 다른 퇴로를 맡았다는 가설이 생깁니다.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-05",
+            "FACT-07"
+          ],
+          "tone": "PROBING",
+          "responds_to_turn_id": "TURN-003-01"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-004",
+      "after_scene_id": "SCN-05",
+      "order": 4,
+      "start_sec": 732,
+      "duration_sec": 40,
+      "segment_function": "HYPOTHESIS_REVISION",
+      "hypothesis_before": "박도윤이 젖은 작업복을 입고 혼자 공격했다.",
+      "hypothesis_after": "젖은 작업복은 박도윤에게 의심을 모으려 남겨진 흔적일 수 있다.",
+      "tone": "CORRECTIVE",
+      "turns": [
+        {
+          "turn_id": "TURN-004-01",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "작업복이 젖은 시각은 정상 점검 때였습니다. 박도윤 혼자의 증거라는 해석은 내려놓아야 해요. 젖은 흔적은 범행 시점과 직접 연결되지 않고, 오히려 누군가가 만든 쉬운 답처럼 보입니다.",
+          "evidence_ids": [
+            "CLUE-04",
+            "CLUE-05"
+          ],
+          "known_fact_ids": [
+            "FACT-02",
+            "FACT-05",
+            "FACT-07"
+          ],
+          "tone": "FIRM"
+        },
+        {
+          "turn_id": "TURN-004-02",
+          "panelist_id": "PANEL-01",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "누군가 우리가 그 작업복만 보길 원했다면, 사라진 점검표와 같이 봐야 합니다. 원본 점검표가 남아 있으면 작업복의 의미가 뒤집히기 때문에 기록을 없앨 이유가 생깁니다.",
+          "evidence_ids": [
+            "CLUE-04",
+            "CLUE-05"
+          ],
+          "known_fact_ids": [
+            "FACT-05",
+            "FACT-07"
+          ],
+          "tone": "SUSPICIOUS",
+          "responds_to_turn_id": "TURN-004-01"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-005",
+      "after_scene_id": "SCN-06",
+      "order": 5,
+      "start_sec": 916,
+      "duration_sec": 40,
+      "segment_function": "SUSPECT_DISCUSSION",
+      "hypothesis_before": "박도윤 혼자의 동선으로 설명할 수 있다.",
+      "hypothesis_after": "오민재가 관리 통로에 있었고 적어도 두 사람이 개입했다.",
+      "tone": "TENSE",
+      "turns": [
+        {
+          "turn_id": "TURN-005-01",
+          "panelist_id": "PANEL-01",
+          "function": "SUSPECT_DISCUSSION",
+          "spoken_line": "단추의 자리와 오민재 작업복의 빈 자리가 맞습니다. 관리 통로에 두 번째 사람이 있었어요. 배수구의 위치까지 고려하면 단추는 우연히 떨어진 게 아니라 통로를 막는 과정에서 뜯긴 흔적입니다.",
+          "evidence_ids": [
+            "CLUE-02"
+          ],
+          "known_fact_ids": [
+            "FACT-05",
+            "FACT-06",
+            "FACT-07"
+          ],
+          "tone": "CERTAIN"
+        },
+        {
+          "turn_id": "TURN-005-02",
+          "panelist_id": "PANEL-03",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "그러면 박도윤 단독범 가설은 끝입니다. 하지만 세 소매의 나머지 하나는 아직 남았어요. 오민재가 두 번째 자리와 연결됐고, 마지막 자리를 지시한 사람이 누구인지 확인해야 합니다.",
+          "evidence_ids": [
+            "CLUE-02",
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-05",
+            "FACT-06"
+          ],
+          "tone": "WATCHFUL",
+          "responds_to_turn_id": "TURN-005-01"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-006",
+      "after_scene_id": "SCN-07",
+      "order": 6,
+      "start_sec": 1046,
+      "duration_sec": 40,
+      "segment_function": "BELIEF_CORRECTION",
+      "hypothesis_before": "폐장 음악 시각은 충격 속 기억 오류다.",
+      "hypothesis_after": "폐장 음악 중단은 피해자를 분리하는 행동 신호였다.",
+      "tone": "REVELATORY",
+      "turns": [
+        {
+          "turn_id": "TURN-006-01",
+          "panelist_id": "PANEL-03",
+          "function": "BELIEF_CORRECTION",
+          "spoken_line": "처음엔 정세린의 기억이 흔들린 줄 알았습니다. 지금 보면 음악이 행동을 나누는 신호였어요. 곡이 멈춘 순간 세 사람이 동시에 움직였다는 정정 진술이 기록 조작의 목적까지 설명합니다.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-06",
+            "FACT-07"
+          ],
+          "tone": "CORRECTIVE"
+        },
+        {
+          "turn_id": "TURN-006-02",
+          "panelist_id": "PANEL-02",
+          "function": "RISK_SIGNAL_RECOGNITION",
+          "spoken_line": "피해자들은 그 음악의 의미를 몰랐고, 행위자들만 알았다는 게 더 위험합니다. 우발적인 다툼이 아니라 미리 공유한 신호에 맞춰 퇴로를 나눈 계획 범행이었다는 뜻입니다.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-02",
+            "FACT-07"
+          ],
+          "tone": "GRAVE",
+          "responds_to_turn_id": "TURN-006-01"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-007",
+      "after_scene_id": "SCN-08",
+      "order": 7,
+      "start_sec": 1176,
+      "duration_sec": 40,
+      "segment_function": "BELIEF_CORRECTION",
+      "hypothesis_before": "두 야간 직원이 독자적으로 개입했다.",
+      "hypothesis_after": "관리 책임자와 두 야간 직원이 역할을 나눈 세 사람의 공모였다.",
+      "tone": "GRAVE",
+      "turns": [
+        {
+          "turn_id": "TURN-007-01",
+          "panelist_id": "PANEL-01",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "단추, 음악, 세 소매가 각각 다른 자리를 가리킵니다. 한 사람의 우발적 행동으로는 연결되지 않아요. 물리 흔적과 기록, 생존자 진술이 같은 순서를 가리키며 세 사람의 역할을 분리합니다.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-02",
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-04",
+            "FACT-05",
+            "FACT-06",
+            "FACT-07"
+          ],
+          "tone": "DECISIVE"
+        },
+        {
+          "turn_id": "TURN-007-02",
+          "panelist_id": "PANEL-02",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "한 명이 아니라 세 명이 피해자들의 퇴로를 나눠 막았다는 사실이 드러났습니다. 한지석의 사망과 정세린의 중상은 그 공모 행동이 낳은 직접적인 피해이며, 마지막 진술이 전체 순서를 완성합니다.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-02"
+          ],
+          "known_fact_ids": [
+            "FACT-02",
+            "FACT-04"
+          ],
+          "tone": "ANGRY",
+          "responds_to_turn_id": "TURN-007-01"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "$schema": "../../../../STANDARD/schemas/broadcast_readable_output_profile.schema.json",
+  "schema_family": "broadcast-readable-output-profile",
+  "schema_version": "1.0.0",
+  "profile_id": "BROADCAST_READABLE_SCRIPT",
+  "profile_version": "1.0.0",
+  "locale": "ko-KR",
+  "source_style_contract": {
+    "ordering_source": "PRESENTATION_PLAN",
+    "unit_text_policy": "CANONICAL_EXACT",
+    "character_name_source": "CHARACTERS_NAME",
+    "panel_name_source": "PANEL_CAST_DISPLAY_NAME",
+    "scene_context_position": "BEFORE_SCENE_CONTENT",
+    "internal_identifier_visibility": "HIDDEN",
+    "unknown_identity_policy": "FAIL"
+  },
+  "document_contract": {
+    "title_template": "# 「{title}」 방송용 읽기 대본",
+    "metadata_templates": {
+      "project": "- 프로젝트: {project_id}",
+      "source_truth": "- 작품 구분: {source_truth_classification}",
+      "generation_basis": "- 생성 기준: Canonical Screenplay Unit·Scene Context·Panel Reaction"
+    },
+    "character_heading": "## 등장인물",
+    "character_table_columns": ["인물", "설명"],
+    "character_table_row_template": "| {name} | {role} |",
+    "panel_heading": "## 패널",
+    "panel_table_columns": ["패널", "진행 역할"],
+    "panel_table_row_template": "| {display_name} | {voice_style} |",
+    "table_divider": "|---|---|",
+    "scene_label_template": "장면 {order}. {title}",
+    "scene_heading_template": "## {scene_label}",
+    "scene_context_template": "*[상황 설명: {context}]*",
+    "scene_context_entry_template": "{label} — {value}",
+    "scene_context_separator": " / ",
+    "scene_context_fields": [
+      "location_description",
+      "time_description",
+      "previous_scene_id",
+      "background_music_description",
+      "sound_cues",
+      "opening_character_state",
+      "opening_emotional_state",
+      "action_summary",
+      "audience_information_gain",
+      "retrospective_meaning"
+    ],
+    "scene_context_labels": {
+      "location_description": "장소",
+      "time_description": "시간",
+      "previous_scene_id": "이전 장면",
+      "background_music_description": "배경 음악",
+      "sound_cues": "환경 음향",
+      "opening_character_state": "시작 인물 상태",
+      "opening_emotional_state": "시작 감정 상태",
+      "action_summary": "행동 개요",
+      "audience_information_gain": "관객 정보 획득",
+      "retrospective_meaning": "사후적 의미"
+    },
+    "no_previous_scene_label": "없음",
+    "panel_section_heading_template": "### 패널 반응 {index}"
+  },
+  "render_contract": {
+    "direction_template": "*[지문: {text}]*",
+    "sound_template": "*[음향: {text}]*",
+    "screen_text_template": "**화면 문구**\n{text}",
+    "dialogue_template": "**{speaker_name}**{delivery_block}\n{text}",
+    "character_authored_template": "**{speaker_name}({label})**{delivery_block}\n{text}",
+    "delivery_template": " *({instruction})*",
+    "delivery_line_separator": "<br>",
+    "panel_turn_template": "**{display_name}(패널)**\n{spoken_line}",
+    "special_unit_labels": {
+      "NARRATION": "내레이션",
+      "INNER_MONOLOGUE": "내면 독백",
+      "HALLUCINATION": "환각",
+      "MESSAGE": "메시지",
+      "CHAT": "채팅",
+      "NOTE": "쪽지",
+      "RECORDING": "녹음"
+    }
+  },
+  "filter_contract": {
+    "included_segment_types": ["DRAMA", "NARRATION", "PANEL_REACTION"],
+    "excluded_segment_types": ["EXPERT_ANALYSIS", "AUDIENCE_PROMPT"],
+    "forbidden_internal_markers": [
+      "<!-- SEGMENT:",
+      "<!-- UNIT:",
+      "<!-- CRIME_TRACE",
+      "CHAR-",
+      "PANEL-",
+      "RSEG-",
+      "SEG-",
+      "SCN-"
+    ],
+    "original_fiction_forbidden_uncertainty_markers": [
+      "[청취 불명확]",
+      "[화자 불명확]"
+    ]
+  }
+}

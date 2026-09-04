@@ -88,6 +88,24 @@ def copy_allowed_outputs(
     return workspace
 
 
+def submit_allowed_outputs(
+    repository_root: Path,
+    project_path: Path,
+    golden_path: Path,
+    record: Mapping[str, object],
+    gate_id: str,
+) -> dict[str, object]:
+    """외부 Writer처럼 현재 Allowlist 출력만 작성하고 Task를 제출한다."""
+    copy_allowed_outputs(repository_root, golden_path, record)
+    return task_submit(
+        repository_root,
+        project_path,
+        gate_id,
+        COMPLETED_AT,
+        None,
+    )
+
+
 def assert_error_code(error_info: pytest.ExceptionInfo[GateTransactionError], code: str) -> None:
     """Gate Transaction 오류 Code를 명확히 검증한다."""
     assert error_info.value.code == code
@@ -119,6 +137,7 @@ def test_gate_transaction_rejects_out_of_scope_changes_and_commits_atomically(
         project_path,
         "GATE-05",
         OPENED_AT,
+        None,
     )
     future_workspace = Path(str(future_record["workspace"]))
     (future_workspace / "07_SCRIPT" / "final_script.md").write_text(
@@ -143,6 +162,7 @@ def test_gate_transaction_rejects_out_of_scope_changes_and_commits_atomically(
         project_path,
         "GATE-05",
         OPENED_AT,
+        None,
     )
     unauthorized_workspace = Path(str(unauthorized_record["workspace"]))
     (unauthorized_workspace / "task-note.txt").write_text("권한 밖", encoding="utf-8")
@@ -162,6 +182,7 @@ def test_gate_transaction_rejects_out_of_scope_changes_and_commits_atomically(
         project_path,
         "GATE-05",
         OPENED_AT,
+        None,
     )
     facts_path = project_path / "01_CASE" / "facts.json"
     facts_before = facts_path.read_bytes()
@@ -188,6 +209,7 @@ def test_gate_transaction_rejects_out_of_scope_changes_and_commits_atomically(
         project_path,
         "GATE-05",
         OPENED_AT,
+        None,
     )
     copy_allowed_outputs(repository_root, golden_path, missing_trace_record)
     with pytest.raises(GateTransactionError) as missing_trace_error:
@@ -207,6 +229,7 @@ def test_gate_transaction_rejects_out_of_scope_changes_and_commits_atomically(
         project_path,
         "GATE-05",
         OPENED_AT,
+        None,
     )
     copy_allowed_outputs(repository_root, golden_path, committed_record)
     result = task_submit(
@@ -365,13 +388,14 @@ def test_core_outputs_are_generated_by_runtime_and_not_editable_by_codex(
         project_path,
         "GATE-00",
         OPENED_AT,
+        None,
     )
     assert rejected_record["allowed_writes"] == []
     rejected_workspace = Path(str(rejected_record["workspace"]))
     rejected_report = load_json_object(
         rejected_workspace / "00_PROJECT" / "compatibility_report.json"
     )
-    rejected_report["compatibility"] = "PASS"
+    rejected_report["compatibility"] = "FAIL"
     write_json_object(
         rejected_workspace / "00_PROJECT" / "compatibility_report.json",
         rejected_report,
@@ -392,6 +416,7 @@ def test_core_outputs_are_generated_by_runtime_and_not_editable_by_codex(
         project_path,
         "GATE-00",
         OPENED_AT,
+        None,
     )
     assert accepted_record["allowed_writes"] == []
     result = task_submit(
@@ -432,6 +457,7 @@ def test_current_gate_submit_does_not_require_missing_future_artifacts(
         project_path,
         "GATE-05",
         OPENED_AT,
+        None,
     )
     copy_allowed_outputs(repository_root, golden_path, record)
     result = task_submit(
@@ -477,6 +503,7 @@ def test_task_open_excludes_same_gate_outputs_from_input_hashes(
         project_path,
         "GATE-08",
         OPENED_AT,
+        None,
     )
 
     input_hashes = record["input_hashes"]
@@ -485,13 +512,232 @@ def test_task_open_excludes_same_gate_outputs_from_input_hashes(
     assert "narration_script" not in input_hashes
     assert "panel_reaction_script" not in input_hashes
     assert "scene_cards" in input_hashes
-    assert record["allowed_writes"] == [
-        "draft_script",
-        "drama_script",
-        "final_script",
-        "narration_script",
-        "panel_reaction_script",
+    assert record["current_task_id"] == "script.compose_screenplay_units"
+    assert record["allowed_writes"] == ["screenplay_units"]
+    assert not (project_path / "07_SCRIPT" / "screenplay_units.json").exists()
+
+
+def test_codex_writer_runs_core_llm_sequence_through_gate_four(
+    tmp_path: Path,
+) -> None:
+    """외부 Codex Writer가 GATE-00~04를 Task별 Allowlist와 CORE 순서로 진행한다."""
+    repository_root = create_runtime_repository(tmp_path)
+    golden_path = create_runtime_project(repository_root, "PRJ-970")
+    project_path = repository_root / "PROJECTS" / "PRJ-970-CODEX"
+    shutil.copytree(golden_path, project_path)
+    asyncio.run(
+        execute_run(
+            repository_root,
+            golden_path,
+            "GATE-00",
+            "GATE-04",
+            "default",
+            None,
+            None,
+        )
+    )
+
+    gate_zero = task_open(
+        repository_root,
+        project_path,
+        "GATE-00",
+        OPENED_AT,
+        None,
+    )
+    assert gate_zero["gate_phase"] == "READY_TO_COMMIT"
+    assert gate_zero["allowed_writes"] == []
+    committed_zero = task_submit(
+        repository_root,
+        project_path,
+        "GATE-00",
+        COMPLETED_AT,
+        None,
+    )
+    assert committed_zero["current_gate"] == "GATE-00"
+    canonical_variation_path = project_path / "00_PROJECT/variation_candidates.json"
+    canonical_brief_path = project_path / "00_PROJECT/candidate_event_briefs.json"
+    canonical_variation_before = canonical_variation_path.read_bytes()
+    assert not canonical_brief_path.exists()
+
+    first_brief_task = task_open(
+        repository_root,
+        project_path,
+        "GATE-01",
+        OPENED_AT,
+        None,
+    )
+    assert first_brief_task["current_task_id"] == "variation.elaborate_crime_events"
+    assert first_brief_task["allowed_writes"] == ["candidate_event_briefs"]
+    gate_one_workspace = copy_allowed_outputs(
+        repository_root,
+        golden_path,
+        first_brief_task,
+    )
+    assert (gate_one_workspace / "00_PROJECT/variation_candidates.json").is_file()
+    assert "candidate_evaluation" not in first_brief_task["allowed_writes"]
+    assert canonical_variation_path.read_bytes() == canonical_variation_before
+    invalid_briefs_path = gate_one_workspace / "00_PROJECT/candidate_event_briefs.json"
+    invalid_briefs = load_json_object(invalid_briefs_path)
+    raw_briefs = invalid_briefs["briefs"]
+    assert isinstance(raw_briefs, list)
+    first_brief = raw_briefs[0]
+    assert isinstance(first_brief, dict)
+    functions = first_brief["development_functions"]
+    assert isinstance(functions, list)
+    first_function = functions[0]
+    assert isinstance(first_function, dict)
+    first_function["required"] = False
+    write_json_object(invalid_briefs_path, invalid_briefs)
+    with pytest.raises(GateTransactionError) as weakened_error:
+        task_submit(
+            repository_root,
+            project_path,
+            "GATE-01",
+            COMPLETED_AT,
+            None,
+        )
+    assert_error_code(
+        weakened_error,
+        "CRIME_DEVELOPMENT_FUNCTION_REQUIRED_WEAKENED",
+    )
+    resumed = task_open(
+        repository_root,
+        project_path,
+        "GATE-01",
+        OPENED_AT,
+        None,
+    )
+    assert resumed["transaction_id"] == first_brief_task["transaction_id"]
+    assert resumed["current_task_id"] == "variation.elaborate_crime_events"
+
+    evaluation_task = submit_allowed_outputs(
+        repository_root,
+        project_path,
+        golden_path,
+        resumed,
+        "GATE-01",
+    )
+    assert evaluation_task["current_task_id"] == "variation.evaluate"
+    assert evaluation_task["allowed_writes"] == ["candidate_evaluation"]
+    evaluation_reads = evaluation_task["allowed_reads"]
+    assert isinstance(evaluation_reads, list)
+    assert "candidate_event_briefs" in evaluation_reads
+    assert "candidate_eligibility" in evaluation_reads
+    evaluation_workspace = Path(str(evaluation_task["workspace"]))
+    assert (evaluation_workspace / "08_QA/candidate_eligibility.json").is_file()
+    assert canonical_variation_path.read_bytes() == canonical_variation_before
+    assert not canonical_brief_path.exists()
+
+    committed_one = submit_allowed_outputs(
+        repository_root,
+        project_path,
+        golden_path,
+        evaluation_task,
+        "GATE-01",
+    )
+    assert committed_one["status"] == "COMMITTED"
+    assert committed_one["current_gate"] == "GATE-01"
+    assert (project_path / "00_PROJECT/candidate_approval.json").is_file()
+
+    gate_two = task_open(
+        repository_root,
+        project_path,
+        "GATE-02",
+        OPENED_AT,
+        None,
+    )
+    assert gate_two["current_task_id"] == "story.design_dna"
+    committed_two = submit_allowed_outputs(
+        repository_root,
+        project_path,
+        golden_path,
+        gate_two,
+        "GATE-02",
+    )
+    assert committed_two["current_gate"] == "GATE-02"
+
+    case_task = task_open(
+        repository_root,
+        project_path,
+        "GATE-03",
+        OPENED_AT,
+        None,
+    )
+    assert case_task["current_task_id"] == "story.define_case"
+    committed_three = submit_allowed_outputs(
+        repository_root,
+        project_path,
+        golden_path,
+        case_task,
+        "GATE-03",
+    )
+    assert committed_three["status"] == "COMMITTED"
+    assert committed_three["current_gate"] == "GATE-03"
+    transaction_id = str(case_task["transaction_id"])
+    assert not (
+        project_path / ".runtime" / "runs" / transaction_id / "run.json"
+    ).exists()
+    assert not (
+        project_path / ".runtime" / "runs" / "CODEX-MANUAL" / "run.json"
+    ).exists()
+
+    character_task = task_open(
+        repository_root,
+        project_path,
+        "GATE-04",
+        OPENED_AT,
+        None,
+    )
+    assert character_task["current_task_id"] == "character.design"
+    committed_four = submit_allowed_outputs(
+        repository_root,
+        project_path,
+        golden_path,
+        character_task,
+        "GATE-04",
+    )
+    assert committed_four["current_gate"] == "GATE-04"
+    contract = load_json_object(project_path / "01_CASE/crime_event_contract.json")
+    characters = load_json_object(project_path / "02_CHARACTER/characters.json")
+    raw_characters = characters["characters"]
+    actor_ids = contract["actor_ids"]
+    victim_ids = contract["victim_ids"]
+    assert isinstance(raw_characters, list)
+    assert isinstance(actor_ids, list)
+    assert isinstance(victim_ids, list)
+    character_ids = {
+        character["character_id"]
+        for character in raw_characters
+        if isinstance(character, dict)
+    }
+    assert set(actor_ids).issubset(character_ids)
+    assert set(victim_ids).issubset(character_ids)
+    assert contract["role_bindings"]
+
+    gate_one_trace_ids = [
+        record["task_id"]
+        for record in trace_records(repository_root, project_path)
+        if record["gate_id"] == "GATE-01"
     ]
+    assert gate_one_trace_ids == [
+        "reference.sanitize_profile",
+        "variation.generate",
+        "variation.elaborate_crime_events",
+        "novelty.variation_precheck",
+        "variation.eligibility",
+        "variation.evaluate",
+        "variation.approve",
+        "variation.record_approval",
+    ]
+    with pytest.raises(GateTransactionError) as duplicate_submit:
+        task_submit(
+            repository_root,
+            project_path,
+            "GATE-04",
+            COMPLETED_AT,
+            None,
+        )
+    assert_error_code(duplicate_submit, "GATE_TRANSACTION_ALREADY_COMMITTED")
 
 
 def test_task_open_and_audit_reject_preexisting_canonical_drift(
@@ -504,7 +750,7 @@ def test_task_open_and_audit_reject_preexisting_canonical_drift(
     facts_path.write_bytes(original + b"\n")
 
     with pytest.raises(GateTransactionError) as open_error:
-        task_open(repository_root, project_path, "GATE-05", OPENED_AT)
+        task_open(repository_root, project_path, "GATE-05", OPENED_AT, None)
 
     assert_error_code(open_error, "GATE_TRANSACTION_INPUT_DRIFT")
     facts_path.write_bytes(original)
@@ -595,7 +841,7 @@ def test_critic_issue_returns_to_owner_in_new_process_revision(
         "GATE-13",
     ]
 
-    record = task_open(repository_root, project_path, "GATE-08", OPENED_AT)
+    record = task_open(repository_root, project_path, "GATE-08", OPENED_AT, None)
     assert record["agent_ids"] == ["script_writer"]
     assert record["process_revision"] == 2
 

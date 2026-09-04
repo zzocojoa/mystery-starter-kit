@@ -1,0 +1,656 @@
+{
+  "$schema": "../../../STANDARD/schemas/editorial_review.schema.json",
+  "schema_family": "editorial-review",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-006",
+  "reviewer": {
+    "reviewer_id": "agent:continuity_critic",
+    "role": "CONTINUITY_CRITIC"
+  },
+  "reviewed_at": "2026-09-02T13:34:07Z",
+  "artifact_hashes": {
+    "broadcast_readable_config": "af27782a4a3e40beed1b483b51873c62f46808fda36ce01d3b019c4e8ff0d4d5",
+    "character_state_transitions": "13974071ebe7fa7ed1832da69bbba05e6401e9fb3f54b2c8e557d23664fdab74",
+    "crime_event_contract": "61657c98a4c6583d2fccc0ef255368c2aa9b4d3269ba948c09cfb7195c4144ee",
+    "scene_cards": "25e5db33fdc3a67bc44a993240fc9b6e17f98a65963925a5d7c9c5a33f38a902",
+    "final_script": "df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602",
+    "screenplay_units": "7cd312e26e8d7d468cf0b64a1d125317edab7065f7e60ade8b78641c7679a1f5",
+    "broadcast_readable_script": "5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41",
+    "broadcast_readable_report": "f81c1918a3cfeafc5ce3a039a61e54591cdd1da839ec19890c1c7cf8c4b01400",
+    "reenactment_character_script": "0a97c9702158a3f45b6613016fea5b9d67f85e6f3316f88ea9bd80b7bd9e5618",
+    "reenactment_export_report": "106be0136cfc2d1839b7d0313efefdb26c14232dc3e96e722073825a8eea7e2c",
+    "script_realization_report": "688b6f4e749389fee8f9a8812e931ec59a55f8f25a80d27d4bd72cddde4f41ff",
+    "actual_timeline": "a1ce7cf147ac6073b31b911e280418a3b830a6b7f2adfeb244016375432a485b",
+    "viewer_timeline": "d52f7287a6d1aec4f81c0dd8f0feb480a13347fdecbd19325291c33e6a9a0ba0",
+    "audience_belief": "29775135705ee582ef94995546676ef656c9c8b923e770cfb0e7a851e8ff1034",
+    "panel_cast": "31171e1bebf0cff55dba2433f2d37d564fd735fa39c0d33961e21c060eb4e976",
+    "reaction_segments": "2cfd711127fe51fe47405a939b11032fa9bdc9c55c2632a9fb99acb336ab4674",
+    "presentation_plan": "16abc7423999281f44ca265208538e5d7aa50272956fea09d67fdf5b5320e225",
+    "panel_reaction_script": "46f2b81d521d0ff60cf0af41effb6ba0484320349128397029eff099fc72be86",
+    "production_footprint": "da10a448f03e21488fdcb382830ddae588aff32692f211744fface7140211934",
+    "shooting_script": "f140912435fa39b91e17bbdc9237080489fe043b808500ed1a8678b5ac5338ba",
+    "production_manifest": "4723704b48f45529c3eca076e204ac2e18f5e70b277ac51b0d2a9f8235d72baf",
+    "narration": "316efbb7854f9f01ce19441bb7c9d6b19bb491a39674070b77a02de9068639d9",
+    "production_panel_reaction_script": "42e344427fa5e4bde332a03597ed363f083038987482f5fab836aef9eb42f7cc",
+    "subtitle_script": "b3f0805ece7afb6612703bc852686c9c4bc9ca8ebf80ba5f901a92def6c26417",
+    "edit_script": "39f2d642a0d51cb3592de24758744083bcb81ff4d3db2ad870c75d5057bca652",
+    "production_reenactment_character_script": "0a97c9702158a3f45b6613016fea5b9d67f85e6f3316f88ea9bd80b7bd9e5618",
+    "production_broadcast_readable_script": "5a901b14502a69bc38f7906dcfc816c383d74501f13c09f2271be94b2bf75d41",
+    "broadcast_readable_output_profile": "d156c49f31a0ecee4563c7eb6347ff5973325a918eb1fae3281955a70ec07284"
+  },
+  "runtime_evidence": {
+    "language_unit": "KOREAN_EOJEOL",
+    "estimation_assumptions": [
+      "Panel Script의 한글·영문·숫자 토큰을 한국어 어절 단위로 센다.",
+      "발화 속도는 분당 150어절로 가정하고 소수 둘째 자리까지 계산한다.",
+      "발화 외 시간은 제작 큐에 명시된 Replay와 Graphic 또는 Reaction Hold로만 분리한다."
+    ],
+    "method": "WORD_COUNT_ESTIMATE",
+    "reading_rate_wpm": 150.0,
+    "planned_runtime_sec": 1540.0,
+    "planned_panel_duration_sec": 280.0,
+    "estimated_panel_spoken_duration_sec": 135.2,
+    "measured_panel_duration_sec": null,
+    "panel_segments": [
+      {
+        "segment_id": "SEG-003",
+        "reaction_segment_id": "RSEG-001",
+        "planned_duration_sec": 40.0,
+        "spoken_word_count": 43,
+        "estimated_spoken_duration_sec": 17.2,
+        "action_duration_sec": 10.0,
+        "non_speaking_duration_sec": 12.8,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10.0,
+            "time_class": "ACTION",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-001:정세린 탈출 장면 Replay",
+            "notes": "생존 피해가 단순 사고가 아님을 발화와 연결한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 12.8,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-001:7분 시차와 단추 Graphic",
+            "notes": "두 이상 징후의 동시성을 시각적으로 보존한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-007",
+        "reaction_segment_id": "RSEG-002",
+        "planned_duration_sec": 40.0,
+        "spoken_word_count": 49,
+        "estimated_spoken_duration_sec": 19.6,
+        "action_duration_sec": 10.0,
+        "non_speaking_duration_sec": 10.4,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10.0,
+            "time_class": "ACTION",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-002:젖은 작업복 Replay",
+            "notes": "단독범 의심의 근거와 한계를 함께 제시한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 10.4,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-002:두 시각 비교 Graphic",
+            "notes": "7분 공백의 시작과 끝을 읽을 수 있게 유지한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-010",
+        "reaction_segment_id": "RSEG-003",
+        "planned_duration_sec": 40.0,
+        "spoken_word_count": 49,
+        "estimated_spoken_duration_sec": 19.6,
+        "action_duration_sec": 10.0,
+        "non_speaking_duration_sec": 10.4,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10.0,
+            "time_class": "ACTION",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-003:세 소매 반사 Replay",
+            "notes": "정정 진술의 실제 관찰 범위를 보여 준다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 10.4,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-003:세 방향 Graphic",
+            "notes": "세 동선 가설을 얼굴 식별과 분리한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-012",
+        "reaction_segment_id": "RSEG-004",
+        "planned_duration_sec": 40.0,
+        "spoken_word_count": 48,
+        "estimated_spoken_duration_sec": 19.2,
+        "action_duration_sec": 10.0,
+        "non_speaking_duration_sec": 10.8,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10.0,
+            "time_class": "ACTION",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-004:작업복 표식과 순회표 Match",
+            "notes": "작업복 흔적의 실제 시각을 확인한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 10.8,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-004:박도윤 단독 가설 취소 Graphic",
+            "notes": "패널의 가설 수정 결과를 보존한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-015",
+        "reaction_segment_id": "RSEG-005",
+        "planned_duration_sec": 40.0,
+        "spoken_word_count": 50,
+        "estimated_spoken_duration_sec": 20.0,
+        "action_duration_sec": 10.0,
+        "non_speaking_duration_sec": 10.0,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10.0,
+            "time_class": "ACTION",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-005:18mm 비교",
+            "notes": "단추와 두 번째 동선의 물리 연결을 확인한다."
+          },
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 10.0,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-005:비어 있는 세 번째 자리 Hold",
+            "notes": "지시자 공개 전 남은 질문을 유지한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-017",
+        "reaction_segment_id": "RSEG-006",
+        "planned_duration_sec": 40.0,
+        "spoken_word_count": 47,
+        "estimated_spoken_duration_sec": 18.8,
+        "action_duration_sec": 10.0,
+        "non_speaking_duration_sec": 11.2,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10.0,
+            "time_class": "ACTION",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-006:음악 파형 정지",
+            "notes": "음악 중단이 공동 행동 신호였다는 수정을 뒷받침한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 11.2,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-006:세 화살표 Graphic",
+            "notes": "동시 분리 동선을 명료하게 표시한다."
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-019",
+        "reaction_segment_id": "RSEG-007",
+        "planned_duration_sec": 40.0,
+        "spoken_word_count": 52,
+        "estimated_spoken_duration_sec": 20.8,
+        "action_duration_sec": 10.0,
+        "non_speaking_duration_sec": 9.2,
+        "measured_duration_sec": null,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REPLAY",
+            "duration_sec": 10.0,
+            "time_class": "ACTION",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-007:단추·음악·세 소매 3분할",
+            "notes": "세 종류의 근거가 같은 공모 순서를 가리킴을 확인한다."
+          },
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 9.2,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "production_panel_reaction_script:RSEG-007:두 피해 결과 자막",
+            "notes": "사망과 중상을 선정적 영상 없이 병치한다."
+          }
+        ]
+      }
+    ]
+  },
+  "semantic_assessments": [
+    {
+      "assessment_id": "ASSESS-01",
+      "category": "CRIME_EVENT_REALIZATION",
+      "subject_id": "EVENT-01",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-022",
+          "excerpt_hash": "6e23e82d5a062c470dccaaae441ab499b64077248ff805f2afcae643512bf761"
+        }
+      ],
+      "notes": "음악 중단, 피해자 분리, 비선정적 공격, 기록 교체, 사고 위장이 하나의 계획된 사건 순서로 실현된다."
+    },
+    {
+      "assessment_id": "ASSESS-02",
+      "category": "CRIME_ACTION",
+      "subject_id": "MURDER",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-022",
+          "excerpt_hash": "6e23e82d5a062c470dccaaae441ab499b64077248ff805f2afcae643512bf761"
+        }
+      ],
+      "notes": "세 공범의 지시·차단·신호·은폐 역할이 우발적 사고가 아닌 공동 살인 행동으로 구체화된다."
+    },
+    {
+      "assessment_id": "ASSESS-03",
+      "category": "HARM_RESULT",
+      "subject_id": "HARM-01",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-023",
+          "excerpt_hash": "86a65442d0517ff04f5232b83210a77584f9b5ca1eb81232df07bde1154c5270"
+        }
+      ],
+      "notes": "한지석의 사망이 빈 의자, 이름 표식, 피해 결과 자막과 공동 책임 진술로 명시된다."
+    },
+    {
+      "assessment_id": "ASSESS-04",
+      "category": "HARM_RESULT",
+      "subject_id": "HARM-02",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-023",
+          "excerpt_hash": "86a65442d0517ff04f5232b83210a77584f9b5ca1eb81232df07bde1154c5270"
+        }
+      ],
+      "notes": "정세린의 중대한 신체 손상과 생존 증언이 사망 피해와 같은 사건 번호 아래 결속된다."
+    },
+    {
+      "assessment_id": "ASSESS-05",
+      "category": "NARRATION_FUNCTION",
+      "subject_id": "NARRATION",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-002",
+          "excerpt_hash": "f3fe9f556cd4b70e5d4087aa50a1bfb1facdead62da2f3909df8a67d6efc60f0"
+        }
+      ],
+      "notes": "한서윤의 1인칭 내레이션은 화면 정보를 반복하지 않고 현장의 공백과 숨은 역할에 대한 주관적 공포를 전달한다."
+    },
+    {
+      "assessment_id": "ASSESS-06",
+      "category": "PANEL_FUNCTION",
+      "subject_id": "PANEL_REACTION",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-003",
+          "excerpt_hash": "f76cf6d39167f0d8c9756e37150959bed714b16af6b9ce8ab3227993e9e377c2"
+        }
+      ],
+      "notes": "패널은 생존 피해에 감정적으로 반응하면서 음악과 단추의 이상을 사건 순서 질문으로 전환한다."
+    },
+    {
+      "assessment_id": "ASSESS-07",
+      "category": "CLUE_AND_EVIDENCE_COHERENCE",
+      "subject_id": "FINAL_REVEAL_EVIDENCE",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-023",
+          "excerpt_hash": "86a65442d0517ff04f5232b83210a77584f9b5ca1eb81232df07bde1154c5270"
+        }
+      ],
+      "notes": "단추, 음악 시각, 세 소매, 원본 점검표가 세 공범의 역할과 두 피해 결과를 모순 없이 닫는다."
+    },
+    {
+      "assessment_id": "ASSESS-08",
+      "category": "REVEAL_TIMING",
+      "subject_id": "REVEAL-TARGET-01",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-018",
+          "excerpt_hash": "4a8e3f8fa3a3ac7266c88871e610df808ece3778fb838f22bf3d1f54f948637f"
+        }
+      ],
+      "notes": "세 공범의 공동 개입은 후반 SCN-08에서 처음 하나의 역할표로 공개된다."
+    },
+    {
+      "assessment_id": "ASSESS-09",
+      "category": "REVEAL_TIMING",
+      "subject_id": "REVEAL-TARGET-02",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-020",
+          "excerpt_hash": "6149cd50e4c01f5a673246993bb1dcc174b656531cc304822ad8b00e03c81a51"
+        }
+      ],
+      "notes": "안전 기록 조작 은폐와 내부 고발 차단 동기는 SCN-09의 사전 회의 재연에서 공개된다."
+    },
+    {
+      "assessment_id": "ASSESS-10",
+      "category": "REVEAL_TIMING",
+      "subject_id": "REVEAL-TARGET-03",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-022",
+          "excerpt_hash": "6e23e82d5a062c470dccaaae441ab499b64077248ff805f2afcae643512bf761"
+        }
+      ],
+      "notes": "분리 공격과 사고 위장 방식은 SCN-10에서만 완전한 인과 순서로 재구성된다."
+    },
+    {
+      "assessment_id": "ASSESS-11",
+      "category": "REVEAL_TIMING",
+      "subject_id": "REVEAL-TARGET-04",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-023",
+          "excerpt_hash": "86a65442d0517ff04f5232b83210a77584f9b5ca1eb81232df07bde1154c5270"
+        }
+      ],
+      "notes": "두 피해 결과가 같은 공모 행위에서 비롯됐다는 최종 결속은 SCN-11에서 이뤄진다."
+    },
+    {
+      "assessment_id": "ASSESS-12",
+      "category": "PREMATURE_DISCLOSURE_SCAN",
+      "subject_id": "REVEAL-TARGET-01",
+      "status": "NOT_DISCLOSED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "DOCUMENT",
+          "selector_id": "final_script",
+          "excerpt_hash": "df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602"
+        }
+      ],
+      "notes": "SEG-018 이전의 DRAMA·NARRATION·PANEL 전 구간은 개별 의심과 최소 행위자 수만 제시하며 세 공범의 공동 개입을 확정하지 않는다."
+    },
+    {
+      "assessment_id": "ASSESS-13",
+      "category": "PREMATURE_DISCLOSURE_SCAN",
+      "subject_id": "REVEAL-TARGET-02",
+      "status": "NOT_DISCLOSED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "DOCUMENT",
+          "selector_id": "final_script",
+          "excerpt_hash": "df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602"
+        }
+      ],
+      "notes": "SEG-020 이전에는 원본 점검표의 중요성만 드러나며 세 사람이 공유한 내부 고발 차단 동기는 확정되지 않는다."
+    },
+    {
+      "assessment_id": "ASSESS-14",
+      "category": "PREMATURE_DISCLOSURE_SCAN",
+      "subject_id": "REVEAL-TARGET-03",
+      "status": "NOT_DISCLOSED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "DOCUMENT",
+          "selector_id": "final_script",
+          "excerpt_hash": "df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602"
+        }
+      ],
+      "notes": "SEG-022 이전에는 역할 위치만 드러나며 지시부터 사고 위장까지의 완전한 실행 순서는 공개되지 않는다."
+    },
+    {
+      "assessment_id": "ASSESS-15",
+      "category": "PREMATURE_DISCLOSURE_SCAN",
+      "subject_id": "REVEAL-TARGET-04",
+      "status": "NOT_DISCLOSED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "DOCUMENT",
+          "selector_id": "final_script",
+          "excerpt_hash": "df995516ec1337de81b5b4aebc74cbd2af3c75a7a44393d851e768517749e602"
+        }
+      ],
+      "notes": "SEG-023 이전에는 사망과 부상이 알려져도 두 결과를 세 공범의 하나의 살인 사건으로 결속한 최종 책임 문장은 공개되지 않는다."
+    },
+    {
+      "assessment_id": "ASSESS-16",
+      "category": "DEVELOPMENT_FUNCTION",
+      "subject_id": "CDEV-001",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-001",
+          "excerpt_hash": "f5e85d1fa9e7f1569182ea0c82df79f7d1bd836d4d3e77e60d6ab9bed6db0b9d"
+        }
+      ],
+      "notes": "중상을 입은 정세린, 수면 위 안경, 단추와 7분 시차가 폐장 사고 설명을 공격 사건의 위험 인식으로 바꾼다."
+    },
+    {
+      "assessment_id": "ASSESS-17",
+      "category": "DEVELOPMENT_FUNCTION",
+      "subject_id": "CDEV-002",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-008",
+          "excerpt_hash": "6b59c887fe41f6f8256218be5f8f193ac0cdfbbeb1d39ba61741c343ab5594be"
+        }
+      ],
+      "notes": "정세린의 정정 진술과 유리 벽의 세 소매가 단독 행위자 의심을 여러 관리 인력의 개입 가능성으로 확장한다."
+    },
+    {
+      "assessment_id": "ASSESS-18",
+      "category": "DEVELOPMENT_FUNCTION",
+      "subject_id": "CDEV-003",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-020",
+          "excerpt_hash": "6149cd50e4c01f5a673246993bb1dcc174b656531cc304822ad8b00e03c81a51"
+        }
+      ],
+      "notes": "조작 전 점검표의 유출을 막으려는 강태수의 지시와 두 공범의 카드 수령이 공동 동기와 각자의 책임을 드러낸다."
+    },
+    {
+      "assessment_id": "ASSESS-19",
+      "category": "DEVELOPMENT_FUNCTION",
+      "subject_id": "CDEV-004",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-022",
+          "excerpt_hash": "6e23e82d5a062c470dccaaae441ab499b64077248ff805f2afcae643512bf761"
+        }
+      ],
+      "notes": "음악 중단부터 피해자 분리, 비선정적 공격, 기록 교체와 사고 위장까지의 실행 순서가 완전하게 재구성된다."
+    }
+  ],
+  "result": "PASS",
+  "checks": {
+    "broadcast_format": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-001",
+          "excerpt_hash": "f5e85d1fa9e7f1569182ea0c82df79f7d1bd836d4d3e77e60d6ab9bed6db0b9d"
+        }
+      ],
+      "notes": "23개 방송 Segment의 Marker·Layer 순서와 25분 40초 연속 구성을 확인했다."
+    },
+    "absolute_time": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "actual_timeline",
+          "selector_type": "DOCUMENT",
+          "selector_id": "actual_timeline",
+          "excerpt_hash": "a1ce7cf147ac6073b31b911e280418a3b830a6b7f2adfeb244016375432a485b"
+        }
+      ],
+      "notes": "음악 중단, 공식 폐장 기록, 피해자 분리와 기록 교체의 사건 순서가 Actual Timeline과 일치한다."
+    },
+    "dialogue_naturalness": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-020",
+          "excerpt_hash": "6149cd50e4c01f5a673246993bb1dcc174b656531cc304822ad8b00e03c81a51"
+        }
+      ],
+      "notes": "공범의 지시·거부·침묵과 피해자·기록자의 발화가 각 인물의 정보 범위와 관계에 맞는다."
+    },
+    "panel_reaction_function": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "reaction_segments",
+          "selector_type": "REACTION_SEGMENT_ID",
+          "selector_id": "RSEG-004",
+          "excerpt_hash": "28bed5af5b80d30c8039f9b2076062381820d9fc71006728de4153e9de7ea2a0"
+        }
+      ],
+      "notes": "감정 반응, 이상 탐지, 용의자 추적, 반론과 가설 수정이 7개 Reaction Segment에서 독립적으로 기능한다."
+    },
+    "audience_belief": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "audience_belief",
+          "selector_type": "DOCUMENT",
+          "selector_id": "audience_belief",
+          "excerpt_hash": "29775135705ee582ef94995546676ef656c9c8b923e770cfb0e7a851e8ff1034"
+        }
+      ],
+      "notes": "단독범 의심에서 최소 두 명, 세 공범, 공통 동기와 실행 순서로 이어지는 믿음 변화가 공개 정보와 일치한다."
+    },
+    "shootability": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "shooting_script",
+          "selector_type": "DOCUMENT",
+          "selector_id": "shooting_script",
+          "excerpt_hash": "f140912435fa39b91e17bbdc9237080489fe043b808500ed1a8678b5ac5338ba"
+        }
+      ],
+      "notes": "11개 장면의 Location·Cast·SFX·비선정적 폭력 수준이 Production Manifest와 일치하고 구체 촬영 Cue로 분해됐다."
+    },
+    "victim_dignity": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-023",
+          "excerpt_hash": "86a65442d0517ff04f5232b83210a77584f9b5ca1eb81232df07bde1154c5270"
+        }
+      ],
+      "notes": "사망 피해자와 생존 피해자의 결과·증언·행위 주체성을 함께 기록하며 폭력을 그림자와 사물로 제한한다."
+    }
+  },
+  "issues": []
+}

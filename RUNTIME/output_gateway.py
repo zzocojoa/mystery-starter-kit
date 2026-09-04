@@ -37,6 +37,54 @@ def schema_with_fragment(
     }
 
 
+def artifact_schema_reference(
+    contract: ArtifactContract,
+    content: Mapping[str, object],
+    task_id: str,
+    artifact_name: str,
+) -> str:
+    """Artifact의 schema_version에 등록된 전용 Schema 경로를 선택한다."""
+    schema_versions = contract.get("schema_versions")
+    schema_reference = contract["schema"]
+    if schema_versions is None:
+        if schema_reference is None:
+            raise RuntimeExecutionError(
+                "RUNTIME_CONFIGURATION_ERROR",
+                False,
+                "RUNTIME",
+                "JSON Artifact Schema 계약이 없습니다.",
+                task_id,
+                artifact_name,
+                {},
+            )
+        return schema_reference
+    schema_version = content.get("schema_version")
+    if not isinstance(schema_version, str):
+        raise RuntimeExecutionError(
+            "OUTPUT_SCHEMA_ERROR",
+            True,
+            "TASK_ATTEMPT",
+            "Versioned JSON Artifact에 schema_version 문자열이 없습니다.",
+            task_id,
+            artifact_name,
+            {},
+        )
+    versioned_reference = schema_versions.get(schema_version)
+    if versioned_reference is not None:
+        return versioned_reference
+    if schema_version == "1.0.0" and schema_reference is not None:
+        return schema_reference
+    raise RuntimeExecutionError(
+        "OUTPUT_SCHEMA_ERROR",
+        False,
+        "TASK_ATTEMPT",
+        "JSON Artifact schema_version에 등록된 Schema가 없습니다.",
+        task_id,
+        artifact_name,
+        {"schema_version": schema_version},
+    )
+
+
 def parse_response_document(response: LLMResponse, task_id: str) -> dict[str, object]:
     """Provider 상태를 해석하고 Agent Result JSON 객체만 반환한다."""
     if response.status == "REFUSED" or response.finish_reason == "FILTERED":
@@ -224,17 +272,12 @@ def validate_artifact_content(
                 artifact_name,
                 {},
             )
-        schema_reference = contract["schema"]
-        if schema_reference is None:
-            raise RuntimeExecutionError(
-                "RUNTIME_CONFIGURATION_ERROR",
-                False,
-                "RUNTIME",
-                "JSON Artifact Schema 계약이 없습니다.",
-                task_id,
-                artifact_name,
-                {},
-            )
+        schema_reference = artifact_schema_reference(
+            contract,
+            content,
+            task_id,
+            artifact_name,
+        )
         schema = schema_with_fragment(repository_root, schema_reference)
         errors = collect_schema_errors(content, schema, artifact_name)
         if errors:

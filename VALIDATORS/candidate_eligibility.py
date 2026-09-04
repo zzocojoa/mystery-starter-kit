@@ -3,6 +3,14 @@
 from collections.abc import Mapping
 
 from VALIDATORS.candidate_evaluation import document_sha256
+from VALIDATORS.candidate_event_briefs import (
+    candidate_event_brief_hashes,
+    canonical_json_hash,
+)
+from VALIDATORS.crime_event import (
+    explicit_crime_policy,
+    validate_candidate_crime_event,
+)
 from VALIDATORS.models import ValidationIssue
 from VALIDATORS.novelty import variation_precheck_source_hash
 from VALIDATORS.requirements import crime_v2_candidate_policy_applies
@@ -71,16 +79,31 @@ def eligibility_input_hashes(
     project_constraints: Mapping[str, object],
     channel: Mapping[str, object],
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     novelty_precheck: Mapping[str, object],
 ) -> dict[str, str]:
     """적격성 판정 입력의 정규 Hash를 반환한다."""
-    return {
+    hashes = {
         "production_config": document_sha256(production_config),
         "project_constraints": document_sha256(project_constraints),
         "channel_dna": document_sha256(channel),
         "variation_candidates": variation_precheck_source_hash(variations),
         "novelty_precheck": document_sha256(novelty_precheck),
     }
+    if explicit_crime_policy(channel) is not None:
+        if candidate_event_briefs is None:
+            hashes["candidate_event_briefs"] = document_sha256({})
+        else:
+            hashes["candidate_event_briefs"] = canonical_json_hash(candidate_event_briefs)
+            hashes.update(
+                {
+                    f"candidate_event_brief_{candidate_id.lower().replace('-', '_')}": value
+                    for candidate_id, value in candidate_event_brief_hashes(
+                        candidate_event_briefs
+                    ).items()
+                }
+            )
+    return hashes
 
 
 def novelty_result_map(document: Mapping[str, object]) -> dict[str, str]:
@@ -134,9 +157,7 @@ def channel_episode_overrides(channel: Mapping[str, object]) -> set[str]:
     """Channel이 명시한 예외 구조 ID만 반환한다."""
     capabilities = channel.get("capabilities")
     policy = (
-        capabilities.get("STORY_VARIATION_POLICY")
-        if isinstance(capabilities, Mapping)
-        else None
+        capabilities.get("STORY_VARIATION_POLICY") if isinstance(capabilities, Mapping) else None
     )
     values = policy.get("episode_overrides") if isinstance(policy, Mapping) else None
     if not isinstance(values, list):
@@ -149,9 +170,14 @@ def profile_matches_selection(
     profile: Mapping[str, object],
 ) -> bool:
     """정책 Profile이 명시 Dimension을 그대로 보존하는지 판정한다."""
+    if "primary_crime" in selection:
+        return all(
+            profile.get(field) == selection.get(field)
+            for field in PROFILE_SELECTION_FIELDS
+            if field in selection
+        ) and profile.get("incident_type") == selection.get("primary_crime")
     return all(
-        isinstance(selection.get(field), str)
-        and profile.get(field) == selection.get(field)
+        isinstance(selection.get(field), str) and profile.get(field) == selection.get(field)
         for field in PROFILE_SELECTION_FIELDS
     )
 
@@ -206,9 +232,7 @@ def project_constraints_pass(
     selection: Mapping[str, object],
 ) -> bool:
     """Candidate가 Project의 필수 사용 및 금지 규칙을 모두 만족하는지 판정한다."""
-    must_use_passes = rule_values_pass(
-        selection, project_constraints.get("must_use"), "IN"
-    )
+    must_use_passes = rule_values_pass(selection, project_constraints.get("must_use"), "IN")
     must_not_use_passes = rule_values_pass(
         selection, project_constraints.get("must_not_use"), "NOT_IN"
     )
@@ -311,20 +335,15 @@ def candidate_checks(
             "required_theme": True,
             "locked_constraints": locked_constraints_pass(production_config, selection),
             "project_constraints": project_constraints_pass(project_constraints, selection),
-            "source_truth": isinstance(
-                require_source_truth_classification(production_config), str
-            ),
+            "source_truth": isinstance(require_source_truth_classification(production_config), str),
             "production_feasibility": True,
             "novelty": isinstance(candidate_id, str)
             and novelty_results.get(candidate_id) == "PASS",
         }
         legacy_checks = {
-            name: "PASS" if passed else "FAIL"
-            for name, passed in legacy_checks_bool.items()
+            name: "PASS" if passed else "FAIL" for name, passed in legacy_checks_bool.items()
         }
-        legacy_reasons = [
-            name.upper() for name, passed in legacy_checks_bool.items() if not passed
-        ]
+        legacy_reasons = [name.upper() for name, passed in legacy_checks_bool.items() if not passed]
         return legacy_checks, legacy_reasons
 
     if not isinstance(profile, Mapping):
@@ -350,11 +369,7 @@ def candidate_checks(
         return failed, ["CANDIDATE_POLICY_PROFILE_INVALID"]
 
     capabilities = channel.get("capabilities")
-    genre_policy = (
-        capabilities.get("GENRE_POLICY")
-        if isinstance(capabilities, Mapping)
-        else None
-    )
+    genre_policy = capabilities.get("GENRE_POLICY") if isinstance(capabilities, Mapping) else None
     allowed_genres: set[str] = set()
     if isinstance(genre_policy, Mapping):
         for field in ("allowed_genres", "adjacent_genres"):
@@ -368,11 +383,7 @@ def candidate_checks(
     allowed_threats = crime_policy.get("threat_types") if crime_policy else None
     threat = profile.get("threat_type")
     crime_threat = threat in {"CRIME", "PREDATORY"} and (
-        crime_policy is None
-        or (
-            isinstance(allowed_threats, list)
-            and threat in allowed_threats
-        )
+        crime_policy is None or (isinstance(allowed_threats, list) and threat in allowed_threats)
     )
 
     overrides = channel_episode_overrides(channel)
@@ -383,9 +394,7 @@ def candidate_checks(
         profile.get("primary_twist"),
     }
     structure_policy = all(
-        not isinstance(value, str)
-        or value not in DEFAULT_REJECTED_STRUCTURES
-        or value in overrides
+        not isinstance(value, str) or value not in DEFAULT_REJECTED_STRUCTURES or value in overrides
         for value in structure_values
     )
 
@@ -394,37 +403,39 @@ def candidate_checks(
     required_theme = (
         True
         if theme_policy is None or theme_policy.get("require_episode_theme") is not True
-        else isinstance(allowed_themes, list)
-        and profile.get("episode_theme") in allowed_themes
+        else isinstance(allowed_themes, list) and profile.get("episode_theme") in allowed_themes
     )
-    source_truth = (
-        profile.get("source_truth_classification")
-        == require_source_truth_classification(production_config)
-    )
+    source_truth = profile.get(
+        "source_truth_classification"
+    ) == require_source_truth_classification(production_config)
     v2_policy_applies = crime_v2_candidate_policy_applies(production_config, channel)
+    explicit_crime_applies = explicit_crime_policy(channel) is not None
+    explicit_crime_issues = validate_candidate_crime_event(channel, candidate)
     checks_bool = {
         "policy_profile": profile_matches_selection(selection, profile),
         "channel_genre": channel_genre,
-        "crime_threat": not v2_policy_applies or crime_threat,
-        "trusted_domain": not v2_policy_applies
-        or profile.get("trusted_domain") in TRUSTED_DOMAINS,
+        "crime_threat": (
+            not explicit_crime_issues
+            if explicit_crime_applies
+            else not v2_policy_applies or crime_threat
+        ),
+        "trusted_domain": not v2_policy_applies or profile.get("trusted_domain") in TRUSTED_DOMAINS,
         "safe_domain_betrayal": not v2_policy_applies
         or profile.get("safe_domain_betrayal") != "ABSENT",
         "responsible_agent": not v2_policy_applies
         or profile.get("responsible_agent_structure") not in {"NO_CULPRIT", "SYSTEMIC_CAUSE"},
         "structure_policy": not v2_policy_applies or structure_policy,
-        "technical_final_proof": not v2_policy_applies
-        or technical_final_proof_absent(profile),
+        "technical_final_proof": not v2_policy_applies or technical_final_proof_absent(profile),
         "required_theme": not v2_policy_applies or required_theme,
         "locked_constraints": locked_constraints_pass(production_config, selection),
         "project_constraints": project_constraints_pass(project_constraints, selection),
         "source_truth": source_truth,
         "production_feasibility": production_feasibility_passes(profile, project_constraints),
-        "novelty": isinstance(candidate_id, str)
-        and novelty_results.get(candidate_id) == "PASS",
+        "novelty": isinstance(candidate_id, str) and novelty_results.get(candidate_id) == "PASS",
     }
     checks = {name: "PASS" if passed else "FAIL" for name, passed in checks_bool.items()}
     reasons = [name.upper() for name, passed in checks_bool.items() if not passed]
+    reasons.extend(issue["code"] for issue in explicit_crime_issues if issue["code"] not in reasons)
     return checks, reasons
 
 
@@ -433,6 +444,25 @@ def build_candidate_eligibility(
     project_constraints: Mapping[str, object],
     channel: Mapping[str, object],
     variations: Mapping[str, object],
+    novelty_precheck: Mapping[str, object],
+) -> dict[str, object]:
+    """Brief가 없는 Legacy Candidate 적격성 Artifact를 생성한다."""
+    return build_candidate_eligibility_bound(
+        production_config,
+        project_constraints,
+        channel,
+        variations,
+        None,
+        novelty_precheck,
+    )
+
+
+def build_candidate_eligibility_bound(
+    production_config: Mapping[str, object],
+    project_constraints: Mapping[str, object],
+    channel: Mapping[str, object],
+    variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     novelty_precheck: Mapping[str, object],
 ) -> dict[str, object]:
     """현재 입력에서 결정론적 Candidate 적격성 Artifact를 생성한다."""
@@ -471,13 +501,16 @@ def build_candidate_eligibility(
     return {
         "$schema": "../../../STANDARD/schemas/candidate_eligibility.schema.json",
         "schema_family": "candidate-eligibility",
-        "schema_version": "1.0.0",
+        "schema_version": (
+            "1.1.0" if explicit_crime_policy(channel) is not None else "1.0.0"
+        ),
         "project_id": project_id,
         "input_hashes": eligibility_input_hashes(
             production_config,
             project_constraints,
             channel,
             variations,
+            candidate_event_briefs,
             novelty_precheck,
         ),
         "result": "PASS" if eligible_ids else "FAIL",
@@ -491,15 +524,17 @@ def validate_candidate_eligibility(
     project_constraints: Mapping[str, object],
     channel: Mapping[str, object],
     variations: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     novelty_precheck: Mapping[str, object],
     eligibility: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """저장된 적격성 Artifact가 Core 재계산 결과와 같은지 검증한다."""
-    expected = build_candidate_eligibility(
+    expected = build_candidate_eligibility_bound(
         production_config,
         project_constraints,
         channel,
         variations,
+        candidate_event_briefs,
         novelty_precheck,
     )
     if dict(eligibility) == expected:

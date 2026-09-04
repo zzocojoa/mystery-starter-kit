@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/character-state-transitions-1.0.0.json",
+  "title": "Flexible Character State Transitions",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_family",
+    "schema_version",
+    "project_id",
+    "narrative_path",
+    "transitions"
+  ],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_family": {"const": "character-state-transitions"},
+    "schema_version": {"const": "1.0.0"},
+    "project_id": {"type": "string", "pattern": "^PRJ-[0-9]{3,}$"},
+    "narrative_path": {
+      "enum": [
+        "SURVIVOR_RECOVERY",
+        "FATALITY",
+        "WITNESS_CENTERED",
+        "NON_RECOVERY"
+      ]
+    },
+    "transitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/transition"}
+    }
+  },
+  "$defs": {
+    "nonBlankText": {"type": "string", "pattern": "\\S"},
+    "referenceList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$"}
+    },
+    "triggers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact_ids", "clue_ids", "crime_event_ids"],
+      "properties": {
+        "fact_ids": {"$ref": "#/$defs/referenceList"},
+        "clue_ids": {"$ref": "#/$defs/referenceList"},
+        "crime_event_ids": {"$ref": "#/$defs/referenceList"}
+      },
+      "anyOf": [
+        {"properties": {"fact_ids": {"minItems": 1}}},
+        {"properties": {"clue_ids": {"minItems": 1}}},
+        {"properties": {"crime_event_ids": {"minItems": 1}}}
+      ]
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transition_id",
+        "order",
+        "character_id",
+        "scope_type",
+        "scope_id",
+        "state_before",
+        "state_after",
+        "triggers",
+        "change_category"
+      ],
+      "properties": {
+        "transition_id": {"type": "string", "pattern": "^CSTATE-[0-9]{3,}$"},
+        "order": {"type": "integer", "minimum": 1},
+        "character_id": {"type": "string", "pattern": "^CHAR-[0-9]{2,}$"},
+        "scope_type": {"enum": ["BEAT", "SCENE"]},
+        "scope_id": {"type": "string"},
+        "state_before": {"$ref": "#/$defs/nonBlankText"},
+        "state_after": {"$ref": "#/$defs/nonBlankText"},
+        "triggers": {"$ref": "#/$defs/triggers"},
+        "change_category": {
+          "enum": [
+            "INFORMATION",
+            "EMOTION",
+            "RELATIONSHIP",
+            "RISK",
+            "CHOICE",
+            "BELIEF"
+          ]
+        },
+        "recovery_function": {"const": "AGENCY_RECOVERY"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"scope_type": {"const": "BEAT"}},
+            "required": ["scope_type"]
+          },
+          "then": {"properties": {"scope_id": {"pattern": "^BEAT-[A-Z0-9_-]+$"}}},
+          "else": {"properties": {"scope_id": {"pattern": "^SCN-[A-Z0-9_-]+$"}}}
+        }
+      ]
+    }
+  }
+}

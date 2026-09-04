@@ -1,0 +1,155 @@
+{
+  "$schema": "../../../../STANDARD/schemas/broadcast_readable_output_profile_2_0.schema.json",
+  "schema_family": "broadcast-readable-output-profile",
+  "schema_version": "2.0.0",
+  "profile_id": "BROADCAST_READABLE_SCRIPT",
+  "profile_version": "2.0.0",
+  "locale": "ko-KR",
+  "source_style_contract": {
+    "ordering_source": "PRESENTATION_PLAN_GLOBAL",
+    "unit_text_policy": "CANONICAL_EXACT",
+    "character_name_source": "CHARACTERS_NAME",
+    "relationship_source": "RELATIONSHIPS_DISPLAY_SUMMARY",
+    "panel_name_source": "PANEL_CAST_DISPLAY_NAME",
+    "scene_start_context_position": "BEFORE_FIRST_SCENE_SEGMENT",
+    "retrospective_position": "AFTER_LAST_SCENE_SEGMENT",
+    "scene_reentry_policy": "CONTINUATION_HEADING",
+    "internal_identifier_visibility": "HIDDEN",
+    "unknown_identity_policy": "FAIL"
+  },
+  "document_contract": {
+    "title_template": "# 「{title}」 방송용 가독형 스크립트",
+    "required_headings": [
+      "정리 기준",
+      "등장인물",
+      "패널",
+      "방송 대본"
+    ],
+    "organizing_principle_templates": [
+      "- `final_script.md`는 기계형 Broadcast Master로 별도 유지한다.",
+      "- Drama·Narration은 Canonical Screenplay Unit 원문을 보존한다.",
+      "- Panel은 Canonical Reaction Turn 원문과 전역 Presentation 순서를 보존한다.",
+      "- 내부 Marker·Canonical ID는 사람용 문서에 표시하지 않는다."
+    ],
+    "character_table_columns": [
+      "인물",
+      "역할",
+      "관계"
+    ],
+    "character_table_row_template": "| {name} | {role} | {relationships} |",
+    "character_table_divider": "|---|---|---|",
+    "relationship_separator": "<br>",
+    "panel_table_columns": [
+      "패널",
+      "역할"
+    ],
+    "panel_table_row_template": "| {display_name} | {voice_style} |",
+    "panel_table_divider": "|---|---|",
+    "scene_heading_template": "## 장면 {order}. {title}",
+    "scene_resume_heading_template": "### 장면 {order} 재개. {title}",
+    "scene_reference_template": "장면 {order}. {title}",
+    "context_entry_template": "{label} — {value}",
+    "context_separator": " / ",
+    "context_labels": {
+      "location_description": "장소",
+      "time_description": "시간",
+      "previous_scene_id": "직전 장면",
+      "opening_character_state": "시작 인물 상태",
+      "opening_emotional_state": "시작 감정 상태",
+      "audience_information_gain": "관객 정보 획득",
+      "background_music_description": "배경 음악",
+      "sound_cues": "환경 음향",
+      "action_summary": "행동 개요",
+      "retrospective_meaning": "반전 후 의미"
+    },
+    "no_previous_scene_label": "없음",
+    "context_groups": [
+      {
+        "group_id": "SITUATION",
+        "position": "SCENE_START",
+        "template": "*[상황 설명: {content}]*",
+        "fields": [
+          "location_description",
+          "time_description",
+          "previous_scene_id",
+          "opening_character_state",
+          "opening_emotional_state",
+          "audience_information_gain"
+        ],
+        "omit_when_empty": false
+      },
+      {
+        "group_id": "SOUND_ACTION",
+        "position": "SCENE_START",
+        "template": "*[음향·행동 설명: {content}]*",
+        "fields": [
+          "background_music_description",
+          "sound_cues",
+          "action_summary"
+        ],
+        "omit_when_empty": false
+      },
+      {
+        "group_id": "RETROSPECTIVE",
+        "position": "SCENE_END",
+        "template": "*[반전 후 의미: {content}]*",
+        "fields": [
+          "retrospective_meaning"
+        ],
+        "omit_when_empty": true
+      }
+    ]
+  },
+  "render_contract": {
+    "dialogue_template": "**{speaker_name}**{delivery_block}\n{text}",
+    "character_authored_template": "**{speaker_name}({label})**{delivery_block}\n{text}",
+    "direction_template": "*[지문: {text}]*",
+    "sound_template": "*[음향: {text}]*",
+    "screen_text_template": "**화면 문구**\n{text}",
+    "delivery_template": " *({instruction})*",
+    "delivery_line_separator": "<br>",
+    "panel_section_heading_template": "### 패널 반응 {index}",
+    "panel_turn_template": "**{display_name}**\n{spoken_line}",
+    "special_unit_labels": {
+      "NARRATION": "내레이션",
+      "INNER_MONOLOGUE": "내면 독백",
+      "HALLUCINATION": "환각",
+      "MESSAGE": "메시지",
+      "CHAT": "채팅",
+      "NOTE": "쪽지",
+      "RECORDING": "녹음"
+    },
+    "show_internal_reaction_function": false
+  },
+  "segment_contract": {
+    "supported_segment_types": [
+      "DRAMA",
+      "NARRATION",
+      "PANEL_REACTION"
+    ],
+    "unsupported_segment_policy": "FAIL"
+  },
+  "visibility_contract": {
+    "forbidden_visible_prefixes": [
+      "SCN-",
+      "SEG-",
+      "UNIT-",
+      "CHAR-",
+      "PANEL-",
+      "RSEG-",
+      "FACT-",
+      "CLUE-",
+      "HARM-",
+      "CDEV-",
+      "REVEAL-"
+    ],
+    "forbidden_html_comment_tokens": [
+      "<!--",
+      "-->"
+    ],
+    "original_fiction_forbidden_uncertainty_markers": [
+      "[청취 불명확]",
+      "[화자 불명확]"
+    ]
+  }
+}

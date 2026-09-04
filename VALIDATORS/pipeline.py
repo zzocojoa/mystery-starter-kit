@@ -5,9 +5,29 @@ from copy import deepcopy
 from pathlib import Path
 from typing import cast
 
+from VALIDATORS.broadcast_readable import (
+    broadcast_readable_script_issues,
+    production_broadcast_readable_copy_issues,
+    production_readable_deliverable_issues,
+    validate_broadcast_readable_report,
+)
+from VALIDATORS.broadcast_readable_v2 import (
+    build_broadcast_readable_report_v2,
+    validate_broadcast_readable_report_v2,
+)
 from VALIDATORS.candidate_approval import validate_candidate_approval
 from VALIDATORS.candidate_eligibility import validate_candidate_eligibility
-from VALIDATORS.candidate_evaluation import validate_candidate_evaluation
+from VALIDATORS.candidate_evaluation import (
+    document_sha256,
+    validate_candidate_evaluation,
+)
+from VALIDATORS.candidate_event_briefs import (
+    approved_event_brief,
+    candidate_event_brief_hashes,
+    canonical_json_hash,
+    validate_candidate_event_briefs,
+    validate_candidate_event_case_projection,
+)
 from VALIDATORS.candidate_projection import (
     validate_approved_candidate_projection,
     validate_final_story_constraints,
@@ -19,15 +39,33 @@ from VALIDATORS.channel_policy_v2 import (
     validate_channel_policy_v2,
 )
 from VALIDATORS.channel_validation import validate_channel_consistency
+from VALIDATORS.character_state_transitions import (
+    validate_character_state_transitions,
+)
+from VALIDATORS.clue_recontextualization import validate_clue_recontextualization
 from VALIDATORS.compatibility import channel_dna_sha256, parse_semantic_version
 from VALIDATORS.continuity import validate_continuity
+from VALIDATORS.crime_event import (
+    explicit_crime_policy,
+    validate_channel_crime_evidence,
+    validate_crime_event_contract,
+    validate_crime_event_traceability,
+    validate_crime_role_bindings,
+    validate_crime_script_realization_report,
+    validate_scene_crime_realization,
+    validate_script_crime_realization,
+    validate_truth_basis,
+)
 from VALIDATORS.dependency import (
     artifact_required_for_project,
     dependency_artifacts,
 )
 from VALIDATORS.editorial import (
     editorial_artifact_hashes,
+    explicit_crime_runtime_evidence_issues,
     runtime_evidence_issues,
+    validate_editorial_crime_assessments,
+    validate_editorial_realization_evidence,
     validate_editorial_review,
 )
 from VALIDATORS.exceptions import (
@@ -53,11 +91,32 @@ from VALIDATORS.production_footprint import (
     validate_production_footprint,
 )
 from VALIDATORS.project_constraints import project_constraint_compiler_issues
+from VALIDATORS.reenactment_export import (
+    ScreenplayDerivedOutputs,
+    screenplay_derived_output_issues,
+    validate_reenactment_export_report,
+)
+from VALIDATORS.reenactment_runtime import reenactment_runtime_evidence_issues
 from VALIDATORS.reference_validation import (
     build_story_element_profile,
     validate_reference_collision,
 )
+from VALIDATORS.scene_realization import (
+    validate_channel_realization_evidence,
+    validate_narration_realization,
+    validate_panel_design_realization,
+    validate_panel_script_density,
+    validate_primary_story_engine,
+    validate_psychological_arc,
+    validate_scene_coverage,
+    validate_script_realization,
+    validate_script_realization_report,
+)
 from VALIDATORS.schema_validation import collect_schema_errors
+from VALIDATORS.screenplay_units import (
+    validate_screenplay_unit_references,
+    validate_screenplay_units,
+)
 from VALIDATORS.source_truth import (
     source_truth_configuration_issues,
     source_truth_requires_evidence,
@@ -258,6 +317,27 @@ def optional_schema_issues(
         schema,
         artifact_path,
     )
+
+
+def broadcast_readable_report_schema(
+    report: Mapping[str, object],
+    presentation_schemas: Mapping[str, Mapping[str, object]],
+) -> Mapping[str, object]:
+    """Report Schema Version에 맞는 Legacy·Current Schema를 반환한다."""
+    schema_version = report.get("schema_version")
+    schema_keys = {
+        "1.0.0": "broadcast_readable_report_1_0",
+        "2.0.0": "broadcast_readable_report_2_0",
+        "2.1.0": "broadcast_readable_report_2_1",
+    }
+    schema_key = schema_keys.get(schema_version) if isinstance(schema_version, str) else None
+    schema = presentation_schemas.get(schema_key) if schema_key is not None else None
+    if not isinstance(schema, Mapping):
+        raise ConfigurationError(
+            "Broadcast Readable Report Schema Version이 등록되지 않았습니다: "
+            f"schema_version={schema_version}"
+        )
+    return schema
 
 
 def required_channel_artifact_issues(
@@ -552,6 +632,7 @@ def validate_variation_gate(
 
 def validate_variation_precheck(
     candidates_document: Mapping[str, object],
+    candidate_event_briefs: Mapping[str, object] | None,
     precheck_document: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """Novelty Precheck가 전체 후보와 현재 승인 후보를 PASS했는지 검사한다."""
@@ -565,6 +646,20 @@ def validate_variation_precheck(
             make_pipeline_issue(
                 "STALE_VARIATION_NOVELTY_PRECHECK",
                 "Novelty Precheck가 현재 승인 후보에서 생성되지 않았습니다.",
+                "08_QA/novelty_precheck.json",
+                {},
+            )
+        )
+    if candidate_event_briefs is not None and (
+        precheck_document.get("candidate_event_briefs_hash")
+        != canonical_json_hash(candidate_event_briefs)
+        or precheck_document.get("candidate_event_brief_hashes")
+        != candidate_event_brief_hashes(candidate_event_briefs)
+    ):
+        issues.append(
+            make_pipeline_issue(
+                "STALE_CANDIDATE_EVENT_BRIEF_NOVELTY_PRECHECK",
+                "Novelty Precheck가 현재 Candidate Event Brief에서 생성되지 않았습니다.",
                 "08_QA/novelty_precheck.json",
                 {},
             )
@@ -749,6 +844,17 @@ def production_text_issues(
         or "production_expert_analysis_script" in artifacts
     ):
         artifact_names.append("production_expert_analysis_script")
+    readable_definition = dependency_artifacts(graph)["production_broadcast_readable_script"]
+    if (
+        artifact_required_for_project(
+            readable_definition,
+            channel,
+            production_config,
+            artifacts,
+        )
+        or "production_broadcast_readable_script" in artifacts
+    ):
+        artifact_names.append("production_broadcast_readable_script")
     issues: list[ValidationIssue] = []
     for artifact_name in artifact_names:
         content = artifact_text(artifacts, artifact_name)
@@ -784,9 +890,20 @@ def run_production_validation(
     project_manifest = artifact_document(artifacts, "project_manifest")
     compatibility = artifact_document(artifacts, "compatibility_report")
     production_config = artifact_document(artifacts, "production_config")
+    broadcast_readable_config = optional_artifact_document(
+        artifacts,
+        "broadcast_readable_config",
+    )
     project_constraints = artifact_document(artifacts, "project_constraints")
     reference_profile = artifact_document(artifacts, "reference_profile")
     variation_candidates = artifact_document(artifacts, "variation_candidates")
+    candidate_event_briefs = optional_artifact_document(
+        artifacts,
+        "candidate_event_briefs",
+    )
+    candidate_event_brief_schema = presentation_schemas.get("candidate_event_briefs")
+    clue_matrix_schema = presentation_schemas.get("clue_matrix")
+    character_state_transition_schema = presentation_schemas.get("character_state_transitions")
     candidate_eligibility = artifact_document(artifacts, "candidate_eligibility")
     candidate_evaluation = artifact_document(artifacts, "candidate_evaluation")
     candidate_approval = artifact_document(artifacts, "candidate_approval")
@@ -795,6 +912,10 @@ def run_production_validation(
     fingerprint = artifact_document(artifacts, "story_fingerprint")
     case_input = artifact_document(artifacts, "case_input")
     facts = artifact_document(artifacts, "facts")
+    crime_event_contract = optional_artifact_document(
+        artifacts,
+        "crime_event_contract",
+    )
     sources = artifact_document(artifacts, "sources")
     claim_evidence = artifact_document(artifacts, "claim_evidence")
     verified_fact_ledger = optional_artifact_document(artifacts, "verified_fact_ledger")
@@ -812,6 +933,11 @@ def run_production_validation(
     causal_graph = artifact_document(artifacts, "causal_graph")
     beat_sheet = artifact_document(artifacts, "beat_sheet")
     retention_plan = artifact_document(artifacts, "retention_plan")
+    psychological_arc = optional_artifact_document(artifacts, "psychological_arc")
+    character_state_transitions = optional_artifact_document(
+        artifacts,
+        "character_state_transitions",
+    )
     scene_cards = artifact_document(artifacts, "scene_cards")
     production_footprint = optional_artifact_document(artifacts, "production_footprint")
     panel_cast = artifact_document(artifacts, "panel_cast")
@@ -826,6 +952,39 @@ def run_production_validation(
     )
     draft_script = artifact_text(artifacts, "draft_script")
     final_script = artifact_text(artifacts, "final_script")
+    screenplay_units = optional_artifact_document(artifacts, "screenplay_units")
+    broadcast_readable_script = optional_artifact_text(
+        artifacts,
+        "broadcast_readable_script",
+    )
+    broadcast_readable_report = optional_artifact_document(
+        artifacts,
+        "broadcast_readable_report",
+    )
+    reenactment_character_script = optional_artifact_text(
+        artifacts,
+        "reenactment_character_script",
+    )
+    reenactment_export_report = optional_artifact_document(
+        artifacts,
+        "reenactment_export_report",
+    )
+    production_reenactment_character_script = optional_artifact_text(
+        artifacts,
+        "production_reenactment_character_script",
+    )
+    production_broadcast_readable_script = optional_artifact_text(
+        artifacts,
+        "production_broadcast_readable_script",
+    )
+    script_realization_report = optional_artifact_document(
+        artifacts,
+        "script_realization_report",
+    )
+    channel_consistency_report = optional_artifact_document(
+        artifacts,
+        "channel_consistency_report",
+    )
     editorial_review = artifact_document(artifacts, "editorial_review")
     production_manifest = optional_artifact_document(artifacts, "production_manifest")
     project_id = production_config.get("project_id")
@@ -840,9 +999,7 @@ def run_production_validation(
             source_subjects,
             verified_event_ledger,
         )
-        if source_truth_requires_evidence(
-            production_config.get("source_truth_classification")
-        )
+        if source_truth_requires_evidence(production_config.get("source_truth_classification"))
         else []
     )
     gate_00 = [
@@ -872,6 +1029,31 @@ def run_production_validation(
     ]
     gate_01 = [
         *validate_variation_gate(variation_candidates, channel),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("candidate_event_briefs",),
+        ),
+        *(
+            optional_schema_issues(
+                artifacts,
+                "candidate_event_briefs",
+                candidate_event_brief_schema,
+                "00_PROJECT/candidate_event_briefs.json",
+            )
+            if candidate_event_brief_schema is not None
+            else []
+        ),
+        *(
+            validate_candidate_event_briefs(
+                variation_candidates,
+                candidate_event_briefs,
+                explicit_crime_policy(channel),
+            )
+            if "candidate_event_briefs" in artifacts
+            else []
+        ),
         *schema_issues(
             candidate_eligibility,
             presentation_schemas["candidate_eligibility"],
@@ -894,6 +1076,7 @@ def run_production_validation(
         ),
         *validate_candidate_evaluation(
             variation_candidates,
+            candidate_event_briefs if "candidate_event_briefs" in artifacts else None,
             candidate_evaluation,
             novelty_precheck,
             candidate_eligibility,
@@ -903,18 +1086,24 @@ def run_production_validation(
             project_constraints,
             channel,
             variation_candidates,
+            candidate_event_briefs if "candidate_event_briefs" in artifacts else None,
             novelty_precheck,
             candidate_eligibility,
         ),
         *validate_candidate_approval(
             production_config,
             variation_candidates,
+            candidate_event_briefs if "candidate_event_briefs" in artifacts else None,
             novelty_precheck,
             candidate_eligibility,
             candidate_evaluation,
             candidate_approval,
         ),
-        *validate_variation_precheck(variation_candidates, novelty_precheck),
+        *validate_variation_precheck(
+            variation_candidates,
+            candidate_event_briefs if "candidate_event_briefs" in artifacts else None,
+            novelty_precheck,
+        ),
         *variation_runtime_binding_issues(
             production_config,
             variation_candidates,
@@ -929,11 +1118,13 @@ def run_production_validation(
         *validate_user_case_constraints(production_config, story_document),
         *validate_reference_profile_alignment(story_document, reference_profile),
         *validate_variation_alignment(variation_candidates, story_document),
+        *validate_primary_story_engine(channel, story_document, case_input),
         *validate_approved_candidate_projection(
             production_config,
             variation_candidates,
             presentation_schemas["candidate_projection_contract"],
             {"story_dna": story_document},
+            channel,
         ),
     ]
     if source_truth_requires_evidence(production_config.get("source_truth_classification")):
@@ -952,6 +1143,27 @@ def run_production_validation(
             "01_CASE/case_input.json",
         ),
         *nonempty_list_issues(facts, "facts", "01_CASE/facts.json"),
+        *validate_candidate_event_case_projection(
+            variation_candidates,
+            candidate_event_briefs,
+            case_input,
+            facts,
+        ),
+        *(
+            validate_truth_basis(
+                production_config,
+                approved_brief,
+                facts,
+            )
+            if (
+                approved_brief := approved_event_brief(
+                    variation_candidates,
+                    candidate_event_briefs,
+                )
+            )
+            is not None
+            else []
+        ),
         *required_channel_artifact_issues(
             artifacts,
             production_config,
@@ -1013,11 +1225,17 @@ def run_production_validation(
                 "story_dna": story_document,
                 "case_input": case_input,
                 **(
+                    {"crime_event_contract": artifacts["crime_event_contract"]}
+                    if "crime_event_contract" in artifacts
+                    else {}
+                ),
+                **(
                     {"crime_psychology": artifacts["crime_psychology"]}
                     if "crime_psychology" in artifacts
                     else {}
                 ),
             },
+            channel,
         )
     )
     gate_04 = [
@@ -1032,6 +1250,27 @@ def run_production_validation(
             "knowledge_events",
             "02_CHARACTER/knowledge_matrix.json",
         ),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("crime_event_contract",),
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "crime_event_contract",
+            presentation_schemas["crime_event_contract"],
+            "01_CASE/crime_event_contract.json",
+        ),
+        *validate_crime_event_contract(
+            channel,
+            production_config,
+            variation_candidates,
+            crime_event_contract,
+            facts,
+            candidate_event_briefs,
+        ),
+        *validate_crime_role_bindings(crime_event_contract, characters),
     ]
     if source_truth_requires_evidence(production_config.get("source_truth_classification")):
         gate_04.extend(source_truth_bundle_issues)
@@ -1067,6 +1306,15 @@ def run_production_validation(
             "03_TIMELINE/audience_belief_timeline.json",
         ),
         *nonempty_list_issues(clue_matrix, "clues", "04_MYSTERY/clue_matrix.json"),
+        *(
+            schema_issues(
+                clue_matrix,
+                clue_matrix_schema,
+                "04_MYSTERY/clue_matrix.json",
+            )
+            if clue_matrix_schema is not None
+            else []
+        ),
         *nonempty_list_issues(
             hypothesis_ledger,
             "hypotheses",
@@ -1075,6 +1323,15 @@ def run_production_validation(
         *nonempty_list_issues(causal_graph, "nodes", "04_MYSTERY/causal_graph.json"),
         *nonempty_list_issues(causal_graph, "edges", "04_MYSTERY/causal_graph.json"),
         *validate_causal_graph(causal_graph),
+        *validate_crime_event_traceability(
+            crime_event_contract,
+            characters,
+            case_input,
+            facts,
+            actual_timeline,
+            causal_graph,
+            viewer_timeline,
+        ),
         *validate_approved_candidate_projection(
             production_config,
             variation_candidates,
@@ -1089,6 +1346,7 @@ def run_production_validation(
                     else {}
                 ),
             },
+            channel,
         ),
     ]
     if source_truth_requires_evidence(production_config.get("source_truth_classification")):
@@ -1109,6 +1367,19 @@ def run_production_validation(
             "checkpoints",
             "05_STORY/retention_plan.json",
         ),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("psychological_arc",),
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "psychological_arc",
+            presentation_schemas["psychological_arc"],
+            "05_STORY/psychological_arc.json",
+        ),
+        *validate_psychological_arc(channel, psychological_arc),
     ]
     gate_07 = [
         *nonempty_list_issues(scene_cards, "scenes", "06_SCENE/scene_cards.json"),
@@ -1131,7 +1402,17 @@ def run_production_validation(
             artifacts,
             production_config,
             channel,
-            ("expert_segments",),
+            ("character_state_transitions", "expert_segments"),
+        ),
+        *(
+            optional_schema_issues(
+                artifacts,
+                "character_state_transitions",
+                character_state_transition_schema,
+                "05_STORY/character_state_transitions.json",
+            )
+            if character_state_transition_schema is not None
+            else []
         ),
         *optional_schema_issues(
             artifacts,
@@ -1150,6 +1431,30 @@ def run_production_validation(
             channel,
             production_config,
         ),
+        *validate_clue_recontextualization(clue_matrix, scene_cards),
+        *validate_character_state_transitions(
+            production_config,
+            channel,
+            character_state_transitions,
+            characters,
+            facts,
+            clue_matrix,
+            crime_event_contract,
+            beat_sheet,
+            scene_cards,
+        ),
+        *validate_scene_coverage(
+            channel,
+            psychological_arc,
+            scene_cards,
+            presentation_plan,
+        ),
+        *validate_narration_realization(channel, presentation_plan),
+        *validate_panel_design_realization(
+            channel,
+            reaction_segments,
+            presentation_plan,
+        ),
         *validate_production_footprint(
             project_constraints,
             production_footprint,
@@ -1157,6 +1462,12 @@ def run_production_validation(
             characters,
             actual_timeline,
             variation_candidates,
+        ),
+        *validate_scene_crime_realization(
+            channel,
+            crime_event_contract,
+            scene_cards,
+            presentation_plan,
         ),
     ]
     gate_08 = [
@@ -1180,7 +1491,156 @@ def run_production_validation(
             draft_script,
             final_script,
         ),
+        *validate_script_realization(
+            channel,
+            psychological_arc,
+            scene_cards,
+            presentation_plan,
+            final_script,
+        ),
+        *validate_script_crime_realization(
+            channel,
+            crime_event_contract,
+            scene_cards,
+            presentation_plan,
+            reaction_segments,
+            viewer_timeline,
+            final_script,
+        ),
+        *validate_panel_script_density(
+            channel,
+            reaction_segments,
+            panel_reaction_script,
+        ),
     ]
+    validated_readable_output_profile: Mapping[str, object] | None = None
+    validated_readable_profile_hash: str | None = None
+    if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
+        output_profile = presentation_schemas.get("reenactment_output_profile")
+        readable_output_profile = presentation_schemas.get("broadcast_readable_output_profile")
+        readable_output_profile_binding = presentation_schemas.get(
+            "broadcast_readable_output_profile_binding"
+        )
+        readable_profile_hash = (
+            readable_output_profile_binding.get("sha256")
+            if isinstance(readable_output_profile_binding, Mapping)
+            else None
+        )
+        if not isinstance(output_profile, Mapping):
+            raise ConfigurationError("검증된 Reenactment Output Profile 입력이 필요합니다.")
+        if (readable_output_profile is None) != (readable_profile_hash is None):
+            raise ConfigurationError(
+                "Broadcast Readable Output Profile과 Hash 결속이 불완전합니다."
+            )
+        if readable_output_profile is not None:
+            if not isinstance(readable_output_profile, Mapping) or not isinstance(
+                readable_profile_hash,
+                str,
+            ):
+                raise ConfigurationError(
+                    "검증된 Broadcast Readable Output Profile 입력이 필요합니다."
+                )
+            validated_readable_output_profile = readable_output_profile
+            validated_readable_profile_hash = readable_profile_hash
+        derived_outputs = ScreenplayDerivedOutputs(
+            drama_script=drama_script,
+            narration_script=narration_script,
+            panel_reaction_script=panel_reaction_script,
+            draft_script=draft_script,
+            final_script=final_script,
+            reenactment_character_script=reenactment_character_script,
+        )
+        if expert_analysis_script:
+            derived_outputs["expert_analysis_script"] = expert_analysis_script
+        gate_08.extend(
+            required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                (
+                    "screenplay_units",
+                    "reenactment_character_script",
+                    "broadcast_readable_script",
+                ),
+            )
+        )
+        gate_08.extend(
+            schema_issues(
+                screenplay_units,
+                presentation_schemas["screenplay_units"],
+                "07_SCRIPT/screenplay_units.json",
+            )
+        )
+        gate_08.extend(validate_screenplay_units(screenplay_units))
+        gate_08.extend(
+            validate_screenplay_unit_references(
+                screenplay_units,
+                facts,
+                clue_matrix,
+                crime_event_contract,
+                characters,
+                presentation_plan,
+            )
+        )
+        gate_08.extend(
+            screenplay_derived_output_issues(
+                screenplay_units,
+                presentation_plan,
+                reaction_segments,
+                crime_event_contract,
+                characters,
+                relationships,
+                output_profile,
+                derived_outputs,
+            )
+        )
+        if not reenactment_character_script.strip():
+            gate_08.append(
+                make_pipeline_issue(
+                    "REENACTMENT_SCRIPT_EMPTY",
+                    "재연용 인물별 대사 Script가 비어 있습니다.",
+                    "07_SCRIPT/reenactment_character_script.md",
+                    {},
+                )
+            )
+        if (
+            validated_readable_output_profile is not None
+            and validated_readable_profile_hash is not None
+        ):
+            if validated_readable_output_profile.get("profile_version") == "2.0.0":
+                readable_v2_report = build_broadcast_readable_report_v2(
+                    broadcast_readable_config,
+                    screenplay_units,
+                    characters,
+                    relationships,
+                    panel_cast,
+                    reaction_segments,
+                    presentation_plan,
+                    final_script,
+                    validated_readable_output_profile,
+                    validated_readable_profile_hash,
+                    broadcast_readable_script,
+                )
+                readable_v2_issues = readable_v2_report.get("issues")
+                if not isinstance(readable_v2_issues, list):
+                    raise ConfigurationError(
+                        "Broadcast Readable v2 Report issues 배열이 필요합니다."
+                    )
+                gate_08.extend(cast(list[ValidationIssue], readable_v2_issues))
+            else:
+                gate_08.extend(
+                    broadcast_readable_script_issues(
+                        production_config,
+                        screenplay_units,
+                        characters,
+                        panel_cast,
+                        reaction_segments,
+                        presentation_plan,
+                        validated_readable_output_profile,
+                        validated_readable_profile_hash,
+                        broadcast_readable_script,
+                    )
+                )
     continuity_report = validate_continuity(
         production_config,
         characters,
@@ -1194,7 +1654,127 @@ def run_production_validation(
     continuity_issues = continuity_report.get("issues")
     if not isinstance(continuity_issues, list):
         raise ConfigurationError("Continuity Report issues 배열이 필요합니다.")
-    gate_09 = list(continuity_issues)
+    gate_09 = [
+        *list(continuity_issues),
+        *required_channel_artifact_issues(
+            artifacts,
+            production_config,
+            channel,
+            ("script_realization_report",),
+        ),
+        *optional_schema_issues(
+            artifacts,
+            "script_realization_report",
+            presentation_schemas["script_realization_report"],
+            "08_QA/script_realization_report.json",
+        ),
+        *validate_script_realization_report(
+            channel,
+            psychological_arc,
+            scene_cards,
+            presentation_plan,
+            final_script,
+            script_realization_report,
+        ),
+        *validate_crime_script_realization_report(
+            channel,
+            project_id,
+            crime_event_contract,
+            scene_cards,
+            presentation_plan,
+            reaction_segments,
+            viewer_timeline,
+            final_script,
+            script_realization_report,
+        ),
+    ]
+    if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
+        output_profile_binding = presentation_schemas.get("reenactment_output_profile_binding")
+        profile_hash = (
+            output_profile_binding.get("sha256")
+            if isinstance(output_profile_binding, Mapping)
+            else None
+        )
+        if not isinstance(output_profile, Mapping) or not isinstance(profile_hash, str):
+            raise ConfigurationError("검증된 Reenactment Output Profile 입력이 필요합니다.")
+        gate_09.extend(
+            required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                ("reenactment_export_report", "broadcast_readable_report"),
+            )
+        )
+        gate_09.extend(
+            schema_issues(
+                reenactment_export_report,
+                presentation_schemas["reenactment_export_report"],
+                "08_QA/reenactment_export_report.json",
+            )
+        )
+        gate_09.extend(
+            validate_reenactment_export_report(
+                reenactment_export_report,
+                production_config,
+                screenplay_units,
+                facts,
+                characters,
+                relationships,
+                crime_event_contract,
+                clue_matrix,
+                output_profile,
+                profile_hash,
+                presentation_plan,
+                reaction_segments,
+                derived_outputs,
+            )
+        )
+        if (
+            validated_readable_output_profile is not None
+            and validated_readable_profile_hash is not None
+        ):
+            gate_09.extend(
+                schema_issues(
+                    broadcast_readable_report,
+                    broadcast_readable_report_schema(
+                        broadcast_readable_report,
+                        presentation_schemas,
+                    ),
+                    "08_QA/broadcast_readable_report.json",
+                )
+            )
+            if validated_readable_output_profile.get("profile_version") == "2.0.0":
+                gate_09.extend(
+                    validate_broadcast_readable_report_v2(
+                        broadcast_readable_report,
+                        broadcast_readable_config,
+                        screenplay_units,
+                        characters,
+                        relationships,
+                        panel_cast,
+                        reaction_segments,
+                        presentation_plan,
+                        final_script,
+                        validated_readable_output_profile,
+                        validated_readable_profile_hash,
+                        broadcast_readable_script,
+                    )
+                )
+            else:
+                gate_09.extend(
+                    validate_broadcast_readable_report(
+                        broadcast_readable_report,
+                        production_config,
+                        screenplay_units,
+                        characters,
+                        panel_cast,
+                        reaction_segments,
+                        presentation_plan,
+                        validated_readable_output_profile,
+                        validated_readable_profile_hash,
+                        broadcast_readable_script,
+                    )
+                )
     novelty_report = evaluate_novelty(fingerprint, story_history, novelty_thresholds)
     novelty_issues = novelty_report.get("issues")
     if not isinstance(novelty_issues, list):
@@ -1245,11 +1825,41 @@ def run_production_validation(
         )
     )
     gate_12.extend(
+        validate_panel_design_realization(
+            channel,
+            reaction_segments,
+            presentation_plan,
+        )
+    )
+    gate_12.extend(
+        validate_panel_script_density(
+            channel,
+            reaction_segments,
+            panel_reaction_script,
+        )
+    )
+    gate_12.extend(
+        validate_channel_realization_evidence(
+            channel,
+            psychological_arc,
+            script_realization_report,
+            channel_consistency_report,
+        )
+    )
+    gate_12.extend(
+        validate_channel_crime_evidence(
+            channel,
+            script_realization_report,
+            channel_consistency_report,
+        )
+    )
+    gate_12.extend(
         validate_approved_candidate_projection(
             production_config,
             variation_candidates,
             presentation_schemas["candidate_projection_contract"],
             artifacts,
+            channel,
         )
     )
     gate_12.extend(
@@ -1280,11 +1890,23 @@ def run_production_validation(
             editorial_artifact_hashes(artifacts),
             artifacts,
         ),
+        *validate_editorial_realization_evidence(
+            channel,
+            editorial_review,
+            psychological_arc,
+        ),
+        *validate_editorial_crime_assessments(
+            channel,
+            editorial_review,
+            crime_event_contract,
+            artifacts,
+        ),
         *runtime_evidence_issues(
             editorial_review,
             presentation_plan,
             panel_reaction_script,
         ),
+        *explicit_crime_runtime_evidence_issues(channel, editorial_review),
         *validate_final_production_footprint(
             project_constraints,
             production_footprint,
@@ -1296,6 +1918,90 @@ def run_production_validation(
             artifact_text(artifacts, "shooting_script"),
         ),
     ]
+    if production_config.get("script_source_mode") == "SCREENPLAY_UNITS":
+        gate_13.extend(
+            reenactment_runtime_evidence_issues(
+                production_config,
+                reenactment_export_report,
+                editorial_review,
+            )
+        )
+        gate_13.extend(
+            required_channel_artifact_issues(
+                artifacts,
+                production_config,
+                channel,
+                (
+                    "production_reenactment_character_script",
+                    "production_broadcast_readable_script",
+                ),
+            )
+        )
+        if (
+            not reenactment_character_script
+            or not production_reenactment_character_script
+            or reenactment_character_script != production_reenactment_character_script
+        ):
+            gate_13.append(
+                make_pipeline_issue(
+                    "PRODUCTION_REENACTMENT_COPY_MISMATCH",
+                    "Production 재연 Script가 검증된 Canonical 재연 Script와 다릅니다.",
+                    "09_PRODUCTION/reenactment_character_script.md",
+                    {},
+                )
+            )
+    if (
+        validated_readable_output_profile is not None
+        and validated_readable_profile_hash is not None
+    ):
+        if validated_readable_output_profile.get("profile_version") == "2.0.0":
+            gate_13.extend(
+                validate_broadcast_readable_report_v2(
+                    broadcast_readable_report,
+                    broadcast_readable_config,
+                    screenplay_units,
+                    characters,
+                    relationships,
+                    panel_cast,
+                    reaction_segments,
+                    presentation_plan,
+                    final_script,
+                    validated_readable_output_profile,
+                    validated_readable_profile_hash,
+                    broadcast_readable_script,
+                )
+            )
+            gate_13.extend(
+                production_readable_deliverable_issues(
+                    production_manifest,
+                    broadcast_readable_script,
+                    production_broadcast_readable_script,
+                    document_sha256(broadcast_readable_report),
+                    "BROADCAST_READABLE_SCRIPT",
+                    "2.0.0",
+                )
+            )
+        else:
+            gate_13.extend(
+                validate_broadcast_readable_report(
+                    broadcast_readable_report,
+                    production_config,
+                    screenplay_units,
+                    characters,
+                    panel_cast,
+                    reaction_segments,
+                    presentation_plan,
+                    validated_readable_output_profile,
+                    validated_readable_profile_hash,
+                    broadcast_readable_script,
+                )
+            )
+        gate_13.extend(
+            production_broadcast_readable_copy_issues(
+                broadcast_readable_script,
+                production_broadcast_readable_script,
+            )
+        )
     gate_groups = (
         gate_00,
         gate_01,

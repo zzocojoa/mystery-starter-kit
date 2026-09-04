@@ -340,6 +340,23 @@ def validate_artifact_schema_paths(
                 "Artifact Schema 파일을 찾을 수 없습니다.",
                 {"artifact_name": artifact_name, "schema": schema_reference},
             )
+        for schema_version, versioned_reference in contract.get(
+            "schema_versions",
+            {},
+        ).items():
+            versioned_path = repository_root / versioned_reference.split(
+                "#",
+                maxsplit=1,
+            )[0]
+            if not versioned_path.is_file():
+                raise configuration_error(
+                    "Versioned Artifact Schema 파일을 찾을 수 없습니다.",
+                    {
+                        "artifact_name": artifact_name,
+                        "schema_version": schema_version,
+                        "schema": versioned_reference,
+                    },
+                )
 
 
 def validate_runtime_config_paths(
