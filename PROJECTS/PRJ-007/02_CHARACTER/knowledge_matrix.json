@@ -1,0 +1,120 @@
+{
+  "project_id": "PRJ-007",
+  "knowledge_events": [
+    {
+      "character_id": "CHAR-01",
+      "fact_id": "FACT-03",
+      "learned_scene_order": 1
+    },
+    {
+      "character_id": "CHAR-01",
+      "fact_id": "FACT-04",
+      "learned_scene_order": 2
+    },
+    {
+      "character_id": "CHAR-01",
+      "fact_id": "FACT-05",
+      "learned_scene_order": 3
+    },
+    {
+      "character_id": "CHAR-01",
+      "fact_id": "FACT-06",
+      "learned_scene_order": 5
+    },
+    {
+      "character_id": "CHAR-01",
+      "fact_id": "FACT-08",
+      "learned_scene_order": 9
+    },
+    {
+      "character_id": "CHAR-01",
+      "fact_id": "FACT-11",
+      "learned_scene_order": 12
+    },
+    {
+      "character_id": "CHAR-02",
+      "fact_id": "FACT-01",
+      "learned_scene_order": 1
+    },
+    {
+      "character_id": "CHAR-02",
+      "fact_id": "FACT-04",
+      "learned_scene_order": 2
+    },
+    {
+      "character_id": "CHAR-02",
+      "fact_id": "FACT-05",
+      "learned_scene_order": 3
+    },
+    {
+      "character_id": "CHAR-02",
+      "fact_id": "FACT-09",
+      "learned_scene_order": 11
+    },
+    {
+      "character_id": "CHAR-02",
+      "fact_id": "FACT-10",
+      "learned_scene_order": 11
+    },
+    {
+      "character_id": "CHAR-03",
+      "fact_id": "FACT-02",
+      "learned_scene_order": 1
+    },
+    {
+      "character_id": "CHAR-03",
+      "fact_id": "FACT-04",
+      "learned_scene_order": 2
+    },
+    {
+      "character_id": "CHAR-03",
+      "fact_id": "FACT-05",
+      "learned_scene_order": 3
+    },
+    {
+      "character_id": "CHAR-03",
+      "fact_id": "FACT-09",
+      "learned_scene_order": 10
+    },
+    {
+      "character_id": "CHAR-04",
+      "fact_id": "FACT-02",
+      "learned_scene_order": 1
+    },
+    {
+      "character_id": "CHAR-04",
+      "fact_id": "FACT-04",
+      "learned_scene_order": 2
+    },
+    {
+      "character_id": "CHAR-04",
+      "fact_id": "FACT-05",
+      "learned_scene_order": 3
+    },
+    {
+      "character_id": "CHAR-04",
+      "fact_id": "FACT-09",
+      "learned_scene_order": 8
+    },
+    {
+      "character_id": "CHAR-05",
+      "fact_id": "FACT-06",
+      "learned_scene_order": 5
+    },
+    {
+      "character_id": "CHAR-05",
+      "fact_id": "FACT-07",
+      "learned_scene_order": 6
+    },
+    {
+      "character_id": "CHAR-05",
+      "fact_id": "FACT-08",
+      "learned_scene_order": 9
+    },
+    {
+      "character_id": "CHAR-05",
+      "fact_id": "FACT-10",
+      "learned_scene_order": 11
+    }
+  ]
+}

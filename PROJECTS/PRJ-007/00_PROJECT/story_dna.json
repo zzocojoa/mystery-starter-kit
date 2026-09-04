@@ -1,0 +1,125 @@
+{
+  "$schema": "../../../STANDARD/schemas/story_dna.schema.json",
+  "schema_family": "story-dna",
+  "schema_version": "1.3.0",
+  "project_id": "PRJ-007",
+  "story_source_mode": "ORIGINAL",
+  "story_dna": {
+    "title": "의부증의 늪",
+    "logline": "외도를 확신한 아내가 익명 감시방 운영자들과 남편을 집에 가두고 허위 자백을 강요하자, 남편은 버려진 반송표에 남긴 작은 신호로 조작된 의심의 구조를 무너뜨린다.",
+    "mystery_type": "WHAT",
+    "architecture": "ARCH-01_LINEAR_REVEAL",
+    "protagonist_role": "VICTIM",
+    "perspective": "THIRD_PERSON_LIMITED",
+    "narrator_reliability": "RELIABLE",
+    "timeline_style": "FRAGMENTED",
+    "incident_type": "CONFINEMENT",
+    "setting": "APARTMENT",
+    "setting_logic": [
+      "FAMILIAR_HOME_AS_CRIME_SCENE",
+      "LIMITED_EXIT_VISIBILITY"
+    ],
+    "culprit_structure": "MULTIPLE",
+    "primary_twist": "TW-04_RESPONSIBILITY_CONFIRMED",
+    "secondary_twists": [
+      "TW-11_EVIDENCE_WAS_FABRICATED",
+      "TW-12_HELP_SIGNAL_WAS_OVERLOOKED"
+    ],
+    "information_mechanism": [
+      "PHYSICAL_EVIDENCE_CHAIN",
+      "MESSAGE_TIME_CONTRADICTION"
+    ],
+    "clue_mechanism": [
+      "RELATIONAL",
+      "DOCUMENTARY",
+      "PHYSICAL_OBJECT"
+    ],
+    "motive_class": "RETALIATION",
+    "emotional_engine": "HOME_SAFETY_COLLAPSE",
+    "relationship_engine": {
+      "primary": "BROKEN_TRUST",
+      "secondary": [
+        "COERCIVE_INTERROGATION",
+        "COMPLICIT_ONLINE_ALLIANCE"
+      ],
+      "protagonist_counterpart_role": "SPOUSE_OFFENDER"
+    },
+    "pressure_engine": {
+      "source": "RETALIATION_RISK",
+      "escalation": "SQUEEZE",
+      "stakes": [
+        "LIBERTY",
+        "PHYSICAL_SAFETY",
+        "WORKPLACE_REPUTATION"
+      ]
+    },
+    "dramatic_engine": {
+      "primary": "SAFETY_COLLAPSE",
+      "secondary": [
+        "FALSE_ACCUSATION",
+        "EVIDENCE_RECONTEXTUALIZATION"
+      ],
+      "audience_emotion_curve": [
+        "UNEASE",
+        "ALARM",
+        "DREAD",
+        "HOPE",
+        "MORAL_CLARITY"
+      ]
+    },
+    "thematic_question": "사랑을 확인한다는 명분이 상대의 자유를 빼앗는 순간, 의심의 책임은 누구에게 돌아가야 하는가?",
+    "audience_experience": {
+      "initial_belief": "남편의 수상한 야간 일정에 숨겨진 외도가 있고 아내의 추적이 그 진실을 밝힐 것처럼 보인다.",
+      "midpoint_shift": "외도 증거가 익명 감시방에서 조작되었으며 아내의 확인 행동이 남편을 통제하는 실제 범죄로 변했음을 깨닫는다.",
+      "final_reframe": "사건의 핵심은 외도 여부가 아니라 조작을 선택한 공모자와 의심을 감금으로 실행한 아내의 책임이었다."
+    },
+    "reveal_mode": "MOTIVE_DISCLOSURE",
+    "ending_type": "BITTERSWEET",
+    "threat_type": "CRIME",
+    "trusted_domain": "ROMANTIC_PARTNER",
+    "safe_domain_expectation": "남편은 공동 주거와 배우자에게서 최소한 이동·연락의 자유와 신체적 안전을 보장받을 것으로 믿는다.",
+    "early_warning_signals": [
+      "SCHEDULE_SURVEILLANCE",
+      "PRIVATE_ITEM_SEARCH",
+      "FALSE_WITNESS_RELIANCE",
+      "SOCIAL_ISOLATION_ATTEMPT"
+    ],
+    "boundary_erosion_steps": [
+      "SECRET_LEDGER_OF_MOVEMENTS",
+      "WORKPLACE_CONTACT_IMPERSONATION",
+      "HOME_EXIT_MONITORING",
+      "FORCED_CONFESSION_DEMAND"
+    ],
+    "control_tactics": [
+      "FABRICATED_EVIDENCE",
+      "REPUTATION_THREAT",
+      "COMMUNICATION_RESTRICTION",
+      "GROUP_INTIMIDATION"
+    ],
+    "victim_exit_barriers": [
+      "HOME_EXIT_BLOCKED",
+      "DEVICE_ACCESS_DENIED",
+      "WORKPLACE_MESSAGE_IMPERSONATED",
+      "ACCOMPLICE_PRESENCE"
+    ],
+    "harm_mechanism": "아내와 공모자들이 조작 자료를 근거로 집을 심문 공간으로 만들고 남편의 이동·연락을 막아 자유, 안전감, 직장 평판을 함께 훼손한다.",
+    "responsible_agent": "아내 윤서진이 감금을 주도하고 익명 감시방 운영자 두 명이 허위 목격담 제작과 현장 통제에 가담한다.",
+    "responsible_agent_payoff": "도움 표시, 예약 메시지 시각, 수정 이력, 상충 진술이 세 사람의 분담을 밝히며 외도 의혹과 별개로 각자의 범죄 책임을 확정한다.",
+    "victim_agency_outcome": "남편 강태균은 제한된 상황에서도 반송표에 도움 표시를 남기고 외부 목격자가 확인할 수 있는 단서를 선택해 구조의 계기를 만든다.",
+    "psychological_pressure": "조작된 목격담과 직장에 퍼질 소문, 배우자의 반복 추궁이 남편에게 거짓 자백과 침묵 사이의 압박을 준다.",
+    "risk_signal_payoff": "초기의 일정 기록, 대리 연락, 출구 감시는 질투의 과장이 아니라 감금으로 이어지는 통제 신호였음이 후반에 회수된다.",
+    "source_disclosure_mode": "ORIGINAL_FICTION",
+    "clinical_label_classification": [
+      {
+        "term": "의부증",
+        "classification": "NARRATOR_OPINION",
+        "asserted_as_fact": false
+      }
+    ],
+    "expert_debrief_plan": {
+      "status": "NOT_APPLICABLE",
+      "na_reason": "ORIGINAL_FICTION이며 임상 진단이나 전문가 사실 주장을 하지 않고 범죄 행위와 책임을 극적으로 제시한다."
+    },
+    "episode_theme": "OFFENDER_RESPONSIBILITY"
+  }
+}

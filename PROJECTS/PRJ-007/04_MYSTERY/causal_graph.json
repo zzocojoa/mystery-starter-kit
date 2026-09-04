@@ -1,0 +1,220 @@
+{
+  "project_id": "PRJ-007",
+  "nodes": [
+    {
+      "node_id": "CAUSAL-01",
+      "type": "ROOT_CAUSE",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ]
+    },
+    {
+      "node_id": "CAUSAL-02",
+      "crime_event_id": "EVENT-01",
+      "type": "MOTIVE_OR_TRIGGER",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ]
+    },
+    {
+      "node_id": "CAUSAL-03",
+      "crime_event_id": "EVENT-01",
+      "type": "MECHANISM",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ]
+    },
+    {
+      "node_id": "CAUSAL-04",
+      "crime_event_id": "EVENT-01",
+      "type": "CRIME_EVENT",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-31",
+        "HARM-32"
+      ]
+    },
+    {
+      "node_id": "CAUSAL-05",
+      "crime_event_id": "EVENT-01",
+      "type": "HARM_RESULT",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-31",
+        "HARM-32"
+      ]
+    },
+    {
+      "node_id": "CAUSAL-06",
+      "crime_event_id": "EVENT-01",
+      "type": "CONCEALMENT_OR_DENIAL",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ]
+    },
+    {
+      "node_id": "CAUSAL-07",
+      "crime_event_id": "EVENT-01",
+      "type": "DISCOVERY_PATH",
+      "actor_ids": [
+        "CHAR-01",
+        "CHAR-05"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ]
+    },
+    {
+      "node_id": "CAUSAL-08",
+      "crime_event_id": "EVENT-01",
+      "type": "DISCOVERY",
+      "actor_ids": [
+        "CHAR-05"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ]
+    },
+    {
+      "node_id": "CAUSAL-09",
+      "crime_event_id": "EVENT-01",
+      "type": "RESPONSIBILITY_CONFIRMATION",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-31",
+        "HARM-32"
+      ]
+    },
+    {
+      "node_id": "CAUSAL-10",
+      "crime_event_id": "EVENT-01",
+      "type": "RESOLUTION",
+      "actor_ids": [
+        "CHAR-05"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-31",
+        "HARM-32"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "CAUSAL-01",
+      "to": "CAUSAL-02"
+    },
+    {
+      "from": "CAUSAL-02",
+      "to": "CAUSAL-03"
+    },
+    {
+      "from": "CAUSAL-03",
+      "to": "CAUSAL-04"
+    },
+    {
+      "from": "CAUSAL-04",
+      "to": "CAUSAL-05"
+    },
+    {
+      "from": "CAUSAL-04",
+      "to": "CAUSAL-06"
+    },
+    {
+      "from": "CAUSAL-06",
+      "to": "CAUSAL-07"
+    },
+    {
+      "from": "CAUSAL-07",
+      "to": "CAUSAL-08"
+    },
+    {
+      "from": "CAUSAL-08",
+      "to": "CAUSAL-09"
+    },
+    {
+      "from": "CAUSAL-05",
+      "to": "CAUSAL-09"
+    },
+    {
+      "from": "CAUSAL-09",
+      "to": "CAUSAL-10"
+    }
+  ],
+  "fingerprint": {
+    "root_cause": "배우자의 정상 일정을 배신으로 확정한 보복 욕구와 유료 감시방 운영자들의 조작 수익이 결합한다.",
+    "mechanism": "허위 목격담을 근거로 아파트를 자백 심문 장소로 바꾸고 피해자의 연락과 퇴거를 제한한다.",
+    "concealment": "피해자 명의의 예약 메시지와 감시방 수정 이력 삭제로 자발적 고립과 진짜 목격처럼 꾸민다.",
+    "discovery_path": "피해자가 남긴 반송표 표시를 수거 기사가 부재 안내와 어긋나는 인기척에 연결해 관리실에 알린다.",
+    "resolution": "물리적 표식, 메시지 시각, 복구 기록과 상충 진술의 독립 사슬이 구조와 공동 책임 확인으로 이어진다."
+  },
+  "semantic_normalization": {
+    "normalized_roles": [
+      "VICTIM_PROTAGONIST",
+      "SPOUSE_OFFENDER",
+      "FABRICATOR_OFFENDER",
+      "CONCEALER_OFFENDER",
+      "EXTERNAL_WITNESS"
+    ],
+    "character_function_chain": [
+      "SURVEIL",
+      "FABRICATE",
+      "CONFINE",
+      "SIGNAL",
+      "VERIFY",
+      "RESCUE",
+      "ATTRIBUTE_RESPONSIBILITY"
+    ],
+    "audience_hypothesis_transitions": [
+      "AFFAIR_SUSPICION",
+      "COERCION_RECOGNITION",
+      "OUTSIDER_ROLE_UNCERTAIN",
+      "FABRICATION_PROOF",
+      "COMPLICITY_CONFIRMED",
+      "VICTIM_HARM_CENTERED"
+    ]
+  }
+}

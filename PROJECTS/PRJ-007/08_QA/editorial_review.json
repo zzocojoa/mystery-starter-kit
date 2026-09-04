@@ -1,0 +1,671 @@
+{
+  "$schema": "../../../STANDARD/schemas/editorial_review.schema.json",
+  "schema_family": "editorial-review",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-007",
+  "reviewer": {
+    "reviewer_id": "agent:continuity_critic",
+    "role": "CONTINUITY_CRITIC"
+  },
+  "reviewed_at": "2026-09-04T19:40:00Z",
+  "artifact_hashes": {
+    "actual_timeline": "2e7537a473162091914c129fa945dc5f157bf126fdfd40d73e198670f794b8a0",
+    "audience_belief": "70b5542bc958906fca7edaeff7ca0a04c2409bd6e91bd5b7b516484d696bc7d7",
+    "broadcast_readable_config": "cece7125c4e6d5d80f2b12f8a863ee815b090ce260af8f714811cab709b50599",
+    "broadcast_readable_output_profile": "d156c49f31a0ecee4563c7eb6347ff5973325a918eb1fae3281955a70ec07284",
+    "broadcast_readable_report": "ae3324b6291fff5fe1221d6f32a8758dd81ee4a8c5aac8dcf399472a95b49bc7",
+    "broadcast_readable_script": "44db07433f6f29c1e4385407fca959800e374fafe9176c5e260f1edf0791a7fd",
+    "character_state_transitions": "fe380ba4d21a631db94b8c8beadad13288dae300d84ca2b49397742217217592",
+    "crime_event_contract": "f3f56efbd134cb04c714c06dc696c22508ab4d7c5dc7eb08b0904071b8f643c8",
+    "edit_script": "f5f7de0b3c975db19b971ca01e67b539e6ea18157c5640175dff87476fb10fef",
+    "final_script": "2086745ee4ddaf52951dab5c3d5f1d13ab9f629a0e98dc9a964bad26b2b5d6fa",
+    "narration": "ca6a62251d82a988346c7686ac7205408c561c24b90d252dbb16022dd7d1780c",
+    "panel_cast": "5e6dc14554c82ccb60aa2db3137ce9089861e5f82d8a479e1f04c80b91fcb37b",
+    "panel_reaction_script": "c8f522cf48c51f6019b98ccae137c577fdff6103812a19ec529d1eb944508af4",
+    "presentation_plan": "dd304fba810279e46217cb2234dc96fe4160a4e15be206d2d0bf67d8fcb3aef9",
+    "production_broadcast_readable_script": "44db07433f6f29c1e4385407fca959800e374fafe9176c5e260f1edf0791a7fd",
+    "production_footprint": "15930878fa6b81bf9f040a783237007d583ce3a7a0908dbda25896bd0eca225f",
+    "production_manifest": "49147a4a9e8f5d8248eba9fa176c719a37ccac3897db3f67698f84019389ab94",
+    "production_panel_reaction_script": "d740bdde93bbaca33b3a54c3663f3e1ed449ae39a5d3779411a6b08651b8be99",
+    "production_reenactment_character_script": "dd26ab638696c398e1c3c3442f70508ca04a562964351120c0d024b5b701d924",
+    "reaction_segments": "e8629652a740e73a61702b43e962d70bb2bd05ed9c4667db473b6dfebf23f53f",
+    "reenactment_character_script": "dd26ab638696c398e1c3c3442f70508ca04a562964351120c0d024b5b701d924",
+    "reenactment_export_report": "9ddf469d14a9e1ace96db01cf7c826b9fd36e7a24e717ede6fd56fe83c3bc9f8",
+    "scene_cards": "d097742e7674b7b8425b429e9a21c265d0b261d8942f41110d806dde95237351",
+    "screenplay_units": "59d0f872104e78e95b8ef643a764482e4a05f79061b0e4c8cd74e9be86499c58",
+    "script_realization_report": "c70c894418629c3df90a86716028e741841d6406ba886d0af70717943c4b6243",
+    "shooting_script": "e38da4030a082a6e847e70ebc5292d29e27e3125ee1f2afe2ca6200421e28ce5",
+    "subtitle_script": "c928d8f9f2c315ce66a5139bfa2c966bcb2cf37e814964a055dad4fe7abbd7ab",
+    "viewer_timeline": "ae8d031e7b80204afdc5757da39f39dc6a330f6c7dd43ee5368d0b435b6b3d26"
+  },
+  "runtime_evidence": {
+    "language_unit": "KOREAN_EOJEOL",
+    "estimation_assumptions": [
+      "Panel Script의 한글·영문·숫자 토큰을 한국어 어절 단위로 센다.",
+      "분당 150어절을 적용하고 나머지는 편집 대본에 근거한 비발화 화면으로 분리한다."
+    ],
+    "method": "WORD_COUNT_ESTIMATE",
+    "reading_rate_wpm": 150,
+    "planned_runtime_sec": 1500,
+    "planned_panel_duration_sec": 200,
+    "estimated_panel_spoken_duration_sec": 125.2,
+    "measured_panel_duration_sec": null,
+    "panel_segments": [
+      {
+        "segment_id": "SEG-005",
+        "reaction_segment_id": "RSEG-001",
+        "planned_duration_sec": 20,
+        "spoken_word_count": 37,
+        "estimated_spoken_duration_sec": 14.8,
+        "measured_duration_sec": null,
+        "action_duration_sec": 0,
+        "non_speaking_duration_sec": 5.2,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 5.2,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "edit_script:SEG-005",
+            "notes": "퇴거·연락 제한 요약 그래픽"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-009",
+        "reaction_segment_id": "RSEG-002",
+        "planned_duration_sec": 25,
+        "spoken_word_count": 41,
+        "estimated_spoken_duration_sec": 16.4,
+        "measured_duration_sec": null,
+        "action_duration_sec": 0,
+        "non_speaking_duration_sec": 8.6,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 8.6,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "edit_script:SEG-009",
+            "notes": "목격 출처 비교 그래픽"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-013",
+        "reaction_segment_id": "RSEG-003",
+        "planned_duration_sec": 20,
+        "spoken_word_count": 39,
+        "estimated_spoken_duration_sec": 15.6,
+        "measured_duration_sec": null,
+        "action_duration_sec": 0,
+        "non_speaking_duration_sec": 4.4,
+        "speaker_ids": [
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 4.4,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "edit_script:SEG-013",
+            "notes": "도움 표식 인서트"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-017",
+        "reaction_segment_id": "RSEG-004",
+        "planned_duration_sec": 25,
+        "spoken_word_count": 38,
+        "estimated_spoken_duration_sec": 15.2,
+        "measured_duration_sec": null,
+        "action_duration_sec": 0,
+        "non_speaking_duration_sec": 9.8,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 9.8,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "edit_script:SEG-017",
+            "notes": "두 관찰 결합 그래픽"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-023",
+        "reaction_segment_id": "RSEG-005",
+        "planned_duration_sec": 25,
+        "spoken_word_count": 41,
+        "estimated_spoken_duration_sec": 16.4,
+        "measured_duration_sec": null,
+        "action_duration_sec": 0,
+        "non_speaking_duration_sec": 8.6,
+        "speaker_ids": [
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 8.6,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "edit_script:SEG-023",
+            "notes": "구조 직후 피해자 반응 화면"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-025",
+        "reaction_segment_id": "RSEG-006",
+        "planned_duration_sec": 30,
+        "spoken_word_count": 40,
+        "estimated_spoken_duration_sec": 16,
+        "measured_duration_sec": null,
+        "action_duration_sec": 0,
+        "non_speaking_duration_sec": 14,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 14,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "edit_script:SEG-025",
+            "notes": "근무 기록과 수정 이력 연결 그래픽"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-029",
+        "reaction_segment_id": "RSEG-007",
+        "planned_duration_sec": 30,
+        "spoken_word_count": 39,
+        "estimated_spoken_duration_sec": 15.6,
+        "measured_duration_sec": null,
+        "action_duration_sec": 0,
+        "non_speaking_duration_sec": 14.4,
+        "speaker_ids": [
+          "PANEL-01",
+          "PANEL-02"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "GRAPHIC",
+            "duration_sec": 14.4,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "edit_script:SEG-029",
+            "notes": "공동 가담 역할 그래픽"
+          }
+        ]
+      },
+      {
+        "segment_id": "SEG-031",
+        "reaction_segment_id": "RSEG-008",
+        "planned_duration_sec": 25,
+        "spoken_word_count": 38,
+        "estimated_spoken_duration_sec": 15.2,
+        "measured_duration_sec": null,
+        "action_duration_sec": 0,
+        "non_speaking_duration_sec": 9.8,
+        "speaker_ids": [
+          "PANEL-02",
+          "PANEL-03"
+        ],
+        "non_speech_elements": [
+          {
+            "element_type": "REACTION_HOLD",
+            "duration_sec": 9.8,
+            "time_class": "NON_SPEAKING",
+            "support_status": "SUPPORTED",
+            "source_reference": "edit_script:SEG-031",
+            "notes": "열린 출구와 피해자 회복 여운"
+          }
+        ]
+      }
+    ]
+  },
+  "semantic_assessments": [
+    {
+      "assessment_id": "ASSESS-01",
+      "category": "CRIME_EVENT_REALIZATION",
+      "subject_id": "EVENT-01",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-003",
+          "excerpt_hash": "626ed6e985e03c7427903975c5a04295c45134ce42c82476f885452aa988f091"
+        }
+      ],
+      "notes": "출구 차단과 통신권 박탈이 행동·피해 인과로 실현된다."
+    },
+    {
+      "assessment_id": "ASSESS-02",
+      "category": "CRIME_ACTION",
+      "subject_id": "CONFINEMENT",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-003",
+          "excerpt_hash": "626ed6e985e03c7427903975c5a04295c45134ce42c82476f885452aa988f091"
+        }
+      ],
+      "notes": "태균의 퇴거 요구와 현관 차단으로 감금 행위가 명시된다."
+    },
+    {
+      "assessment_id": "ASSESS-03",
+      "category": "HARM_RESULT",
+      "subject_id": "HARM-31",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-003",
+          "excerpt_hash": "626ed6e985e03c7427903975c5a04295c45134ce42c82476f885452aa988f091"
+        }
+      ],
+      "notes": "이동과 연락의 자유가 즉시 제한된 피해가 확인된다."
+    },
+    {
+      "assessment_id": "ASSESS-04",
+      "category": "HARM_RESULT",
+      "subject_id": "HARM-32",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-030",
+          "excerpt_hash": "7145b2a5f036b8f8a3fcc410ce588f30969ed0e33729f1a75a0f7e7d23d9d06f"
+        }
+      ],
+      "notes": "구조 뒤에도 안전이 회복되지 않은 지속 피해가 확인된다."
+    },
+    {
+      "assessment_id": "ASSESS-05",
+      "category": "DEVELOPMENT_FUNCTION",
+      "subject_id": "CDEV-301",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-003",
+          "excerpt_hash": "626ed6e985e03c7427903975c5a04295c45134ce42c82476f885452aa988f091"
+        }
+      ],
+      "notes": "감금의 시작과 출구 차단이 명확히 실현된다."
+    },
+    {
+      "assessment_id": "ASSESS-06",
+      "category": "DEVELOPMENT_FUNCTION",
+      "subject_id": "CDEV-302",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-008",
+          "excerpt_hash": "386f80b9c6639fede81f98ab4c9634bdc0a4639483ee9eea91083f6ed708288a"
+        }
+      ],
+      "notes": "허위 자료와 직장 유포 위협으로 자백 강요가 심화된다."
+    },
+    {
+      "assessment_id": "ASSESS-07",
+      "category": "DEVELOPMENT_FUNCTION",
+      "subject_id": "CDEV-303",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-011",
+          "excerpt_hash": "de34377813a407e266b3fc910024b3fe43b548b4dc175da9f11a3680eb8f3e8b"
+        }
+      ],
+      "notes": "반송표 도움 신호가 외부 확인을 촉발하는 전개 기능을 수행한다."
+    },
+    {
+      "assessment_id": "ASSESS-08",
+      "category": "DEVELOPMENT_FUNCTION",
+      "subject_id": "CDEV-304",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-030",
+          "excerpt_hash": "7145b2a5f036b8f8a3fcc410ce588f30969ed0e33729f1a75a0f7e7d23d9d06f"
+        }
+      ],
+      "notes": "피해자의 진술과 자기결정으로 사건의 책임 기준을 확정한다."
+    },
+    {
+      "assessment_id": "ASSESS-09",
+      "category": "NARRATION_FUNCTION",
+      "subject_id": "NARRATION",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-032",
+          "excerpt_hash": "4d5e37278e4b854909c55d210316a74af1436794d716dc4aafa57e5648411a39"
+        }
+      ],
+      "notes": "내레이션은 화면 반복 없이 피해자의 주관적 회복 감각을 전달한다."
+    },
+    {
+      "assessment_id": "ASSESS-10",
+      "category": "PANEL_FUNCTION",
+      "subject_id": "PANEL_REACTION",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "panel_reaction_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-025",
+          "excerpt_hash": "d89a16171e5f03810d0f6ee1160b718ce2869723138c1caa17156a6fc4be95ee"
+        }
+      ],
+      "notes": "패널이 외도 가설을 폐기하고 공개된 기록으로 책임 가설을 수정한다."
+    },
+    {
+      "assessment_id": "ASSESS-11",
+      "category": "CLUE_AND_EVIDENCE_COHERENCE",
+      "subject_id": "FINAL_REVEAL_EVIDENCE",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-024",
+          "excerpt_hash": "654b46b222dea3087ae46090ce10760c270a671e94ff28b2d2a24dfd86e2a70e"
+        },
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-027",
+          "excerpt_hash": "499581f09564cce29568138116ae8792d76a7c7c09f44cc389838bc436dd81d1"
+        }
+      ],
+      "notes": "근무 기록, 수정 이력, 예약 메시지와 상반 진술이 앞서 심은 단서에 맞춰 결합된다."
+    },
+    {
+      "assessment_id": "ASSESS-12",
+      "category": "REVEAL_TIMING",
+      "subject_id": "REVEAL-TARGET-31",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-024",
+          "excerpt_hash": "654b46b222dea3087ae46090ce10760c270a671e94ff28b2d2a24dfd86e2a70e"
+        }
+      ],
+      "notes": "후반 증거 결합 구간에서 자료 조작과 공동 가담 대상이 공개된다."
+    },
+    {
+      "assessment_id": "ASSESS-13",
+      "category": "REVEAL_TIMING",
+      "subject_id": "REVEAL-TARGET-32",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-027",
+          "excerpt_hash": "499581f09564cce29568138116ae8792d76a7c7c09f44cc389838bc436dd81d1"
+        }
+      ],
+      "notes": "예약 메시지 생성 기기와 서진의 선택이 책임 사슬 확인 뒤 공개된다."
+    },
+    {
+      "assessment_id": "ASSESS-14",
+      "category": "REVEAL_TIMING",
+      "subject_id": "REVEAL-TARGET-33",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-027",
+          "excerpt_hash": "499581f09564cce29568138116ae8792d76a7c7c09f44cc389838bc436dd81d1"
+        }
+      ],
+      "notes": "운영자의 조작 은폐 동기와 현장 통제 가담이 후반에 결속된다."
+    },
+    {
+      "assessment_id": "ASSESS-15",
+      "category": "REVEAL_TIMING",
+      "subject_id": "REVEAL-TARGET-34",
+      "status": "EVIDENCED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-030",
+          "excerpt_hash": "7145b2a5f036b8f8a3fcc410ce588f30969ed0e33729f1a75a0f7e7d23d9d06f"
+        }
+      ],
+      "notes": "마지막 드라마 구간에서 태균이 사건의 기준과 이후 선택을 확정한다."
+    },
+    {
+      "assessment_id": "ASSESS-16",
+      "category": "PREMATURE_DISCLOSURE_SCAN",
+      "subject_id": "REVEAL-TARGET-31",
+      "status": "NOT_DISCLOSED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-019",
+          "excerpt_hash": "cc4a438a74c6f74511eb56da0445e3f68d02e13cd9e427e1ca84033758129c24"
+        }
+      ],
+      "notes": "공개 전에는 수정 기록 존재만 예고되며 공동 가담 결론은 노출되지 않는다."
+    },
+    {
+      "assessment_id": "ASSESS-17",
+      "category": "PREMATURE_DISCLOSURE_SCAN",
+      "subject_id": "REVEAL-TARGET-32",
+      "status": "NOT_DISCLOSED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-024",
+          "excerpt_hash": "654b46b222dea3087ae46090ce10760c270a671e94ff28b2d2a24dfd86e2a70e"
+        }
+      ],
+      "notes": "예약 메시지 생성 기기와 서진의 역할은 다음 구간 전까지 공개되지 않는다."
+    },
+    {
+      "assessment_id": "ASSESS-18",
+      "category": "PREMATURE_DISCLOSURE_SCAN",
+      "subject_id": "REVEAL-TARGET-33",
+      "status": "NOT_DISCLOSED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-024",
+          "excerpt_hash": "654b46b222dea3087ae46090ce10760c270a671e94ff28b2d2a24dfd86e2a70e"
+        }
+      ],
+      "notes": "운영자의 은폐 동기와 자백 강요 목적은 다음 구간 전까지 확정되지 않는다."
+    },
+    {
+      "assessment_id": "ASSESS-19",
+      "category": "PREMATURE_DISCLOSURE_SCAN",
+      "subject_id": "REVEAL-TARGET-34",
+      "status": "NOT_DISCLOSED",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-027",
+          "excerpt_hash": "499581f09564cce29568138116ae8792d76a7c7c09f44cc389838bc436dd81d1"
+        }
+      ],
+      "notes": "태균의 최종 자기결정은 결말 장면 이전에 대신 말해지지 않는다."
+    }
+  ],
+  "result": "PASS",
+  "checks": {
+    "broadcast_format": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-001",
+          "excerpt_hash": "be0fa66eb4ac32eb8d6f4bc4bef688b325a039c8b61ddb7545f092243da67627"
+        },
+        {
+          "artifact": "production_broadcast_readable_script",
+          "selector_type": "DOCUMENT",
+          "selector_id": "production_broadcast_readable_script",
+          "excerpt_hash": "44db07433f6f29c1e4385407fca959800e374fafe9176c5e260f1edf0791a7fd"
+        }
+      ],
+      "notes": "32개 Segment의 모드·장면·시간 순서와 방송용 복사본 동일성, 첫 화면 창작 고지를 확인했다."
+    },
+    "absolute_time": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "actual_timeline",
+          "selector_type": "DOCUMENT",
+          "selector_id": "actual_timeline",
+          "excerpt_hash": "2e7537a473162091914c129fa945dc5f157bf126fdfd40d73e198670f794b8a0"
+        },
+        {
+          "artifact": "edit_script",
+          "selector_type": "DOCUMENT",
+          "selector_id": "edit_script",
+          "excerpt_hash": "f5f7de0b3c975db19b971ca01e67b539e6ea18157c5640175dff87476fb10fef"
+        }
+      ],
+      "notes": "사건 순서와 00:00부터 25:00까지의 연속 타임코드를 대조해 공백·중첩이 없음을 확인했다."
+    },
+    "dialogue_naturalness": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-003",
+          "excerpt_hash": "626ed6e985e03c7427903975c5a04295c45134ce42c82476f885452aa988f091"
+        },
+        {
+          "artifact": "panel_reaction_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-025",
+          "excerpt_hash": "d89a16171e5f03810d0f6ee1160b718ce2869723138c1caa17156a6fc4be95ee"
+        }
+      ],
+      "notes": "인물의 이해관계와 압박 정도에 맞는 구어체이며 패널 발화는 공개된 사실만 압축한다."
+    },
+    "panel_reaction_function": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "reaction_segments",
+          "selector_type": "REACTION_SEGMENT_ID",
+          "selector_id": "RSEG-001",
+          "excerpt_hash": "f44f294701baeb26916d7d9b227f659ecb857fce63944c7d4a71db3a3e430d56"
+        },
+        {
+          "artifact": "reaction_segments",
+          "selector_type": "REACTION_SEGMENT_ID",
+          "selector_id": "RSEG-006",
+          "excerpt_hash": "931552536132f4fa00cc31f84f5db96093da65f4401274f17f3d3f0a26f86f56"
+        }
+      ],
+      "notes": "감금 위험 인식에서 외도 가설 폐기까지 감정 반응·이상 탐지·가설 수정 기능을 수행한다."
+    },
+    "audience_belief": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "audience_belief",
+          "selector_type": "DOCUMENT",
+          "selector_id": "audience_belief",
+          "excerpt_hash": "70b5542bc958906fca7edaeff7ca0a04c2409bd6e91bd5b7b516484d696bc7d7"
+        },
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-024",
+          "excerpt_hash": "654b46b222dea3087ae46090ce10760c270a671e94ff28b2d2a24dfd86e2a70e"
+        }
+      ],
+      "notes": "관객은 흔적을 단계적으로 보지만 후반 증거 결합 전까지 공모 결론을 확정할 수 없다."
+    },
+    "shootability": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "shooting_script",
+          "selector_type": "DOCUMENT",
+          "selector_id": "shooting_script",
+          "excerpt_hash": "e38da4030a082a6e847e70ebc5292d29e27e3125ee1f2afe2ca6200421e28ce5"
+        },
+        {
+          "artifact": "production_footprint",
+          "selector_type": "DOCUMENT",
+          "selector_id": "production_footprint",
+          "excerpt_hash": "15930878fa6b81bf9f040a783237007d583ce3a7a0908dbda25896bd0eca225f"
+        }
+      ],
+      "notes": "등록된 12개 장면, 2개 장소, 주요 인물 5명 안에서 차량·아동·특수효과·그래픽 폭력 없이 촬영 가능하다."
+    },
+    "victim_dignity": {
+      "result": "PASS",
+      "evidence": [
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-030",
+          "excerpt_hash": "7145b2a5f036b8f8a3fcc410ce588f30969ed0e33729f1a75a0f7e7d23d9d06f"
+        },
+        {
+          "artifact": "final_script",
+          "selector_type": "SEGMENT_ID",
+          "selector_id": "SEG-032",
+          "excerpt_hash": "4d5e37278e4b854909c55d210316a74af1436794d716dc4aafa57e5648411a39"
+        }
+      ],
+      "notes": "태균의 대응을 평가하거나 선정적으로 소비하지 않고 최종 진술과 이후 선택을 피해자 자신의 언어로 마감한다."
+    }
+  },
+  "issues": []
+}

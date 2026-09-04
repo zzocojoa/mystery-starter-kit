@@ -3,7 +3,7 @@
 import shutil
 from pathlib import Path
 
-from VALIDATORS.io import load_json_object
+from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.scaffold import create_project_scaffold
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -23,6 +23,13 @@ def create_runtime_repository(tmp_path: Path) -> Path:
         ROOT / "VALIDATORS" / "variation_engines",
         repository_root / "VALIDATORS" / "variation_engines",
         ignore=shutil.ignore_patterns("__pycache__"),
+    )
+    novelty_index = load_json_object(
+        repository_root / "STORY_LIBRARY" / "novelty_index.json"
+    )
+    write_json_object(
+        repository_root / "STORY_LIBRARY" / "novelty_index.json",
+        {**novelty_index, "entries": []},
     )
     (repository_root / "PROJECTS").mkdir()
     return repository_root

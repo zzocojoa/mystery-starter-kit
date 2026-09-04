@@ -1,0 +1,190 @@
+{
+  "$schema": "../../../STANDARD/schemas/crime_event_contract.schema.json",
+  "schema_family": "crime-event-contract",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-007",
+  "approved_candidate_id": "VAR-03",
+  "candidate_selection_sha256": "99332e68793d07ae327bfc035b46ed6a452c1343556801d61038d5fb2c23c5d0",
+  "candidate_event_brief_sha256": "2170bb5fd857bf44f085e5e12909f80ecd41bd0fa214dfa7d56f0660a4480d7e",
+  "event_id": "EVENT-01",
+  "primary_crime": "CONFINEMENT",
+  "related_crimes": [],
+  "core_action_type": "CONFINEMENT",
+  "responsible_agent_structure": "COMPLICIT_GROUP",
+  "victim_structure": "SINGLE_VICTIM",
+  "offender_role_slots": [
+    "OFFENDER-01",
+    "OFFENDER-02",
+    "OFFENDER-03"
+  ],
+  "victim_role_slots": [
+    "VICTIM-01"
+  ],
+  "protagonist_role_slot": "PROTAGONIST-01",
+  "role_bindings": [
+    {
+      "role_slot": "VICTIM-01",
+      "character_id": "CHAR-01",
+      "role_type": "VICTIM"
+    },
+    {
+      "role_slot": "PROTAGONIST-01",
+      "character_id": "CHAR-01",
+      "role_type": "PROTAGONIST"
+    },
+    {
+      "role_slot": "OFFENDER-01",
+      "character_id": "CHAR-02",
+      "role_type": "OFFENDER"
+    },
+    {
+      "role_slot": "OFFENDER-02",
+      "character_id": "CHAR-03",
+      "role_type": "OFFENDER"
+    },
+    {
+      "role_slot": "OFFENDER-03",
+      "character_id": "CHAR-04",
+      "role_type": "OFFENDER"
+    }
+  ],
+  "actor_ids": [
+    "CHAR-02",
+    "CHAR-03",
+    "CHAR-04"
+  ],
+  "victim_ids": [
+    "CHAR-01"
+  ],
+  "protagonist_id": "CHAR-01",
+  "relationship_context": "DATING_PARTNER",
+  "target_selection_reason": "아내는 남편의 정상적인 야간 근무와 동료 연락을 외도의 증거로 해석하고, 자신이 만든 의심을 인정받기 위해 남편을 직접 심문 대상으로 삼는다.",
+  "initiating_context": "아내 윤서진은 남편 강태균의 일정표, 세탁물, 공동 카드 내역을 몰래 대조하고 익명 감시 대화방의 두 운영자에게 확인을 의뢰한다.",
+  "trigger_event": "남편이 동료의 긴급 교대 요청을 받고 늦게 귀가하자 서진은 대화방 운영자들이 만든 허위 목격담을 사실로 믿고 이른바 공개 검증을 실행한다.",
+  "motive_category": "RETALIATION",
+  "motive_summary": "서진은 상상한 배신을 자백시키고 자신을 의심하게 만든 남편에게 보복하려 하며, 두 운영자는 유료 감시방의 조작이 들통날까 봐 감금에 가담한다.",
+  "non_actionable_method_summary": "세 사람은 부부의 아파트를 심문 장소로 바꾸고 남편의 외부 연락과 퇴거를 막은 채 조작된 자료를 들이밀며, 실행 가능한 감금 절차는 묘사하지 않는다.",
+  "immediate_harm": "남편은 자신의 집에서 이동과 연락의 자유를 빼앗기고 반복적인 위협 아래 허위 자백을 강요받는다.",
+  "lasting_harm": "남편은 구조 뒤에도 주거 안전감과 대인 신뢰를 잃고 직장에는 조작된 외도 소문으로 인한 피해가 남는다.",
+  "concealment_or_denial": "서진은 남편이 외도를 인정하고 혼자 생각할 시간이 필요하다는 예약 메시지를 그의 직장에 보내고, 공모자들은 감시방 기록에서 허위 목격담의 수정 이력을 지운다.",
+  "discovery_path": "남편은 식탁 아래 떨어진 오래된 택배 반송표에 짧은 도움 표시를 남기고, 수거 기사 박도현이 예약 메시지 시각과 집 안의 인기척이 맞지 않음을 알아차려 관리실에 알린다.",
+  "responsibility_path": "반송표의 도움 표시, 예약 메시지 생성 시각, 감시방 허위 목격담의 복구된 수정 이력, 세 사람의 상충 진술이 감금과 공모 책임을 입증한다.",
+  "central_pursuit_question": "외도 자백을 요구한 아파트의 밤은 어떻게 조작된 의심에서 실제 감금 범죄로 변했는가?",
+  "harm_ids": [
+    "HARM-31",
+    "HARM-32"
+  ],
+  "harm_classifications": [
+    "LIBERTY_DEPRIVATION",
+    "THREAT_OR_TRAUMA"
+  ],
+  "protagonist_goal": "SURVIVE_OR_ESCAPE",
+  "protagonist_risk": "HOUSEHOLD_DANGER",
+  "depiction_mode": "DIRECT_NON_GRAPHIC",
+  "development_functions": [
+    {
+      "development_function_id": "CDEV-301",
+      "function_type": "LIBERTY_DEPRIVATION",
+      "summary": "부부의 안전 공간이 남편의 퇴거와 연락을 막는 감금 장소로 바뀐다.",
+      "required": true
+    },
+    {
+      "development_function_id": "CDEV-302",
+      "function_type": "THREAT_AND_CHOICE_CONSTRAINT",
+      "summary": "허위 자료와 직장 평판 위협이 남편의 저항과 도움 요청 선택을 제약한다.",
+      "required": true
+    },
+    {
+      "development_function_id": "CDEV-303",
+      "function_type": "RESPONSE_OR_DISCOVERY",
+      "summary": "남편의 작은 도움 표시와 외부인의 관찰이 조작된 부재 설명을 깬다.",
+      "required": true
+    },
+    {
+      "development_function_id": "CDEV-304",
+      "function_type": "HARM_OUTCOME",
+      "summary": "구조 뒤 자유 박탈, 주거 안전 붕괴, 직장 평판 피해가 함께 드러난다.",
+      "required": true
+    }
+  ],
+  "reveal_targets": [
+    {
+      "reveal_target_id": "REVEAL-TARGET-31",
+      "target_type": "CULPRIT",
+      "summary": "아내 윤서진과 익명 감시방 운영자 두 명이 남편의 감금에 공동 가담했다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-32",
+      "target_type": "MOTIVE",
+      "summary": "서진의 보복 욕구와 운영자들의 조작 은폐가 공모를 결속했다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-33",
+      "target_type": "METHOD",
+      "summary": "집을 심문 장소로 바꾸고 조작 자료와 예약 메시지로 외부 인식을 통제한 개요가 공개된다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-34",
+      "target_type": "HARM_RESULT",
+      "summary": "남편이 자유와 주거 안전을 잃고 조작된 소문으로 직장 피해까지 입은 결과가 확인된다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    }
+  ],
+  "method_detail_level": "NON_ACTIONABLE_SUMMARY_ONLY",
+  "truth_basis": {
+    "source_truth_classification": "ORIGINAL_FICTION",
+    "field_evidence": {
+      "PRIMARY_CRIME": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "CULPRIT": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "MOTIVE": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "METHOD": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "HARM_RESULT": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "LEGAL_OUTCOME": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      }
+    }
+  },
+  "harms": [
+    {
+      "harm_id": "HARM-31",
+      "classification": "LIBERTY_DEPRIVATION",
+      "timing": "IMMEDIATE",
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "summary": "남편은 자신의 집에서 이동과 연락의 자유를 빼앗기고 반복적인 위협 아래 허위 자백을 강요받는다."
+    },
+    {
+      "harm_id": "HARM-32",
+      "classification": "THREAT_OR_TRAUMA",
+      "timing": "LASTING",
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "summary": "남편은 구조 뒤에도 주거 안전감과 대인 신뢰를 잃고 직장에는 조작된 외도 소문으로 인한 피해가 남는다."
+    }
+  ]
+}

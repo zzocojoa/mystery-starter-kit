@@ -1,0 +1,8 @@
+{
+  "schema_family": "broadcast-readable-config",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-007",
+  "enabled": true,
+  "profile_id": "BROADCAST_READABLE_SCRIPT",
+  "profile_version": "2.0.0"
+}

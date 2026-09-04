@@ -1,0 +1,168 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_evaluation.schema.json",
+  "schema_family": "candidate-evaluation",
+  "schema_version": "1.3.0",
+  "project_id": "PRJ-007",
+  "weights": {
+    "crime_event_centrality_score": 25,
+    "character_risk_conflict_score": 25,
+    "scene_realizability_score": 20,
+    "reveal_persuasion_score": 15,
+    "production_score": 15
+  },
+  "input_hashes": {
+    "variation_candidates": "3f353a2ff534b81194d1a814d12887e6ca69ee6bfb32c5e0f3c56b42d4a0524f",
+    "novelty_precheck": "cd0482c0126d7c4546df61ea57a670c31d2d9227f300ca05dce079930e88a45d",
+    "candidate_eligibility": "bcdc1cb87a5cce648c04a74d65e1ce34de6cb18eb28a22dbd5f92ca3ffe1d33a",
+    "candidate_event_briefs": "4b8989f40bf6d0e3d1dbc6afe8e801f89ff1cc23626c82d63553762402bcfead",
+    "candidate_event_brief_var_01": "c81ae2d8e9ed7fcfa44b6a7815a51bdd20c50120d81cc042f914036cfed171a0",
+    "candidate_event_brief_var_02": "b36ddf6db4bdc5400f3239e92b6dca43d4b51338fde7864dcd38e6b69f82f814",
+    "candidate_event_brief_var_03": "2170bb5fd857bf44f085e5e12909f80ecd41bd0fa214dfa7d56f0660a4480d7e",
+    "candidate_event_brief_var_04": "ffda5fea1562ff21eba0ed315e185719e4913beb9426da0411601abbf3491cfb",
+    "candidate_event_brief_var_05": "be64a4daa12df608cc5076a8f5ded203913d7c00aa18954d306347b37237866b"
+  },
+  "novelty_report_hash": "cd0482c0126d7c4546df61ea57a670c31d2d9227f300ca05dce079930e88a45d",
+  "recommended_candidate_id": "VAR-03",
+  "evaluations": [
+    {
+      "candidate_id": "VAR-01",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "작업장 사망과 사고 위장 규명이 전체 추적 질문을 직접 이끈다."
+        ],
+        "character_risk_conflict_score": [
+          "피해자 가족의 진실 추적과 공모자의 생계 통제가 대립하지만 Seed의 부부 갈등과는 거리가 있다."
+        ],
+        "scene_realizability_score": [
+          "번호표, 장부, 엇갈린 진술을 비선정적 조사 장면으로 구현할 수 있다."
+        ],
+        "reveal_persuasion_score": [
+          "목격 정정과 물적 자료가 두 행위자의 공동 책임을 상호 보강한다."
+        ],
+        "production_score": [
+          "5개 장소와 7명 주요 인물, 중간 수준 효과가 상한에 근접한다."
+        ]
+      },
+      "crime_event_centrality_score": 88,
+      "character_risk_conflict_score": 80,
+      "scene_realizability_score": 78,
+      "reveal_persuasion_score": 87,
+      "production_score": 65,
+      "total_score": 80.4,
+      "decision": "REJECTED",
+      "decision_reason": "명확한 살인 추적 구조이지만 사용자가 요청한 배우자 의심과 가정 내 범죄의 중심성이 약하고 제작 규모가 크다."
+    },
+    {
+      "candidate_id": "VAR-02",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "두 가족 구성원의 납치와 자유 박탈이 오해가 아니라 실제 중심 범죄다."
+        ],
+        "character_risk_conflict_score": [
+          "외도 의심, 불법 감시 은폐, 가족 간 보호 선택이 지속 갈등을 만든다."
+        ],
+        "scene_realizability_score": [
+          "대리 메시지와 현관 기록을 3개 장소, 4명 중심 인물로 장면화할 수 있다."
+        ],
+        "reveal_persuasion_score": [
+          "말투 불일치와 관리 기록, 독립 진술이 단독 책임을 설득력 있게 누적한다."
+        ],
+        "production_score": [
+          "차량·아역·특수효과 없이 제한된 집 중심으로 제작 가능하다."
+        ]
+      },
+      "crime_event_centrality_score": 90,
+      "character_risk_conflict_score": 88,
+      "scene_realizability_score": 88,
+      "reveal_persuasion_score": 86,
+      "production_score": 90,
+      "total_score": 88.5,
+      "decision": "REJECTED",
+      "decision_reason": "Seed와 제작 조건에 강하지만 피해자가 둘이라 남편 한 사람의 자유와 존엄에 집중하는 VAR-03보다 감정 축이 분산된다."
+    },
+    {
+      "candidate_id": "VAR-03",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "외도 의심에서 시작된 기행이 남편의 실제 감금과 허위 자백 강요로 전환되어 범죄가 서사의 중심을 차지한다."
+        ],
+        "character_risk_conflict_score": [
+          "남편의 생존·도움 요청, 아내의 보복, 감시방 운영자의 조작 은폐가 하나의 위험 갈등으로 결속된다."
+        ],
+        "scene_realizability_score": [
+          "아파트와 관리 공간, 반송표와 예약 메시지라는 제한된 요소로 단계적 긴장을 구현할 수 있다."
+        ],
+        "reveal_persuasion_score": [
+          "도움 표시, 메시지 시각, 수정 이력, 상충 진술이 범인·동기·방식·피해를 독립적으로 입증한다."
+        ],
+        "production_score": [
+          "2개 장소와 5명 주요 인물, 낮은 복잡도로 긴장과 패널 추적을 모두 수용한다."
+        ]
+      },
+      "crime_event_centrality_score": 98,
+      "character_risk_conflict_score": 97,
+      "scene_realizability_score": 95,
+      "reveal_persuasion_score": 92,
+      "production_score": 96,
+      "total_score": 95.95,
+      "decision": "RECOMMENDED",
+      "decision_reason": "사용자의 외도 의심 Seed를 유지하면서 감금이라는 구체 대인범죄, 남편의 행위 주체성, 가해 책임, 제한된 제작 규모를 가장 강하게 결속한다."
+    },
+    {
+      "candidate_id": "VAR-04",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "횡령 증언을 막으려는 폭행이 사건의 원인과 책임 추적을 직접 이끈다."
+        ],
+        "character_risk_conflict_score": [
+          "계약 권력과 피해자들의 보복 공포가 현실적인 대응 장벽을 만든다."
+        ],
+        "scene_realizability_score": [
+          "독립 진술과 객실 배정 메모를 교차하는 장면은 가능하지만 인물 수가 많다."
+        ],
+        "reveal_persuasion_score": [
+          "두 진술의 공통 위협과 정산표가 허위 다툼 설명을 뒤집는다."
+        ],
+        "production_score": [
+          "5개 장소, 7명 주요 인물, 중간 효과 수준으로 제작 상한에 가깝다."
+        ]
+      },
+      "crime_event_centrality_score": 91,
+      "character_risk_conflict_score": 84,
+      "scene_realizability_score": 82,
+      "reveal_persuasion_score": 83,
+      "production_score": 62,
+      "total_score": 81.9,
+      "decision": "REJECTED",
+      "decision_reason": "폭행과 권력 책임은 선명하지만 외도 의심 Seed를 반영하지 않으며 제작 복잡도가 높다."
+    },
+    {
+      "candidate_id": "VAR-05",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "반복 접근과 안전 붕괴가 우연 여부를 추적하는 중심 질문이 된다."
+        ],
+        "character_risk_conflict_score": [
+          "피해자의 생업 지속 선택과 가해자의 소유 욕구가 직접 충돌한다."
+        ],
+        "scene_realizability_score": [
+          "공개 장소 세 곳과 반복 표현을 통해 비선정적 긴장을 만들 수 있다."
+        ],
+        "reveal_persuasion_score": [
+          "독립 목격과 날짜 기록, 문장 습관이 단일 행위자를 확인한다."
+        ],
+        "production_score": [
+          "4명 주요 인물과 3개 장소, 특수효과 없는 구성으로 효율적이다."
+        ]
+      },
+      "crime_event_centrality_score": 89,
+      "character_risk_conflict_score": 86,
+      "scene_realizability_score": 84,
+      "reveal_persuasion_score": 82,
+      "production_score": 92,
+      "total_score": 86.65,
+      "decision": "REJECTED",
+      "decision_reason": "스토킹 범죄와 피해 책임 구조는 견고하지만 낯선 사람 관계라 부부의 외도 의심이라는 핵심 Seed와 맞지 않는다."
+    }
+  ]
+}
