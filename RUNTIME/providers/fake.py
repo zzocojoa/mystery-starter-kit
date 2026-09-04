@@ -274,6 +274,8 @@ def fake_crime_presentation_plan(
         raw_segment["referenced_reveal_target_ids"] = []
         raw_segment["revealed_reveal_target_ids"] = []
         raw_segment["intentional_prereveal_ids"] = []
+        if raw_segment.get("segment_id") == "SEG-001":
+            raw_segment["revealed_clue_ids"] = ["CLUE-01", "CLUE-02"]
         if raw_segment.get("segment_type") == "NARRATION":
             raw_segment["narrator_character_id"] = "CHAR-02"
             raw_segment["narration_function"] = "EMOTIONAL_CONTINUITY"

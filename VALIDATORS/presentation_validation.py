@@ -6,6 +6,7 @@ from itertools import pairwise
 from typing import TypedDict, cast
 
 from VALIDATORS.models import ValidationIssue
+from VALIDATORS.requirements import enabled_capability
 
 PRESENTATION_SCHEMA_VERSION = "2.0.0"
 CANONICAL_PRESENTATION_MODES = frozenset(
@@ -85,6 +86,13 @@ class ClockMention(TypedDict):
     minute_of_day: int
     context: str
     position: int
+
+
+class ReactionRevealScope(TypedDict):
+    """방송 순서상 Panel 시점까지 공개된 Fact와 Clue 집합."""
+
+    fact_ids: frozenset[str]
+    clue_ids: frozenset[str]
 
 
 def make_presentation_issue(
@@ -375,11 +383,64 @@ def reaction_function_issues(
     return issues
 
 
+def presentation_reaction_reveal_scopes(
+    presentation_plan: Mapping[str, object],
+) -> dict[str, ReactionRevealScope]:
+    """Scene 번호 대신 검증 대상 Presentation 방송 순서로 공개 범위를 계산한다."""
+    scopes: dict[str, ReactionRevealScope] = {}
+    fact_ids: set[str] = set()
+    clue_ids: set[str] = set()
+    for segment in mapping_items(presentation_plan, "segments"):
+        fact_ids.update(string_items(segment, "revealed_fact_ids"))
+        clue_ids.update(string_items(segment, "revealed_clue_ids"))
+        reaction_id = segment.get("reaction_segment_id")
+        if isinstance(reaction_id, str):
+            scopes[reaction_id] = ReactionRevealScope(
+                fact_ids=frozenset(fact_ids), clue_ids=frozenset(clue_ids)
+            )
+    return scopes
+
+
+def legacy_reaction_reveal_scopes(
+    reactions: Sequence[Mapping[str, object]],
+    scene_cards: Mapping[str, object],
+    viewer_timeline: Mapping[str, object],
+    clue_matrix: Mapping[str, object],
+) -> dict[str, ReactionRevealScope]:
+    """명시적 범죄 정책 이전의 Scene 기반 공개 계약을 변경 없이 유지한다."""
+    orders = scene_order_map(scene_cards)
+    reveal_orders = viewer_fact_reveal_orders(viewer_timeline, orders)
+    scopes: dict[str, ReactionRevealScope] = {}
+    for reaction in reactions:
+        reaction_id = reaction.get("reaction_segment_id")
+        scene_id = reaction.get("after_scene_id")
+        scene_order = orders.get(scene_id) if isinstance(scene_id, str) else None
+        if not isinstance(reaction_id, str):
+            continue
+        scopes[reaction_id] = ReactionRevealScope(
+            fact_ids=frozenset(
+                fact_id
+                for fact_id, order in reveal_orders.items()
+                if isinstance(scene_order, int) and order <= scene_order
+            ),
+            clue_ids=frozenset(
+                clue_id
+                for clue in mapping_items(clue_matrix, "clues")
+                if isinstance((clue_id := clue.get("clue_id")), str)
+                and (
+                    not isinstance(scene_order, int)
+                    or not isinstance((order := clue.get("introduced_scene_order")), int)
+                    or order <= scene_order
+                )
+            ),
+        )
+    return scopes
+
+
 def reaction_reference_issues(
     reaction_segments: Sequence[Mapping[str, object]],
     panel_cast: Mapping[str, object],
-    scene_cards: Mapping[str, object],
-    viewer_timeline: Mapping[str, object],
+    reveal_scopes: Mapping[str, ReactionRevealScope],
     facts: Mapping[str, object],
     clue_matrix: Mapping[str, object],
 ) -> list[ValidationIssue]:
@@ -404,14 +465,11 @@ def reaction_reference_issues(
         for clue in mapping_items(clue_matrix, "clues")
         if isinstance(clue.get("clue_id"), str)
     }
-    orders = scene_order_map(scene_cards)
-    fact_reveal_orders = viewer_fact_reveal_orders(viewer_timeline, orders)
     issues: list[ValidationIssue] = []
     for segment in reaction_segments:
         reaction_id = segment.get("reaction_segment_id")
-        after_scene_id = segment.get("after_scene_id")
         reaction_context = {"reaction_segment_id": reaction_id}
-        scene_order = orders.get(after_scene_id) if isinstance(after_scene_id, str) else None
+        scope = reveal_scopes.get(reaction_id) if isinstance(reaction_id, str) else None
         turns = mapping_items(segment, "turns")
         for turn in turns:
             turn_id = turn.get("turn_id")
@@ -461,9 +519,7 @@ def reaction_reference_issues(
                 evidence_id
                 for evidence_id in evidence_ids
                 if evidence_id in clues
-                and isinstance(scene_order, int)
-                and isinstance(clues[evidence_id].get("introduced_scene_order"), int)
-                and cast(int, clues[evidence_id].get("introduced_scene_order")) > scene_order
+                and (scope is None or evidence_id not in scope["clue_ids"])
             )
             if premature_evidence:
                 issues.append(
@@ -479,9 +535,8 @@ def reaction_reference_issues(
                 fact_id
                 for fact_id in known_fact_ids
                 if fact_id not in fact_ids
-                or fact_id not in fact_reveal_orders
-                or not isinstance(scene_order, int)
-                or fact_reveal_orders[fact_id] > scene_order
+                or scope is None
+                or fact_id not in scope["fact_ids"]
             )
             if unavailable_facts:
                 issues.append(
@@ -748,14 +803,18 @@ def validate_presentation_design(
 ) -> list[ValidationIssue]:
     """GATE-07 Presentation Contract 전체를 검증한다."""
     reactions = mapping_items(reaction_segments_document, "reaction_segments")
+    reveal_scopes = (
+        presentation_reaction_reveal_scopes(presentation_plan)
+        if enabled_capability(channel, "EXPLICIT_CRIME_EVENT_POLICY")
+        else legacy_reaction_reveal_scopes(reactions, scene_cards, viewer_timeline, clue_matrix)
+    )
     return [
         *validate_panel_cast(panel_cast),
         *reaction_function_issues(reactions, channel),
         *reaction_reference_issues(
             reactions,
             panel_cast,
-            scene_cards,
-            viewer_timeline,
+            reveal_scopes,
             facts,
             clue_matrix,
         ),

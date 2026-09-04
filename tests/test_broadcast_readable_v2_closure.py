@@ -16,7 +16,6 @@ from test_broadcast_readable_v2_runtime import project_task_outputs
 from test_broadcast_readable_v2_source_fixtures import (
     SourceFixture,
     apply_feature_fixture,
-    assert_panel_reveal_scope,
     fixture_dimension_coherence_issues,
     fixture_metadata,
     r1_dimension_targets,
@@ -36,6 +35,7 @@ from RUNTIME.contracts import load_artifact_contracts, load_task_catalog
 from RUNTIME.core_tasks import variation_output
 from RUNTIME.errors import RuntimeExecutionError
 from RUNTIME.event_store import utc_now
+from RUNTIME.gate_control import validate_gate
 from RUNTIME.models import GenerationOptions, LLMMessage, LLMRequest, OutputContract
 from RUNTIME.output_gateway import validate_artifact_content
 from RUNTIME.planner import task_condition_matches
@@ -1008,8 +1008,6 @@ def write_fixture_task_outputs(
     definitions = graph["artifacts"]
     assert isinstance(definitions, dict)
     outputs = fixture_task_outputs(repository_root, workspace, fixture, task_id)
-    if task_id == "scene.design_reactions":
-        assert_panel_reveal_scope(fixture)
     for artifact_name in raw_allowed_writes:
         assert isinstance(artifact_name, str)
         if artifact_name not in outputs:
@@ -2775,12 +2773,21 @@ def test_cross_fixture_gate_three_facts_fail_gate_four_snapshot(tmp_path: Path) 
         )
 
 
-def test_unrevealed_panel_evidence_fails_real_gate_seven(tmp_path: Path) -> None:
-    """미공개 Fact를 아는 Panel 후보는 실제 GATE-07 Commit에서 거부된다."""
+@pytest.mark.parametrize(
+    ("field", "references", "issue_code"),
+    [
+        ("known_fact_ids", ["FACT-01", "FACT-02"], "REACTION_KNOWLEDGE_BOUNDARY_VIOLATION"),
+        ("evidence_ids", ["CLUE-01"], "REACTION_EVIDENCE_NOT_YET_REVEALED"),
+    ],
+)
+def test_unrevealed_panel_evidence_fails_real_gate_seven(
+    tmp_path: Path, field: str, references: list[str], issue_code: str
+) -> None:
+    """미공개 Fact·Clue는 실제 Gate Validator에서 실패하고 Canonical을 보존한다."""
     fixture = apply_feature_fixture("R2")
     reactions = mapping_list(fixture["reaction_segments"], "reaction_segments")
     result_first_turn = mapping_list(reactions[2], "turns")[0]
-    result_first_turn["known_fact_ids"] = ["FACT-01", "FACT-02"]
+    result_first_turn[field] = references
     repository_root, project_path = prepare_source_style_gate_project(tmp_path, "R2")
     for gate_number in range(4, 7):
         result = submit_fixture_gate_until_committed(
@@ -2793,7 +2800,15 @@ def test_unrevealed_panel_evidence_fails_real_gate_seven(tmp_path: Path) -> None
         )
         assert result["status"] == "COMMITTED"
 
-    with pytest.raises(AssertionError):
+    before = project_canonical_bytes(project_path)
+    with (
+        patch.object(
+            gate_transaction_module,
+            "validate_gate",
+            wraps=validate_gate,
+        ) as production_validator,
+        pytest.raises(GateTransactionError) as captured,
+    ):
         submit_fixture_gate_until_committed(
             repository_root,
             project_path,
@@ -2802,6 +2817,13 @@ def test_unrevealed_panel_evidence_fails_real_gate_seven(tmp_path: Path) -> None
             "2026-09-03T03:07:00Z",
             "2026-09-03T03:07:30Z",
         )
+    assert production_validator.call_count == 1
+    assert production_validator.call_args.args[0] == "GATE-07"
+    assert captured.value.code == "GATE_REJECTED"
+    issues = captured.value.context["issues"]
+    assert isinstance(issues, list)
+    assert {issue["code"] for issue in issues} == {issue_code}
+    assert project_canonical_bytes(project_path) == before
 
 
 def test_prj_006_master_injection_fails_gate_nine_snapshot(tmp_path: Path) -> None:
