@@ -345,12 +345,10 @@ def required_channel_artifact_issues(
     production_config: Mapping[str, object],
     channel: Mapping[str, object],
     artifact_names: Sequence[str],
+    dependency_graph: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """공통 Artifact Requirement Predicate로 누락을 보고한다."""
-    graph = load_json_object(
-        Path(__file__).resolve().parents[1] / "STANDARD" / "dependency_graph.json"
-    )
-    definitions = dependency_artifacts(graph)
+    definitions = dependency_artifacts(dependency_graph)
     return [
         make_pipeline_issue(
             "REQUIRED_CHANNEL_ARTIFACT_MISSING",
@@ -826,6 +824,7 @@ def production_text_issues(
     artifacts: Mapping[str, ArtifactContent],
     production_config: Mapping[str, object],
     channel: Mapping[str, object],
+    dependency_graph: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """Project Version에서 필수인 Production 인계 문서 내용을 검사한다."""
     artifact_names = [
@@ -835,16 +834,14 @@ def production_text_issues(
         "subtitle_script",
         "edit_script",
     ]
-    graph = load_json_object(
-        Path(__file__).resolve().parents[1] / "STANDARD" / "dependency_graph.json"
-    )
-    definition = dependency_artifacts(graph)["production_expert_analysis_script"]
+    definitions = dependency_artifacts(dependency_graph)
+    definition = definitions["production_expert_analysis_script"]
     if (
         artifact_required_for_project(definition, channel, production_config, artifacts)
         or "production_expert_analysis_script" in artifacts
     ):
         artifact_names.append("production_expert_analysis_script")
-    readable_definition = dependency_artifacts(graph)["production_broadcast_readable_script"]
+    readable_definition = definitions["production_broadcast_readable_script"]
     if (
         artifact_required_for_project(
             readable_definition,
@@ -885,6 +882,7 @@ def run_production_validation(
     novelty_thresholds: Mapping[str, object],
     story_history: Sequence[Mapping[str, object]],
     reference_material: Mapping[str, object] | None,
+    dependency_graph: Mapping[str, object],
 ) -> ProductionValidationReport:
     """Compatibility부터 Production 인계까지 14개 Gate를 모두 판정한다."""
     project_manifest = artifact_document(artifacts, "project_manifest")
@@ -1034,6 +1032,7 @@ def run_production_validation(
             production_config,
             channel,
             ("candidate_event_briefs",),
+            dependency_graph,
         ),
         *(
             optional_schema_issues(
@@ -1169,6 +1168,7 @@ def run_production_validation(
             production_config,
             channel,
             ("crime_psychology", "source_disclosure", "clinical_labels"),
+            dependency_graph,
         ),
         *optional_schema_issues(
             artifacts,
@@ -1255,6 +1255,7 @@ def run_production_validation(
             production_config,
             channel,
             ("crime_event_contract",),
+            dependency_graph,
         ),
         *optional_schema_issues(
             artifacts,
@@ -1372,6 +1373,7 @@ def run_production_validation(
             production_config,
             channel,
             ("psychological_arc",),
+            dependency_graph,
         ),
         *optional_schema_issues(
             artifacts,
@@ -1403,6 +1405,7 @@ def run_production_validation(
             production_config,
             channel,
             ("character_state_transitions", "expert_segments"),
+            dependency_graph,
         ),
         *(
             optional_schema_issues(
@@ -1476,6 +1479,7 @@ def run_production_validation(
             production_config,
             channel,
             ("expert_analysis_script",),
+            dependency_graph,
         ),
         *validate_script_integrity_v2(
             presentation_plan,
@@ -1562,6 +1566,7 @@ def run_production_validation(
                     "reenactment_character_script",
                     "broadcast_readable_script",
                 ),
+                dependency_graph,
             )
         )
         gate_08.extend(
@@ -1661,6 +1666,7 @@ def run_production_validation(
             production_config,
             channel,
             ("script_realization_report",),
+            dependency_graph,
         ),
         *optional_schema_issues(
             artifacts,
@@ -1703,6 +1709,7 @@ def run_production_validation(
                 production_config,
                 channel,
                 ("reenactment_export_report", "broadcast_readable_report"),
+                dependency_graph,
             )
         )
         gate_09.extend(
@@ -1876,8 +1883,9 @@ def run_production_validation(
             production_config,
             channel,
             ("production_expert_analysis_script",),
+            dependency_graph,
         ),
-        *production_text_issues(artifacts, production_config, channel),
+        *production_text_issues(artifacts, production_config, channel, dependency_graph),
         *validate_production_presentation(
             presentation_plan,
             reaction_segments,
@@ -1935,6 +1943,7 @@ def run_production_validation(
                     "production_reenactment_character_script",
                     "production_broadcast_readable_script",
                 ),
+                dependency_graph,
             )
         )
         if (

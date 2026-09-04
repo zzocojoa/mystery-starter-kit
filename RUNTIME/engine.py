@@ -1094,6 +1094,7 @@ async def execute_existing_run(
                     thresholds,
                     story_history(repository_root),
                     reference_material(reference_source),
+                    dependency_graph,
                 )
                 if issues:
                     append_event(

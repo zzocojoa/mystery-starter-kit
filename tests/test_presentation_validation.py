@@ -172,6 +172,7 @@ def direct_gate_issues(
         novelty_thresholds,
         [],
         None,
+        load_json_object(ROOT / "STANDARD/dependency_graph.json"),
     )
 
 

@@ -1634,6 +1634,7 @@ def core_task_outputs(
             thresholds,
             story_history(repository_root),
             load_json_object(reference_source) if reference_source is not None else None,
+            dependency_graph,
         )
         return {"validation_report": validation_report}
     raise RuntimeExecutionError(

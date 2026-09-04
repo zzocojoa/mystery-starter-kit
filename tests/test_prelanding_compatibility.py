@@ -116,9 +116,10 @@ def test_channel_two_one_still_requires_crime_event_contract() -> None:
     config = artifacts["production_config"]
     assert isinstance(config, Mapping)
     inputs = runtime_validation_inputs_for_project(ROOT, config, artifacts, None)
-    assert validate_gate("GATE-04", artifacts, *inputs, story_history(ROOT), None) == []
+    graph = load_json_object(ROOT / "STANDARD/dependency_graph.json")
+    assert validate_gate("GATE-04", artifacts, *inputs, story_history(ROOT), None, graph) == []
     artifacts.pop("crime_event_contract")
-    issues = validate_gate("GATE-04", artifacts, *inputs, story_history(ROOT), None)
+    issues = validate_gate("GATE-04", artifacts, *inputs, story_history(ROOT), None, graph)
     assert any(
         issue["code"] == "REQUIRED_CHANNEL_ARTIFACT_MISSING"
         and issue["artifact"] == "crime_event_contract"
@@ -147,9 +148,10 @@ def readable_gate_nine_issues(artifacts: dict[str, ArtifactContent]) -> list[str
     config = artifacts["production_config"]
     assert isinstance(config, Mapping)
     inputs = runtime_validation_inputs_for_project(ROOT, config, artifacts, None)
+    graph = load_json_object(ROOT / "STANDARD/dependency_graph.json")
     return [
         issue["code"]
-        for issue in validate_gate("GATE-09", artifacts, *inputs, story_history(ROOT), None)
+        for issue in validate_gate("GATE-09", artifacts, *inputs, story_history(ROOT), None, graph)
     ]
 
 
@@ -159,7 +161,10 @@ def test_readable_v1_passes_production_gate_nine() -> None:
     config = artifacts["production_config"]
     assert isinstance(config, Mapping)
     inputs = runtime_validation_inputs_for_project(ROOT, config, artifacts, None)
-    report = run_production_validation(artifacts, *inputs, story_history(ROOT), None)
+    report = run_production_validation(
+        artifacts, *inputs, story_history(ROOT), None,
+        load_json_object(ROOT / "STANDARD/dependency_graph.json"),
+    )
     assert report["gate_results"]["GATE-09"] == "PASS"
     assert readable_gate_nine_issues(artifacts) == []
 
@@ -183,7 +188,10 @@ def test_unregistered_readable_report_fails_closed_at_gate_nine() -> None:
     assert isinstance(config, Mapping)
     inputs = runtime_validation_inputs_for_project(ROOT, config, artifacts, None)
     with pytest.raises(ConfigurationError, match=r"schema_version=99\.0\.0"):
-        run_production_validation(artifacts, *inputs, story_history(ROOT), None)
+        run_production_validation(
+            artifacts, *inputs, story_history(ROOT), None,
+            load_json_object(ROOT / "STANDARD/dependency_graph.json"),
+        )
     with pytest.raises(ConfigurationError, match=r"schema_version=99\.0\.0"):
         readable_gate_nine_issues(artifacts)
 
@@ -204,7 +212,10 @@ def test_readable_v2_historical_and_owner_bound_gate_nine(report_version: str) -
     config = artifacts["production_config"]
     assert isinstance(config, Mapping)
     inputs = runtime_validation_inputs_for_project(ROOT, config, artifacts, None)
-    validation = run_production_validation(artifacts, *inputs, story_history(ROOT), None)
+    validation = run_production_validation(
+        artifacts, *inputs, story_history(ROOT), None,
+        load_json_object(ROOT / "STANDARD/dependency_graph.json"),
+    )
     assert validation["gate_results"]["GATE-09"] == "PASS"
 
 

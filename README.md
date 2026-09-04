@@ -103,6 +103,17 @@ v2 전환은 Readable 전용 변경이다. `screenplay_units`, Character·Relati
 .venv/bin/mystery-kit register PROJECTS/PRJ-002
 ```
 
+설치형 `mystery-kit validate`와 `audit`는 패키지 설치 위치가 아니라 완전한 Repository의
+계약을 읽는다. Root 선택 순서는 `--repository-root` → Project 조상 → 실행 위치 조상이다.
+명시한 Root에 필수 Sentinel이 빠져 있으면 다른 Root로 대체하지 않고
+`REPOSITORY_RESOURCE_ROOT_NOT_FOUND`와 종료 코드 `2`를 반환한다. Repository 밖에서
+외부 Project 복사본을 진단할 때는 다음처럼 계약 Root를 지정한다.
+
+```bash
+mystery-kit validate /tmp/PRJ-006 --repository-root /path/to/mystery-starter-kit
+mystery-kit audit /tmp/PRJ-006 --repository-root /path/to/mystery-starter-kit
+```
+
 `validate`는 현재 파일 집합의 14개 Gate 정합성을 진단하고 `validation_report.json`과 파생 QA Report를 기록한다. `audit`는 같은 Artifact 검증에 Gate별 Process Trace 완전성을 더해 `audit_report.json`에 기록한다. 둘 다 `current_gate`, Project Status, Artifact `CLEAN` 상태나 기존 실행 이력을 바꾸지 않는다. 손상된 State를 Artifact에서 명시적으로 복구할 때만 `rebuild-state PROJECT --force`를 사용하며, 이 명령도 Process Trace나 Human Editorial 승인을 만들어 내지 않는다.
 
 GATE-13 PASS의 도착 상태는 `EDITORIAL_REVIEW_REQUIRED`다. Editorial Review v1.2는 검토자·검토 시각·Artifact Hash와 `artifact + selector_type + selector_id + excerpt_hash`를 보존한다. Validator는 Selector를 현재 Artifact에서 다시 해석해 근거 위조와 유효하지 않은 ID를 차단한다. `WORD_COUNT_ESTIMATE`는 Editorial PASS 증거로는 사용할 수 있지만 Production Finalize를 허용하지 않는다. Finalize에는 방송 Panel과 설정된 재연극 Runtime 모두 `TABLE_READ` 또는 `RECORDED_AUDIO` 실측이 필요하다.

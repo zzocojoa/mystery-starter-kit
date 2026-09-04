@@ -259,6 +259,7 @@ def test_integrated_gate_08_09_12_13_validation_passes() -> None:
         thresholds,
         story_history(ROOT),
         None,
+        graph,
     )
 
     assert validation["result"] == "PASS"
@@ -296,6 +297,7 @@ def test_full_production_validation_dispatches_v2_profile() -> None:
         thresholds,
         story_history(ROOT),
         None,
+        graph,
     )
 
     assert validation["result"] == "PASS"

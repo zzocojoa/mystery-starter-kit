@@ -95,6 +95,7 @@ def run_artifact_validation(
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
         [],
         None,
+        load_json_object(ROOT / "STANDARD/dependency_graph.json"),
     )
 
 
@@ -158,6 +159,7 @@ def test_causal_break_blocks_full_pipeline() -> None:
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
         [],
         None,
+        load_json_object(ROOT / "STANDARD/dependency_graph.json"),
     )
 
     assert report["result"] == "FAIL"
@@ -184,6 +186,7 @@ def test_undeclared_variation_override_blocks_story_gate() -> None:
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
         [],
         None,
+        load_json_object(ROOT / "STANDARD/dependency_graph.json"),
     )
 
     assert report["gate_results"]["GATE-02"] == "FAIL"
@@ -208,6 +211,7 @@ def test_cross_project_artifact_is_rejected() -> None:
         load_json_object(ROOT / "STANDARD" / "novelty_thresholds.json"),
         [],
         None,
+        load_json_object(ROOT / "STANDARD/dependency_graph.json"),
     )
 
     assert report["gate_results"]["GATE-00"] == "FAIL"

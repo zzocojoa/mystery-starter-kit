@@ -48,6 +48,7 @@ from VALIDATORS.dependency import (
     artifact_required_for_project,
     dependency_artifacts,
     reconcile_project_state_artifacts,
+    validate_dependency_graph,
 )
 from VALIDATORS.editorial import editorial_artifact_hashes
 from VALIDATORS.exceptions import ConfigurationError, GateTransactionError
@@ -72,7 +73,6 @@ from VALIDATORS.state_machine import (
 
 PROCESS_TRACE_PATH = "00_PROJECT/process_trace.jsonl"
 VALIDATOR_VERSION = "1.1.0"
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def parse_audit_timestamp(value: object, source: str) -> datetime:
@@ -1611,6 +1611,7 @@ def validate_gate_overlay(
         thresholds,
         story_history(repository_root),
         reference_material,
+        dependency_graph,
     )
     if issues:
         raise GateTransactionError(
@@ -2213,11 +2214,9 @@ def full_validation_report(
     project_path: Path,
     reference_source: Path | None,
     channel_path: Path | None,
+    dependency_graph: Mapping[str, object],
 ) -> ProductionValidationReport:
     """Canonical 파일 집합을 상태 변경 없이 전체 검증한다."""
-    dependency_graph = load_json_object(
-        repository_root / "STANDARD" / "dependency_graph.json"
-    )
     production_config = load_json_object(
         project_path / "00_PROJECT" / "production_config.json"
     )
@@ -2248,6 +2247,7 @@ def full_validation_report(
         thresholds,
         story_history(repository_root),
         reference_material,
+        dependency_graph,
     )
 
 
@@ -2262,6 +2262,7 @@ def audit_project(
     dependency_graph = load_json_object(
         repository_root / "STANDARD" / "dependency_graph.json"
     )
+    validate_dependency_graph(dependency_graph)
     snapshot_start_token = audit_snapshot_token(project_path, dependency_graph)
     state = project_state(project_path)
     drift = canonical_artifact_drift(
@@ -2282,6 +2283,7 @@ def audit_project(
         project_path,
         reference_source,
         channel_path,
+        dependency_graph,
     )
     traces = trace_records(repository_root, project_path)
     trace_conformant, missing_traces = process_conformance(

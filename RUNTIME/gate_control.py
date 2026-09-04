@@ -375,6 +375,7 @@ def validate_gate(
     novelty_thresholds: Mapping[str, object],
     story_history: Sequence[Mapping[str, object]],
     reference_material: Mapping[str, object] | None,
+    dependency_graph: Mapping[str, object],
 ) -> list[ValidationIssue]:
     """요청 Gate까지만 필요한 기존 Validator를 실행한다."""
     production_config = artifact_document(artifacts, "production_config")
@@ -429,6 +430,7 @@ def validate_gate(
                 production_config,
                 channel,
                 ("candidate_event_briefs",),
+                dependency_graph,
             ),
             *optional_schema_issues(
                 artifacts,
@@ -640,6 +642,7 @@ def validate_gate(
                 production_config,
                 channel,
                 ("crime_event_contract",),
+                dependency_graph,
             ),
             *optional_schema_issues(
                 artifacts,
@@ -755,6 +758,7 @@ def validate_gate(
                 production_config,
                 channel,
                 ("psychological_arc",),
+                dependency_graph,
             ),
             *optional_schema_issues(
                 artifacts,
@@ -779,6 +783,7 @@ def validate_gate(
                 production_config,
                 channel,
                 ("character_state_transitions",),
+                dependency_graph,
             ),
             *(
                 optional_schema_issues(
@@ -925,6 +930,7 @@ def validate_gate(
                         "reenactment_character_script",
                         "broadcast_readable_script",
                     ),
+                    dependency_graph,
                 )
             )
             issues.extend(
@@ -994,6 +1000,7 @@ def validate_gate(
                 production_config,
                 channel,
                 ("script_realization_report",),
+                dependency_graph,
             ),
             *optional_schema_issues(
                 artifacts,
@@ -1040,6 +1047,7 @@ def validate_gate(
                     production_config,
                     channel,
                     ("reenactment_export_report", "broadcast_readable_report"),
+                    dependency_graph,
                 )
             )
             issues.extend(
@@ -1291,6 +1299,7 @@ def validate_gate(
                 artifacts,
                 production_config,
                 channel,
+                dependency_graph,
             ),
             *validate_production_presentation(
                 presentation,
@@ -1345,6 +1354,7 @@ def validate_gate(
                         "production_reenactment_character_script",
                         "production_broadcast_readable_script",
                     ),
+                    dependency_graph,
                 )
             )
             issues.extend(production_reenactment_copy_issues(artifacts))
@@ -1415,6 +1425,7 @@ def validation_report_through(
     novelty_thresholds: Mapping[str, object],
     story_history: Sequence[Mapping[str, object]],
     reference_material: Mapping[str, object] | None,
+    dependency_graph: Mapping[str, object],
 ) -> ProductionValidationReport:
     """GATE-00부터 목표 Gate까지 순차 결과와 모든 Issue를 만든다."""
     target_index = gate_index(target_gate)
@@ -1437,6 +1448,7 @@ def validation_report_through(
             novelty_thresholds,
             story_history,
             reference_material,
+            dependency_graph,
         )
         status: GateStatus = "FAIL" if gate_issues else "PASS"
         gate_results[gate_id] = status

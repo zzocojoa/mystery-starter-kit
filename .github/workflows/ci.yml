@@ -63,6 +63,9 @@ jobs:
       - name: 패키지 빌드
         run: python -m build
 
+      - name: Wheel-installed CLI smoke
+        run: python -m pytest -v tests/test_installed_cli_resources.py -k wheel
+
       - name: 의존성 취약점 검사
         if: matrix.python-version == '3.11'
         run: python -m pip_audit
