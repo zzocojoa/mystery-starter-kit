@@ -98,6 +98,7 @@ from VALIDATORS.models import (
 from VALIDATORS.novelty import evaluate_variation_precheck_bound
 from VALIDATORS.pipeline import load_selected_project_artifacts
 from VALIDATORS.reference_validation import sanitize_reference_profile
+from VALIDATORS.repository_resources import resolve_repository_resource_root
 from VALIDATORS.scaffold import create_project_scaffold
 from VALIDATORS.schema_validation import collect_schema_errors
 from VALIDATORS.source_truth import require_source_truth_classification
@@ -197,6 +198,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     validate_parser.add_argument("project_path", type=Path)
     validate_parser.add_argument(
+        "--repository-root", type=Path, help="검증 계약을 읽을 완전한 Repository Root"
+    )
+    validate_parser.add_argument(
         "--channel",
         type=Path,
         default=None,
@@ -262,6 +266,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="Project State를 변경하지 않고 Artifact와 Process를 감사합니다.",
     )
     audit_parser.add_argument("project_path", type=Path)
+    audit_parser.add_argument(
+        "--repository-root", type=Path, help="감사 계약을 읽을 완전한 Repository Root"
+    )
     audit_parser.add_argument(
         "--channel",
         type=Path,
@@ -1241,8 +1248,11 @@ def run_variations(args: argparse.Namespace) -> int:
 def run_validate(args: argparse.Namespace) -> int:
     """전체 Artifact를 진단하되 Project State를 재구성하지 않는다."""
     audited_at = utc_now()
+    repository_root = resolve_repository_resource_root(
+        args.repository_root, args.project_path, Path.cwd()
+    )
     report = audit_project(
-        ROOT,
+        repository_root,
         args.project_path,
         args.reference_source if isinstance(args.reference_source, Path) else None,
         args.channel if isinstance(args.channel, Path) else None,
@@ -1819,8 +1829,11 @@ def run_task_return(args: argparse.Namespace) -> int:
 
 def run_audit(args: argparse.Namespace) -> int:
     """Project State를 바꾸지 않는 전체 Artifact와 Process 감사를 실행한다."""
+    repository_root = resolve_repository_resource_root(
+        args.repository_root, args.project_path, Path.cwd()
+    )
     report = audit_project(
-        ROOT,
+        repository_root,
         args.project_path,
         args.reference_source if isinstance(args.reference_source, Path) else None,
         args.channel if isinstance(args.channel, Path) else None,
@@ -1856,6 +1869,7 @@ def run_rebuild_state(args: argparse.Namespace) -> int:
         args.project_path,
         args.reference_source if isinstance(args.reference_source, Path) else None,
         args.channel if isinstance(args.channel, Path) else None,
+        dependency_graph,
     )
     rebuilt_at = utc_now()
     write_qa_reports(args.project_path, report["project_id"], report["issues"])

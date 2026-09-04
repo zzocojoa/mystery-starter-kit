@@ -1136,6 +1136,7 @@ def test_audit_fails_closed_when_config_admission_commits_mid_snapshot(
         current_project_path: Path,
         reference_source: Path | None,
         channel_path: Path | None,
+        dependency_graph: Mapping[str, object],
     ) -> object:
         """검증 중 한 번만 공식 Config Admission을 Commit한다."""
         nonlocal admission_committed, committed_snapshot
@@ -1154,6 +1155,7 @@ def test_audit_fails_closed_when_config_admission_commits_mid_snapshot(
             current_project_path,
             reference_source,
             channel_path,
+            dependency_graph,
         )
 
     monkeypatch.setattr(
@@ -1215,6 +1217,7 @@ def test_audit_fails_closed_when_gate_commits_mid_snapshot(
         current_project_path: Path,
         reference_source: Path | None,
         channel_path: Path | None,
+        dependency_graph: Mapping[str, object],
     ) -> object:
         """검증 중 열린 Gate를 한 번만 공식 Transaction으로 Commit한다."""
         nonlocal gate_committed, committed_snapshot
@@ -1233,6 +1236,7 @@ def test_audit_fails_closed_when_gate_commits_mid_snapshot(
             current_project_path,
             reference_source,
             channel_path,
+            dependency_graph,
         )
 
     monkeypatch.setattr(
