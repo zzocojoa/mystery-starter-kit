@@ -6,15 +6,17 @@ from pathlib import Path
 import pytest
 from project_factory import make_complete_project_artifacts
 
+from VALIDATORS.change_log import append_change_log
 from VALIDATORS.dependency import build_initial_project_state
 from VALIDATORS.exceptions import DuplicateStoryFingerprintError, StoryLibraryError
-from VALIDATORS.io import load_json_object
+from VALIDATORS.io import load_json_object, write_json_object
 from VALIDATORS.library import (
     abandon_novelty_entry,
     novelty_history,
     register_story_fingerprint,
     upsert_novelty_entry,
 )
+from VALIDATORS.library_store import is_config_only_process_revision
 from VALIDATORS.models import ProjectState
 from VALIDATORS.schema_validation import collect_schema_errors
 
@@ -64,6 +66,30 @@ def test_novelty_index_passes_schema_without_project_records() -> None:
 
     assert collect_schema_errors(index, schema, "novelty_index") == []
     assert novelty_history(index) == []
+
+
+def test_initial_config_admission_is_not_config_only_revision(tmp_path: Path) -> None:
+    """신규 GATE-00 제작 Revision은 Readable 전용 재진입으로 오분류하지 않는다."""
+    project_path = tmp_path / "PROJECTS/PRJ-007"
+    project_root = project_path / "00_PROJECT"
+    project_root.mkdir(parents=True)
+    write_json_object(
+        project_root / "project_state.json",
+        {
+            "readiness": {
+                "process_start_gate": "GATE-00",
+                "process_revision": 1,
+            }
+        },
+    )
+    append_change_log(
+        project_path,
+        "BROADCAST_READABLE_CONFIG_ADMITTED",
+        {"process_revision": 1},
+        "2026-09-05T00:00:00Z",
+    )
+
+    assert is_config_only_process_revision(project_path) is False
 
 
 def test_production_ready_fingerprint_can_be_registered() -> None:
