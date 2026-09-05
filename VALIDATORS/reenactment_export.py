@@ -17,7 +17,9 @@ from RUNTIME.screenplay_renderers import (
     render_narration_layer,
     render_panel_layer,
     render_reenactment_character_script,
+    required_string,
 )
+from VALIDATORS.broadcast_readable_v2 import block_occurrence_ranges
 from VALIDATORS.candidate_evaluation import document_sha256
 from VALIDATORS.crime_event import CRIME_TRACE_BLOCK, segment_trace_blocks
 from VALIDATORS.exceptions import ConfigurationError
@@ -257,7 +259,7 @@ def rendered_unit_evidence(
     output_profile: Mapping[str, object],
     markdown: str,
 ) -> tuple[dict[str, object], list[str], list[ValidationIssue]]:
-    """가시 Unit Block을 원본 Unit ID와 순서에 결정론적으로 대응한다."""
+    """정본과 다른 출력의 독립 Block에서 누락·중복·순서 진단을 수집한다."""
     issues: list[ValidationIssue] = []
     expected_ids: list[str] = []
     blocks_by_value: dict[str, list[str]] = {}
@@ -289,14 +291,10 @@ def rendered_unit_evidence(
     rendered_occurrences: list[str] = []
     duplicate_ids: list[str] = []
     for block, unit_ids in blocks_by_value.items():
-        positions: list[int] = []
-        cursor = 0
-        while True:
-            position = markdown.find(block, cursor)
-            if position < 0:
-                break
-            positions.append(position)
-            cursor = position + len(block)
+        positions = [
+            occurrence["byte_start"]
+            for occurrence in block_occurrence_ranges(markdown, block)
+        ]
         for unit_id, position in zip(unit_ids, positions, strict=False):
             rendered_occurrences.append(unit_id)
             positioned_ids.append((position, unit_id))
@@ -341,6 +339,26 @@ def rendered_unit_evidence(
         "rendered_order": rendered_order,
     }
     return unit_coverage, rendered_order, issues
+
+
+def exact_render_unit_coverage(
+    expected_units: Sequence[Mapping[str, object]],
+    character_map: Mapping[str, Mapping[str, object]],
+    output_profile: Mapping[str, object],
+) -> dict[str, object]:
+    """전체 파생 출력의 byte 일치로 확인된 Unit의 포함 여부와 순서를 반환한다."""
+    expected_ids: list[str] = []
+    blocks_by_value: dict[str, list[str]] = {}
+    for unit in expected_units:
+        unit_id = required_string(unit, "unit_id")
+        expected_ids.append(unit_id)
+        block = reenactment_unit_text(unit, character_map, output_profile)
+        blocks_by_value.setdefault(block, []).append(unit_id)
+    rendered_ids = [unit_id for unit_ids in blocks_by_value.values() for unit_id in unit_ids]
+    return {
+        **coverage(expected_ids, rendered_ids),
+        "rendered_order": expected_ids,
+    }
 
 
 def scene_coverage_evidence(
@@ -1076,12 +1094,26 @@ def build_reenactment_export_report(
     broadcast_master = outputs["final_script"]
     character_map, cast_input_issues = character_map_or_empty(characters)
     expected_units = included_units(screenplay_units, output_profile)
-    unit_evidence, _rendered_order, unit_issues = rendered_unit_evidence(
-        expected_units,
-        character_map,
+    derived_output_issues = screenplay_derived_output_issues(
+        screenplay_units,
+        presentation_plan,
+        reaction_segments,
+        crime_event_contract,
+        characters,
+        relationships,
         output_profile,
-        reenactment_markdown,
+        outputs,
     )
+    unit_issues: list[ValidationIssue] = []
+    if derived_output_issues:
+        unit_evidence, _rendered_order, unit_issues = rendered_unit_evidence(
+            expected_units,
+            character_map,
+            output_profile,
+            reenactment_markdown,
+        )
+    else:
+        unit_evidence = exact_render_unit_coverage(expected_units, character_map, output_profile)
     scene_evidence, scene_issues = scene_coverage_evidence(
         screenplay_units,
         output_profile,
@@ -1140,16 +1172,7 @@ def build_reenactment_export_report(
                 crime_event_contract,
                 broadcast_master,
             ),
-            *screenplay_derived_output_issues(
-                screenplay_units,
-                presentation_plan,
-                reaction_segments,
-                crime_event_contract,
-                characters,
-                relationships,
-                output_profile,
-                outputs,
-            ),
+            *derived_output_issues,
         ]
     )
     result = (
