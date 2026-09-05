@@ -1,0 +1,35 @@
+{
+  "project_id": "PRJ-008",
+  "result": "PASS",
+  "comparison_status": "COMPARISON_COMPLETE",
+  "comparisons": [
+    {
+      "project_id": "PRJ-007",
+      "similarity": 10.79,
+      "components": {
+        "mystery_type": 0.0,
+        "architecture": 0.0,
+        "protagonist_role": 100.0,
+        "primary_twist": 0.0,
+        "timeline_style": 0.0,
+        "incident_type": 100.0,
+        "setting": 0.0,
+        "culprit_structure": 0.0,
+        "setting_logic": 0.0,
+        "information_mechanism": 0.0,
+        "relationship_engine": 0.0,
+        "pressure_engine": 0.0,
+        "dramatic_engine": 0.0,
+        "beat_signature": 0.0,
+        "causal": 0.0,
+        "semantic_causal": 8.93
+      },
+      "threshold": 60.0,
+      "causal_hard_collision": false,
+      "semantic_causal_collision": false
+    }
+  ],
+  "hard_collisions": [],
+  "semantic_hard_collisions": [],
+  "issues": []
+}

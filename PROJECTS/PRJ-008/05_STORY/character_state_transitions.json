@@ -1,0 +1,213 @@
+{
+  "schema_family": "character-state-transitions",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-008",
+  "narrative_path": "NON_RECOVERY",
+  "transitions": [
+    {
+      "transition_id": "CSTATE-001",
+      "order": 1,
+      "character_id": "CHAR-03",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-01",
+      "state_before": "지안이 약속에 맞춰 도착할 것으로 믿는다.",
+      "state_after": "연락이 늦어져 직접 확인할 필요를 느낀다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-04"
+        ],
+        "clue_ids": [],
+        "crime_event_ids": []
+      },
+      "change_category": "RISK"
+    },
+    {
+      "transition_id": "CSTATE-002",
+      "order": 2,
+      "character_id": "CHAR-01",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-03",
+      "state_before": "자신의 일정과 취향을 말해도 되는지 먼저 살핀다.",
+      "state_after": "불안을 안은 채 약속에 나갈 준비를 계속한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-01",
+          "FACT-04"
+        ],
+        "clue_ids": [],
+        "crime_event_ids": []
+      },
+      "change_category": "CHOICE"
+    },
+    {
+      "transition_id": "CSTATE-003",
+      "order": 3,
+      "character_id": "CHAR-03",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-05",
+      "state_before": "연락이 늦어져 직접 확인할 필요를 느낀다.",
+      "state_after": "도윤의 설명만으로 지안의 뜻을 대신 판단하지 않기로 한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-04",
+          "FACT-07"
+        ],
+        "clue_ids": [],
+        "crime_event_ids": []
+      },
+      "change_category": "BELIEF"
+    },
+    {
+      "transition_id": "CSTATE-004",
+      "order": 4,
+      "character_id": "CHAR-03",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-08",
+      "state_before": "도윤의 설명만으로 지안의 뜻을 대신 판단하지 않기로 한다.",
+      "state_after": "직접 들은 요청을 근거로 다른 목격자와 도움을 요청한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-08",
+          "FACT-09"
+        ],
+        "clue_ids": [
+          "CLUE-03"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "CHOICE"
+    },
+    {
+      "transition_id": "CSTATE-005",
+      "order": 5,
+      "character_id": "CHAR-01",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-09",
+      "state_before": "불안을 안은 채 약속에 나갈 준비를 계속한다.",
+      "state_after": "함께 쉬기로 동의한 적 없으며 나가겠다는 뜻을 명시한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-05",
+          "FACT-06",
+          "FACT-13"
+        ],
+        "clue_ids": [],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "CHOICE"
+    },
+    {
+      "transition_id": "CSTATE-006",
+      "order": 6,
+      "character_id": "CHAR-01",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-10",
+      "state_before": "함께 쉬기로 동의한 적 없으며 나가겠다는 뜻을 명시한다.",
+      "state_after": "도윤과 분리되어 이동할 수 있지만 몸의 긴장은 남는다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-10",
+          "FACT-13"
+        ],
+        "clue_ids": [
+          "CLUE-03"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "RISK"
+    },
+    {
+      "transition_id": "CSTATE-007",
+      "order": 7,
+      "character_id": "CHAR-03",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-10",
+      "state_before": "직접 들은 요청을 근거로 다른 목격자와 도움을 요청한다.",
+      "state_after": "지안의 이동 의사가 확인되자 결정권을 지안에게 두고 곁을 지킨다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-10"
+        ],
+        "clue_ids": [
+          "CLUE-03"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "RELATIONSHIP"
+    },
+    {
+      "transition_id": "CSTATE-008",
+      "order": 8,
+      "character_id": "CHAR-01",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-11",
+      "state_before": "도윤과 분리되어 이동할 수 있지만 몸의 긴장은 남는다.",
+      "state_after": "거절이 지워졌다는 자신의 설명을 여러 근거와 함께 말한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-02",
+          "FACT-03",
+          "FACT-12",
+          "FACT-16"
+        ],
+        "clue_ids": [
+          "CLUE-01",
+          "CLUE-02",
+          "CLUE-03"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "BELIEF"
+    },
+    {
+      "transition_id": "CSTATE-009",
+      "order": 9,
+      "character_id": "CHAR-01",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-12",
+      "state_before": "거절이 지워졌다는 자신의 설명을 여러 근거와 함께 말한다.",
+      "state_after": "작은 선택 앞의 불안이 남은 채 자신이 마실 것을 직접 고른다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-14",
+          "FACT-18"
+        ],
+        "clue_ids": [],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "CHOICE"
+    },
+    {
+      "transition_id": "CSTATE-010",
+      "order": 10,
+      "character_id": "CHAR-03",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-12",
+      "state_before": "지안의 이동 의사가 확인되자 결정권을 지안에게 두고 곁을 지킨다.",
+      "state_after": "회복을 재촉하지 않고 지안이 고를 시간을 함께 기다린다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-14",
+          "FACT-18"
+        ],
+        "clue_ids": [],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "RELATIONSHIP"
+    }
+  ]
+}

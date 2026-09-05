@@ -1,0 +1,48 @@
+{
+  "project_id": "PRJ-008",
+  "result": "PASS",
+  "issues": [],
+  "scene_realization_evidence": [],
+  "crime_realization_evidence": [
+    {
+      "target_type": "EVENT",
+      "target_id": "EVENT-01",
+      "status": "NEEDS_REVIEW",
+      "scene_id": "SCN-08",
+      "segment_id": "SEG-016",
+      "excerpt_hash": "6cb4324e9378826ca5bc29d9cfa23acbd87a74a07e409a9d551d616568599b8a"
+    },
+    {
+      "target_type": "REVEAL",
+      "target_id": "REVEAL-TARGET-01",
+      "status": "NEEDS_REVIEW",
+      "scene_id": null,
+      "segment_id": "SEG-018",
+      "excerpt_hash": "bdad266a605afe6a7d7229d493ef41ecc5a40194653d6842909689a8427dd68c"
+    },
+    {
+      "target_type": "REVEAL",
+      "target_id": "REVEAL-TARGET-02",
+      "status": "NEEDS_REVIEW",
+      "scene_id": null,
+      "segment_id": "SEG-021",
+      "excerpt_hash": "d97136c16dad1c8f2237d435ab10dadd9f3bd834d94478519c49cf88f9d80921"
+    },
+    {
+      "target_type": "REVEAL",
+      "target_id": "REVEAL-TARGET-03",
+      "status": "NEEDS_REVIEW",
+      "scene_id": null,
+      "segment_id": "SEG-021",
+      "excerpt_hash": "d97136c16dad1c8f2237d435ab10dadd9f3bd834d94478519c49cf88f9d80921"
+    },
+    {
+      "target_type": "REVEAL",
+      "target_id": "REVEAL-TARGET-04",
+      "status": "NEEDS_REVIEW",
+      "scene_id": null,
+      "segment_id": "SEG-023",
+      "excerpt_hash": "d22b5dc0a69408c9fdbdcaaec100c3c3e473813511889b8a7a934b2eccdf9f66"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "$schema": "../../../STANDARD/schemas/relationships.schema.json",
+  "schema_family": "relationships",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-008",
+  "relationships": [
+    {
+      "relationship_id": "REL-01",
+      "from": "CHAR-02",
+      "to": "CHAR-01",
+      "engine": "POWER_IMBALANCE",
+      "display_summary": "도윤은 지안과 동거했던 연인이다. 지안이 이별과 출입 허락 철회를 밝혔는데도 같은 취향과 생활표에 동의해야 나갈 수 있다는 조건으로 선택권을 빼앗는다."
+    },
+    {
+      "relationship_id": "REL-02",
+      "from": "CHAR-01",
+      "to": "CHAR-02",
+      "engine": "BROKEN_TRUST",
+      "display_summary": "지안은 함께 고르던 생활이 자신의 거절을 지우는 규칙으로 바뀐 것을 겪고 관계를 끝낸다. 이전의 친밀함이 현재의 동의나 출입 권한을 뜻하지 않는다."
+    },
+    {
+      "relationship_id": "REL-03",
+      "from": "CHAR-01",
+      "to": "CHAR-03",
+      "engine": "SUPPORT_AND_AUTONOMY",
+      "display_summary": "지안과 친구 서윤은 정오 상담 약속을 잡는다. 서윤은 지안에게 필요한 도움을 확인하고 분리 뒤에도 선택을 대신하지 않은 채 곁에 머문다."
+    },
+    {
+      "relationship_id": "REL-04",
+      "from": "CHAR-03",
+      "to": "CHAR-04",
+      "engine": "INDEPENDENT_CORROBORATION",
+      "display_summary": "서윤과 관리인 정호는 지안의 외출 요구와 도윤의 거절을 각각 직접 듣는다. 같은 결론에 이르더라도 서로의 전언을 독립 목격으로 바꾸지 않는다."
+    },
+    {
+      "relationship_id": "REL-05",
+      "from": "CHAR-05",
+      "to": "CHAR-01",
+      "engine": "WITNESSED_BOUNDARY",
+      "display_summary": "이웃 은경은 지안이 반환 열쇠를 받으며 도윤에게 다시 들어오지 말라고 말한 장면을 직접 보았다. 은경의 기억은 그때 지안이 밝힌 경계를 보강한다."
+    },
+    {
+      "relationship_id": "REL-06",
+      "from": "CHAR-04",
+      "to": "CHAR-02",
+      "engine": "CLAIM_VERIFICATION",
+      "display_summary": "관리인 정호는 도윤이 지안을 돌보고 있다는 설명을 지안 본인의 의사와 대조한다. 건물에서 익숙하게 본 사람이라는 이유로 외출 거절을 정당화하지 않는다."
+    },
+    {
+      "relationship_id": "REL-07",
+      "from": "CHAR-06",
+      "to": "CHAR-01",
+      "engine": "SAFETY_AND_STATEMENT",
+      "display_summary": "현수는 지안을 도윤과 분리한 뒤 본인의 외출 의사와 피해 경험을 직접 확인한다. 지안은 타인의 추정으로 대체되지 않는 진술 주체다."
+    },
+    {
+      "relationship_id": "REL-08",
+      "from": "CHAR-06",
+      "to": "CHAR-02",
+      "engine": "RESPONSIBILITY_CONFIRMATION",
+      "display_summary": "현수는 현장 상태와 독립 진술의 합치에 근거하여 도윤의 출입 통제 책임을 확인하고 수사로 연결한다. 임상 진단이나 확정되지 않은 재판 결과로 행위를 설명하지 않는다."
+    }
+  ]
+}

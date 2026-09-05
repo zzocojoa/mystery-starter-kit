@@ -114,6 +114,123 @@
         }
       },
       "indexed_at": "2026-09-04T18:35:38.994878Z"
+    },
+    {
+      "project_id": "PRJ-008",
+      "status": "EDITORIAL_PENDING",
+      "story_signature": {
+        "mystery_type": "HOW",
+        "architecture": "ARCH-05_BELIEF_COLLAPSE",
+        "protagonist_role": "VICTIM",
+        "primary_twist": "TW-01_OFFENDER_ACCESS_REFRAMED",
+        "timeline_style": "FLASHBACK_DRIVEN",
+        "incident_type": "CONFINEMENT",
+        "setting": "HOUSE",
+        "culprit_structure": "SINGLE",
+        "setting_logic": [
+          "DOMESTIC_ACCESS",
+          "WITHDRAWN_CONSENT",
+          "WITNESS_AT_THRESHOLD"
+        ],
+        "information_mechanism": [
+          "RELATIONAL_DISCLOSURE"
+        ],
+        "relationship_engine": "POWER_IMBALANCE",
+        "pressure_engine": "COUNTDOWN",
+        "dramatic_engine": "EVENT_RECONSTRUCTION"
+      },
+      "updated_at": "2026-09-05T13:26:53.215628Z",
+      "fingerprint": {
+        "schema_family": "story-fingerprint",
+        "schema_version": "1.1.0",
+        "project_id": "PRJ-008",
+        "story": {
+          "mystery_type": "HOW",
+          "architecture": "ARCH-05_BELIEF_COLLAPSE",
+          "protagonist_role": "VICTIM",
+          "primary_twist": "TW-01_OFFENDER_ACCESS_REFRAMED",
+          "timeline_style": "FLASHBACK_DRIVEN",
+          "incident_type": "CONFINEMENT",
+          "setting": "HOUSE",
+          "culprit_structure": "SINGLE",
+          "setting_logic": [
+            "DOMESTIC_ACCESS",
+            "WITHDRAWN_CONSENT",
+            "WITNESS_AT_THRESHOLD"
+          ],
+          "information_mechanism": [
+            "RELATIONAL_DISCLOSURE"
+          ],
+          "relationship_engine": "POWER_IMBALANCE",
+          "pressure_engine": "COUNTDOWN",
+          "dramatic_engine": "EVENT_RECONSTRUCTION"
+        },
+        "beat_signature": [
+          "EVENT_ENTRY",
+          "TRUST_SURFACE",
+          "UNEASE_UNDER_PRESSURE",
+          "CONTRADICTION_SEED",
+          "FALSE_REASSURANCE",
+          "BOUNDARY_OBJECT_SEED",
+          "VICTIM_INTENT",
+          "FALSE_BELIEF_COLLAPSE",
+          "CULPRIT_RESPONSIBILITY_REVEAL",
+          "INDEPENDENT_CONFIRMATION",
+          "MOTIVE_METHOD_REFRAME",
+          "HARM_AND_SELF_DIRECTED_CHOICE"
+        ],
+        "causal": {
+          "root_cause": "거절한 취향까지 같은 하루로 덧쓰던 연인이 외부 상담을 통해 생활 강요가 알려지는 일을 막으려 한다.",
+          "mechanism": "이별과 출입 허락 철회 뒤에도 집에 남아 외출을 거절하고 공동 생활표에 다시 동의하는 일을 떠날 조건으로 삼는다.",
+          "concealment": "덧쓴 종이 생활표의 겉보기 일치와 자발적 휴식이라는 돌봄 주장을 결합하여 지안의 거절을 가린다.",
+          "discovery_path": "정오 약속을 따라온 친구와 관리인의 별도 청취가 현장 상태와 합치하고, 이웃이 본 반환 열쇠와 지안의 생활표 설명이 철회된 허락과 삭제된 선택을 밝힌다.",
+          "resolution": "감금 책임 확인과 분리 보호 뒤에도 선택의 망설임을 남기며 지안이 자기 음료를 고른다. 앱 기록이나 물건 하나로 책임을 확정하지 않는다."
+        },
+        "semantic_causal": {
+          "normalized_roles": [
+            "CONTROLLED_PARTNER",
+            "ROUTINE_ENFORCING_OFFENDER",
+            "APPOINTMENT_KEEPING_FRIEND",
+            "INDEPENDENT_THRESHOLD_WITNESS",
+            "WITHDRAWN_ACCESS_WITNESS",
+            "ON_SCENE_VERIFIER"
+          ],
+          "character_function_chain": [
+            "PREFERENCE_REFUSAL",
+            "ROUTINE_OVERWRITING",
+            "ACCESS_PERMISSION_WITHDRAWAL",
+            "COUNSELING_APPOINTMENT",
+            "DEPARTURE_DENIAL",
+            "CARE_PRETEXT",
+            "INDEPENDENT_THRESHOLD_CORROBORATION",
+            "ON_SCENE_SEPARATION",
+            "ROUTINE_AND_KEY_REINTERPRETATION",
+            "SELF_DIRECTED_CHOICE"
+          ],
+          "audience_hypothesis_transitions": [
+            "VOLUNTARY_SHARED_REST_POSSIBLE",
+            "ROUTINE_CONSENSUS_UNCERTAIN",
+            "WITHDRAWN_ACCESS_CONTEXT_WITHHELD",
+            "CARE_ACCOUNT_CONTRADICTED",
+            "CONFINEMENT_RESPONSIBILITY_CONFIRMED",
+            "CONTROL_CONCEALMENT_MOTIVE_REVEALED",
+            "PERSISTENT_HARM_AND_AGENCY"
+          ],
+          "edge_sequence": [
+            "ROOT_CAUSE>MOTIVE_OR_TRIGGER",
+            "MOTIVE_OR_TRIGGER>CRIME_EVENT",
+            "CRIME_EVENT>HARM_RESULT",
+            "CRIME_EVENT>CONCEALMENT_OR_DENIAL",
+            "HARM_RESULT>DISCOVERY_PATH",
+            "CONCEALMENT_OR_DENIAL>DISCOVERY_PATH",
+            "DISCOVERY_PATH>RESPONSIBILITY_CONFIRMATION",
+            "CRIME_EVENT>HARM_RESULT",
+            "RESPONSIBILITY_CONFIRMATION>RESOLUTION",
+            "HARM_RESULT>RESOLUTION"
+          ]
+        }
+      },
+      "indexed_at": "2026-09-05T11:59:15.323253Z"
     }
   ]
 }

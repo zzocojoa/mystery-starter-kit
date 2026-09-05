@@ -1,0 +1,107 @@
+{
+  "schema_family": "story-dna",
+  "schema_version": "1.3.0",
+  "project_id": "PRJ-008",
+  "story_source_mode": "ORIGINAL",
+  "story_dna": {
+    "title_working": "같은 하루",
+    "story_seed": "강제 동기화 / 취향과 행동, 생활 습관까지 똑같이 맞추라고 요구한 통제 사연",
+    "mystery_type": "HOW",
+    "architecture": "ARCH-05_BELIEF_COLLAPSE",
+    "protagonist_role": "VICTIM",
+    "perspective": "MULTIPLE_POV",
+    "timeline_style": "FLASHBACK_DRIVEN",
+    "setting": "HOUSE",
+    "primary_twist": "TW-01_OFFENDER_ACCESS_REFRAMED",
+    "reveal_mode": "RESPONSIBILITY_CONFIRMATION",
+    "narrator_reliability": "RELIABLE",
+    "incident_type": "CONFINEMENT",
+    "culprit_structure": "SINGLE",
+    "setting_logic": [
+      "DOMESTIC_ACCESS",
+      "WITHDRAWN_CONSENT",
+      "WITNESS_AT_THRESHOLD"
+    ],
+    "information_mechanism": [
+      "RELATIONAL_DISCLOSURE"
+    ],
+    "clue_mechanism": [
+      "RELATIONAL",
+      "PHYSICAL_OBJECT"
+    ],
+    "motive_class": "CONCEALMENT",
+    "emotional_engine": "SELF_DETERMINATION_UNDER_THREAT",
+    "relationship_engine": {
+      "primary": "POWER_IMBALANCE",
+      "secondary": [
+        "BROKEN_TRUST"
+      ],
+      "protagonist_counterpart_role": "DATING_PARTNER"
+    },
+    "pressure_engine": {
+      "source": "COUNTDOWN",
+      "escalation": "COUNTDOWN",
+      "stakes": [
+        "LIBERTY",
+        "PERSONAL_SAFETY",
+        "AUTONOMY"
+      ]
+    },
+    "dramatic_engine": {
+      "primary": "EVENT_RECONSTRUCTION",
+      "secondary": [
+        "BELIEF_COLLAPSE"
+      ],
+      "audience_emotion_curve": [
+        "UNEASE",
+        "DOUBT",
+        "FEAR",
+        "RECOGNITION",
+        "RESOLVE"
+      ]
+    },
+    "thematic_question": "좋아하는 것까지 같아야 한다는 요구가 사랑의 약속으로 불릴 때, 한 사람이 거절할 자유는 어디에서 지워지는가?",
+    "audience_experience": {
+      "initial_belief": "지안이 상담 약속에 오지 않은 것은 두 연인이 갈등을 이야기하며 함께 쉬기로 했기 때문일 수 있다. 문밖 사람들은 지안의 의사를 아직 직접 듣지 못했다.",
+      "midpoint_shift": "생활표에 남은 지안의 취향이 덧칠되어 있고, 이별 전후의 서로 다른 기억이 돌봄이라는 도윤의 설명과 맞지 않는다.",
+      "final_reframe": "반환 열쇠는 접근 허락이 끝났다는 증거이며 생활표의 일치는 지안의 거절을 도윤이 지운 결과다. 문 앞의 독립 목격과 현장 확인이 감금 책임을 뒷받침한다."
+    },
+    "ending_type": "BITTERSWEET",
+    "threat_type": "CRIME",
+    "trusted_domain": "ROMANTIC_PARTNER",
+    "safe_domain_expectation": "동거 중이어도 취향과 시간을 다르게 정하고 관계를 끝내며 집을 떠날 수 있다.",
+    "early_warning_signals": [
+      "PREFERENCE_ERASURE",
+      "SHARED_ROUTINE_PRESSURE",
+      "CONTACT_INTERFERENCE"
+    ],
+    "boundary_erosion_steps": [
+      "SUGGESTION_BECOMES_RULE",
+      "REFUSAL_OVERWRITTEN",
+      "DEPARTURE_DENIED"
+    ],
+    "control_tactics": [
+      "FORCED_ROUTINE_MATCHING",
+      "CONDITIONAL_EXIT",
+      "CARE_PRETEXT"
+    ],
+    "victim_exit_barriers": [
+      "IMMEDIATE_ACCESS_CONTROL",
+      "RETALIATION_FEAR"
+    ],
+    "harm_mechanism": "취향과 행동을 같은 생활표에 맞추라는 요구가 상담과 퇴거를 가로막는 감금으로 이어지고, 분리 뒤에도 닫힌 문과 공동 알림에 대한 불안이 남는다.",
+    "responsible_agent": "지안의 외출 요구와 이별 의사를 거절하고 출입을 통제한 연인 도윤.",
+    "responsible_agent_payoff": "지안의 진술, 친구와 관리인의 독립 목격, 현장 상태가 합치하여 도윤의 감금 책임이 확인되고 수사로 이어진다.",
+    "victim_agency_outcome": "지안은 자기 의사를 직접 밝히고 도움을 받아 분리된다. 선택의 망설임이 남아도 화해나 즉각 회복을 요구받지 않는다.",
+    "psychological_pressure": "공동 알림이 울릴 때마다 음식·옷·잠드는 시간까지 일치시켜야 한다는 요구를 떠올리지만, 그 압박의 원인을 피해자의 취향 탓으로 돌리지 않는다.",
+    "risk_signal_payoff": "덧쓴 생활표와 반환 열쇠 봉투가 합의와 돌봄이라는 처음 설명을 반박한다.",
+    "source_disclosure_mode": "ORIGINAL_FICTION",
+    "clinical_label_classification": [],
+    "expert_debrief_plan": {
+      "status": "NOT_APPLICABLE",
+      "claim_ids": [],
+      "na_reason": "독립 창작 범죄 재연극이며 임상 진단이나 실화 근거를 제시하지 않는다. 채널 2.1의 실제 활성 Task에 전문가 레이어가 없다."
+    },
+    "episode_theme": "OFFENDER_RESPONSIBILITY"
+  }
+}
