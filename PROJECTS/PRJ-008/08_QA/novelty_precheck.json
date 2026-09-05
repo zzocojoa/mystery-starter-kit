@@ -1,0 +1,143 @@
+{
+  "schema_family": "novelty-precheck",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-008",
+  "source_hash": "54b6b6930a25a10ceb1b2a6fc0c2ff70db7ff31566828d644293841e001dbddb",
+  "result": "PASS",
+  "candidate_results": [
+    {
+      "candidate_id": "VAR-01",
+      "result": "PASS",
+      "comparison_status": "COMPARISON_COMPLETE",
+      "comparisons": [
+        {
+          "project_id": "PRJ-007",
+          "similarity": 17.78,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "setting": 0.0,
+            "information_mechanism": 0.0,
+            "relationship_engine": 100.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 100.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        }
+      ]
+    },
+    {
+      "candidate_id": "VAR-02",
+      "result": "PASS",
+      "comparison_status": "COMPARISON_COMPLETE",
+      "comparisons": [
+        {
+          "project_id": "PRJ-007",
+          "similarity": 8.89,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 100.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "setting": 0.0,
+            "information_mechanism": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        }
+      ]
+    },
+    {
+      "candidate_id": "VAR-03",
+      "result": "PASS",
+      "comparison_status": "COMPARISON_COMPLETE",
+      "comparisons": [
+        {
+          "project_id": "PRJ-007",
+          "similarity": 47.78,
+          "components": {
+            "mystery_type": 100.0,
+            "architecture": 100.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 100.0,
+            "timeline_style": 0.0,
+            "setting": 100.0,
+            "information_mechanism": 0.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        }
+      ]
+    },
+    {
+      "candidate_id": "VAR-04",
+      "result": "PASS",
+      "comparison_status": "COMPARISON_COMPLETE",
+      "comparisons": [
+        {
+          "project_id": "PRJ-007",
+          "similarity": 12.22,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 100.0,
+            "setting": 0.0,
+            "information_mechanism": 50.0,
+            "relationship_engine": 0.0,
+            "pressure_engine": 0.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        }
+      ]
+    },
+    {
+      "candidate_id": "VAR-05",
+      "result": "PASS",
+      "comparison_status": "COMPARISON_COMPLETE",
+      "comparisons": [
+        {
+          "project_id": "PRJ-007",
+          "similarity": 17.78,
+          "components": {
+            "mystery_type": 0.0,
+            "architecture": 0.0,
+            "protagonist_role": 0.0,
+            "primary_twist": 0.0,
+            "timeline_style": 0.0,
+            "setting": 0.0,
+            "information_mechanism": 0.0,
+            "relationship_engine": 100.0,
+            "pressure_engine": 100.0,
+            "dramatic_engine": 0.0
+          },
+          "threshold": 60.0,
+          "exceeded": false
+        }
+      ]
+    }
+  ],
+  "issues": [],
+  "candidate_event_briefs_hash": "65f0f032b7ba9c6665eaf0c28f552a783af36711bc094bba19dbf388b2c09e60",
+  "candidate_event_brief_hashes": {
+    "VAR-01": "fe09209901fae75fc3755a11c6b6f829002995942bd88070713c577373752ac6",
+    "VAR-02": "330db22ce09ac45d9e3b01a84c4db97a86775369a3477fe34cde38e7e135eeba",
+    "VAR-03": "53efb56b59438974d9947123f576180c546b8ba8255d517f6524afee3db2bf77",
+    "VAR-04": "e21d782e35d84d7e3960a1d041e04d3789e6edd32310fafd56f40c3b9cf8729d",
+    "VAR-05": "08cd7aea766537b6c0a1cde1591679fa031c485e2dac2b7a72e796ebf18a0b51"
+  }
+}

@@ -1,0 +1,413 @@
+{
+  "schema_family": "reaction-segments",
+  "schema_version": "2.1.0",
+  "project_id": "PRJ-008",
+  "reaction_segments": [
+    {
+      "reaction_segment_id": "RSEG-001",
+      "after_scene_id": "SCN-02",
+      "order": 1,
+      "start_sec": 195,
+      "duration_sec": 35,
+      "segment_function": "EMOTIONAL_REACTION",
+      "hypothesis_before": "같은 음식과 생활 알림을 쓰는 두 사람이 서로 닮은 취향을 즐기며 챙겨 주는 관계일 수 있다.",
+      "hypothesis_after": "같은 생활을 한다는 모습만으로 두 사람 모두 원하는 관계라고 판단할 수 없다. 다르게 고를 여지가 있는지 확인해야 한다.",
+      "tone": "GROUNDED",
+      "turns": [
+        {
+          "turn_id": "TURN-001-01",
+          "panelist_id": "PANEL-01",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "저는 처음엔 같이 먹고 같이 자는 게 다정하게 느껴졌어요. 그런데 하루를 전부 같이 맞춘다고 생각하니까, 혼자 있고 싶은 날에는 어떻게 말할까 싶어요.",
+          "evidence_ids": [],
+          "known_fact_ids": [
+            "FACT-01"
+          ],
+          "tone": "GROUNDED"
+        },
+        {
+          "turn_id": "TURN-001-02",
+          "panelist_id": "PANEL-02",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "그 질문이 먼저겠네요. 알림이 같이 울린다는 건 시간이 같다는 뜻이죠. 둘 다 그 시간을 원했다는 답까지 화면이 해 주는 건 아직 아니고요.",
+          "evidence_ids": [
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-17"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-001-01"
+        },
+        {
+          "turn_id": "TURN-001-03",
+          "panelist_id": "PANEL-01",
+          "function": "VICTIM_CONTEXTUALIZATION",
+          "spoken_line": "맞아요. 제가 같은 걸 고르는 모습만 보고 마음도 같겠거니 했네요. 한 사람은 오늘 다른 걸 먹고 싶을 수도 있는데, 그 말이 편하게 나올까요?",
+          "evidence_ids": [],
+          "known_fact_ids": [
+            "FACT-01"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-001-02"
+        },
+        {
+          "turn_id": "TURN-001-04",
+          "panelist_id": "PANEL-02",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "그래서 사이가 좋다는 판단은 잠깐 접어 둘게요. 같이 하자는 제안 다음에, 다르게 하겠다는 대답도 들어갈 자리가 있는지 봐야겠어요.",
+          "evidence_ids": [
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-01",
+            "FACT-17"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-001-03"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-002",
+      "after_scene_id": "SCN-04",
+      "order": 2,
+      "start_sec": 430,
+      "duration_sec": 35,
+      "segment_function": "HYPOTHESIS_REVISION",
+      "hypothesis_before": "종이 생활표의 두 칸이 같으므로 서로 이야기해 일정을 맞춘 합의표일 가능성이 크다.",
+      "hypothesis_after": "같아진 생활표에 수정 흔적이 있어 결과만으로 합의를 판단하기 어렵다. 처음 적힌 선택과 수정 주체·동의 여부는 아직 확인되지 않았다.",
+      "tone": "GROUNDED",
+      "turns": [
+        {
+          "turn_id": "TURN-002-01",
+          "panelist_id": "PANEL-01",
+          "function": "ANOMALY_DETECTION",
+          "spoken_line": "아까는 같이 정했을 거라고 생각했는데, 저 종이는 좀 걸려요. 두 칸이 같다는 것보다 아래 남아 있는 글씨가 자꾸 보여서, 그냥 넘기기가 어렵네요.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-01"
+          ],
+          "tone": "GROUNDED"
+        },
+        {
+          "turn_id": "TURN-002-02",
+          "panelist_id": "PANEL-02",
+          "function": "HYPOTHESIS_GENERATION",
+          "spoken_line": "처음 적은 걸 함께 바꿨을 수도 있죠. 수정한 흔적 자체가 답은 아니에요. 누가 먼저 뭘 썼는지, 바꿀 때 이야기는 있었는지 아직 모르니까요.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-002-01"
+        },
+        {
+          "turn_id": "TURN-002-03",
+          "panelist_id": "PANEL-01",
+          "function": "BELIEF_CORRECTION",
+          "spoken_line": "그렇네요. 흔적만 보고 누가 억지로 고쳤다고 말할 수도 없겠어요. 다만 저는 완성된 두 칸만 보고, 서로 좋다고 했겠지 하는 쪽으로 너무 빨리 갔어요.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-002-02"
+        },
+        {
+          "turn_id": "TURN-002-04",
+          "panelist_id": "PANEL-02",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "그 판단은 바꿔야겠네요. 같은 내용이 남았다는 건 보이지만, 원래의 선택이 왜 사라졌는지는 남아 있어요. 표를 정한 사람들의 설명을 더 들어야겠어요.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-002-03"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-003",
+      "after_scene_id": "SCN-05",
+      "order": 3,
+      "start_sec": 545,
+      "duration_sec": 35,
+      "segment_function": "HYPOTHESIS_REVISION",
+      "hypothesis_before": "도윤의 설명대로 지안이 피곤해 약속을 미루고 자발적으로 쉬고 있을 수 있다.",
+      "hypothesis_after": "쉬겠다는 의사를 지안에게 직접 듣지 못했으므로 도윤의 돌봄 설명을 확인된 약속 취소로 취급할 수 없다.",
+      "tone": "GROUNDED",
+      "turns": [
+        {
+          "turn_id": "TURN-003-01",
+          "panelist_id": "PANEL-01",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "피곤해서 쉬고 있다는 말을 들으니까, 서윤도 더 물으면 방해가 될까 망설이겠어요. 저라도 문 앞에서는 일단 물러날 것 같아서, 그 장면이 답답하면서도 이해돼요.",
+          "evidence_ids": [],
+          "known_fact_ids": [
+            "FACT-04",
+            "FACT-07"
+          ],
+          "tone": "GROUNDED"
+        },
+        {
+          "turn_id": "TURN-003-02",
+          "panelist_id": "PANEL-02",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "그럴 수 있죠. 그런데 우리가 들은 건 도윤의 설명이에요. 지안이 약속을 바꾸겠다고 직접 한 말은 없는데, 벌써 취소된 약속처럼 받아들이고 있었네요.",
+          "evidence_ids": [],
+          "known_fact_ids": [
+            "FACT-04",
+            "FACT-07"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-003-01"
+        },
+        {
+          "turn_id": "TURN-003-03",
+          "panelist_id": "PANEL-01",
+          "function": "VICTIM_CONTEXTUALIZATION",
+          "spoken_line": "맞아요. 저는 쉬는 사람을 배려해야 한다는 생각 때문에, 정작 지안이 뭘 원하는지는 건너뛰었어요. 잘 챙긴다는 말이 나왔다고 해서 본인 대답까지 대신 들은 건 아닌데요.",
+          "evidence_ids": [],
+          "known_fact_ids": [
+            "FACT-07"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-003-02"
+        },
+        {
+          "turn_id": "TURN-003-04",
+          "panelist_id": "PANEL-02",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "그러면 지금은 돌아가도 괜찮다고 정할 수 없겠어요. 도윤의 말이 맞는지 틀리는지 따지기 전에, 약속 당사자의 의사를 직접 확인할 필요가 있겠네요.",
+          "evidence_ids": [],
+          "known_fact_ids": [
+            "FACT-04",
+            "FACT-07"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-003-03"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-004",
+      "after_scene_id": "SCN-08",
+      "order": 4,
+      "start_sec": 885,
+      "duration_sec": 35,
+      "segment_function": "BELIEF_CORRECTION",
+      "hypothesis_before": "지안이 쉬기를 원한다는 도윤의 설명이 맞을 가능성을 남겨 두고 본인 의사를 확인해야 한다.",
+      "hypothesis_after": "지안의 외출 요구와 그에 대한 거절을 서로 독립된 두 사람이 직접 들었다. 자발적으로 쉬고 있다는 설명은 더 이상 유지할 수 없으며 현장 확인이 필요하다.",
+      "tone": "GROUNDED",
+      "turns": [
+        {
+          "turn_id": "TURN-004-01",
+          "panelist_id": "PANEL-01",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "방금 나가겠다는 말 들렸죠. 저는 쉬고 싶다는 대답이 나올 가능성도 남겨 뒀는데, 이제 그 생각은 못 하겠어요. 문밖까지 말해야 하는 지안이 너무 걱정돼요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-07",
+            "FACT-08"
+          ],
+          "tone": "GROUNDED"
+        },
+        {
+          "turn_id": "TURN-004-02",
+          "panelist_id": "PANEL-02",
+          "function": "CONTRADICTION_DETECTION",
+          "spoken_line": "저도요. 그리고 정호는 서윤에게 들은 말을 따라 한 게 아니었어요. 본인이 따로 들었죠. 친구가 걱정해서 잘못 받아들였다는 설명만으로 넘길 수 없게 됐어요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-08",
+            "FACT-09"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-004-01"
+        },
+        {
+          "turn_id": "TURN-004-03",
+          "panelist_id": "PANEL-01",
+          "function": "BELIEF_CORRECTION",
+          "spoken_line": "두 사람의 말이 같은 이유도 봐야 하는군요. 서로 이야기를 맞춘 게 아니라, 각각 같은 요구를 들은 거니까요. 자발적으로 쉰다는 설명은 여기서 접어야겠어요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-07",
+            "FACT-08",
+            "FACT-09"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-004-02"
+        },
+        {
+          "turn_id": "TURN-004-04",
+          "panelist_id": "PANEL-02",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "그렇죠. 다만 문 안의 상황까지 전부 안다고 하진 않겠습니다. 지금 확인할 건 지안이 말한 대로 나올 수 있는지예요. 더 기다리라는 설명만으로 끝낼 일이 아니고요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-08",
+            "FACT-09"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-004-03"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-005",
+      "after_scene_id": "SCN-10",
+      "order": 5,
+      "start_sec": 1185,
+      "duration_sec": 35,
+      "segment_function": "MORAL_REACTION",
+      "hypothesis_before": "문밖 목격이 있으나 지안이 실제로 자유롭게 나갈 수 있었는지는 현장 확인을 기다려야 한다.",
+      "hypothesis_after": "현수가 외출 의사와 출입 통제 상태를 직접 확인하고 분리했다. 화해나 같은 생활에 대한 동의가 지안이 나올 조건일 수 없다는 점이 분명해졌다.",
+      "tone": "GROUNDED",
+      "turns": [
+        {
+          "turn_id": "TURN-005-01",
+          "panelist_id": "PANEL-01",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "두 사람이 떨어지고 나니까 저도 겨우 숨이 나와요. 문밖에서 듣던 때는 정말 나올 수 없는 건지 마음이 조마조마했는데, 현수도 그 상태를 직접 확인했네요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-10"
+          ],
+          "tone": "GROUNDED"
+        },
+        {
+          "turn_id": "TURN-005-02",
+          "panelist_id": "PANEL-02",
+          "function": "BELIEF_CORRECTION",
+          "spoken_line": "네. 지안이 나가고 싶다는 말과 실제로 나갈 수 없던 상태가 맞아떨어진 거죠. 이제는 친구들끼리 걱정을 키운 상황이라는 쪽으로 돌릴 근거가 없어요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-05",
+            "FACT-10",
+            "FACT-13"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-005-01"
+        },
+        {
+          "turn_id": "TURN-005-03",
+          "panelist_id": "PANEL-01",
+          "function": "MORAL_REACTION",
+          "spoken_line": "같은 생활표를 따르겠다고 해야 나갈 수 있다니, 그 대답을 받아서 뭘 확인하려던 걸까요. 저는 둘이 대화를 끝내야 문이 열린다는 생각 자체가 너무 부당해요.",
+          "evidence_ids": [],
+          "known_fact_ids": [
+            "FACT-06"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-005-02"
+        },
+        {
+          "turn_id": "TURN-005-04",
+          "panelist_id": "PANEL-02",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "맞습니다. 의견이 같아져야 지안이 나올 수 있는 게 아니죠. 지금 분리한 건 타협안을 만든 게 아니라, 본인이 원하는 대로 움직일 수 있게 한 겁니다.",
+          "evidence_ids": [],
+          "known_fact_ids": [
+            "FACT-05",
+            "FACT-06",
+            "FACT-10",
+            "FACT-13"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-005-03"
+        }
+      ]
+    },
+    {
+      "reaction_segment_id": "RSEG-006",
+      "after_scene_id": "SCN-11",
+      "order": 6,
+      "start_sec": 1345,
+      "duration_sec": 35,
+      "segment_function": "HYPOTHESIS_REVISION",
+      "hypothesis_before": "도윤의 출입 통제는 확인됐지만 생활표·열쇠·공동 알림의 의미와 상담을 막은 직접 동기는 아직 따로 확인해야 한다.",
+      "hypothesis_after": "생활표는 거절 삭제, 반환 열쇠는 끝난 출입 허락을 보강한다. 통제가 외부에 알려질 것을 막으려는 은폐 동기가 확인됐으며 책임은 피해 진술·독립 목격·현장의 합치에 근거한다.",
+      "tone": "GROUNDED",
+      "turns": [
+        {
+          "turn_id": "TURN-006-01",
+          "panelist_id": "PANEL-01",
+          "function": "BELIEF_CORRECTION",
+          "spoken_line": "열쇠를 돌려준 걸 보고 저는 정리를 잘하고 있다고 생각했어요. 그런데 들어오지 말라는 뜻이 함께 있었네요. 생활표도 서로 맞춘 기록이 아니라 지안의 선택을 지운 거였고요.",
+          "evidence_ids": [
+            "CLUE-01",
+            "CLUE-02"
+          ],
+          "known_fact_ids": [
+            "FACT-15",
+            "FACT-16"
+          ],
+          "tone": "GROUNDED"
+        },
+        {
+          "turn_id": "TURN-006-02",
+          "panelist_id": "PANEL-02",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "그래서 상담을 왜 막았는지도 연결됩니다. 생활을 강요한 일이 밖에 알려지는 걸 막으려 했던 거죠. 같은 걸 좋아한다는 설명으로는 지안의 거절을 덮을 수 없습니다.",
+          "evidence_ids": [
+            "CLUE-01"
+          ],
+          "known_fact_ids": [
+            "FACT-11",
+            "FACT-16"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-006-01"
+        },
+        {
+          "turn_id": "TURN-006-03",
+          "panelist_id": "PANEL-01",
+          "function": "EMOTIONAL_REACTION",
+          "spoken_line": "저는 알림 화면에 답이 남아 있을까 했는데, 지안의 말과 문 앞에서 직접 들은 사람들을 봐야 했네요. 물건 하나가 모든 걸 설명한 것도 아니고요.",
+          "evidence_ids": [
+            "CLUE-03",
+            "CLUE-04"
+          ],
+          "known_fact_ids": [
+            "FACT-12",
+            "FACT-17"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-006-02"
+        },
+        {
+          "turn_id": "TURN-006-04",
+          "panelist_id": "PANEL-02",
+          "function": "HYPOTHESIS_REVISION",
+          "spoken_line": "그렇죠. 각자 들은 말에 현장 상태까지 맞았습니다. 그 근거로 책임을 확인하고 수사로 이어진 거예요. 아직 나오지 않은 재판 결과까지 우리가 앞서 정할 수는 없고요.",
+          "evidence_ids": [
+            "CLUE-03"
+          ],
+          "known_fact_ids": [
+            "FACT-12",
+            "FACT-19"
+          ],
+          "tone": "GROUNDED",
+          "responds_to_turn_id": "TURN-006-03"
+        }
+      ]
+    }
+  ]
+}

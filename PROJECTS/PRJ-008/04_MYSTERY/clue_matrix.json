@@ -1,0 +1,87 @@
+{
+  "$schema": "../../../STANDARD/schemas/clue_matrix.schema.json",
+  "schema_family": "clue-matrix",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-008",
+  "final_proof_mechanism": "INDEPENDENT_NONTECHNICAL_GROUNDS",
+  "technical_dependency_level": "HIGH",
+  "clues": [
+    {
+      "clue_id": "CLUE-01",
+      "role": "CORE",
+      "evidence_class": "DOCUMENTARY",
+      "independent_ground_id": "GROUND-01",
+      "supports_final_reveal": true,
+      "introduced_scene_order": 4,
+      "introduced_scene_id": "SCN-04",
+      "resolved_scene_order": 11,
+      "resolved_scene_id": "SCN-11",
+      "description": "종이 생활표의 두 칸에는 같은 음식과 취침 시간이 적혀 있지만 지안이 먼저 적었던 다른 선택과 덧쓴 흔적이 남아 있다. 지안이 그 표를 접지 못하고 들여다보는 과거 장면에 먼저 제시한다.",
+      "content": "지안의 다른 음식·취침 선택 위에 도윤이 자기 일정과 같은 내용을 덧쓴 종이 생활표.",
+      "mechanism": "REFUSAL_OVERWRITTEN_AS_AGREEMENT",
+      "surface_meaning": "서로 다르던 일정을 이야기 끝에 맞춘 공동생활의 합의표처럼 보인다.",
+      "actual_meaning": "같아진 칸은 합의의 결과가 아니라 도윤이 지안의 거절과 다른 취향을 지운 결과다. 지안의 원래 선택에 관한 진술과 종이 흔적이 생활 강요와 이를 상담에서 숨기려는 동기를 보강한다.",
+      "first_seen_scene_id": "SCN-04",
+      "reveal_scene_id": "SCN-11",
+      "recontextualized_scene_ids": [
+        "SCN-04"
+      ],
+      "reveal_mode": "SEEDED_REINTERPRETATION"
+    },
+    {
+      "clue_id": "CLUE-02",
+      "role": "CORE",
+      "evidence_class": "PHYSICAL_OBJECT",
+      "independent_ground_id": "GROUND-02",
+      "supports_final_reveal": true,
+      "introduced_scene_order": 6,
+      "introduced_scene_id": "SCN-06",
+      "resolved_scene_order": 11,
+      "resolved_scene_id": "SCN-11",
+      "description": "사건 전날 지안이 도윤에게서 반환 열쇠 봉투를 받는 모습과 가까이 있던 이웃 은경을 먼저 보여 준다. 봉투를 건네는 표면 행동만으로 이후의 출입 권한이나 감금 여부를 확정하지 않는다.",
+      "content": "지안이 돌려받아 보관한 열쇠 봉투와, 그때 지안이 이제 들어오지 말라고 말하는 것을 직접 본 은경의 기억.",
+      "mechanism": "RETURNED_KEY_AS_WITHDRAWN_PERMISSION",
+      "surface_meaning": "도윤이 지안의 물건을 챙겨 돌려주는 배려 깊은 동거 정리처럼 보인다.",
+      "actual_meaning": "열쇠 반환과 은경이 들은 거절은 동거와 접근 허락이 끝났다는 경계를 가리킨다. 도윤은 허락된 공동생활을 이어 가던 사람이 아니라 지안의 의사를 무시하고 남아 출입을 통제한 사람이다.",
+      "first_seen_scene_id": "SCN-06",
+      "reveal_scene_id": "SCN-11",
+      "recontextualized_scene_ids": [
+        "SCN-06"
+      ],
+      "reveal_mode": "SEEDED_REINTERPRETATION"
+    },
+    {
+      "clue_id": "CLUE-03",
+      "role": "CORE",
+      "evidence_class": "TESTIMONIAL",
+      "independent_ground_id": "GROUND-03",
+      "supports_final_reveal": true,
+      "introduced_scene_order": 8,
+      "introduced_scene_id": "SCN-08",
+      "resolved_scene_order": 10,
+      "resolved_scene_id": "SCN-10",
+      "description": "서윤과 정호가 문 앞에서 지안의 외출 요구와 도윤의 거절을 각각 직접 듣는다. 정호가 서윤의 말을 전해 들은 것을 두 번째 목격으로 계산하지 않는다.",
+      "content": "서로 다른 목격자가 직접 들은 나가겠다는 요구와 기다리라는 거절, 뒤이어 현수가 확인한 지안의 외출 의사와 현장 상태.",
+      "mechanism": "INDEPENDENT_VOICES_AND_SCENE_CORROBORATION",
+      "first_interpretation": "돌봄이라는 말과 실제로 들리는 외출 요구가 맞지 않아 자발적 휴식 가설에 반증이 생긴다.",
+      "true_meaning": "지안의 의사에 반하는 거절을 독립 목격과 현장 확인이 함께 뒷받침한다. 물건이나 연인의 설명이 지안 본인의 의사를 대신하지 못한다.",
+      "reveal_mode": "INTENTIONAL_NON_MYSTERY_DISCLOSURE",
+      "reveal_scene_id": "SCN-10"
+    },
+    {
+      "clue_id": "CLUE-04",
+      "role": "RED_HERRING",
+      "evidence_class": "TECHNICAL",
+      "supports_final_reveal": false,
+      "introduced_scene_order": 2,
+      "introduced_scene_id": "SCN-02",
+      "resolved_scene_order": 11,
+      "resolved_scene_id": "SCN-11",
+      "description": "공동 생활 알림과 연동 화면이 두 사람의 일상을 같은 시간으로 묶는 압박을 만든다. 모든 행동이 기기에 남아 기계 기록만 찾으면 답이 나올 것이라는 기대를 유도하되 그런 기록의 존재를 사실로 제시하지 않는다.",
+      "content": "같은 음식과 잠드는 시간을 재촉하는 공동 알림과 연동 화면.",
+      "mechanism": "SHARED_ROUTINE_ALERT_AS_PRESSURE_BACKGROUND",
+      "first_interpretation": "공동 기기의 기록이 지안의 자유와 도윤의 책임까지 대신 밝혀 줄 수 있을 것처럼 느껴진다.",
+      "true_meaning": "알림은 생활 압박의 배경이며 범행의 최종 증거가 아니다. 후반 책임 확인은 지안의 진술과 독립 목격, 현장 상태에 근거하여 기계가 모든 일을 알고 있다는 기대를 거둔다."
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "project_id": "PRJ-008",
+  "checkpoints": [
+    {
+      "scene_id": "SCN-01",
+      "function": "EVENT_ENTRY"
+    },
+    {
+      "scene_id": "SCN-02",
+      "function": "RISK_ESCALATION"
+    },
+    {
+      "scene_id": "SCN-03",
+      "function": "RISK_ESCALATION"
+    },
+    {
+      "scene_id": "SCN-04",
+      "function": "PURSUIT_UPDATE"
+    },
+    {
+      "scene_id": "SCN-05",
+      "function": "PURSUIT_UPDATE"
+    },
+    {
+      "scene_id": "SCN-06",
+      "function": "PURSUIT_UPDATE"
+    },
+    {
+      "scene_id": "SCN-07",
+      "function": "RISK_ESCALATION"
+    },
+    {
+      "scene_id": "SCN-08",
+      "function": "PURSUIT_UPDATE"
+    },
+    {
+      "scene_id": "SCN-09",
+      "function": "LATE_CASE_REVEAL"
+    },
+    {
+      "scene_id": "SCN-10",
+      "function": "LATE_CASE_REVEAL"
+    },
+    {
+      "scene_id": "SCN-11",
+      "function": "LATE_CASE_REVEAL"
+    },
+    {
+      "scene_id": "SCN-12",
+      "function": "LATE_CASE_REVEAL"
+    }
+  ]
+}

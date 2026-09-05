@@ -1,0 +1,731 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_event_briefs.schema.json",
+  "schema_family": "candidate-event-briefs",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-008",
+  "briefs": [
+    {
+      "primary_crime": "KIDNAPPING",
+      "core_action_type": "KIDNAPPING",
+      "responsible_agent_structure": "DUAL_AGENTS",
+      "victim_structure": "MULTIPLE_VICTIMS",
+      "relationship_context": "FAMILY_OR_HOUSEHOLD",
+      "motive_category": "CONTROL",
+      "target_selection_reason": "가족 세탁공장에서 일하며 함께 살던 성인 남매 연우와 세진이 각자의 취업과 독립을 준비했다. 보호자를 자처한 큰아버지 만식과 큰어머니 정미는 두 사람이 같은 식사·옷차림·수면 시간을 거부하자 가족을 갈라놓는 행동으로 취급했다.",
+      "initiating_context": "납품 업무를 대신 맡았던 직원 태림의 인터뷰에서 시작한다. 태림은 성인 남매가 가족 휴무에 동의했다고 알고 있었으나, 업무대 옆에서 발견한 서로 다른 두 장의 퇴사 신청서를 보고 자신이 빈자리를 감춰 주었음을 깨닫는다. 사건 공간은 세탁공장 작업실과 부속 합숙실 두 곳이다.",
+      "trigger_event": "연우가 따로 얻은 일자리의 첫 출근일을 알리고 세진이 가족 공통 생활표에서 자기 이름을 지운 날, 만식과 정미는 두 사람을 작업실에서 부속 합숙실로 강제로 데려가 외출을 막았다.",
+      "motive_summary": "두 가해자는 남매의 독립을 받아들이면 가족 생활의 모든 선택을 자신들이 정하던 지위를 잃는다고 여겨, 두 사람을 한 장소에 붙잡아 같은 생활로 되돌리려 했다.",
+      "non_actionable_method_summary": "가족 사업장 안에서 두 성인의 거부를 무시하고 거처를 강제로 옮긴 뒤 외부 활동을 차단했다. 만식은 이동을 강요했고 정미는 남매의 외부 약속을 일방적으로 취소하며 억류에 가담했다. 이동·억류의 구체적인 실행 방법은 묘사하지 않는다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "LIBERTY_DEPRIVATION",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01",
+            "VICTIM-02"
+          ],
+          "summary": "성인 남매는 원하지 않는 장소로 옮겨져 각자 선택한 출근과 외출을 할 자유를 빼앗겼다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01",
+            "VICTIM-02"
+          ],
+          "summary": "두 사람은 가족이 다시 자신들의 선택을 대신할 수 있다는 불안과 취업 약속을 지키지 못한 손실을 겪고, 분리된 거주지와 외부 지원을 구한다."
+        }
+      ],
+      "concealment_or_denial": "만식과 정미는 가족이 함께 쉬기로 했다며 공장 직원에게 휴무표만 보여 주었다. 태림은 남매가 함께 이동하는 끝모습을 자발적인 귀가로 오해했고, 두 사람의 거절을 보지 못한 자기 관찰 범위를 뒤늦게 정정한다.",
+      "discovery_path": "별도로 작성된 퇴사 신청서, 연우가 태림에게 맡긴 출근용 작업복, 합숙실에서 들은 세진의 외출 요구가 가족 공동 휴무라는 설명과 충돌한다. 태림이 자기 진술을 바로잡고 외부 도움을 청하면서 남매의 소재와 의사에 반하는 이동이 확인된다.",
+      "responsibility_path": "남매의 별도 진술은 이동을 강요한 만식과 외부 약속을 취소한 정미의 역할을 각각 가리킨다. 태림의 직접 관찰과 퇴사 서류·현장 확인이 두 진술에 부합하여 두 사람의 공동 납치·억류 책임이 확인되고, 남매는 분리 보호를 받으며 사건은 형사 수사로 이어진다. 형량은 설정하지 않는다.",
+      "central_pursuit_question": "남매가 함께 사라졌다는 직원의 기억은 가족 공동 휴무를 뜻하는가, 아니면 서로 다른 독립 계획을 한꺼번에 막은 강제 이동을 뜻하는가?",
+      "candidate_id": "VAR-01",
+      "candidate_selection_sha256": "a4773f3528a53cdedd8928d9f4166bfedf8ea7b0ca096802bcdf23644938925a",
+      "related_crimes": [],
+      "offender_role_slots": [
+        "OFFENDER-01",
+        "OFFENDER-02"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01",
+        "VICTIM-02"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "LIBERTY_DEPRIVATION",
+          "summary": "서로 다른 퇴사 의사를 밝혔던 남매가 모두 본인 의사와 무관하게 합숙실로 옮겨졌음을 확인한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "THREAT_AND_CHOICE_CONSTRAINT",
+          "summary": "취향과 일정을 가족 단위로 통일해야 한다는 요구가 남매의 독립과 외부 연락을 제약한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "RESPONSE_OR_DISCOVERY",
+          "summary": "자신의 납품 대행이 실종 은폐에 쓰였음을 안 직원이 목격 범위를 정정하고 남매의 소재를 확인하도록 돕는다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "HARM_OUTCOME",
+          "summary": "남매가 각자의 거주지를 정하는 결정과 두 보호자의 공동 가담 책임을 함께 남긴다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "큰아버지 만식과 큰어머니 정미가 각각 강제 이동과 외부 일정 차단을 맡아 남매의 납치·억류에 함께 가담했다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "가족을 위한 휴식이 아니라 두 성인의 독립으로 무너질 통제권을 유지하려는 것이 공동 동기였다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "자발적 가족 이동처럼 보였던 공장 내 이동은 남매의 명시적인 거부를 무시한 강제 이동이었고 휴무표는 그 사실을 가렸다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "남매 둘 다 외출의 자유와 새 직장의 첫 출근을 잃었으며 분리 보호 뒤에도 생활 선택을 빼앗길 수 있다는 두려움이 남았다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      },
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "LIBERTY_DEPRIVATION",
+        "THREAT_OR_TRAUMA"
+      ],
+      "immediate_harm": "성인 남매는 원하지 않는 장소로 옮겨져 각자 선택한 출근과 외출을 할 자유를 빼앗겼다.",
+      "lasting_harm": "두 사람은 가족이 다시 자신들의 선택을 대신할 수 있다는 불안과 취업 약속을 지키지 못한 손실을 겪고, 분리된 거주지와 외부 지원을 구한다."
+    },
+    {
+      "primary_crime": "CONFINEMENT",
+      "core_action_type": "CONFINEMENT",
+      "responsible_agent_structure": "SINGLE_AGENT",
+      "victim_structure": "SINGLE_VICTIM",
+      "relationship_context": "DATING_PARTNER",
+      "motive_category": "CONCEALMENT",
+      "target_selection_reason": "지안의 연인 도윤은 두 사람이 같은 음식을 먹고 같은 옷을 입으며 같은 시각에 잠들어야 관계가 안정된다고 요구했다. 지안이 자기 취향을 되찾고 관계를 끝내려 하자, 자신과 함께 살았기에 강요의 전모를 아는 지안을 외부와 만나지 못하게 하려 했다.",
+      "initiating_context": "지안은 집 안에서 정오의 외부 상담 약속이 가까워지는 시간을 버틴다. 현재의 닫힌 문과 과거의 다정한 생활 제안이 교차하고, 이웃·친구·관리인의 서로 다른 관찰이 결합한다. 스마트 생활 앱의 공동 알림과 기기 연동은 일상의 압박과 시간 감각을 만들지만 책임을 입증하는 최종 근거가 되지 않는다. 집을 중심으로 공동 복도, 카페, 친구의 작업실, 상담실을 사용한다.",
+      "trigger_event": "지안은 도윤에게 연인 관계를 끝내고 동거를 정리하겠다고 알린 뒤, 친구와 정오에 만나 생활 강요와 이별 방해를 상담하겠다고 밝혔다. 도윤은 상담 전에 지안이 말을 바꾸게 하겠다며 집 밖으로 나가지 못하게 했다.",
+      "motive_summary": "도윤은 지안이 거절한 음식·옷차림·취침 시간을 계속 강요해 온 사실과 이별 의사를 무시한 행동이 외부에 알려지는 것을 막으려 했다. 감금의 직접 동기는 그 통제 행동의 은폐이며, 서로 닮아야 사랑이라는 설명은 자기 합리화다.",
+      "non_actionable_method_summary": "도윤은 집에 남아 지안의 퇴거 요구를 거절하고 출입을 통제하여 예정된 외부 만남을 막았다. 지안이 다시 공동 생활표를 따르겠다고 동의할 때까지 나갈 수 없다는 조건을 내세웠다. 감금은 문 안의 지안과 문밖의 목격을 통해 암시하며 잠금 도구나 실행 절차는 제시하지 않는다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "LIBERTY_DEPRIVATION",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "지안은 집을 떠나 상담 약속에 갈 자유를 빼앗기고, 자기 생활을 정할 권리를 되찾겠다는 의사를 철회하도록 압박받았다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "지안은 분리 보호 뒤에도 공동 알림 소리와 닫힌 문 앞에서 통제가 반복될까 긴장하며, 음식과 수면 시간을 혼자 고르는 일에도 망설임을 겪는다. 관계 회복이나 용서를 결말의 조건으로 삼지 않는다."
+        }
+      ],
+      "concealment_or_denial": "도윤은 찾아온 사람들에게 지안이 피곤해서 자발적으로 쉬고 있고 자신은 돌봐 주는 연인이라고 주장한다. 두 사람이 함께 쓰던 생활표를 합의의 증거처럼 내세우지만, 지안이 지워 둔 선택은 도윤의 글씨로 다시 덧씌워져 있다.",
+      "discovery_path": "핵심 단서는 세 가지다. 첫째, 지안의 서로 다른 음식·취침 선택 위에 도윤이 같은 일정으로 덧쓴 종이 생활표다. 둘째, 이별을 알리며 지안이 받아 두었다고 이웃이 직접 본 반환 열쇠 봉투다. 셋째, 정오 약속을 지키러 온 친구와 관리인이 문 앞에서 지안의 나가겠다는 요구와 도윤의 거절을 각각 직접 들은 목격이다. 지안이 이미 관계와 출입 허락을 철회했다는 공개 뒤, 열쇠 반환은 도윤의 배려가 아닌 종료된 접근 권한을 가리키고 생활표는 합의 아닌 거절의 삭제로 읽힌다. 신고 뒤 현장의 출입 통제 상태와 지안의 외출 의사가 확인된다.",
+      "responsibility_path": "지안의 구체적인 피해 진술, 친구와 관리인이 직접 들은 외출 요구·거절, 현장에서 확인한 출입 통제 상태가 서로 합치하여 도윤이 지안의 의사에 반해 집을 나가지 못하게 한 책임을 확인한다. 반환 열쇠 봉투와 이웃의 독립 목격은 출입 허락 철회를, 덧쓴 생활표는 이전 통제와 은폐 동기를 보강한다. 단일 물건이나 앱 기록만으로 범행을 확정하지 않는다. 지안은 도윤과 분리되어 보호받고 도윤의 감금 행위는 수사 대상이 된다. 재판 결과나 형량은 만들어 붙이지 않는다.",
+      "central_pursuit_question": "같은 생활을 원한 다정한 연인의 돌봄이라는 설명은, 지안이 분명히 나가겠다고 했는데도 정오 약속에 갈 수 없었던 사실을 어떻게 가리고 있는가?",
+      "candidate_id": "VAR-02",
+      "candidate_selection_sha256": "c276ec453413a26193ff126bb19d1f360d0ef44bfee54334556f7512493b8e05",
+      "related_crimes": [],
+      "offender_role_slots": [
+        "OFFENDER-01"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "LIBERTY_DEPRIVATION",
+          "summary": "정오 상담을 앞둔 지안이 떠나겠다는 의사를 밝혔는데도 집 밖으로 나갈 수 없는 현재를 피해자 시점으로 고정한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "THREAT_AND_CHOICE_CONSTRAINT",
+          "summary": "같은 음식·취향·취침을 요구하던 생활 강요가 공동 생활표에 다시 동의해야 나갈 수 있다는 조건으로 이어진다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "RESPONSE_OR_DISCOVERY",
+          "summary": "상담 약속을 지키러 온 친구와 관리인의 독립 목격, 지안의 외출 요구, 현장 확인으로 돌봄이라는 설명을 검증한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "HARM_OUTCOME",
+          "summary": "자유 박탈과 이후의 생활 불안을 별개의 피해로 확인하고, 분리 보호와 도윤의 감금 책임을 후반에 명료하게 남긴다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "도윤은 지안을 돌보러 남은 사람이 아니라, 지안의 명시적인 외출 요구를 거절하고 집 안에 머물게 한 단독 책임자다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "도윤이 막으려던 것은 위험한 외출이 아니라 지안이 외부 상담에서 생활 강요와 이별 방해를 알리는 일이었다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "반환 열쇠 봉투는 이별과 출입 허락 철회 뒤의 사건임을 밝힌다. 도윤은 허락받은 공동생활을 이어 간 것이 아니라 지안의 의사를 무시한 출입 통제와 조건부 석방 요구로 자유를 박탈했다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "지안은 상담에 갈 자유를 빼앗겼고 보호 뒤에도 일상 선택과 닫힌 문에 불안을 느낀다. 직접 진술과 독립 목격·현장 상태로 감금 책임이 확인되어 분리 보호와 수사가 이어진다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      },
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "LIBERTY_DEPRIVATION",
+        "THREAT_OR_TRAUMA"
+      ],
+      "immediate_harm": "지안은 집을 떠나 상담 약속에 갈 자유를 빼앗기고, 자기 생활을 정할 권리를 되찾겠다는 의사를 철회하도록 압박받았다.",
+      "lasting_harm": "지안은 분리 보호 뒤에도 공동 알림 소리와 닫힌 문 앞에서 통제가 반복될까 긴장하며, 음식과 수면 시간을 혼자 고르는 일에도 망설임을 겪는다. 관계 회복이나 용서를 결말의 조건으로 삼지 않는다."
+    },
+    {
+      "primary_crime": "ASSAULT",
+      "core_action_type": "ASSAULT",
+      "responsible_agent_structure": "COMPLICIT_GROUP",
+      "victim_structure": "MULTIPLE_VICTIMS",
+      "relationship_context": "ACQUAINTANCE",
+      "motive_category": "RETALIATION",
+      "target_selection_reason": "아파트 생활 개선 모임의 성인 회원 두 명이 획일적인 식단·운동·취침 인증을 거부하고 환불과 운영 중단을 요구했다. 모임 운영자 세 명은 자신들의 통제를 공개적으로 비판한 두 사람을 보복 대상으로 삼았다.",
+      "initiating_context": "생존자인 회원 소희가 다친 손으로 자기에게 붙은 가해자 지목을 반박하는 현재와, 공동생활 규칙에서 탈퇴를 선언한 전날이 교차한다. 아파트 집, 모임실, 관리사무소에서 피해의 결과와 목격 진술을 맞춘다. 또 다른 피해자는 짧은 독립 진술로 등장하고 운영자 세 명의 역할을 구별한다.",
+      "trigger_event": "소희와 동료 회원이 관리사무소에 강제 인증과 환불 거부를 알린 뒤, 세 운영자가 해명 모임을 열어 두 사람에게 사과를 요구하다 폭행했다.",
+      "motive_summary": "세 운영자는 생활 습관 통일을 통한 모임의 권위가 공개 항의로 흔들리자 항의한 두 사람에게 보복하고, 다른 회원들이 이탈하지 못하게 겁을 주려 했다.",
+      "non_actionable_method_summary": "환불 협의 자리에서 세 운영자가 함께 신체적 폭력을 가했다. 폭행 장면 대신 치료받는 손, 통증으로 중단된 일상, 목격자의 진술을 통해 각자의 가담과 결과를 재구성한다. 공격 방법은 재연하지 않는다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "BODILY_INJURY",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01",
+            "VICTIM-02"
+          ],
+          "summary": "소희는 손목을 다쳐 작업을 중단하고 다른 회원도 팔의 통증으로 진료를 받는다. 두 사람 모두 운영자들의 폭행으로 신체 손상을 입었다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01",
+            "VICTIM-02"
+          ],
+          "summary": "피해자들은 보복과 허위 가해자 지목 때문에 주거지 공용 공간을 피하고, 이웃에게 도움을 요청하는 일조차 망설이게 된다."
+        }
+      ],
+      "concealment_or_denial": "운영자들은 두 회원끼리 다투다 다쳤고 자신들은 말렸다고 입을 맞춘다. 소희가 다른 피해자의 팔을 받친 짧은 모습을 자기들 설명의 근거로 제시하며 소희가 먼저 폭력을 썼다고 주장한다.",
+      "discovery_path": "소희가 다른 회원을 붙잡은 시점은 그 회원이 이미 다친 뒤였다는 관리 직원의 관찰이 확인된다. 두 피해자의 독립 진술, 진료 시점, 운영자 한 명이 현장에 없었다는 주장과 배치되는 모임실 관리인의 직접 목격을 사실별로 결속한다.",
+      "responsibility_path": "각 피해자가 구별해 진술한 세 운영자의 가담 내용이 관리 직원의 직접 관찰과 부상 발생 시점에 맞는다. 소희의 부축은 구조 행동으로 정정되고 운영자 세 명의 공동 폭행 책임이 확인된다. 피해자들에 대한 가해자 의심은 해소되고 공동 폭행 사건의 수사가 진행된다.",
+      "central_pursuit_question": "다른 회원의 팔을 잡은 생존자는 공격한 사람인가, 이미 벌어진 집단 폭행 뒤 쓰러지는 사람을 받친 사람인가?",
+      "candidate_id": "VAR-03",
+      "candidate_selection_sha256": "fecefd9c2b8aeb759194e47250f81fcc3a9a0e5f01192a2b793aeee263bc31e8",
+      "related_crimes": [],
+      "offender_role_slots": [
+        "OFFENDER-01",
+        "OFFENDER-02",
+        "OFFENDER-03"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01",
+        "VICTIM-02"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "VIOLENCE_OR_THREAT",
+          "summary": "각기 다른 신체 손상과 작업 중단에서 두 회원이 당한 폭행의 결과를 시작한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "RELATIONSHIP_AND_POWER",
+          "summary": "생활 습관을 정해 주는 모임의 권한을 운영자들이 탈퇴와 항의를 처벌할 권리로 바꾼다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "RESPONSE_BARRIER",
+          "summary": "소희를 가해자로 몰아가는 허위 설명과 계속 같은 아파트를 사용해야 하는 사정이 대응을 어렵게 한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "VIOLENCE_OUTCOME",
+          "summary": "부축 장면의 의미를 바로잡고 세 운영자의 가담 및 두 피해자의 신체·생활 피해를 각각 확인한다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "모임 운영자 세 명 모두 폭행에 가담했으며 소희가 다친 회원을 받친 행동은 폭행 가담이 아니었다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "운영자들이 벌하려던 것은 모임 질서 위반이 아니라 강제 생활 인증과 환불 거부를 외부에 알린 항의였다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "환불 협의는 사과 강요로 바뀌었고 그 자리에서 공동 폭행이 발생했다. 말렸다는 주장은 부축 장면을 시간 순서에서 떼어 낸 왜곡이었다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "두 회원의 신체 손상과 생활 회피가 확인되고 허위 가해자 지목이 정정된다. 세 운영자의 폭행 책임을 구별한 수사가 이어진다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      },
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "BODILY_INJURY",
+        "THREAT_OR_TRAUMA"
+      ],
+      "immediate_harm": "소희는 손목을 다쳐 작업을 중단하고 다른 회원도 팔의 통증으로 진료를 받는다. 두 사람 모두 운영자들의 폭행으로 신체 손상을 입었다.",
+      "lasting_harm": "피해자들은 보복과 허위 가해자 지목 때문에 주거지 공용 공간을 피하고, 이웃에게 도움을 요청하는 일조차 망설이게 된다."
+    },
+    {
+      "primary_crime": "STALKING",
+      "core_action_type": "STALKING",
+      "responsible_agent_structure": "DUAL_AGENTS",
+      "victim_structure": "SINGLE_VICTIM",
+      "relationship_context": "STRANGER",
+      "motive_category": "DOMINATION",
+      "target_selection_reason": "단기 숙소에 머무는 성인 투숙객 은채는 이전에 만난 적 없는 두 장기 투숙객에게 생활의 본보기로 선택되었다. 두 사람은 은채가 매일 다른 식사와 산책 시간을 택하는 것까지 자기들이 정한 이상적인 습관으로 바꾸려 했다.",
+      "initiating_context": "야간 접수 직원 민우는 숙소를 비우기 전 은채에게 반복해서 전달된 생활 수정 카드의 의미를 인터뷰하듯 떠올린다. 처음에는 한 투숙객의 지나친 호감으로 보였지만 다른 사람의 근무 시간대 방문까지 이어진다. 접수대와 공용 식당 두 공간에서 조각난 기억과 남은 카드를 맞춘다.",
+      "trigger_event": "은채가 낯선 사람에게 생활 조언을 받을 뜻이 없다고 명확히 밝히고 접수대에 접근 차단을 요청한 뒤에도 두 가해자는 공용 공간에서 기다리고 따라오며 행동 수정을 요구했다.",
+      "motive_summary": "가해자들은 은채의 선택을 교정할 수 있어야 자신들이 만든 완벽한 생활 규칙이 옳다고 느꼈다. 호감을 전하려는 목적이 아니라 아무 관계도 없는 사람의 일상에 지시권을 행사하려는 지배가 동기였다.",
+      "non_actionable_method_summary": "은채의 명시적인 거절 뒤에도 두 사람이 번갈아 나타나 생활 수정을 요구하고 반복적으로 접근했다. 접근의 결과와 목격자의 불안을 제시하며 동선 추적이나 감시의 실행 방법은 설명하지 않는다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "SAFETY_COLLAPSE",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "은채는 숙소의 식당과 접수대를 안전하게 사용할 수 없게 되어 식사와 외출을 줄이고 퇴실 지원을 요청한다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01"
+          ],
+          "summary": "거처를 옮긴 뒤에도 자기 생활이 낯선 사람에게 평가되고 수정될 것이라는 두려움이 남는다."
+        }
+      ],
+      "concealment_or_denial": "두 사람은 각자의 방문을 우연이라 주장하고 카드를 일반적인 건강 조언이라고 설명한다. 한 명이 퇴실한 뒤에도 요구가 이어지지만 접수 직원은 처음 지목한 한 사람만으로 사건이 끝났다고 오판한다.",
+      "discovery_path": "민우가 보관한 반환 카드에는 은채가 거절한 서로 다른 선택을 같은 규칙으로 고치라는 요구가 이어진다. 주간 직원의 직접 목격과 은채가 거절을 전달한 사실이 합쳐져, 첫 가해자가 떠난 뒤 두 번째 가해자가 동일한 요구를 지속한 것이 확인된다.",
+      "responsibility_path": "서로 다른 시간대의 두 직원이 각각 목격한 거절 이후의 접근, 은채의 연속적인 피해 진술, 직접 전달받아 보관한 수정 카드가 두 가해자의 반복 접근과 역할을 뒷받침한다. 은채는 별도의 안전한 거처로 이동하고 두 사람의 스토킹 가담이 수사 대상이 된다.",
+      "central_pursuit_question": "한 사람이 숙소를 떠났는데도 생활을 고치라는 요구가 계속된 이유는 무엇이며, 친절한 조언이라는 설명은 누구의 거절을 지우고 있는가?",
+      "candidate_id": "VAR-04",
+      "candidate_selection_sha256": "38998359f3769d69f01cbfee2280a6148ae1c662fa035f6ea4b0a8886f63fd2b",
+      "related_crimes": [],
+      "offender_role_slots": [
+        "OFFENDER-01",
+        "OFFENDER-02"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "REPEATED_ACCESS_OR_INTRUSION",
+          "summary": "은채가 접근을 거절한 뒤에도 서로 다른 시간대에 두 사람이 반복해서 생활 수정을 요구한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "SAFETY_COLLAPSE",
+          "summary": "공용 식당과 접수대가 지시를 받는 장소로 바뀌며 은채가 기본적인 생활 공간을 사용할 수 없어진다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "SAFETY_RESPONSE",
+          "summary": "접수 직원 민우가 한 사람의 퇴실로 끝났다는 오판을 버리고 카드 폐기 전에 목격을 모아 퇴실 지원을 돕는다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "OFFENDER_RESPONSIBILITY",
+          "summary": "호감이라는 가설을 철회하고 낯선 사람의 생활을 지배하려고 역할을 나눈 두 사람의 책임을 확인한다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "반복 접근은 한 투숙객의 행동이 아니라 두 사람이 각자 가담한 것이었다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "건강을 염려하거나 호감을 표현한 것이 아니라 관계없는 사람을 자기들의 생활 규칙에 복종시키려는 지배 욕구였다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "두 사람은 서로 다른 시간대의 접근을 별개의 우연처럼 설명했지만, 명시적인 거절 뒤에도 같은 행동 수정 요구를 이어 갔다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "은채는 식사와 이동의 안전을 잃어 거처를 옮겼고 이후에도 생활 선택을 감시받는 불안을 겪는다. 두 가해자의 반복 접근 책임이 확인된다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      },
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "SAFETY_COLLAPSE",
+        "THREAT_OR_TRAUMA"
+      ],
+      "immediate_harm": "은채는 숙소의 식당과 접수대를 안전하게 사용할 수 없게 되어 식사와 외출을 줄이고 퇴실 지원을 요청한다.",
+      "lasting_harm": "거처를 옮긴 뒤에도 자기 생활이 낯선 사람에게 평가되고 수정될 것이라는 두려움이 남는다."
+    },
+    {
+      "primary_crime": "HOME_INVASION",
+      "core_action_type": "HOME_INVASION",
+      "responsible_agent_structure": "SINGLE_AGENT",
+      "victim_structure": "MULTIPLE_VICTIMS",
+      "relationship_context": "WORKPLACE",
+      "motive_category": "POSSESSION",
+      "target_selection_reason": "생활용품 회사의 팀장 윤석은 같은 집을 나누어 쓰는 성인 직원 두 명의 집을 회사 생활 양식의 전시장처럼 여겼다. 직원들이 회사식 식사·수면 습관을 거부하고 자율적인 생활을 회복하자 자기 소유물이 망가지는 일처럼 받아들였다.",
+      "initiating_context": "지역 생활박람회의 공개 상담 부스에서 직원의 성인 가족 다영이 자매의 집에 반복해서 남은 회사 샘플을 문의한다. 인터뷰가 이어지며 회사 사무실, 박람회 부스, 건물 현관, 피해자 주거지의 사건 후 모습, 가족의 임시 거처를 연결한다. 주거침입 자체는 직접 재연하지 않는다.",
+      "trigger_event": "두 직원이 회사의 생활 시범 참여를 끝내고 집에 들어오지 말라고 명시적으로 알렸는데도, 윤석은 집 안에 다시 들어가 직원들이 따로 마련한 식기와 침구를 회사의 동일한 샘플로 바꾸었다.",
+      "motive_summary": "윤석은 직원들의 생활 공간과 취향까지 자신이 완성한 회사 자산으로 소유하려 했다. 업무 밖에서 다른 생활을 택할 권리를 인정하지 않아 거절 이후에도 집 안에 접근했다.",
+      "non_actionable_method_summary": "기존의 업무상 방문이 끝나고 거주자들이 출입 허락을 철회한 뒤에도 윤석은 주거지에 무단으로 들어가 생활 물건을 변경했다. 침입 수단이나 접근 경로의 재현 없이 퇴근 후 발견한 변화와 목격의 정정으로 사건을 보여 준다.",
+      "harms": [
+        {
+          "harm_id": "HARM-01",
+          "classification": "SAFETY_COLLAPSE",
+          "timing": "IMMEDIATE",
+          "victim_role_slots": [
+            "VICTIM-01",
+            "VICTIM-02"
+          ],
+          "summary": "두 직원은 집 안까지 업무상 상사가 들어올 수 있다는 사실을 확인하고 안전하게 쉬거나 자기 물건을 둘 수 없게 되어 임시 거처로 옮긴다."
+        },
+        {
+          "harm_id": "HARM-02",
+          "classification": "THREAT_OR_TRAUMA",
+          "timing": "LASTING",
+          "victim_role_slots": [
+            "VICTIM-01",
+            "VICTIM-02"
+          ],
+          "summary": "피해자들은 직장에서 불이익을 받을까 염려하며 자기 공간의 변경을 확인하는 습관과 주거 불안을 겪는다."
+        }
+      ],
+      "concealment_or_denial": "윤석은 회사 시범 가구 관리의 연장이라고 주장한다. 건물 관리인은 회사 물건을 든 사람의 입실을 직원들이 허락한 배송으로 이해했으나, 자신은 그날의 거주자 동의를 확인하지 않았다는 점을 정정한다.",
+      "discovery_path": "가족 다영은 피해자들이 박람회에서 반환한 회사 식기가 다시 주방에 놓였다는 진술을 연결한다. 직원들의 방문 종료 통지, 반환을 직접 받은 행사 직원의 관찰, 윤석이 집 안으로 들어갔다 나오는 것을 본 건물 관리인의 목격을 서로 독립적으로 확인한다.",
+      "responsibility_path": "두 거주자는 문제의 날 윤석의 출입을 허락하지 않았다고 각각 진술한다. 반환 식기의 이동과 행사 직원의 관찰은 시점을 보강하고, 관리인의 직접 목격은 윤석의 실제 입실을 뒷받침한다. 허락된 배송이라는 설명이 정정되어 윤석의 주거침입 책임이 확인되고, 피해자들은 분리된 거처를 마련하며 수사 절차를 밟는다.",
+      "central_pursuit_question": "이미 반환한 동일한 식기가 집 안에 다시 놓인 이유는 합의한 회사 지원 때문인가, 직장 상사가 끝난 출입 허락을 자기 소유권처럼 사용했기 때문인가?",
+      "candidate_id": "VAR-05",
+      "candidate_selection_sha256": "9687596ef3ea24f35df5cc189231c5f19c89bf5a35d0698ac51ae448be519adc",
+      "related_crimes": [],
+      "offender_role_slots": [
+        "OFFENDER-01"
+      ],
+      "victim_role_slots": [
+        "VICTIM-01",
+        "VICTIM-02"
+      ],
+      "protagonist_role_slot": "PROTAGONIST-01",
+      "development_functions": [
+        {
+          "development_function_id": "CDEV-001",
+          "function_type": "REPEATED_ACCESS_OR_INTRUSION",
+          "summary": "업무상 방문 허락이 끝난 뒤에도 팀장이 주거지에 실제로 들어갔음을 사건 후 물건과 직접 목격으로 확인한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-002",
+          "function_type": "SAFETY_COLLAPSE",
+          "summary": "두 직원이 집에서 쉬는 동안조차 회사가 정한 생활 양식에서 벗어날 수 없다고 느끼고 거처를 옮긴다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-003",
+          "function_type": "SAFETY_RESPONSE",
+          "summary": "성인 가족 다영이 물건의 반환 시점과 독립 목격을 모으고 두 거주자의 거절 의사를 분명히 제시한다.",
+          "required": true
+        },
+        {
+          "development_function_id": "CDEV-004",
+          "function_type": "OFFENDER_RESPONSIBILITY",
+          "summary": "직장 내 상하관계가 주거 접근 권한을 만들지 않는다는 사실을 사건의 구체적인 허락 철회와 입실 증거로 확인한다.",
+          "required": true
+        }
+      ],
+      "reveal_targets": [
+        {
+          "reveal_target_id": "REVEAL-TARGET-01",
+          "target_type": "CULPRIT",
+          "summary": "생활 샘플을 관리한다던 팀장 윤석이 거주자 두 명의 거절 뒤에도 집 안에 들어간 단독 책임자였다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-02",
+          "target_type": "MOTIVE",
+          "summary": "회사 지원의 유지가 아니라 직원들의 취향과 사적 공간까지 자기 소유물로 다루려는 욕구가 출입을 지속시켰다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-03",
+          "target_type": "METHOD",
+          "summary": "허락된 배송이라는 목격자의 추정은 정정된다. 과거 업무상 방문이 끝난 뒤의 입실은 새로운 거주자 동의 없이 이루어진 주거침입이었다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        },
+        {
+          "reveal_target_id": "REVEAL-TARGET-04",
+          "target_type": "HARM_RESULT",
+          "summary": "두 거주자는 안전한 휴식을 잃어 임시 거처로 옮겼고 주거 불안과 직장 보복 우려를 겪는다. 윤석의 침입 책임이 확인되어 수사가 이어진다.",
+          "planned_phase": "LATE",
+          "planned_segment_id": null
+        }
+      ],
+      "truth_basis": {
+        "source_truth_classification": "ORIGINAL_FICTION",
+        "field_evidence": {
+          "PRIMARY_CRIME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "CULPRIT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "MOTIVE": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "METHOD": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "HARM_RESULT": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          },
+          "LEGAL_OUTCOME": {
+            "classification": "ORIGINAL_FICTION",
+            "claim_ids": []
+          }
+        }
+      },
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "harm_classifications": [
+        "SAFETY_COLLAPSE",
+        "THREAT_OR_TRAUMA"
+      ],
+      "immediate_harm": "두 직원은 집 안까지 업무상 상사가 들어올 수 있다는 사실을 확인하고 안전하게 쉬거나 자기 물건을 둘 수 없게 되어 임시 거처로 옮긴다.",
+      "lasting_harm": "피해자들은 직장에서 불이익을 받을까 염려하며 자기 공간의 변경을 확인하는 습관과 주거 불안을 겪는다."
+    }
+  ]
+}

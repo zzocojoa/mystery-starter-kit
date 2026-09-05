@@ -1,0 +1,167 @@
+{
+  "project_id": "PRJ-008",
+  "nodes": [
+    {
+      "node_id": "NODE-01",
+      "type": "ROOT_CAUSE",
+      "crime_event_id": "EVENT-01",
+      "description": "서로 다른 음식과 잠드는 시간을 인정하지 않는 도윤의 생활 강요가 지안의 거절을 합의처럼 덧씌우는 관계를 만들었다."
+    },
+    {
+      "node_id": "NODE-02",
+      "type": "MOTIVE_OR_TRIGGER",
+      "crime_event_id": "EVENT-01",
+      "description": "지안이 이별과 출입 허락 철회를 밝히고 정오 상담에서 생활 강요를 알리려 하자, 도윤은 자신의 통제가 외부에 드러나는 것을 막으려 한다."
+    },
+    {
+      "node_id": "NODE-03",
+      "type": "CRIME_EVENT",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ],
+      "description": "도윤은 지안의 나가겠다는 요구를 거절하고 출입을 통제한다. 다시 같은 생활표에 동의해야 떠날 수 있다는 조건으로 상담 약속을 막는다. 실행 도구나 절차는 제시하지 않는다."
+    },
+    {
+      "node_id": "NODE-04",
+      "type": "HARM_RESULT",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01"
+      ],
+      "description": "지안은 집을 떠나 상담에 갈 자유를 박탈당하고, 자기 생활을 정하겠다는 의사를 철회하도록 압박받는다."
+    },
+    {
+      "node_id": "NODE-05",
+      "type": "CONCEALMENT_OR_DENIAL",
+      "crime_event_id": "EVENT-01",
+      "description": "도윤은 문밖 사람들에게 지안이 자발적으로 쉬며 자신은 돌보고 있다고 말하고, 자신이 덧쓴 생활표의 일치를 두 사람의 합의처럼 내세운다."
+    },
+    {
+      "node_id": "NODE-06",
+      "type": "DISCOVERY_PATH",
+      "crime_event_id": "EVENT-01",
+      "description": "약속 때문에 찾아온 서윤과 관리인 정호가 지안의 외출 요구와 도윤의 거절을 각각 직접 듣는다. 지안의 진술, 은경이 본 반환 열쇠 장면, 덧쓴 생활표를 현수의 현장 확인과 대조하여 돌봄이라는 설명을 검증한다."
+    },
+    {
+      "node_id": "NODE-07",
+      "type": "RESPONSIBILITY_CONFIRMATION",
+      "crime_event_id": "EVENT-01",
+      "description": "피해자의 명시적 외출 의사, 서로 독립된 문 앞 목격, 현장 출입 통제 상태가 합치한다. 열쇠 봉투는 철회된 접근 허락을, 생활표는 지워진 선택과 은폐 동기를 보강하여 도윤의 감금 책임과 수사 연결을 확인한다."
+    },
+    {
+      "node_id": "NODE-08",
+      "type": "HARM_RESULT",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-02"
+      ],
+      "description": "분리 보호 뒤에도 지안은 닫힌 문과 공동 알림에 긴장하며 음식과 취침 시간을 혼자 고르는 일에 망설임을 겪는다."
+    },
+    {
+      "node_id": "NODE-09",
+      "type": "RESOLUTION",
+      "crime_event_id": "EVENT-01",
+      "description": "지안은 도윤과 분리되어 친구의 지원으로 상담을 받고 자기 음료를 선택한다. 감금 책임은 수사로 이어지며, 지안에게 용서나 즉각적인 회복을 요구하지 않는다."
+    }
+  ],
+  "edges": [
+    {
+      "from": "NODE-01",
+      "to": "NODE-02"
+    },
+    {
+      "from": "NODE-02",
+      "to": "NODE-03"
+    },
+    {
+      "from": "NODE-03",
+      "to": "NODE-04"
+    },
+    {
+      "from": "NODE-03",
+      "to": "NODE-05"
+    },
+    {
+      "from": "NODE-04",
+      "to": "NODE-06"
+    },
+    {
+      "from": "NODE-05",
+      "to": "NODE-06"
+    },
+    {
+      "from": "NODE-06",
+      "to": "NODE-07"
+    },
+    {
+      "from": "NODE-03",
+      "to": "NODE-08"
+    },
+    {
+      "from": "NODE-07",
+      "to": "NODE-09"
+    },
+    {
+      "from": "NODE-08",
+      "to": "NODE-09"
+    }
+  ],
+  "fingerprint": {
+    "root_cause": "거절한 취향까지 같은 하루로 덧쓰던 연인이 외부 상담을 통해 생활 강요가 알려지는 일을 막으려 한다.",
+    "mechanism": "이별과 출입 허락 철회 뒤에도 집에 남아 외출을 거절하고 공동 생활표에 다시 동의하는 일을 떠날 조건으로 삼는다.",
+    "concealment": "덧쓴 종이 생활표의 겉보기 일치와 자발적 휴식이라는 돌봄 주장을 결합하여 지안의 거절을 가린다.",
+    "discovery_path": "정오 약속을 따라온 친구와 관리인의 별도 청취가 현장 상태와 합치하고, 이웃이 본 반환 열쇠와 지안의 생활표 설명이 철회된 허락과 삭제된 선택을 밝힌다.",
+    "resolution": "감금 책임 확인과 분리 보호 뒤에도 선택의 망설임을 남기며 지안이 자기 음료를 고른다. 앱 기록이나 물건 하나로 책임을 확정하지 않는다."
+  },
+  "semantic_normalization": {
+    "normalized_roles": [
+      "CONTROLLED_PARTNER",
+      "ROUTINE_ENFORCING_OFFENDER",
+      "APPOINTMENT_KEEPING_FRIEND",
+      "INDEPENDENT_THRESHOLD_WITNESS",
+      "WITHDRAWN_ACCESS_WITNESS",
+      "ON_SCENE_VERIFIER"
+    ],
+    "character_function_chain": [
+      "PREFERENCE_REFUSAL",
+      "ROUTINE_OVERWRITING",
+      "ACCESS_PERMISSION_WITHDRAWAL",
+      "COUNSELING_APPOINTMENT",
+      "DEPARTURE_DENIAL",
+      "CARE_PRETEXT",
+      "INDEPENDENT_THRESHOLD_CORROBORATION",
+      "ON_SCENE_SEPARATION",
+      "ROUTINE_AND_KEY_REINTERPRETATION",
+      "SELF_DIRECTED_CHOICE"
+    ],
+    "audience_hypothesis_transitions": [
+      "VOLUNTARY_SHARED_REST_POSSIBLE",
+      "ROUTINE_CONSENSUS_UNCERTAIN",
+      "WITHDRAWN_ACCESS_CONTEXT_WITHHELD",
+      "CARE_ACCOUNT_CONTRADICTED",
+      "CONFINEMENT_RESPONSIBILITY_CONFIRMED",
+      "CONTROL_CONCEALMENT_MOTIVE_REVEALED",
+      "PERSISTENT_HARM_AND_AGENCY"
+    ]
+  }
+}

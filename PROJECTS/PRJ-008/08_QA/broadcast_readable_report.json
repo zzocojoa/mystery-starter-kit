@@ -1,0 +1,4537 @@
+{
+  "$schema": "../../../STANDARD/schemas/broadcast_readable_report_2_1.schema.json",
+  "schema_family": "broadcast-readable-report",
+  "schema_version": "2.1.0",
+  "mapping_contract_version": "OWNER_BOUND_1",
+  "project_id": "PRJ-008",
+  "result": "NEEDS_REVIEW",
+  "config_binding": {
+    "schema_version": "1.0.0",
+    "enabled": true,
+    "profile_id": "BROADCAST_READABLE_SCRIPT",
+    "profile_version": "2.0.0",
+    "sha256": "a4eea8d63ccdf389d5fa8ff01a1eaaa6cc6fd6fac220234e87b1152b72f345a2"
+  },
+  "output_profile_binding": {
+    "profile_id": "BROADCAST_READABLE_SCRIPT",
+    "profile_version": "2.0.0",
+    "profile_path": "CHANNELS/mystery_main/output_profiles/broadcast-readable-script/2.0.0.json",
+    "schema_path": "STANDARD/schemas/broadcast_readable_output_profile_2_0.schema.json",
+    "document_sha256": "79252067a29b8b5f1b3b418bb7682b86e6b9787bc204e6e556ea9b7cb7b7582a",
+    "file_sha256": "d156c49f31a0ecee4563c7eb6347ff5973325a918eb1fae3281955a70ec07284"
+  },
+  "input_artifact_hashes": {
+    "broadcast_readable_config": "a4eea8d63ccdf389d5fa8ff01a1eaaa6cc6fd6fac220234e87b1152b72f345a2",
+    "screenplay_units": "f9e6b9f12f1914a33852d0932fc53ec81dbdfb112207ee54130bea328e9d5936",
+    "characters": "1de2b42465d5df648b8f71ad7a59344028463e8a55796e61e1645b025d0f6cc9",
+    "relationships": "b927afebfd84bac2ae289bd738a4c5f33ca55bcc4ab7c87b392ff907fda2935c",
+    "panel_cast": "b5659ae509fb58a017e7632f65defc76f4b0a44451438623bbd623e28b646106",
+    "reaction_segments": "88bdff672b49030c9330d96b657d81def51f135b1146345d4f2fec7fa38964b1",
+    "presentation_plan": "4c01884138e2689b5385140cc2d68adfa030dec2d413654614eb097e1a4560f4",
+    "final_script": "9a3393e11e7abc9ad1b2c192a7f61ca52236282e377bb92f7634c1c00512a00e"
+  },
+  "output_artifact_hashes": {
+    "canonical_readable_script": "0c74c062e515e89c17301364b1658c9f1e16314be3dca95cc54e1af86cd969d2",
+    "expected_production_copy": "0c74c062e515e89c17301364b1658c9f1e16314be3dca95cc54e1af86cd969d2"
+  },
+  "scene_mappings": [
+    {
+      "scene_id": "SCN-01",
+      "first_global_segment_index": 0,
+      "last_global_segment_index": 0,
+      "heading_sha256": "8cfdde03e9b198095a8d9564030db9849a0ec7406f29a20e76325d0ef71ea337",
+      "situation_context_sha256": "ed38a604559f81f741349d6a8352042e7c163b3bd35281c1648334428fac4e94",
+      "sound_action_context_sha256": "9577edb5f9cccdbd95378f981401548543ee1a57105f8ff17d41472319fb85fe",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 5762,
+        "byte_end": 9475
+      }
+    },
+    {
+      "scene_id": "SCN-02",
+      "first_global_segment_index": 1,
+      "last_global_segment_index": 3,
+      "heading_sha256": "3bb749673a7cd9c561629f903c4ecbbd3373b71d8e6d64782bd75a8931b72a19",
+      "situation_context_sha256": "cb755cf47b37bdeefa9acc2336c98b24b81da75beb7fe46130a2de291378d03c",
+      "sound_action_context_sha256": "158f06578e7e1bfc6749ba8fcc845c374262259bec121162af529be06819658e",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 9477,
+        "byte_end": 13014
+      }
+    },
+    {
+      "scene_id": "SCN-03",
+      "first_global_segment_index": 4,
+      "last_global_segment_index": 5,
+      "heading_sha256": "0c85237c3c53ccf780a5ba55101c61d3362e9d42e78bcd3540af82d66346c176",
+      "situation_context_sha256": "4d639f3ce810ba11152bd453b0f6598d540055f8e9456ccd07e7ee4e21dd13f7",
+      "sound_action_context_sha256": "3b31db212c655c1ef59a89602c0657dabe5ff90dd4f657a71f46f788d8752380",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 13016,
+        "byte_end": 16256
+      }
+    },
+    {
+      "scene_id": "SCN-04",
+      "first_global_segment_index": 6,
+      "last_global_segment_index": 8,
+      "heading_sha256": "495d214084e405488b33b24f1a2cc0243a64418e8a90763be03257d94f56afa5",
+      "situation_context_sha256": "e44f5fcee3bd0f932bd3c63a5b858914eeb3300458c0d0251503ece55380b9a4",
+      "sound_action_context_sha256": "6134bae2f42cefb89079edff7a2efc9765d211256a29819a1dadf500ccc22a24",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 16258,
+        "byte_end": 20363
+      }
+    },
+    {
+      "scene_id": "SCN-05",
+      "first_global_segment_index": 9,
+      "last_global_segment_index": 10,
+      "heading_sha256": "f6d521e3fa9f3adeb241ee2c631d669c989c3ea73d4079d14d90aa7caa767da5",
+      "situation_context_sha256": "4a2f80b49f95910d057a999b1a2585c5621d1621a9d319bef531684d61685d20",
+      "sound_action_context_sha256": "fbe5c765156b952161ba45da8eb16cb900a10a8950a44cd337ad2efd200b9850",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 20365,
+        "byte_end": 23903
+      }
+    },
+    {
+      "scene_id": "SCN-06",
+      "first_global_segment_index": 11,
+      "last_global_segment_index": 12,
+      "heading_sha256": "08ebc966dc09ea8756b84fb7fc0191407ff4ae90e005c58eda37f62a32770732",
+      "situation_context_sha256": "fef7b09d739923ac523e33c25c8c42cd7b44eaf3eb9318cc2ca41c6b0082ee59",
+      "sound_action_context_sha256": "18b189c1649819d5a37a481c1f2c76750578446b753909833e7e1ed718b25d0b",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 23905,
+        "byte_end": 27307
+      }
+    },
+    {
+      "scene_id": "SCN-07",
+      "first_global_segment_index": 13,
+      "last_global_segment_index": 14,
+      "heading_sha256": "4487afa0dca509809dab6f984fa950eb2d9588123de2fdfdaba5142dadaaac2a",
+      "situation_context_sha256": "cd92718e85569400bb9ea7fc37271c5f69e5050bf8a4ea4ce10661753095700d",
+      "sound_action_context_sha256": "520aeaf2eb8f1c4b7f3d0e9afa4013324d9e48b8c754070ab57fc4aad0d3aba3",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 27309,
+        "byte_end": 30685
+      }
+    },
+    {
+      "scene_id": "SCN-08",
+      "first_global_segment_index": 15,
+      "last_global_segment_index": 16,
+      "heading_sha256": "3e2b566b9815649cf407e202246d9b00df59e6b5fed2f8adfe71d9e662c5707f",
+      "situation_context_sha256": "7d50e7b8afdeda32762fe294f9f6c0c9df06164cdd871569b2833563959e0156",
+      "sound_action_context_sha256": "bf5f42af5bc40e683e7f4fd31f1b3b9026e86fa71f31afaaa1bf629446ed8f19",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 30687,
+        "byte_end": 34876
+      }
+    },
+    {
+      "scene_id": "SCN-09",
+      "first_global_segment_index": 17,
+      "last_global_segment_index": 17,
+      "heading_sha256": "005beb8fcb49b2be1aae8c8a9ca0b29d50022b6680cff6f87aa70a6ce56e7205",
+      "situation_context_sha256": "a6ec16b2df275d0d66180ea0ba4c57bb95aafaca1c5bfbbb26a85d1c91414b92",
+      "sound_action_context_sha256": "04e4fa6556f40e83f051fa63afb4ac46dadaadea3705213505ef9bc480e1e299",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 34878,
+        "byte_end": 38592
+      }
+    },
+    {
+      "scene_id": "SCN-10",
+      "first_global_segment_index": 18,
+      "last_global_segment_index": 19,
+      "heading_sha256": "984c20dee2c21296e3fc499c49fadd8dabe5527f55b9af07689ab60491678986",
+      "situation_context_sha256": "1c37c15c5168411b8bbf88589c0d1d5eb079007b543620a783a73015832b0d7d",
+      "sound_action_context_sha256": "a3232ccbead4b4d014b6e899455fcc3e7e60cf209813a550e5c7e3b5e4cef6ff",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 38594,
+        "byte_end": 43251
+      }
+    },
+    {
+      "scene_id": "SCN-11",
+      "first_global_segment_index": 20,
+      "last_global_segment_index": 21,
+      "heading_sha256": "a1a03b255dce49fa53b246edd379cfaf1ddbd2687e4a0684365eb2b0233354a3",
+      "situation_context_sha256": "92f7163b6cee6037ca5e40c60f30f428d693ca7fd355f914a1cdfbf927a37833",
+      "sound_action_context_sha256": "a002c6d20d53ae7b920cde940e97b90b6741a4b639d2dfb31c0c16e70ded6459",
+      "retrospective_sha256": "6b3b3bcc0aabbb1dd22dc742f1165ed5bc5c0dde1e6b4389d94d2dc08d1f209d",
+      "actual_byte_range": {
+        "byte_start": 43253,
+        "byte_end": 48733
+      }
+    },
+    {
+      "scene_id": "SCN-12",
+      "first_global_segment_index": 22,
+      "last_global_segment_index": 23,
+      "heading_sha256": "3a6d59e3aa4e93d1fed7f891acf56b5475be507cfea91ebb789db21ef5e5f847",
+      "situation_context_sha256": "c9a557243fd7984184e69f4209bb8c51b58e4ee5cd8a3cf9ff9ec31ff159885f",
+      "sound_action_context_sha256": "bb3010530194bf3bf6894e8d063f55c452def0654838f223a83e2b4477e6942f",
+      "retrospective_sha256": null,
+      "actual_byte_range": {
+        "byte_start": 48735,
+        "byte_end": 52366
+      }
+    }
+  ],
+  "segment_mappings": [
+    {
+      "segment_id": "SEG-001",
+      "type": "DRAMA",
+      "global_presentation_index": 0,
+      "scene_id": "SCN-01",
+      "actual_byte_range": {
+        "byte_start": 6809,
+        "byte_end": 9475
+      }
+    },
+    {
+      "segment_id": "SEG-002",
+      "type": "DRAMA",
+      "global_presentation_index": 1,
+      "scene_id": "SCN-02",
+      "actual_byte_range": {
+        "byte_start": 10354,
+        "byte_end": 11839
+      }
+    },
+    {
+      "segment_id": "SEG-003",
+      "type": "NARRATION",
+      "global_presentation_index": 2,
+      "scene_id": "SCN-02",
+      "actual_byte_range": {
+        "byte_start": 11841,
+        "byte_end": 12184
+      }
+    },
+    {
+      "segment_id": "SEG-004",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 3,
+      "scene_id": "SCN-02",
+      "actual_byte_range": {
+        "byte_start": 12207,
+        "byte_end": 13014
+      }
+    },
+    {
+      "segment_id": "SEG-005",
+      "type": "NARRATION",
+      "global_presentation_index": 4,
+      "scene_id": "SCN-03",
+      "actual_byte_range": {
+        "byte_start": 13916,
+        "byte_end": 14244
+      }
+    },
+    {
+      "segment_id": "SEG-006",
+      "type": "DRAMA",
+      "global_presentation_index": 5,
+      "scene_id": "SCN-03",
+      "actual_byte_range": {
+        "byte_start": 14246,
+        "byte_end": 16256
+      }
+    },
+    {
+      "segment_id": "SEG-007",
+      "type": "DRAMA",
+      "global_presentation_index": 6,
+      "scene_id": "SCN-04",
+      "actual_byte_range": {
+        "byte_start": 17118,
+        "byte_end": 19140
+      }
+    },
+    {
+      "segment_id": "SEG-008",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 7,
+      "scene_id": "SCN-04",
+      "actual_byte_range": {
+        "byte_start": 19163,
+        "byte_end": 19999
+      }
+    },
+    {
+      "segment_id": "SEG-009",
+      "type": "NARRATION",
+      "global_presentation_index": 8,
+      "scene_id": "SCN-04",
+      "actual_byte_range": {
+        "byte_start": 20001,
+        "byte_end": 20363
+      }
+    },
+    {
+      "segment_id": "SEG-010",
+      "type": "DRAMA",
+      "global_presentation_index": 9,
+      "scene_id": "SCN-05",
+      "actual_byte_range": {
+        "byte_start": 21315,
+        "byte_end": 22985
+      }
+    },
+    {
+      "segment_id": "SEG-011",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 10,
+      "scene_id": "SCN-05",
+      "actual_byte_range": {
+        "byte_start": 23008,
+        "byte_end": 23903
+      }
+    },
+    {
+      "segment_id": "SEG-012",
+      "type": "DRAMA",
+      "global_presentation_index": 11,
+      "scene_id": "SCN-06",
+      "actual_byte_range": {
+        "byte_start": 24878,
+        "byte_end": 26955
+      }
+    },
+    {
+      "segment_id": "SEG-013",
+      "type": "NARRATION",
+      "global_presentation_index": 12,
+      "scene_id": "SCN-06",
+      "actual_byte_range": {
+        "byte_start": 26957,
+        "byte_end": 27307
+      }
+    },
+    {
+      "segment_id": "SEG-014",
+      "type": "NARRATION",
+      "global_presentation_index": 13,
+      "scene_id": "SCN-07",
+      "actual_byte_range": {
+        "byte_start": 28226,
+        "byte_end": 28574
+      }
+    },
+    {
+      "segment_id": "SEG-015",
+      "type": "DRAMA",
+      "global_presentation_index": 14,
+      "scene_id": "SCN-07",
+      "actual_byte_range": {
+        "byte_start": 28576,
+        "byte_end": 30685
+      }
+    },
+    {
+      "segment_id": "SEG-016",
+      "type": "DRAMA",
+      "global_presentation_index": 15,
+      "scene_id": "SCN-08",
+      "actual_byte_range": {
+        "byte_start": 31698,
+        "byte_end": 33953
+      }
+    },
+    {
+      "segment_id": "SEG-017",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 16,
+      "scene_id": "SCN-08",
+      "actual_byte_range": {
+        "byte_start": 33976,
+        "byte_end": 34876
+      }
+    },
+    {
+      "segment_id": "SEG-018",
+      "type": "DRAMA",
+      "global_presentation_index": 17,
+      "scene_id": "SCN-09",
+      "actual_byte_range": {
+        "byte_start": 35917,
+        "byte_end": 38592
+      }
+    },
+    {
+      "segment_id": "SEG-019",
+      "type": "DRAMA",
+      "global_presentation_index": 18,
+      "scene_id": "SCN-10",
+      "actual_byte_range": {
+        "byte_start": 39647,
+        "byte_end": 42361
+      }
+    },
+    {
+      "segment_id": "SEG-020",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 19,
+      "scene_id": "SCN-10",
+      "actual_byte_range": {
+        "byte_start": 42384,
+        "byte_end": 43251
+      }
+    },
+    {
+      "segment_id": "SEG-021",
+      "type": "DRAMA",
+      "global_presentation_index": 20,
+      "scene_id": "SCN-11",
+      "actual_byte_range": {
+        "byte_start": 44382,
+        "byte_end": 47331
+      }
+    },
+    {
+      "segment_id": "SEG-022",
+      "type": "PANEL_REACTION",
+      "global_presentation_index": 21,
+      "scene_id": "SCN-11",
+      "actual_byte_range": {
+        "byte_start": 47354,
+        "byte_end": 48272
+      }
+    },
+    {
+      "segment_id": "SEG-023",
+      "type": "DRAMA",
+      "global_presentation_index": 22,
+      "scene_id": "SCN-12",
+      "actual_byte_range": {
+        "byte_start": 49845,
+        "byte_end": 51994
+      }
+    },
+    {
+      "segment_id": "SEG-024",
+      "type": "NARRATION",
+      "global_presentation_index": 23,
+      "scene_id": "SCN-12",
+      "actual_byte_range": {
+        "byte_start": 51996,
+        "byte_end": 52366
+      }
+    }
+  ],
+  "unit_mappings": [
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-01-001",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-01-001",
+      "segment_id": "SEG-001",
+      "scene_id": "SCN-01",
+      "canonical_order": 1,
+      "text_sha256": "104dd0e2341af9e81c762b5f2682998518978eb3eeaeae048eb24757b5361dd5",
+      "rendered_block_sha256": "7de9670112556c41efd6e61850b32d125e71868e5752e52ed2445b93d4fd950c",
+      "container_local_order": 1,
+      "global_presentation_order": 1,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 6809,
+        "byte_end": 6860
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-01-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-01-002",
+      "segment_id": "SEG-001",
+      "scene_id": "SCN-01",
+      "canonical_order": 2,
+      "text_sha256": "a66c26a36515611acac7cf4824740a895eeb5754312243e1d4a8d4af5e806ca0",
+      "rendered_block_sha256": "29fcad56fc6f772c067137c1debb5697d3945c890094769b472a930d1f593454",
+      "container_local_order": 2,
+      "global_presentation_order": 2,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 6862,
+        "byte_end": 7166
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-01-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-01-003",
+      "segment_id": "SEG-001",
+      "scene_id": "SCN-01",
+      "canonical_order": 3,
+      "text_sha256": "f2a0564a0283f853c0b17360e1e26fbc0877ed745835dafbc83b6ce171ee965c",
+      "rendered_block_sha256": "d649ba9f4db85037486bd7628b6173e198a9a039f71cc7b14fb0ffe1e9110ca5",
+      "container_local_order": 3,
+      "global_presentation_order": 3,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 7168,
+        "byte_end": 7418
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-01-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-01-004",
+      "segment_id": "SEG-001",
+      "scene_id": "SCN-01",
+      "canonical_order": 4,
+      "text_sha256": "a1ba0c7313cc72c6734ddce3c7543466f6827a47e5ef3f4a746fcd738d40804c",
+      "rendered_block_sha256": "57a6fa3628703a3f62bb4e683cc138fc108c7dbca8526f56e616051d959d2a35",
+      "container_local_order": 4,
+      "global_presentation_order": 4,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 7420,
+        "byte_end": 7689
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-01-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-01-005",
+      "segment_id": "SEG-001",
+      "scene_id": "SCN-01",
+      "canonical_order": 5,
+      "text_sha256": "07213d90c31422f546bd03e17e0748f4f099d38661ce56eed4bfb0f88ecfa0c6",
+      "rendered_block_sha256": "7b95cac9528269f4077b98a3028c3b04f0d3cbde0d46c886be8c9062be9eef1a",
+      "container_local_order": 5,
+      "global_presentation_order": 5,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 7691,
+        "byte_end": 7917
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-01-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-01-006",
+      "segment_id": "SEG-001",
+      "scene_id": "SCN-01",
+      "canonical_order": 6,
+      "text_sha256": "fe7f4a80ecd7954783a4e4abf4a5f2918a97ddff133675fef3cf814dbd5e25d2",
+      "rendered_block_sha256": "0561eeb1d16c1168051b0b798c0700aaa8e2848bfa0b6bc1722c428f92972cb7",
+      "container_local_order": 6,
+      "global_presentation_order": 6,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 7919,
+        "byte_end": 8218
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-01-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-01-007",
+      "segment_id": "SEG-001",
+      "scene_id": "SCN-01",
+      "canonical_order": 7,
+      "text_sha256": "fc46cb1934ad604dde2e5e990485a2b7114ec46272ed1d788f4c21a2761d93c2",
+      "rendered_block_sha256": "29ec76823485c41020a78d73517379a1efbc51bbeafc2fae891b9e321dbabd51",
+      "container_local_order": 7,
+      "global_presentation_order": 7,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 8220,
+        "byte_end": 8535
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-01-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-01-008",
+      "segment_id": "SEG-001",
+      "scene_id": "SCN-01",
+      "canonical_order": 8,
+      "text_sha256": "fe1276d486bb0f3b8ff9d496d742d9b1f73c97dc0f5282df03f78060db4f21fa",
+      "rendered_block_sha256": "689238e3b31337092ab62d8648b1dcf05fca9ffd21335e936e95368e4be30834",
+      "container_local_order": 8,
+      "global_presentation_order": 8,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 8537,
+        "byte_end": 8814
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-01-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-01-009",
+      "segment_id": "SEG-001",
+      "scene_id": "SCN-01",
+      "canonical_order": 9,
+      "text_sha256": "229e879442c9e3b4eef5e2a9029e222fc31d2fda874377bd8422d98baada3d4b",
+      "rendered_block_sha256": "08fc02516eb3ae86d80057727b6106c6d9611a2384c9ad589f315cc0d320c7bd",
+      "container_local_order": 9,
+      "global_presentation_order": 9,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 8816,
+        "byte_end": 9176
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-01-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-01-010",
+      "segment_id": "SEG-001",
+      "scene_id": "SCN-01",
+      "canonical_order": 10,
+      "text_sha256": "2eae8f37f97489f5e90800532918ba22febf744934b2d242ca0099c982dc9ade",
+      "rendered_block_sha256": "4ca19dc5f35a6ecae034f894a29a7a395405cf9b0e6a1c7194958b371590336f",
+      "container_local_order": 10,
+      "global_presentation_order": 10,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 9178,
+        "byte_end": 9475
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-02-001",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-02-001",
+      "segment_id": "SEG-002",
+      "scene_id": "SCN-02",
+      "canonical_order": 1,
+      "text_sha256": "e45620a3144cbd8c3f35233481108c55e0a57c7f666fe01c30bc362740d81aea",
+      "rendered_block_sha256": "d07a95a10e4140683dc6f20c08b9a5ba2d249001a2ff513411ecb0faafbbdc0b",
+      "container_local_order": 1,
+      "global_presentation_order": 11,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 10354,
+        "byte_end": 10586
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-02-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-02-002",
+      "segment_id": "SEG-002",
+      "scene_id": "SCN-02",
+      "canonical_order": 2,
+      "text_sha256": "60cea796351ddf55db5001ba274937b8d508e19fa5b317063ba37b2bfa1a899e",
+      "rendered_block_sha256": "5bf09412fba105c182fc68b228f3424c10452db0f2d2261d2d4bf4da49116ed9",
+      "container_local_order": 2,
+      "global_presentation_order": 12,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 10588,
+        "byte_end": 10731
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-02-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-02-003",
+      "segment_id": "SEG-002",
+      "scene_id": "SCN-02",
+      "canonical_order": 3,
+      "text_sha256": "74559bc8687e2d740fde4e204f7371cf6caa9aea9e14a564ed99ac29bbd49201",
+      "rendered_block_sha256": "4e4208c259e5abdd055beabb84e87ddd9442dbe0bcac87f9877d470f76e5281f",
+      "container_local_order": 3,
+      "global_presentation_order": 13,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 10733,
+        "byte_end": 10833
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-02-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-02-004",
+      "segment_id": "SEG-002",
+      "scene_id": "SCN-02",
+      "canonical_order": 4,
+      "text_sha256": "f4b95c190f06410cc08e835fa4968ba6fd1c6d429ef74dc0c95891e5347a0753",
+      "rendered_block_sha256": "c1fcb375783bf53e5734241f076174201bd8bbe890f7ad5c7195ed159da51f08",
+      "container_local_order": 4,
+      "global_presentation_order": 14,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 10835,
+        "byte_end": 10975
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-02-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-02-005",
+      "segment_id": "SEG-002",
+      "scene_id": "SCN-02",
+      "canonical_order": 5,
+      "text_sha256": "8d46a089c65040f0ce5c0600c41f440665e33ef659d6a50c28b00e172040ca45",
+      "rendered_block_sha256": "e608c859d1e42e0655a9d1d1b092c3122e994a25e672fe651e432c63a592c197",
+      "container_local_order": 5,
+      "global_presentation_order": 15,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 10977,
+        "byte_end": 11158
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-02-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-02-006",
+      "segment_id": "SEG-002",
+      "scene_id": "SCN-02",
+      "canonical_order": 6,
+      "text_sha256": "bc9dc207720d45877e33407a0a608120f1d92274a8332d742aaa3f5d86f06b92",
+      "rendered_block_sha256": "a83e27e366b14cab479ea4e9a701f2bc489addd1e8266240a55df670eb24548c",
+      "container_local_order": 6,
+      "global_presentation_order": 16,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 11160,
+        "byte_end": 11198
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-02-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-02-007",
+      "segment_id": "SEG-002",
+      "scene_id": "SCN-02",
+      "canonical_order": 7,
+      "text_sha256": "e2bc392149329ea2bdc70f4976d404565b8396ae5bcb26d0ace286116a286dda",
+      "rendered_block_sha256": "4d4b96e915f0ef487ab86b8b03c1030cbf5b18833499abb78b3abb1cb500c7f7",
+      "container_local_order": 7,
+      "global_presentation_order": 17,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 11200,
+        "byte_end": 11339
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-02-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-02-008",
+      "segment_id": "SEG-002",
+      "scene_id": "SCN-02",
+      "canonical_order": 8,
+      "text_sha256": "8bff101bb3700c846ed46e577515c64acaf6435fb7a09aad314c16fec3486285",
+      "rendered_block_sha256": "2db8fc3ccb1d8dc070f3f88e989400e68f9f13d4831ca6559adaf980f5ad91d5",
+      "container_local_order": 8,
+      "global_presentation_order": 18,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 11341,
+        "byte_end": 11504
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-02-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-02-009",
+      "segment_id": "SEG-002",
+      "scene_id": "SCN-02",
+      "canonical_order": 9,
+      "text_sha256": "745ea9bcd21d6b180bd97bce43b298d7b18e9952aa1ac0031e15970281428423",
+      "rendered_block_sha256": "badb71c58a96f7f4db938766984e7b710124a000e857e953eda968f505474732",
+      "container_local_order": 9,
+      "global_presentation_order": 19,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 11506,
+        "byte_end": 11617
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-02-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-02-010",
+      "segment_id": "SEG-002",
+      "scene_id": "SCN-02",
+      "canonical_order": 10,
+      "text_sha256": "f0b9af4a02c21a14f4297df21995951e97fd5ebe876d50982c5db41782342306",
+      "rendered_block_sha256": "1941781a2ea969fd6aae04fe76120e2d1ab11752b63ecd67bb05e38cbed0f99b",
+      "container_local_order": 10,
+      "global_presentation_order": 20,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 11619,
+        "byte_end": 11839
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-02-011",
+      "container_type": "NARRATION",
+      "unit_id": "UNIT-02-011",
+      "segment_id": "SEG-003",
+      "scene_id": "SCN-02",
+      "canonical_order": 11,
+      "text_sha256": "767813308ec0594890bfff323d200cb1f34436f27f3399ce4746bf0b717d3085",
+      "rendered_block_sha256": "36add4cf5f890cb604f414734e94cffd27775067b081b6e3db772ade724dcc7c",
+      "container_local_order": 1,
+      "global_presentation_order": 21,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 11841,
+        "byte_end": 12184
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-001",
+      "container_type": "NARRATION",
+      "unit_id": "UNIT-03-001",
+      "segment_id": "SEG-005",
+      "scene_id": "SCN-03",
+      "canonical_order": 1,
+      "text_sha256": "9c810221e0264d75e4e20891419ea9180a2497f672853f2875ea88ad7a8ee1eb",
+      "rendered_block_sha256": "0441c71d0ca8c6c04c4fa0616000944e3b19ba203ebc54b4c7f3e6bcfd2a97ce",
+      "container_local_order": 1,
+      "global_presentation_order": 26,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 13916,
+        "byte_end": 14244
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-002",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 2,
+      "text_sha256": "0c39019f616dfdc6e9c9398d5dfcb6a979f8acddac3c76ce1b0507f46de23e00",
+      "rendered_block_sha256": "af24d2b63d5f334f5805b08d9e3bb282a1ed3cb3801b6a47f2dc959d4fcda9d9",
+      "container_local_order": 1,
+      "global_presentation_order": 27,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 14246,
+        "byte_end": 14525
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-003",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 3,
+      "text_sha256": "12ba831c61fcdc18ec57749535b585f15a18a695046ac1d6a70786a2a3cdc745",
+      "rendered_block_sha256": "b110519f8a7ea15d629ce151d2f727891a38fa13c7f9ad51cdbb96f09bee41f7",
+      "container_local_order": 2,
+      "global_presentation_order": 28,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 14527,
+        "byte_end": 14585
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-004",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 4,
+      "text_sha256": "da6a932688d3115430292909c0474e9c4550715def06fb3e6f26831926a49b89",
+      "rendered_block_sha256": "a4e4a7819bf1f1a6de86dc88e98a9fb122e757799cca78cfd568555bbadeb1bb",
+      "container_local_order": 3,
+      "global_presentation_order": 29,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 14587,
+        "byte_end": 14652
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-005",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 5,
+      "text_sha256": "57728e668291041f94ce299403741dd2945e1d3e5c94754b199e9b6dd953169f",
+      "rendered_block_sha256": "9a122d4611cc2297072322914eff52c250b42528f8a1084080fa7448674fc95a",
+      "container_local_order": 4,
+      "global_presentation_order": 30,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 14654,
+        "byte_end": 14795
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-006",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 6,
+      "text_sha256": "2ec81c67220714088d5cc5a3b92f2f5d9357c4872cbe65ad3ec9e9ee1532e42d",
+      "rendered_block_sha256": "e6d1b6252ad470d9bc6ce47ea20d458647bc082ccc5121d74741cdd31f51d558",
+      "container_local_order": 5,
+      "global_presentation_order": 31,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 14797,
+        "byte_end": 14886
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-007",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 7,
+      "text_sha256": "161c47e7dfe3013a4bf087c524cf11e6a1de22698416cdcc5cfe54146d7b4bc3",
+      "rendered_block_sha256": "90c926c1b2cc9b2032491061782164c878dc5eee3159100f258335d2fb852394",
+      "container_local_order": 6,
+      "global_presentation_order": 32,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 14888,
+        "byte_end": 15085
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-008",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 8,
+      "text_sha256": "7bc12ad75eea44295370e6bf7c0b5b6735a2724dd456906e693608c37ed9baee",
+      "rendered_block_sha256": "2b70f3910390ad085d1909492d3d6a0c3bc02c5ee89d17916b22f8991d20cf9a",
+      "container_local_order": 7,
+      "global_presentation_order": 33,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15087,
+        "byte_end": 15184
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-009",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 9,
+      "text_sha256": "81e92238201a6869adc1916d54a0ac02691d84537fe2269a83367d9b1ad6e2d5",
+      "rendered_block_sha256": "418dae50e9deb746509e22252d867f6350d339779ae5200f15662d595cf8fcfa",
+      "container_local_order": 8,
+      "global_presentation_order": 34,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15186,
+        "byte_end": 15354
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-010",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 10,
+      "text_sha256": "3730c016af9838ff8e7def2faab35b4ae9b3eb8667cc01b0485bd20d5b72c95c",
+      "rendered_block_sha256": "a9a347437020a19320f7f92cf93c8eff4c3ed0fe74aa278dcc9af7d14b4f30a3",
+      "container_local_order": 9,
+      "global_presentation_order": 35,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15356,
+        "byte_end": 15406
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-011",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-011",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 11,
+      "text_sha256": "7eb600356c2f47c42aac0015cad606e4fa20aaa79c4d6b7f684342b8adfb942e",
+      "rendered_block_sha256": "105a612c37582f9e14f87d133626c13dcc18da581812c109b8ea36bd84c96124",
+      "container_local_order": 10,
+      "global_presentation_order": 36,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15408,
+        "byte_end": 15638
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-012",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-012",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 12,
+      "text_sha256": "a1f961bda5fbd0a1e339114b17320fad277acaaeed0882654ad85aa7a67792ab",
+      "rendered_block_sha256": "8ece0781e92949ee44437a452cc4a9efff082694b7cebac121a9648fa8516c50",
+      "container_local_order": 11,
+      "global_presentation_order": 37,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15640,
+        "byte_end": 15790
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-013",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-013",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 13,
+      "text_sha256": "dde27bb4ee3daf9b22cd88281199f9eb413ab7b306a8696956a8200bbef307b0",
+      "rendered_block_sha256": "b67a65d80e0a4c6355fd7b4c031ab8a421de4af73ad875d699ccd721d73f46a4",
+      "container_local_order": 12,
+      "global_presentation_order": 38,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15792,
+        "byte_end": 15900
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-014",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-014",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 14,
+      "text_sha256": "d252f6144fa8c543d55ef02a6e2937eb36cf827f0a224519045bc658b203be9f",
+      "rendered_block_sha256": "a12683b63ddd7c735349066b55791968e23e67d958f7faf54632a0be65afb898",
+      "container_local_order": 13,
+      "global_presentation_order": 39,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 15902,
+        "byte_end": 16053
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-03-015",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-03-015",
+      "segment_id": "SEG-006",
+      "scene_id": "SCN-03",
+      "canonical_order": 15,
+      "text_sha256": "dba88affdf62add5e23314cd9152ee2cc6284a61e1a78d94147e0892e54d959c",
+      "rendered_block_sha256": "444ebd81951910299a295df3386003ea558a98a84ec28fcaf53f3cfa0248a476",
+      "container_local_order": 14,
+      "global_presentation_order": 40,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 16055,
+        "byte_end": 16256
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-001",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-001",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 1,
+      "text_sha256": "2338234e5be8596108d3bdcb4575d2cded60b322127c925bf039ba34b0f0edee",
+      "rendered_block_sha256": "876312118a8273f233ca66a2749d1db28d71abf7b0bc58bf13720e2d64710e05",
+      "container_local_order": 1,
+      "global_presentation_order": 41,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 17118,
+        "byte_end": 17402
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-002",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 2,
+      "text_sha256": "4a0ec61a94e09e298f352865a3aa4baedc0c56bb4810ecc3a19ffa79114271b9",
+      "rendered_block_sha256": "ef3163f664d2e78bc247adcf42812c0df89fa4cb38bcbebb6ebcb9e88921091a",
+      "container_local_order": 2,
+      "global_presentation_order": 42,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 17404,
+        "byte_end": 17469
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-003",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 3,
+      "text_sha256": "63c396cbf11759beb412df475ecc05cf13d3f6928fe59a6f4b1342b1c6d48400",
+      "rendered_block_sha256": "6f54f59c10b970dfc2bae10359e4690d9a321379bd93a36f2fb2c679ff6df302",
+      "container_local_order": 3,
+      "global_presentation_order": 43,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 17471,
+        "byte_end": 17539
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-004",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 4,
+      "text_sha256": "a188409f64f6169349023882b396b781780d05649084acceddb0777fa5addc4e",
+      "rendered_block_sha256": "911a2f344dd156d5891603a007704eb14c9b5c86bc927a5ed9cca7d2461a4047",
+      "container_local_order": 4,
+      "global_presentation_order": 44,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 17541,
+        "byte_end": 17637
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-005",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 5,
+      "text_sha256": "4c07611481dad53c666817ff6d4d1764c607c77f24353b7867f7555c1c64241d",
+      "rendered_block_sha256": "358288565155cd571fb54cee3eeb1d0d5289757eb868b77efa4377a928a7686f",
+      "container_local_order": 5,
+      "global_presentation_order": 45,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 17639,
+        "byte_end": 17857
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-006",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 6,
+      "text_sha256": "9a1b18bd8b35e10b734503941cf653ed4db03309ec2cec9d2dacf400e384f669",
+      "rendered_block_sha256": "754b1ae51ced401ebc382ff3903283d5d2fb1bd9720d7db247660386712325fc",
+      "container_local_order": 6,
+      "global_presentation_order": 46,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 17859,
+        "byte_end": 17975
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-007",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 7,
+      "text_sha256": "ee88118e81bcefcea02e94335e3d503718bf04c9a5fcdb186d9b1ec37495045f",
+      "rendered_block_sha256": "8c5a9aed8a3115f6995a453e9593f377c7f0bec2f5e4ea54893bb8f0fa10caf4",
+      "container_local_order": 7,
+      "global_presentation_order": 47,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 17977,
+        "byte_end": 18075
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-008",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 8,
+      "text_sha256": "7740844d590b7d3901375e2a922609532d825b09ad07815ace6a16337d174753",
+      "rendered_block_sha256": "220fb10abe27f809674eb99897d3fe71d88c4e1b5ca0bd220f8dc8f0288dc2cd",
+      "container_local_order": 8,
+      "global_presentation_order": 48,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18077,
+        "byte_end": 18158
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-009",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 9,
+      "text_sha256": "0ed132662721e48571e2822a6542b4ba879d4c0990e96a7d2efa68a0dffab415",
+      "rendered_block_sha256": "93a176c83abf95213089e9c303ae041a152babc4974ab702c5dc9250acde5442",
+      "container_local_order": 9,
+      "global_presentation_order": 49,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18160,
+        "byte_end": 18305
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-010",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 10,
+      "text_sha256": "5767345cf4da4ee1e41891cd5b9320b03253abf1bca105ec5bfc52ecda9315bc",
+      "rendered_block_sha256": "20444964ffe1212c3e94f5a2206ff08ab178a021cda3abb499b3e44bfe413056",
+      "container_local_order": 10,
+      "global_presentation_order": 50,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18307,
+        "byte_end": 18500
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-011",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-011",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 11,
+      "text_sha256": "903dca50d732251cccd37058cd285b40194ff2359cf458471d809fadd3ed8348",
+      "rendered_block_sha256": "f516192b179ff8a0dd6e2ee8ff16e84f90d7fb451a2b5897d6ab396857ca7ac9",
+      "container_local_order": 11,
+      "global_presentation_order": 51,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18502,
+        "byte_end": 18580
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-012",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-012",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 12,
+      "text_sha256": "e816e037ba544c60e67613b5ae10e0c930ba6ba87d0449f11aaa6d14ef7bf4be",
+      "rendered_block_sha256": "c9e97a70ce17437bcc8fe939ad6525d72224582af038052d13923f353e44a5eb",
+      "container_local_order": 12,
+      "global_presentation_order": 52,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18582,
+        "byte_end": 18677
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-013",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-013",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 13,
+      "text_sha256": "eb5e93fdf74a833054308288971d8f1e5b365b650155bd8bbb7f9fa45e939994",
+      "rendered_block_sha256": "7a7f43cf0f8214a465d269d27b8f1e42595489030ad26673df7a7e03d92d9e64",
+      "container_local_order": 13,
+      "global_presentation_order": 53,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18679,
+        "byte_end": 18781
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-014",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-014",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 14,
+      "text_sha256": "dc3267c4dcd299f587cf70c1d86f77eeb3bc419d078172bf1c5d63c0dac400a0",
+      "rendered_block_sha256": "0dc0adfdec5e72163cbf9acc46f9164abb3016e39bfadaae9bcdad4dbf4560d8",
+      "container_local_order": 14,
+      "global_presentation_order": 54,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18783,
+        "byte_end": 18901
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-015",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-04-015",
+      "segment_id": "SEG-007",
+      "scene_id": "SCN-04",
+      "canonical_order": 15,
+      "text_sha256": "6ad05856c49a82afafc08bba05337609962ae32caa701507aba6ef691b9c93a1",
+      "rendered_block_sha256": "df509ee73b1777cf77d2b2a3eefc751907e98fd9bd132a1c70276468ab8f903e",
+      "container_local_order": 15,
+      "global_presentation_order": 55,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 18903,
+        "byte_end": 19140
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-04-016",
+      "container_type": "NARRATION",
+      "unit_id": "UNIT-04-016",
+      "segment_id": "SEG-009",
+      "scene_id": "SCN-04",
+      "canonical_order": 16,
+      "text_sha256": "897d971bc6c19beec1b8785a5d8437c0f3b5ed6ffeb68a35e8a5f54bab2f4fe8",
+      "rendered_block_sha256": "ead79f48182298825e448cf33bfbea28585e8c04f61ab620e5fcb8226a3246df",
+      "container_local_order": 1,
+      "global_presentation_order": 60,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 20001,
+        "byte_end": 20363
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-001",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-001",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 1,
+      "text_sha256": "e67932a3e2770ccb6877f8aae4cae926d3db3ebc70fc2d55afd0fab8aecc0ecb",
+      "rendered_block_sha256": "47b0905e3fcdd600b77c5c331bcc62abbe5c52643fa7cde23d5f909647a5804e",
+      "container_local_order": 1,
+      "global_presentation_order": 61,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21315,
+        "byte_end": 21522
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-002",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 2,
+      "text_sha256": "f0a2546e5951a57ffc4463c71246066a5ead16575d642d5c4cf4a5092a48443c",
+      "rendered_block_sha256": "0b4029cda37ad5afa00929455a523c34a28914ca1fc822e88f57ed6aa1b54461",
+      "container_local_order": 2,
+      "global_presentation_order": 62,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21524,
+        "byte_end": 21581
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-003",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 3,
+      "text_sha256": "a709d559c335b90b419f68468b13b0bfe658deea36516caed7e34918149c81c1",
+      "rendered_block_sha256": "50179a0b30916c9d9ca5e78d09b89c041ec1f616abf84c6fa82abd2eee1a073b",
+      "container_local_order": 3,
+      "global_presentation_order": 63,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21583,
+        "byte_end": 21687
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-004",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 4,
+      "text_sha256": "46d99521b232e081d24b918a3bfdc508ae686e68de3f7eb970a065b528390cb7",
+      "rendered_block_sha256": "f880e6f596f1de885ecbae1d1db7bb87cf8cde5bf5f7d436e984722315acf1eb",
+      "container_local_order": 4,
+      "global_presentation_order": 64,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21689,
+        "byte_end": 21837
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-005",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 5,
+      "text_sha256": "4fae7977ee85a6363e86e969d51b0250071ddf0d2d9e87fde0f0219130617241",
+      "rendered_block_sha256": "074ecdcbd963b0bca391b529db20286511cf93a1aa25dcc0a50e7b5a8db4fe6e",
+      "container_local_order": 5,
+      "global_presentation_order": 65,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21839,
+        "byte_end": 21967
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-006",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 6,
+      "text_sha256": "eb07d1f947acd23c797207de56bdf15b39cd223d2fb26e60ec7166b7053de39d",
+      "rendered_block_sha256": "638faa4c9e8cb9826fcfc91ea6bc0add86d23a7a4115eab6396fe14d41e53af2",
+      "container_local_order": 6,
+      "global_presentation_order": 66,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 21969,
+        "byte_end": 22118
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-007",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 7,
+      "text_sha256": "ecb2f26342b53e7220879caec3d616dc0f6b1f060a1be3b6f5729fca66b121c0",
+      "rendered_block_sha256": "ea395029b16c0984c8840d27bb7e2c5fad9d2611faa3102b89a3cb11e106d7d9",
+      "container_local_order": 7,
+      "global_presentation_order": 67,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 22120,
+        "byte_end": 22230
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-008",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 8,
+      "text_sha256": "fcff1c7dceb12e97222b8b252f7cfd8a865d086c9beae6bc483bbd63eb595b47",
+      "rendered_block_sha256": "56d2143d35f88eca8f01252fa37062ef387f72d3ded0d288d2dab3df90ab199d",
+      "container_local_order": 8,
+      "global_presentation_order": 68,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 22232,
+        "byte_end": 22410
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-009",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 9,
+      "text_sha256": "63757c5f5d7a6e9f6f21b6698b57899088d968fe77aadbac873c80c2231bd36e",
+      "rendered_block_sha256": "3de19ca740580d813cfb2cc188032bde91f6704b1756f1b3194cf646710c7ea6",
+      "container_local_order": 9,
+      "global_presentation_order": 69,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 22412,
+        "byte_end": 22560
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-010",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 10,
+      "text_sha256": "168f96713985b50c3b92d02f2ca71a734620b665fe9a88f34dc48e98afd72ab5",
+      "rendered_block_sha256": "a709023202ef8941a2d8fda4bd2c64aea0d4e0d7d5fe50d1cee60da57baff26c",
+      "container_local_order": 10,
+      "global_presentation_order": 70,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 22562,
+        "byte_end": 22609
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-011",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-011",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 11,
+      "text_sha256": "64ced24df0d1629ad852d32aece1e0d82e033663a46f222733463eaab0622051",
+      "rendered_block_sha256": "fd24daebc3f022cff9b904a5f59b1f7de9386f2e72da11ba2839d0301ef21f2e",
+      "container_local_order": 11,
+      "global_presentation_order": 71,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 22611,
+        "byte_end": 22763
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-05-012",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-05-012",
+      "segment_id": "SEG-010",
+      "scene_id": "SCN-05",
+      "canonical_order": 12,
+      "text_sha256": "a22c8eaf65aabea8b0c92df0cd3459d22f3f7733c52155009cf1608c99e1ff93",
+      "rendered_block_sha256": "8adea0bd2c58a3e29883b9e728482431e38fa51af7d496ad717c76aae2098639",
+      "container_local_order": 12,
+      "global_presentation_order": 72,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 22765,
+        "byte_end": 22985
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-001",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-001",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 1,
+      "text_sha256": "ddb9a250c66969fdbf6a8390763adb1df151036c65e95b131529af1a577be42d",
+      "rendered_block_sha256": "fc79487a51e24ef713f14f0b7758b257a1e220b7aa4a6f87cb9557350476199c",
+      "container_local_order": 1,
+      "global_presentation_order": 77,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 24878,
+        "byte_end": 25129
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-002",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 2,
+      "text_sha256": "72a133325a0a6c4643a06adab9ba920fe332a4e5791ffd399d60c1efa584e6b9",
+      "rendered_block_sha256": "16b44dbf2a7949f43a53dc68c932201cdc8d850a60cd665d21250b3346a17866",
+      "container_local_order": 2,
+      "global_presentation_order": 78,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 25131,
+        "byte_end": 25211
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-003",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 3,
+      "text_sha256": "ceb5fa8054c19f96d8e3dcd5e498ddaf8a4d922d23fee30980f9aeb93a265d82",
+      "rendered_block_sha256": "a4b2dabdee385d32d33b43919602ea10aba0f60269fc30fa58d05ff482fc9026",
+      "container_local_order": 3,
+      "global_presentation_order": 79,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 25213,
+        "byte_end": 25454
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-004",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 4,
+      "text_sha256": "4f3bd394726f1a48442501f49243f73d21d11160a8610d30308a0981bc3c5e4a",
+      "rendered_block_sha256": "06421e637ae0d46758c02d5df1484294c47dd6af72a4c1be2aaa74218ca00831",
+      "container_local_order": 4,
+      "global_presentation_order": 80,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 25456,
+        "byte_end": 25499
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-005",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 5,
+      "text_sha256": "719508a16d65dd4032731032344be2381d1ff673a9be5503e126cf497ef84a63",
+      "rendered_block_sha256": "809969519a24525861fdbf9e10ed88b6d1231d3bc2b86026b39e39f3a709e907",
+      "container_local_order": 5,
+      "global_presentation_order": 81,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 25501,
+        "byte_end": 25577
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-006",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 6,
+      "text_sha256": "c604a591cbb35e70e9bc36e4ed07f98782e0fb90ddd5831e3eeb61c1ed61de37",
+      "rendered_block_sha256": "8c1f894cc09d73ca55b5f7740a0da2386c587785d848332b16afdb22684cc09f",
+      "container_local_order": 6,
+      "global_presentation_order": 82,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 25579,
+        "byte_end": 25659
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-007",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 7,
+      "text_sha256": "02fe103d6dcfe530c5bdb763eb8911d9ba2b97e4c3b0cd012d4233a5ee3f6427",
+      "rendered_block_sha256": "ca877af9b09f1ee47070c992267e50042663e3151f63aeed6aca18e8ee9919e2",
+      "container_local_order": 7,
+      "global_presentation_order": 83,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 25661,
+        "byte_end": 25932
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-008",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 8,
+      "text_sha256": "51af4a788e9db713f26c901674d9826d6bc51fef88c25b9ff4effc1eee520ec5",
+      "rendered_block_sha256": "df8bfd69e0079d7c3c71438a364195b95d5f53c039eba601ed7808fd444f01fc",
+      "container_local_order": 8,
+      "global_presentation_order": 84,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 25934,
+        "byte_end": 26022
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-009",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 9,
+      "text_sha256": "9affe6bc0042b2134ea266381daae6e2c6ea96127eb0a0e01336e9dc7afa9527",
+      "rendered_block_sha256": "e9b10a05c753538ab731f37579e109efac5ba9a523766cad8d8a2ed737f327f3",
+      "container_local_order": 9,
+      "global_presentation_order": 85,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 26024,
+        "byte_end": 26110
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-010",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 10,
+      "text_sha256": "396181735b3c8f6455b3838d4c89cdb3096d6597302abd2cf3d80eaf68c027f8",
+      "rendered_block_sha256": "2d15575bcca8a77376db8f9bfb82796d1c6ea41a18b1497f736e7c9d417b5c6d",
+      "container_local_order": 10,
+      "global_presentation_order": 86,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 26112,
+        "byte_end": 26235
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-011",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-011",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 11,
+      "text_sha256": "de71d1d84eeea1945df01b5dcd25b19f3895c32c4aab340e28e85089769f2480",
+      "rendered_block_sha256": "e14741d675fd61e50a21118fb9cdf2802db31df3bc8c2606a5e9a400f2a5a0c9",
+      "container_local_order": 11,
+      "global_presentation_order": 87,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 26237,
+        "byte_end": 26333
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-012",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-012",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 12,
+      "text_sha256": "7c46f914603199a821ff5f7fe51d562395f29b5a4ea3fe74a1dd19df9c9f1e62",
+      "rendered_block_sha256": "ec5e20b4d36095fb5d4f7615d03c37be78a1ae4984d962c6cbd0cf01686696e4",
+      "container_local_order": 12,
+      "global_presentation_order": 88,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 26335,
+        "byte_end": 26610
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-013",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-013",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 13,
+      "text_sha256": "1e30fc784e194671aba504d9a0a37c4e6e634f7d5158875267dd293626746838",
+      "rendered_block_sha256": "a3880f121dbcd50b154e7817cc754a18d878171911e57f8720f61927cda9b1e8",
+      "container_local_order": 13,
+      "global_presentation_order": 89,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 26612,
+        "byte_end": 26696
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-014",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-014",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 14,
+      "text_sha256": "9ab4524167ac1117bfb53103fa5967b5a08ec00cca4892c7ae9fed5617a2cd1b",
+      "rendered_block_sha256": "e612b515892410af34fa03159045659cd26120da4bc00fa804a5fb5e4cf9597b",
+      "container_local_order": 14,
+      "global_presentation_order": 90,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 26698,
+        "byte_end": 26756
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-015",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-06-015",
+      "segment_id": "SEG-012",
+      "scene_id": "SCN-06",
+      "canonical_order": 15,
+      "text_sha256": "d43728635e05e280150d82708421563fda416d3a155db9f48237caab4d5c890f",
+      "rendered_block_sha256": "7d0ea63ce22df77197455eb74d9c84a7056b50eaa44d459906006e9ac1a0795e",
+      "container_local_order": 15,
+      "global_presentation_order": 91,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 26758,
+        "byte_end": 26955
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-06-016",
+      "container_type": "NARRATION",
+      "unit_id": "UNIT-06-016",
+      "segment_id": "SEG-013",
+      "scene_id": "SCN-06",
+      "canonical_order": 16,
+      "text_sha256": "35d6abb5518cc4891576a65f4873a7d71b76b9a34af17c8e9bc2668bef27a449",
+      "rendered_block_sha256": "ee585642f3b692a86ea5b2521bb0f3ee8c4556122d47c01c1e5cf21565acef62",
+      "container_local_order": 1,
+      "global_presentation_order": 92,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 26957,
+        "byte_end": 27307
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-001",
+      "container_type": "NARRATION",
+      "unit_id": "UNIT-07-001",
+      "segment_id": "SEG-014",
+      "scene_id": "SCN-07",
+      "canonical_order": 1,
+      "text_sha256": "ffdad4783d1262c17034f547ab9770b977a5c9bf61269732b9ee2ca2965e2f6c",
+      "rendered_block_sha256": "7c2687c661bf197f00692a04063446ff97428bddb76fec405491f2de7f6f2e6a",
+      "container_local_order": 1,
+      "global_presentation_order": 93,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 28226,
+        "byte_end": 28574
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-002",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 2,
+      "text_sha256": "5087ee8b250b0930a3f60240f6f24ee96569c5f8e30984d35552c17b43fc812a",
+      "rendered_block_sha256": "97e71d66100c1a784b4346a4bb4c1d8100824739a6ff4d02fc246e2faddc6612",
+      "container_local_order": 1,
+      "global_presentation_order": 94,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 28576,
+        "byte_end": 28785
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-003",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 3,
+      "text_sha256": "bb14b29233a98ab8cc5d802728398932925c350d0071356ada9569922d1c0b3f",
+      "rendered_block_sha256": "30b2fcbd11827eb12ac7b5966fac383a30dc32b55dadefde5003d7c133a2b3c4",
+      "container_local_order": 2,
+      "global_presentation_order": 95,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 28787,
+        "byte_end": 28897
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-004",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 4,
+      "text_sha256": "46ac373127ec14f5a49d2cc578d634ff7c9f37e2998f97fffa8bcdf45bb0a93b",
+      "rendered_block_sha256": "2e8d07f148e4aef1ccea54b58771e77a9d3feac12774830dca44e5415ed3a4eb",
+      "container_local_order": 3,
+      "global_presentation_order": 96,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 28899,
+        "byte_end": 29034
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-005",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 5,
+      "text_sha256": "231d2503cdcc5170bb1a90c82980480f6d558309ff40cf6a32c47c4ead9e5702",
+      "rendered_block_sha256": "347b108bc87a809dc17e5e22f3885d59ae7c3c85d00ffbb3f6fad136e86c6a90",
+      "container_local_order": 4,
+      "global_presentation_order": 97,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 29036,
+        "byte_end": 29233
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-006",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 6,
+      "text_sha256": "06485c884ffd0af0d3b820f7026d2cebd5349dc2a2f52bc966e3b731ec9a29b2",
+      "rendered_block_sha256": "728103a5bad99a3bdbf5a771c6eda6ba23cdb4b76fb90a1a9d522dc07a867692",
+      "container_local_order": 5,
+      "global_presentation_order": 98,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 29235,
+        "byte_end": 29418
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-007",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 7,
+      "text_sha256": "77e30f1ad99cefdb1c28c1d242399be57498b8da223900d91cb49aebc316b006",
+      "rendered_block_sha256": "5053311ff8990952a1cfecc389cb79dfbae1c2871f9fec77aca354077be5ae01",
+      "container_local_order": 6,
+      "global_presentation_order": 99,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 29420,
+        "byte_end": 29611
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-008",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 8,
+      "text_sha256": "5cf3d0e9ed5e86e00709ab14f319694a315209d3bd21fe9903364344c1ab7b96",
+      "rendered_block_sha256": "42d6d328f4e67d8062336c7a77eb5cbdffadd14d2f21ee4c7006b9d45fc1b736",
+      "container_local_order": 7,
+      "global_presentation_order": 100,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 29613,
+        "byte_end": 29786
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-009",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 9,
+      "text_sha256": "1e169d9254b92173259f360fc7a8afce265548b8231a97073704ec99d9b7bc94",
+      "rendered_block_sha256": "e425447da43072d7fe634dabbd0c3264c917a6d9fbcfbf53adc5e1e14f36f831",
+      "container_local_order": 8,
+      "global_presentation_order": 101,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 29788,
+        "byte_end": 29921
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-010",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 10,
+      "text_sha256": "35af7c957fa2548451a52b66b795c314ba7f5426b0835ae47085220b27a610e7",
+      "rendered_block_sha256": "fb0f4819884fa850af37be7644a96ac6a7a9c693df25dc988e1ad9d6d34b7262",
+      "container_local_order": 9,
+      "global_presentation_order": 102,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 29923,
+        "byte_end": 30077
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-011",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-011",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 11,
+      "text_sha256": "3266240990185a6a6c21e2ebb754640f482b5a1241605e112c2b19e50a0c3c54",
+      "rendered_block_sha256": "626e878442bb9fde75db28c0530aec59097acc5de99a549e44d7f9be4a13480d",
+      "container_local_order": 10,
+      "global_presentation_order": 103,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 30079,
+        "byte_end": 30295
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-012",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-012",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 12,
+      "text_sha256": "d35a7477c9dd13359f828640ed89e3fa66a6a165daa80b66a4ac97b172f876bc",
+      "rendered_block_sha256": "d5f85aacbb0559b9790297f7d651ac9ef8b8a6de1ffe032da7978f9aea7b99c3",
+      "container_local_order": 11,
+      "global_presentation_order": 104,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 30297,
+        "byte_end": 30410
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-013",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-013",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 13,
+      "text_sha256": "a927ae12b611f0771fcb2e92170090941a224c7b4bcf232ea5f7790742f153e3",
+      "rendered_block_sha256": "83be16688666bcfe3ed5a9f3820bcbc33fa443af90462488735b8de55934a5b1",
+      "container_local_order": 12,
+      "global_presentation_order": 105,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 30412,
+        "byte_end": 30491
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-014",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-014",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 14,
+      "text_sha256": "974dcf7dc549ce1bf1de4effdf10d97236c3e350c5b6196c77bbf81bb508faac",
+      "rendered_block_sha256": "8ce7d8bcb43073997dc9c16d4a4648726aab8913481665a4e8ec53eada5aba3d",
+      "container_local_order": 13,
+      "global_presentation_order": 106,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 30493,
+        "byte_end": 30543
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-07-015",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-07-015",
+      "segment_id": "SEG-015",
+      "scene_id": "SCN-07",
+      "canonical_order": 15,
+      "text_sha256": "e0cbe7155e07aab876a057b7664926229253fbb7efdcac69c1ca08dd857cc1cb",
+      "rendered_block_sha256": "93790bc6326f987f082a8768dac4d30bbf8fd3645ad12b61b9f0dda08c12277f",
+      "container_local_order": 14,
+      "global_presentation_order": 107,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 30545,
+        "byte_end": 30685
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-001",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-001",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 1,
+      "text_sha256": "3f44fcd1ce0007294fa1e92dfc6352552c0de9c0aca7351aa4cfd39b9570f8be",
+      "rendered_block_sha256": "80b4b9e36c12f5479b3c63a78009fd977b5722042942ef10c646f361224dee17",
+      "container_local_order": 1,
+      "global_presentation_order": 108,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 31698,
+        "byte_end": 31876
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-002",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 2,
+      "text_sha256": "5b1d426a2bc5364f4ee834ed0417375c3531a1a2213bea5beb7c0fe0c7da9ecc",
+      "rendered_block_sha256": "b62a11a6a70bfbf6777f5d1aad5953bc3ddea9677f9e11c2896f226c41f82a86",
+      "container_local_order": 2,
+      "global_presentation_order": 109,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 31878,
+        "byte_end": 31936
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-003",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 3,
+      "text_sha256": "fbe7b2f08b49206b412c242950014f88dbc2fcbfc554bae4f5e2c783716e44b2",
+      "rendered_block_sha256": "fbdc67052b729ba4a20f211d2550fc67bff9cb09ee7b678b5887bf2a26a33122",
+      "container_local_order": 3,
+      "global_presentation_order": 110,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 31938,
+        "byte_end": 32008
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-004",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 4,
+      "text_sha256": "3be098f8204efdabfc0eec730287bb537634d8e0f277eadfff2f20693d02b04c",
+      "rendered_block_sha256": "3bed472002d8b1c88764d0081f2c6830c755c41fad040b91a4742896ab7beb2b",
+      "container_local_order": 4,
+      "global_presentation_order": 111,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 32010,
+        "byte_end": 32190
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-005",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 5,
+      "text_sha256": "b67aa4ea07c56ae4684db62968a44937901c9e4c93cefa3bae6afe24996b4c9b",
+      "rendered_block_sha256": "55c3daf3b9dbe343a31bb6ff05d272c9432b277f1489c69696e0ae4b317d708f",
+      "container_local_order": 5,
+      "global_presentation_order": 112,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 32192,
+        "byte_end": 32300
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-006",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 6,
+      "text_sha256": "0051dadb934ff5899fd326f1e4b50fcea0707fee3cd005a5b3ff5896a79a07cd",
+      "rendered_block_sha256": "c708c86eed46ee677395421ad428e9ff65c4b652aef770c9932eb238c2fafd07",
+      "container_local_order": 6,
+      "global_presentation_order": 113,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 32302,
+        "byte_end": 32473
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-007",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 7,
+      "text_sha256": "de9a5d495bfcf477cd7ca97f4975906aa37cd81311cef4493259b9f62bc85a01",
+      "rendered_block_sha256": "6eba691bc6d0d2a4cb0a76d720392aa2f35dbb5fde7f0dfe8c4d9d2ea83dd313",
+      "container_local_order": 7,
+      "global_presentation_order": 114,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 32475,
+        "byte_end": 32587
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-008",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 8,
+      "text_sha256": "08d8633da7b3e733aa52d39c6d27e6eaafa21c092e90094a9dc536afb3b2684f",
+      "rendered_block_sha256": "0e618b54d80a1526f2a60951f56c2391c463e2ae4ab889470c8887763c24ae4a",
+      "container_local_order": 8,
+      "global_presentation_order": 115,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 32589,
+        "byte_end": 32799
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-009",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 9,
+      "text_sha256": "3f1aba7fcc689d2ef5995c5080b701a42c4d265b870b99ad1bf55919781cd8de",
+      "rendered_block_sha256": "007c5a903ee19139e1642c8f213198b83b75440e2857a97c70963e1c4049d70d",
+      "container_local_order": 9,
+      "global_presentation_order": 116,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 32801,
+        "byte_end": 32827
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-010",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 10,
+      "text_sha256": "1c5875d87cf2d9c5692644dc48f638d2931ad83049a14ac10f92e38bc404f674",
+      "rendered_block_sha256": "c991391a5d5789ce23341f9aeae40677c67a235c5a14a7b91834c28ede2719c8",
+      "container_local_order": 10,
+      "global_presentation_order": 117,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 32829,
+        "byte_end": 32957
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-011",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-011",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 11,
+      "text_sha256": "26a42efbe6165de61b7b670355d2b16d3fab1b3ebad083bce26bf7033250b8d8",
+      "rendered_block_sha256": "2c93e5f46049fcc855d391d43f51c51ba2b6462a7d5d22563d2924df0eabfc28",
+      "container_local_order": 11,
+      "global_presentation_order": 118,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 32959,
+        "byte_end": 33041
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-012",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-012",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 12,
+      "text_sha256": "1d66feee4e2f2b3ab6df545bf1c004259137a9b7987f4563852608a16d044487",
+      "rendered_block_sha256": "8cb51b9c22f311cf2d778782be86d5335de2b162e3f75b372edf738b636062b3",
+      "container_local_order": 12,
+      "global_presentation_order": 119,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33043,
+        "byte_end": 33094
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-013",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-013",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 13,
+      "text_sha256": "79eb09c184f4d1ea3ecd6001db6bcc8570ce4e2e07083bbd8aeff7a1a37fcd64",
+      "rendered_block_sha256": "0d971ee35584b7a3b5bb16c0d62b228a7749454da0498442f308b905bdaa6841",
+      "container_local_order": 13,
+      "global_presentation_order": 120,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33096,
+        "byte_end": 33282
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-014",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-014",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 14,
+      "text_sha256": "80defe2884ff09ce02f1ce05c8349bf5416e3e1678d5788603f0370aee79b87f",
+      "rendered_block_sha256": "4cbb2309eab098f5b28590294f7053f27e2344b3ae2183d12e4bb4c7a2bdee8d",
+      "container_local_order": 14,
+      "global_presentation_order": 121,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33284,
+        "byte_end": 33355
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-015",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-015",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 15,
+      "text_sha256": "203e949d8eb1bf241766050dc932bd1647d080bec2722c53ffb652f5ed73339f",
+      "rendered_block_sha256": "b3b02d6fd433ffcc5ef033e224b9bfb85b0ea6d0d5cd15da99ecdc5e98565355",
+      "container_local_order": 15,
+      "global_presentation_order": 122,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33357,
+        "byte_end": 33465
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-016",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-016",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 16,
+      "text_sha256": "f4e7ccb3cd39fc8c4d397cf2c887db74483cbcf83a32f6ea3ca170ad96f7ae7f",
+      "rendered_block_sha256": "f4b05fa00c105eae9e717a8d7365f12e8df646998cc0aed3dc58b2191a7f41df",
+      "container_local_order": 16,
+      "global_presentation_order": 123,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33467,
+        "byte_end": 33556
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-017",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-017",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 17,
+      "text_sha256": "e0609dd9041c0558bf777e6b20811a37b9fca05552d26691c503f740fb65c0cd",
+      "rendered_block_sha256": "0e91f40ee3f0731b4037b20b412fee3f1573e79f109146496d4564faa4b8f145",
+      "container_local_order": 17,
+      "global_presentation_order": 124,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33558,
+        "byte_end": 33729
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-08-018",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-08-018",
+      "segment_id": "SEG-016",
+      "scene_id": "SCN-08",
+      "canonical_order": 18,
+      "text_sha256": "fb53bb51918b7abdacd0d87cd6fbb29197fd5e85f410460c9acd025b90fa1245",
+      "rendered_block_sha256": "a98374614c9326ffe5f6b5c4918c0f2d2a088d49ca00f0f02daa4f346d37cb12",
+      "container_local_order": 18,
+      "global_presentation_order": 125,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33731,
+        "byte_end": 33953
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-001",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-001",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 1,
+      "text_sha256": "44b061d1a54241595d303174092104323f54838185f1f3648efb1b91673af919",
+      "rendered_block_sha256": "dbf6b417516efe4b028bfcd4784df8e5d3c17608555b3fdde1ec4ef7c72ed700",
+      "container_local_order": 1,
+      "global_presentation_order": 130,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 35917,
+        "byte_end": 35955
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-002",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 2,
+      "text_sha256": "9787132820b66effbd680290f957497293f7f0d17d7954d7ba2b1fb9160d0caf",
+      "rendered_block_sha256": "70291409faebfc83b46dfd1623e5173a5582313e0d29c7af8a43fe7fd2a32673",
+      "container_local_order": 2,
+      "global_presentation_order": 131,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 35957,
+        "byte_end": 36196
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-003",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 3,
+      "text_sha256": "0ab42ffd8a5b028c4c56cbb44977df9a02a6edbf7d58e3899036e70a72358ee7",
+      "rendered_block_sha256": "263c8915fce11ff096b880ac8741eb2d9f44d1889de4d364c2bd973f8c4d0776",
+      "container_local_order": 3,
+      "global_presentation_order": 132,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 36198,
+        "byte_end": 36271
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-004",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 4,
+      "text_sha256": "7ab2d0d077c9dc9befd35b9fed2b310584a9e23d07249d339197adb54e95134c",
+      "rendered_block_sha256": "77bff894b8695a6d4ee1c23e10b86c793dd6331d510b7c3cd55c8322c0a46300",
+      "container_local_order": 4,
+      "global_presentation_order": 133,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 36273,
+        "byte_end": 36432
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-005",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 5,
+      "text_sha256": "bbdfbfb1937485fc5253790846fec1197e2a565978bdbfe914409ba77d6e3159",
+      "rendered_block_sha256": "e8073a2a91196bc5b393f01c06210e4a040e11ed113b7423d8949e1198dab57b",
+      "container_local_order": 5,
+      "global_presentation_order": 134,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 36434,
+        "byte_end": 36506
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-006",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 6,
+      "text_sha256": "934df928cf38d00a5c22146421ae1f44e9704c1947ca9e9e1622646f481d90c3",
+      "rendered_block_sha256": "f24a0d406642eeafda782fdb88c6e876eb2d20c06eb25b697f16ef7f18071039",
+      "container_local_order": 6,
+      "global_presentation_order": 135,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 36508,
+        "byte_end": 36758
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-007",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 7,
+      "text_sha256": "60ea67e8362d92e2f4f202c7ea95df124ee2229f334132dc2e00b54cb16a3e09",
+      "rendered_block_sha256": "470425307e412dc23789c84e67ea5c0741259beba7b3afdf57f3143e76e655a6",
+      "container_local_order": 7,
+      "global_presentation_order": 136,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 36760,
+        "byte_end": 36909
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-008",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 8,
+      "text_sha256": "e31272a4e0b5441a75092fa4d15781abcf2cf8591706d7da52b094eda6151c42",
+      "rendered_block_sha256": "4fd8db3e9f328ceda6059c81f744eb76b1982a0072a29c420a184a9c389ec240",
+      "container_local_order": 8,
+      "global_presentation_order": 137,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 36911,
+        "byte_end": 37016
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-009",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 9,
+      "text_sha256": "b6529aabea4a821eeff0930c8929c575bc3f6cf2bf0b3814f8eff174c97d4f53",
+      "rendered_block_sha256": "ec03ec693b4b1baf70e91b181aec90efc1c3d4bb947c1e7e95fb926677389984",
+      "container_local_order": 9,
+      "global_presentation_order": 138,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 37018,
+        "byte_end": 37160
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-010",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 10,
+      "text_sha256": "ac29ba083e686f411323c883daac23631871948587fe369bd8666c7e1155e859",
+      "rendered_block_sha256": "2e8d9724405e9a01a6683740ebb821a755ee864b305f222f2bab041fe98e893c",
+      "container_local_order": 10,
+      "global_presentation_order": 139,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 37162,
+        "byte_end": 37395
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-011",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-011",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 11,
+      "text_sha256": "c701400a6ae887487c4ba3580b8493c1c41c4194f184992de0cc8866b2496700",
+      "rendered_block_sha256": "3d7b9b21c35f837f46ebb7180dd68e3f39c18b0d5000dd291a811594d9b36355",
+      "container_local_order": 11,
+      "global_presentation_order": 140,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 37397,
+        "byte_end": 37546
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-012",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-012",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 12,
+      "text_sha256": "8a6f90d86d8f027b74c54ec1e15207cb6b683cb991bafb00ee372c72ea272973",
+      "rendered_block_sha256": "ff1e82abf7551cd02e3782eddba7035985943513224f72983312a6718006d3b9",
+      "container_local_order": 12,
+      "global_presentation_order": 141,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 37548,
+        "byte_end": 37710
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-013",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-013",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 13,
+      "text_sha256": "1d4c863801f2ed97e92315f822cf60a71bc36ffcff71ddbf9e15f2abeb9412d5",
+      "rendered_block_sha256": "068c675114d072b6a71fe42f723a9768a13ccb9c18c32c22ffae5fdb5b8625a8",
+      "container_local_order": 13,
+      "global_presentation_order": 142,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 37712,
+        "byte_end": 37873
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-014",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-014",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 14,
+      "text_sha256": "315bff9389b044bdf55d95bd558ba779baa8092a696339253b3b9490f91e2abf",
+      "rendered_block_sha256": "716e2df020741e2789367fae83b9ab7fbe84989a53f62f8c109f588ceeb4b4e7",
+      "container_local_order": 14,
+      "global_presentation_order": 143,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 37875,
+        "byte_end": 38023
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-015",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-015",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 15,
+      "text_sha256": "0d0e2bffc6840afbcf3033c44f4ae9e4b5c9f69a4c3f5d6e3fbc01a99f80181d",
+      "rendered_block_sha256": "1f036185426eddd1a4e362429a153120f35005894da5c10cd743e851ffccceb2",
+      "container_local_order": 15,
+      "global_presentation_order": 144,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 38025,
+        "byte_end": 38273
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-016",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-016",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 16,
+      "text_sha256": "03e11f264b8b722b6f51e5d4ef077351d9a25172bd208c722b4fe3a5fca396c8",
+      "rendered_block_sha256": "b6ef8973e247d938e088f8989da89427b8e370109ece949e9ce27c04ed5221d8",
+      "container_local_order": 16,
+      "global_presentation_order": 145,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 38275,
+        "byte_end": 38381
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-017",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-017",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 17,
+      "text_sha256": "efb8ae1e49c4e89a84583ef1579349cee6386949fb0f5d8729c89aee3a5bac04",
+      "rendered_block_sha256": "497b6f63612d34af7b11fe40f3aa93fbadf556abcea701fb02dcdd96df034300",
+      "container_local_order": 17,
+      "global_presentation_order": 146,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 38383,
+        "byte_end": 38432
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-09-018",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-09-018",
+      "segment_id": "SEG-018",
+      "scene_id": "SCN-09",
+      "canonical_order": 18,
+      "text_sha256": "bace6f627fe42e4337328ed2bab47c48fa53b746e2e576be7e26c159c34909f2",
+      "rendered_block_sha256": "11c4f2dcb04bf31acb0c8f299bc8ed9e4b3d4b1919bf4e2ac08eda3906425a94",
+      "container_local_order": 18,
+      "global_presentation_order": 147,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 38434,
+        "byte_end": 38592
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-001",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-001",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 1,
+      "text_sha256": "668b3b66a97467b683dbb417afd9b61e498828a6d188e4f85ba4df8bbbb90623",
+      "rendered_block_sha256": "0819f2a40c68985501cc866cb482c4fb70291601432078437dddfa365d3d3975",
+      "container_local_order": 1,
+      "global_presentation_order": 148,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 39647,
+        "byte_end": 39911
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-002",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 2,
+      "text_sha256": "740d9ff5176e06d3b7583a9ae77812ad2a0553f1cbeda3a10107dcdc35a9c2fc",
+      "rendered_block_sha256": "11138ba7d46ad5a984205070a3f2ad6fdbbf9ae1432d264b7c8c705b337879ff",
+      "container_local_order": 2,
+      "global_presentation_order": 149,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 39913,
+        "byte_end": 39983
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-003",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 3,
+      "text_sha256": "4d30df7b083f7e3237105292dcf94dd32a160b4529ba0b25d34d0f8708893f72",
+      "rendered_block_sha256": "80ce096ebba75019f05b08cbbe0cd84e6880eabcedadcb2872da447e1df55c8f",
+      "container_local_order": 3,
+      "global_presentation_order": 150,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 39985,
+        "byte_end": 40032
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-004",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 4,
+      "text_sha256": "e25dd46cebf43b2d063f09cd67efa9c719e38a81e180ed3bb601b9f8bc5a9efa",
+      "rendered_block_sha256": "e6e30d0f9ac7b855165c41870db59d667807aaaf530c51fb604bb974dff26411",
+      "container_local_order": 4,
+      "global_presentation_order": 151,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 40034,
+        "byte_end": 40170
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-005",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 5,
+      "text_sha256": "86b440781aaf65481a92d1f9960af8c16ba88c5f844ab6c908ed6d1a0ce8375c",
+      "rendered_block_sha256": "9d18ece9ecb2fa4399ca7dab2becf7f4d0c52782f717e114acf0a818fe3d12e6",
+      "container_local_order": 5,
+      "global_presentation_order": 152,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 40172,
+        "byte_end": 40305
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-006",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 6,
+      "text_sha256": "725918d9ce9b0a8926d8595b577f1fc2bd8147efbc446b243efbbde08caa9242",
+      "rendered_block_sha256": "6fb20ba0072e2c0a24d2debb065708910fb5f3625fcaac26f85b1507e08b63a6",
+      "container_local_order": 6,
+      "global_presentation_order": 153,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 40307,
+        "byte_end": 40550
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-007",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 7,
+      "text_sha256": "06e630e78bf96f242ecc8aaceae8ec54cf40d80421dd19cc4def24137da96d81",
+      "rendered_block_sha256": "87c06c9c204b96d8507305b54ba280482173546d305f5497686fdb4185bdecb5",
+      "container_local_order": 7,
+      "global_presentation_order": 154,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 40552,
+        "byte_end": 40674
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-008",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 8,
+      "text_sha256": "3e5c35c3065495c71b4a0bb2413766a9e37049f1d0c5557c02dfbf39979e5d55",
+      "rendered_block_sha256": "4832e843f73913ab1baccf667acb5bc3af744164676c73c62c33fb943ec843b3",
+      "container_local_order": 8,
+      "global_presentation_order": 155,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 40676,
+        "byte_end": 40744
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-009",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 9,
+      "text_sha256": "303f55f653412dd131ea6bfbf74863393b2b1282ffe6cefcd646c5e7e1ddeca5",
+      "rendered_block_sha256": "67e3fa48ef138e83511001b0a48c7b2d3c352981f4d3f754cd4eb3f807b4a0ac",
+      "container_local_order": 9,
+      "global_presentation_order": 156,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 40746,
+        "byte_end": 40908
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-010",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 10,
+      "text_sha256": "305736686e522f0e171541d56d64e2824200426c9b8120536b6c7d010c57ff7f",
+      "rendered_block_sha256": "0834891ffb191eb54eee0751fbd322db450e2e9f055f83984f83f68d24be0808",
+      "container_local_order": 10,
+      "global_presentation_order": 157,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 40910,
+        "byte_end": 40976
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-011",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-011",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 11,
+      "text_sha256": "80a47e762c26cd5145f07f573d6944d12771ec750297bf5dd47fdf13aab872b0",
+      "rendered_block_sha256": "f6379b04997d4cf60385c7028695d044781e419cfdb1b1591fd841a5a5695e8d",
+      "container_local_order": 11,
+      "global_presentation_order": 158,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 40978,
+        "byte_end": 41231
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-012",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-012",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 12,
+      "text_sha256": "62076f31f96b1576651ea739ae6ab2b2507eacc0bf321f9a87f1a8b6f1d20fee",
+      "rendered_block_sha256": "25302de4d37d42890a971c07c5bea79c048fa1f8a15fd573297f9b97efe80173",
+      "container_local_order": 12,
+      "global_presentation_order": 159,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 41233,
+        "byte_end": 41300
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-013",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-013",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 13,
+      "text_sha256": "53c072d8aa9cfba950d17db1d79c1c48fabee2cfb32cea54dbb3c76ffe7d15a1",
+      "rendered_block_sha256": "70dc521bdb9e0dfbaab26d45dfc03a5fb2efdd5126e4b8ffdd9ba0c457aa6fb3",
+      "container_local_order": 13,
+      "global_presentation_order": 160,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 41302,
+        "byte_end": 41370
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-014",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-014",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 14,
+      "text_sha256": "f503eaaaa2ff0bfbf123e31f05f82b235eb2c99d46fa09d39e973a9e7c6c4daf",
+      "rendered_block_sha256": "aa7c83b31dfce8bd3ed000cd544a6fb685caead9706db59262abec40c781404b",
+      "container_local_order": 14,
+      "global_presentation_order": 161,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 41372,
+        "byte_end": 41598
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-015",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-015",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 15,
+      "text_sha256": "3e90e6e5f64dd77c33923fd1243627439795787e11fb4c532df332e9843ee766",
+      "rendered_block_sha256": "33103f52a2e64327f959d87a49426e82a46c0ef11f35bf4a8a64094757c0e32f",
+      "container_local_order": 15,
+      "global_presentation_order": 162,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 41600,
+        "byte_end": 41791
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-016",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-016",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 16,
+      "text_sha256": "9857722e1ed288c31d90676f9253913c40dcd1b04f197ca2e91f3356a933b2a6",
+      "rendered_block_sha256": "76ae6c817aa626483c146d0db6551b870a94af913bd676c8e62a5c2bb7f088d8",
+      "container_local_order": 16,
+      "global_presentation_order": 163,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 41793,
+        "byte_end": 41989
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-017",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-017",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 17,
+      "text_sha256": "cefab22c1220d5ef8f3d4ce8db5b8caf8a3b3903640854cb740f0efd4184a385",
+      "rendered_block_sha256": "292a674341d76fe0472aa8ce1cb9921a82fd747b376540f4d2227c9c17890cd3",
+      "container_local_order": 17,
+      "global_presentation_order": 164,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 41991,
+        "byte_end": 42218
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-10-018",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-10-018",
+      "segment_id": "SEG-019",
+      "scene_id": "SCN-10",
+      "canonical_order": 18,
+      "text_sha256": "6ee0a141660a0ea2d035488fb0f22e7a6dcd47d8645e70277a4ae35289735631",
+      "rendered_block_sha256": "932d18f2d6f128ef53d59e9d2c0fcc73a3280d2e8480eeb59d35779781d5e13b",
+      "container_local_order": 18,
+      "global_presentation_order": 165,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 42220,
+        "byte_end": 42361
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-001",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-001",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 1,
+      "text_sha256": "f2fc5c333fb32d7f386fca02a8d3b99a4294e0d5bde2d3ca05dbef600dca2d41",
+      "rendered_block_sha256": "079de988eaf0ef89c7470ca4dbba5c8f34c4ec7056e0f943596cb7c98e7f32f9",
+      "container_local_order": 1,
+      "global_presentation_order": 170,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 44382,
+        "byte_end": 44640
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-002",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 2,
+      "text_sha256": "b438964ba5b3de762d0429c2bb850b31d5333b2841b7b17cccbfe42b87379abd",
+      "rendered_block_sha256": "f4702963173c98bbb5b92b584cafd0da1580ffff21dcff43c83d179008ea3eb0",
+      "container_local_order": 2,
+      "global_presentation_order": 171,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 44642,
+        "byte_end": 44719
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-003",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 3,
+      "text_sha256": "4f751563dd96d82b380439a57024926173b96a9b0513104e8f24eaf73d4356a4",
+      "rendered_block_sha256": "be54bf9678b8b1169529900183a360e23e031f3cbbd800262503638855636117",
+      "container_local_order": 3,
+      "global_presentation_order": 172,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 44721,
+        "byte_end": 44801
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-004",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 4,
+      "text_sha256": "d22a9730d69075ae4682daa99d44d767e32b27aa069bfc92cf387b3a39a4e63c",
+      "rendered_block_sha256": "5eedbb0c4fd018a7ed2ad5e4385321b73450263a58d5fc8ee4a05d60261e2941",
+      "container_local_order": 4,
+      "global_presentation_order": 173,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 44803,
+        "byte_end": 44968
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-005",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 5,
+      "text_sha256": "f8907055e6204fda56deb0d85eced06cb049e5a379af2d515c2262a9e81d92d6",
+      "rendered_block_sha256": "93d42942f0176bc4e9e571d70b247bc092e81163545a23b6fd2463bda82a3fa5",
+      "container_local_order": 5,
+      "global_presentation_order": 174,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 44970,
+        "byte_end": 45168
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-006",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 6,
+      "text_sha256": "7f7decd3cfe2a55ab61ba733de46e859e1e47e84ce75395413ae2f910b7549a1",
+      "rendered_block_sha256": "5ae94dba5ba3023175490a9e7bfc3d2356aac5f606a6c0560c7c671739dc5fbe",
+      "container_local_order": 6,
+      "global_presentation_order": 175,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 45170,
+        "byte_end": 45375
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-007",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 7,
+      "text_sha256": "874163673afcae91fb99fe855c37d9c36a82e2d302a5776303b18f1c009e343e",
+      "rendered_block_sha256": "d16bccbc372b186baf1961cbdbec9168d0dc9862f470b706dcdd867db8df2326",
+      "container_local_order": 7,
+      "global_presentation_order": 176,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 45377,
+        "byte_end": 45552
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-008",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 8,
+      "text_sha256": "76a7252b4564e5338a699c9553e6b6190d17b45481567573d17d6cd3b2b45320",
+      "rendered_block_sha256": "f3cab9590a6e670150a2e239305d55faa901335f65724830a43dc96497155715",
+      "container_local_order": 8,
+      "global_presentation_order": 177,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 45554,
+        "byte_end": 45724
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-009",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 9,
+      "text_sha256": "591e2a9386205747b3a6ef9194a13620857ef1549e516173125afd2ed2a033a0",
+      "rendered_block_sha256": "aa7d4826bfdeb99abbfce81e9a88c51cbd947edb4523ba1cf4c049274a680ffe",
+      "container_local_order": 9,
+      "global_presentation_order": 178,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 45726,
+        "byte_end": 45944
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-010",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 10,
+      "text_sha256": "96e1ace28a58594682491cc9a1e97664801104449911790cb4a62943ca460231",
+      "rendered_block_sha256": "62aff6a3996319914b64cbe7c500b34702ac5dc5f15023cf8a1bad41faae0ae4",
+      "container_local_order": 10,
+      "global_presentation_order": 179,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 45946,
+        "byte_end": 46135
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-011",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-011",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 11,
+      "text_sha256": "e0303def0f0ce7e32d1255091583f3549fcda349836953f1281f1e50b94a1733",
+      "rendered_block_sha256": "88432b17c628bc57cc550e690ad3825bb5ea9cd6eaff21c9d9e20d3b70c2002c",
+      "container_local_order": 11,
+      "global_presentation_order": 180,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 46137,
+        "byte_end": 46378
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-012",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-012",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 12,
+      "text_sha256": "b4d009ce4295a14557962c3cd329167c9fe1b45a37c4b2a329ea78b76e6925cf",
+      "rendered_block_sha256": "212163b8339f8177a6d696776b39483e9e97b20052d651429fcf9a48ad89118c",
+      "container_local_order": 12,
+      "global_presentation_order": 181,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 46380,
+        "byte_end": 46537
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-013",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-013",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 13,
+      "text_sha256": "8996dbf43a5626ecab9b9610c9589227fb8da61f55314d4386c4f0605086b63a",
+      "rendered_block_sha256": "ff87dd217817c66eb76ff6fa5750092b574c462185d0b693ce4e59db6084235d",
+      "container_local_order": 13,
+      "global_presentation_order": 182,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 46539,
+        "byte_end": 46627
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-014",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-014",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 14,
+      "text_sha256": "d345eb7b714e06de4f9f0d65d752e4efce59675d3f75f8627833d15d31ed6516",
+      "rendered_block_sha256": "e04626e8d3fbdd529abe509bd2d24b87667fa0506c907bbb2a966eb51a24448c",
+      "container_local_order": 14,
+      "global_presentation_order": 183,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 46629,
+        "byte_end": 46737
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-015",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-015",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 15,
+      "text_sha256": "dfb0b14c76f0c03f40a7e9ad4bb85e3bc6146eb511794e81429e5caf93e48922",
+      "rendered_block_sha256": "24d8db46f447850017b6cafb5264729521040e52ac017fb5545a656da0d947f1",
+      "container_local_order": 15,
+      "global_presentation_order": 184,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 46739,
+        "byte_end": 47011
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-016",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-016",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 16,
+      "text_sha256": "70bb17a302e128a3e8c46fc6a003a114c65d4b6c815edce554e31bb20c632af2",
+      "rendered_block_sha256": "df6636c1b6a718bd3932dbd8eed2846dda1ef3433662316eed1f71982891351d",
+      "container_local_order": 16,
+      "global_presentation_order": 185,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 47013,
+        "byte_end": 47114
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-11-017",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-11-017",
+      "segment_id": "SEG-021",
+      "scene_id": "SCN-11",
+      "canonical_order": 17,
+      "text_sha256": "68b63db7f13f3b56339ac9eb5790d3055dd9fb3199a825a9dd427ac5ce0d0914",
+      "rendered_block_sha256": "6dbb49c5918dc6dbce4ddada582c00e8adf0ac1f3414ce226e6cc729002512db",
+      "container_local_order": 17,
+      "global_presentation_order": 186,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 47116,
+        "byte_end": 47331
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-001",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-001",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 1,
+      "text_sha256": "55e8c428e8d20fc987096613d59dd7de5097fc49f6e3d5626533d3b3ab41edce",
+      "rendered_block_sha256": "5e45de061a5c5582726957bab7814ceafc6f80be96680c2f77b48b7c2ab0e68b",
+      "container_local_order": 1,
+      "global_presentation_order": 191,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 49845,
+        "byte_end": 49887
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-002",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-002",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 2,
+      "text_sha256": "904db3456c9cadc103ba8aafaf072115934b053597f7ae32eca694655254c131",
+      "rendered_block_sha256": "0750bc4ed47aedc08ee72189c99e4300b8230ed225951fc2f0f0e7b508735f91",
+      "container_local_order": 2,
+      "global_presentation_order": 192,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 49889,
+        "byte_end": 50139
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-003",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-003",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 3,
+      "text_sha256": "411e228396c2bcca52819deae3944b7230b2a75d01a7a96a801a0dce15ee1c4c",
+      "rendered_block_sha256": "04eccc3ec9fbb5c49b18a6b30a5150f1d8a8721016cd7ff148f15aa5d85d7c63",
+      "container_local_order": 3,
+      "global_presentation_order": 193,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 50141,
+        "byte_end": 50256
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-004",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-004",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 4,
+      "text_sha256": "9edd1078aea847c037bf37aa15dd251868bfb8e2a8506f4890b654b92e337751",
+      "rendered_block_sha256": "921203c89063c2c6cf2c524f446023504cb7aee8363fec73187d8dbee7ecc61b",
+      "container_local_order": 4,
+      "global_presentation_order": 194,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 50258,
+        "byte_end": 50336
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-005",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-005",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 5,
+      "text_sha256": "acaf396113104881818447a8d7e1b8d1467a664c20a9748d00df209440c5c0f6",
+      "rendered_block_sha256": "01b945e3c37283d4cee3c1d8852ea29cd3f64fd7f3fa2e1ec465e57937e5f1ab",
+      "container_local_order": 5,
+      "global_presentation_order": 195,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 50338,
+        "byte_end": 50451
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-006",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-006",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 6,
+      "text_sha256": "3f98345c41ffd67c789df5394b825dbc7159ab19d3415992720401f2dd130b51",
+      "rendered_block_sha256": "e252821ec4e0edd2062250c57fba6c922c16dabec077ef75e76e8ac63d633bcb",
+      "container_local_order": 6,
+      "global_presentation_order": 196,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 50453,
+        "byte_end": 50723
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-007",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-007",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 7,
+      "text_sha256": "5432128596f35df9a755a3236f0b5a02300b520cbf32de3a29f58931f4383dd6",
+      "rendered_block_sha256": "2a5c8244355b766a66d9b498291b4c3e781dcc5cebeaddfbfd40fa07488b94a3",
+      "container_local_order": 7,
+      "global_presentation_order": 197,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 50725,
+        "byte_end": 50851
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-008",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-008",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 8,
+      "text_sha256": "dcadd2585c44c2e723489c544bc85f9f54edd633ce7112745fae870de5dc7b20",
+      "rendered_block_sha256": "b1d29e867eebd3405fbe2bfea7593adf6dae56904c75a8155518c48fc46f0d4c",
+      "container_local_order": 8,
+      "global_presentation_order": 198,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 50853,
+        "byte_end": 50942
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-009",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-009",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 9,
+      "text_sha256": "15c1d6b8f79c31ee94e44d7a22e7723e805b7cac1bb671acb7ad389bf9a5ad1e",
+      "rendered_block_sha256": "950a453145e213449a3fa035d4c25c9dfcbb9ec4ba4c7c8869195819b4d726a0",
+      "container_local_order": 9,
+      "global_presentation_order": 199,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 50944,
+        "byte_end": 51122
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-010",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-010",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 10,
+      "text_sha256": "967a4c7f4d5b996782ca3e5a678858e5bde42f4ce03c831ed6bc05161fbd756c",
+      "rendered_block_sha256": "f1c1b729427d812a3cfda0960cd72c1b46b3f01630ee5d1f2bb4661be11bbf68",
+      "container_local_order": 10,
+      "global_presentation_order": 200,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 51124,
+        "byte_end": 51176
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-011",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-011",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 11,
+      "text_sha256": "afa780d45b0b3047e8f01a88a9ebd9780e1b86e900d34960b05acd92c3459b9b",
+      "rendered_block_sha256": "2abd05a0c1359e7076bbd4f704fc725bdcb9446f09113c5887a2f38d3d24fc60",
+      "container_local_order": 11,
+      "global_presentation_order": 201,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 51178,
+        "byte_end": 51208
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-012",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-012",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 12,
+      "text_sha256": "fcca4e8fc3e9dab83d1a5a4e675af1f4b0f3da7d69dfa8262c7aed186b14f790",
+      "rendered_block_sha256": "c4c928361666a5d9aabd95624b05b6cd1a2bce8fb5ee377df92ab35cb0b3e6df",
+      "container_local_order": 12,
+      "global_presentation_order": 202,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 51210,
+        "byte_end": 51352
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-013",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-013",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 13,
+      "text_sha256": "bf7454fb3369af5671215022597ddc6b6e9b0dd446c0f30330240fe375909b65",
+      "rendered_block_sha256": "65cba82db83abc65fa60be70c0b124cb11bd04a1fecb8dc4fb7c90db97800acf",
+      "container_local_order": 13,
+      "global_presentation_order": 203,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 51354,
+        "byte_end": 51441
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-014",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-014",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 14,
+      "text_sha256": "61c07b4879386ffe284a803f4afb5a0983d685638ef7d84b842b0357ef2824e5",
+      "rendered_block_sha256": "ad405669d91dd6f0746d93d503f4bf95718c32077ca078641be6b17fab8a310f",
+      "container_local_order": 14,
+      "global_presentation_order": 204,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 51443,
+        "byte_end": 51702
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-015",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-015",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 15,
+      "text_sha256": "cb663139013e78815cb6aff7235f136839823ed2dfbda4fee8ddfedb3f61198b",
+      "rendered_block_sha256": "7bde8616e7d4c2626c7a9d580a372ef76b0e8656aa4cbae0deb8f506089188fc",
+      "container_local_order": 15,
+      "global_presentation_order": 205,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 51704,
+        "byte_end": 51750
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-016",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-016",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 16,
+      "text_sha256": "8025c713f26164a6787608a6cbce1b8ac0cfe963a42e1416578db60193e95224",
+      "rendered_block_sha256": "7997524702eaae5ccec4c7ef09a09690c6bdb90f9db49372d050364e1981a75c",
+      "container_local_order": 16,
+      "global_presentation_order": 206,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 51752,
+        "byte_end": 51767
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-017",
+      "container_type": "DRAMA",
+      "unit_id": "UNIT-12-017",
+      "segment_id": "SEG-023",
+      "scene_id": "SCN-12",
+      "canonical_order": 17,
+      "text_sha256": "5a57ae69b5bb4d3ac3709f73c9bc4d3abe1e768e0495b94f19b49025e7533731",
+      "rendered_block_sha256": "1dc86b7d47e055ff29dde396687ebc0a9564141ffb5ae99356cae656fe5fc410",
+      "container_local_order": 17,
+      "global_presentation_order": 207,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 51769,
+        "byte_end": 51994
+      }
+    },
+    {
+      "owner_type": "UNIT",
+      "owner_id": "UNIT-12-018",
+      "container_type": "NARRATION",
+      "unit_id": "UNIT-12-018",
+      "segment_id": "SEG-024",
+      "scene_id": "SCN-12",
+      "canonical_order": 18,
+      "text_sha256": "daf55c8ac8bf96285f9e4bc851958a0e2a73b75bad0739d61311e154751d57cf",
+      "rendered_block_sha256": "b32947c3a1731c34dc2f00257556cb48065ee3d22a779ae0742116c6c6d7c9cb",
+      "container_local_order": 1,
+      "global_presentation_order": 208,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 51996,
+        "byte_end": 52366
+      }
+    }
+  ],
+  "relationship_mappings": [
+    {
+      "relationship_id": "REL-01",
+      "affected_character_rows": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "display_summary_sha256": "56468cfde32c3655c36c70a3c12ee0146e769ff220230095ee6b953154518b6e"
+    },
+    {
+      "relationship_id": "REL-02",
+      "affected_character_rows": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "display_summary_sha256": "21bff78e3f8f527a414004b6c0b79b1efa5c35d509401927102453fd9d46120d"
+    },
+    {
+      "relationship_id": "REL-03",
+      "affected_character_rows": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "display_summary_sha256": "3d7e9f7188d6e6b49f03a69ed97de47e4e5717d21f1d0e7ac06f96015e13dc7c"
+    },
+    {
+      "relationship_id": "REL-04",
+      "affected_character_rows": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "display_summary_sha256": "f6e902d476cbb81443c981e47b12650f8b87198318f2f17abf811a2d52a757c0"
+    },
+    {
+      "relationship_id": "REL-05",
+      "affected_character_rows": [
+        "CHAR-01",
+        "CHAR-05"
+      ],
+      "display_summary_sha256": "e2bdaa09d9549bb497383f5399868d513fb21958cb4bc0b16fddd5d90eab4656"
+    },
+    {
+      "relationship_id": "REL-06",
+      "affected_character_rows": [
+        "CHAR-02",
+        "CHAR-04"
+      ],
+      "display_summary_sha256": "90411d91e81fe310a318807c1bc3ff6482e18d9985fbcb6ea135b74f9097e7f0"
+    },
+    {
+      "relationship_id": "REL-07",
+      "affected_character_rows": [
+        "CHAR-01",
+        "CHAR-06"
+      ],
+      "display_summary_sha256": "72bcced8e2dc2b87d195064d807dbab75a5627b1ed5cc1e734fbd91384f40a59"
+    },
+    {
+      "relationship_id": "REL-08",
+      "affected_character_rows": [
+        "CHAR-02",
+        "CHAR-06"
+      ],
+      "display_summary_sha256": "832b96bc556f7cf20829ca01a36f3416e21564e0e5aec2d05a4e681145f01f31"
+    }
+  ],
+  "panel_turn_mappings": [
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-001-01",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-001",
+      "turn_id": "TURN-001-01",
+      "segment_id": "SEG-004",
+      "scene_id": "SCN-02",
+      "global_order": 0,
+      "spoken_line_sha256": "8e1a54c9e43673be80c368aa8edc4a198249afbdd3b1707975ca4033d2194491",
+      "rendered_block_sha256": "db2f709b8a6431f010b9ab3a5479fd29a332e2c393c7d329639683ea8473b31c",
+      "container_local_order": 1,
+      "global_presentation_order": 22,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 12207,
+        "byte_end": 12422
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-001-02",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-001",
+      "turn_id": "TURN-001-02",
+      "segment_id": "SEG-004",
+      "scene_id": "SCN-02",
+      "global_order": 1,
+      "spoken_line_sha256": "6083fa9bef95a2f30414a5b616160486385678029b57bdda2b8f2b7e955e2ad8",
+      "rendered_block_sha256": "464439870c180a02c38200664def2ac90eaa75058c01444eb7368bc8c7a7087a",
+      "container_local_order": 2,
+      "global_presentation_order": 23,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 12424,
+        "byte_end": 12621
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-001-03",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-001",
+      "turn_id": "TURN-001-03",
+      "segment_id": "SEG-004",
+      "scene_id": "SCN-02",
+      "global_order": 2,
+      "spoken_line_sha256": "20aa7e842696ed6fad186dca04f39de6ae7a17d215e9fa90674ea98912bdb2ba",
+      "rendered_block_sha256": "6241000ccd6c4e9f3555debafd7da458430ff1b0bad8b35b024debd75392e826",
+      "container_local_order": 3,
+      "global_presentation_order": 24,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 12623,
+        "byte_end": 12822
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-001-04",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-001",
+      "turn_id": "TURN-001-04",
+      "segment_id": "SEG-004",
+      "scene_id": "SCN-02",
+      "global_order": 3,
+      "spoken_line_sha256": "b7bc62da5b388a3e1f3cc607cac3449d3c15746efb306d8e779bdaf9c74343ef",
+      "rendered_block_sha256": "3b1b1e71e46f6caa9ff2a58a12ea1cc6aed754d61d1c885369971c732fa1fb6d",
+      "container_local_order": 4,
+      "global_presentation_order": 25,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 12824,
+        "byte_end": 13014
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-002-01",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-002",
+      "turn_id": "TURN-002-01",
+      "segment_id": "SEG-008",
+      "scene_id": "SCN-04",
+      "global_order": 4,
+      "spoken_line_sha256": "101b1223508f1b4880e42d09fab93ac0f1f2e9b568dfc6fbd0f3c1dc57c511f0",
+      "rendered_block_sha256": "d8c25e8cf83b0899e40bc05c497b57ea5b403aba190648b316858979edfb909f",
+      "container_local_order": 1,
+      "global_presentation_order": 56,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 19163,
+        "byte_end": 19370
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-002-02",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-002",
+      "turn_id": "TURN-002-02",
+      "segment_id": "SEG-008",
+      "scene_id": "SCN-04",
+      "global_order": 5,
+      "spoken_line_sha256": "be1af693d1d66a00bedea75834ccbb55cd001f9a5386825feac9579fbb164b74",
+      "rendered_block_sha256": "13ce7cd5266c8beb5dab86b88b9112ff7f76569823b10f2dccbcc1e671179c03",
+      "container_local_order": 2,
+      "global_presentation_order": 57,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 19372,
+        "byte_end": 19570
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-002-03",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-002",
+      "turn_id": "TURN-002-03",
+      "segment_id": "SEG-008",
+      "scene_id": "SCN-04",
+      "global_order": 6,
+      "spoken_line_sha256": "ca42f4fadfff969219347c88c274fac340c7ae7e215e4f771b8893b365256cbe",
+      "rendered_block_sha256": "f29b7351d07712a4982b79f5061ec5167e4ed6e22fffd03a1eec7a4a2d65f950",
+      "container_local_order": 3,
+      "global_presentation_order": 58,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 19572,
+        "byte_end": 19783
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-002-04",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-002",
+      "turn_id": "TURN-002-04",
+      "segment_id": "SEG-008",
+      "scene_id": "SCN-04",
+      "global_order": 7,
+      "spoken_line_sha256": "31faf49c3b7f5f697f2b47474a8dab6297c214df1810dbc8af4364f3ffb6a3e4",
+      "rendered_block_sha256": "d10d9f589dcaa355f1665be195b5254937196bdedd8c534a4962ade63422a4ba",
+      "container_local_order": 4,
+      "global_presentation_order": 59,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 19785,
+        "byte_end": 19999
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-003-01",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-003",
+      "turn_id": "TURN-003-01",
+      "segment_id": "SEG-011",
+      "scene_id": "SCN-05",
+      "global_order": 8,
+      "spoken_line_sha256": "32d6bc04f14b3981b16e1161f17ea4cf0d1fdeaeb03c766b58a4fb59b894db4a",
+      "rendered_block_sha256": "c949dfb9b128435e4e3d96f22fde2d83a2512604a3d9e1968d7b3c11c5e881f2",
+      "container_local_order": 1,
+      "global_presentation_order": 73,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 23008,
+        "byte_end": 23236
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-003-02",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-003",
+      "turn_id": "TURN-003-02",
+      "segment_id": "SEG-011",
+      "scene_id": "SCN-05",
+      "global_order": 9,
+      "spoken_line_sha256": "a20672cb2b070c5b6f8d138029f75ebb4cd04827b4ec3948a98d98e4be7776ba",
+      "rendered_block_sha256": "92c4abd16af5c981d2fc62022aac68fda9958a8b80d7d24f1cc833e168844259",
+      "container_local_order": 2,
+      "global_presentation_order": 74,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 23238,
+        "byte_end": 23450
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-003-03",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-003",
+      "turn_id": "TURN-003-03",
+      "segment_id": "SEG-011",
+      "scene_id": "SCN-05",
+      "global_order": 10,
+      "spoken_line_sha256": "d7aaf9dc55e3e626b5b809c9ea11b215c3187ba67bd32541eec17fa2a20d2cc9",
+      "rendered_block_sha256": "1de3d706a4f9b6485dc39c9b7d9e900dd221587d02a3c41315331ddcee0942b7",
+      "container_local_order": 3,
+      "global_presentation_order": 75,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 23452,
+        "byte_end": 23691
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-003-04",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-003",
+      "turn_id": "TURN-003-04",
+      "segment_id": "SEG-011",
+      "scene_id": "SCN-05",
+      "global_order": 11,
+      "spoken_line_sha256": "08e13163cb9c8ef8f949a0ae8200d9cc37a53fd365dcf1703acab71f0f39ab8a",
+      "rendered_block_sha256": "20a1f7bb9498632d5d5d729d9aa23aa9568c6dde0b6e222bfef2559a653c58e5",
+      "container_local_order": 4,
+      "global_presentation_order": 76,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 23693,
+        "byte_end": 23903
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-004-01",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-004",
+      "turn_id": "TURN-004-01",
+      "segment_id": "SEG-017",
+      "scene_id": "SCN-08",
+      "global_order": 12,
+      "spoken_line_sha256": "c66ad8f9638b6e468ab75880b4428a32004b7a687453a3d539733dec770d6a61",
+      "rendered_block_sha256": "d11e146cb6463c18739d5f46b3c87ae27d81f19f48d2f75340f58dc6e85a821d",
+      "container_local_order": 1,
+      "global_presentation_order": 126,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 33976,
+        "byte_end": 34196
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-004-02",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-004",
+      "turn_id": "TURN-004-02",
+      "segment_id": "SEG-017",
+      "scene_id": "SCN-08",
+      "global_order": 13,
+      "spoken_line_sha256": "2879c5f88d87417dece082e6a90d53b87e36556ab4d1e51bd131c11cbcdce03c",
+      "rendered_block_sha256": "e1dcf861af7a74a4cfe845281a481069ab13f5ce302dbe398c1949e4a22e078e",
+      "container_local_order": 2,
+      "global_presentation_order": 127,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 34198,
+        "byte_end": 34420
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-004-03",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-004",
+      "turn_id": "TURN-004-03",
+      "segment_id": "SEG-017",
+      "scene_id": "SCN-08",
+      "global_order": 14,
+      "spoken_line_sha256": "b11b194fa546abb8d434b73f6eb9fc2c4e7a8c611ac2062158a301101050693d",
+      "rendered_block_sha256": "2c104e61eefdff55b9b391839c3318ea3941f361cb5d219c52fdf1cddf336541",
+      "container_local_order": 3,
+      "global_presentation_order": 128,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 34422,
+        "byte_end": 34644
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-004-04",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-004",
+      "turn_id": "TURN-004-04",
+      "segment_id": "SEG-017",
+      "scene_id": "SCN-08",
+      "global_order": 15,
+      "spoken_line_sha256": "d5767b5d47ceb520f022bf90d20236870e687256429b5ed4d0e090305e8838ba",
+      "rendered_block_sha256": "eee0023d424fed8743e55abc7a096b246b2d4c109a411ce718dbd3035e983c2e",
+      "container_local_order": 4,
+      "global_presentation_order": 129,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 34646,
+        "byte_end": 34876
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-005-01",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-005",
+      "turn_id": "TURN-005-01",
+      "segment_id": "SEG-020",
+      "scene_id": "SCN-10",
+      "global_order": 16,
+      "spoken_line_sha256": "297ba3ed58803beb78db0c11f7a971392335479a7c76f9e1f32518df6e30c3ef",
+      "rendered_block_sha256": "fd960dc6c343581f3b4e3c91b88654e88a209657a429ce0a725e986217406b39",
+      "container_local_order": 1,
+      "global_presentation_order": 166,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 42384,
+        "byte_end": 42603
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-005-02",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-005",
+      "turn_id": "TURN-005-02",
+      "segment_id": "SEG-020",
+      "scene_id": "SCN-10",
+      "global_order": 17,
+      "spoken_line_sha256": "165052c6afa49ed65b218e1ffdc5bd9dd66f219784555841cdf2dc9f62ea1a49",
+      "rendered_block_sha256": "af2f3644d3a1e1dc0d24511271bbb09ef22df06298179cf34cfbd7dd9c0b0ea6",
+      "container_local_order": 2,
+      "global_presentation_order": 167,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 42605,
+        "byte_end": 42816
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-005-03",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-005",
+      "turn_id": "TURN-005-03",
+      "segment_id": "SEG-020",
+      "scene_id": "SCN-10",
+      "global_order": 18,
+      "spoken_line_sha256": "ab5bb090356c120470e4cc24fec13fcf5c0539e61f95c8bdb69a6d6ee5278228",
+      "rendered_block_sha256": "3928a6eb94da977a143d72a2671ed1c46d2c785f5a24638ba7b9dc9141ada1db",
+      "container_local_order": 3,
+      "global_presentation_order": 168,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 42818,
+        "byte_end": 43040
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-005-04",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-005",
+      "turn_id": "TURN-005-04",
+      "segment_id": "SEG-020",
+      "scene_id": "SCN-10",
+      "global_order": 19,
+      "spoken_line_sha256": "eaf1722107cbee6cb56bbf7918f313012839837f643385973b83fc56030fe9c1",
+      "rendered_block_sha256": "94d79ac1ea45031f06c9a8262f567e92454d08e7c1501c44c1716fbb87077b89",
+      "container_local_order": 4,
+      "global_presentation_order": 169,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 43042,
+        "byte_end": 43251
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-006-01",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-006",
+      "turn_id": "TURN-006-01",
+      "segment_id": "SEG-022",
+      "scene_id": "SCN-11",
+      "global_order": 20,
+      "spoken_line_sha256": "a3e461263c44e2ff0e5aade60e037ad47aa97fae766bca7d2df925e5449e3183",
+      "rendered_block_sha256": "6ca83f7e7f5e749bfe7ecc6e1cd37394c390e9888b60390d0f42c5d535953b46",
+      "container_local_order": 1,
+      "global_presentation_order": 187,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 47354,
+        "byte_end": 47598
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-006-02",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-006",
+      "turn_id": "TURN-006-02",
+      "segment_id": "SEG-022",
+      "scene_id": "SCN-11",
+      "global_order": 21,
+      "spoken_line_sha256": "a4bdfa0472c6afcbd7b3a12c02cfe7d92819e8589391681a5034878bd4a95f7d",
+      "rendered_block_sha256": "c8b4f1de1af95147090ff2cae4f487d70dc4dcee1a20c7cb410bd3bab9c322ea",
+      "container_local_order": 2,
+      "global_presentation_order": 188,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 47600,
+        "byte_end": 47831
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-006-03",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-006",
+      "turn_id": "TURN-006-03",
+      "segment_id": "SEG-022",
+      "scene_id": "SCN-11",
+      "global_order": 22,
+      "spoken_line_sha256": "9d091038b84749ee553d1b3c472b8066bbdbd69861946d8330e51dc5a984b58a",
+      "rendered_block_sha256": "d0b5be5ee245203178899fae69381229c63564c3308e0da020de3a6cd372a17e",
+      "container_local_order": 3,
+      "global_presentation_order": 189,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 47833,
+        "byte_end": 48037
+      }
+    },
+    {
+      "owner_type": "PANEL_TURN",
+      "owner_id": "TURN-006-04",
+      "container_type": "PANEL_REACTION",
+      "reaction_segment_id": "RSEG-006",
+      "turn_id": "TURN-006-04",
+      "segment_id": "SEG-022",
+      "scene_id": "SCN-11",
+      "global_order": 23,
+      "spoken_line_sha256": "e386cbef9450544a6633eb6fdb0b19798f2ea4b98645202a98cf30c5b9bc413f",
+      "rendered_block_sha256": "8d982ca16c07b66328fa41014de4b5b3a95c0f3372ab5d52e670900bbcabcc1e",
+      "container_local_order": 4,
+      "global_presentation_order": 190,
+      "same_block_occurrence_index_within_owner_type_or_container": 1,
+      "exact_occurrence_index": 1,
+      "actual_byte_range": {
+        "byte_start": 48039,
+        "byte_end": 48272
+      }
+    }
+  ],
+  "special_unit_type_coverage": [
+    {
+      "unit_type": "ACTION",
+      "canonical_count": 53,
+      "actual_count": 53
+    },
+    {
+      "unit_type": "DIALOGUE",
+      "canonical_count": 114,
+      "actual_count": 114
+    },
+    {
+      "unit_type": "INNER_MONOLOGUE",
+      "canonical_count": 2,
+      "actual_count": 2
+    },
+    {
+      "unit_type": "MESSAGE",
+      "canonical_count": 3,
+      "actual_count": 3
+    },
+    {
+      "unit_type": "NARRATION",
+      "canonical_count": 6,
+      "actual_count": 6
+    },
+    {
+      "unit_type": "NOTE",
+      "canonical_count": 1,
+      "actual_count": 1
+    },
+    {
+      "unit_type": "SCREEN_TEXT",
+      "canonical_count": 5,
+      "actual_count": 5
+    }
+  ],
+  "reconstruction_coverage": {
+    "expected_sha256": "0c74c062e515e89c17301364b1658c9f1e16314be3dca95cc54e1af86cd969d2",
+    "actual_sha256": "0c74c062e515e89c17301364b1658c9f1e16314be3dca95cc54e1af86cd969d2",
+    "byte_identical": true
+  },
+  "retrospective_meaning_coverage": {
+    "expected_count": 1,
+    "actual_count": 1,
+    "mappings_complete": true
+  },
+  "visibility_scan": {
+    "forbidden_prefix_matches": [],
+    "html_comment_matches": [],
+    "uncertainty_marker_matches": []
+  },
+  "unsupported_segment_types": [],
+  "issues": []
+}

@@ -1,0 +1,34 @@
+{
+  "schema_family": "panel-cast",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-008",
+  "panelists": [
+    {
+      "panelist_id": "PANEL-01",
+      "display_name": "하린",
+      "persona": "EMOTIONAL_PROXY",
+      "voice_style": "자신이 믿었던 대목을 먼저 인정하고 생활 속 감각으로 질문한다. 피해자의 선택을 재단하지 않고 상대 패널의 설명에 반응하며 추정을 수정한다.",
+      "allowed_functions": [
+        "ANOMALY_DETECTION",
+        "BELIEF_CORRECTION",
+        "EMOTIONAL_REACTION",
+        "MORAL_REACTION",
+        "VICTIM_CONTEXTUALIZATION"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    },
+    {
+      "panelist_id": "PANEL-02",
+      "display_name": "민석",
+      "persona": "LOGIC_ANALYST",
+      "voice_style": "하린이 지적한 구체적인 말과 물건을 받아 직접 확인한 사실과 아직 모르는 부분을 구분한다. 짧은 논증으로 판단을 고치며 범죄나 진단명을 성급하게 붙이지 않는다.",
+      "allowed_functions": [
+        "BELIEF_CORRECTION",
+        "CONTRADICTION_DETECTION",
+        "HYPOTHESIS_GENERATION",
+        "HYPOTHESIS_REVISION"
+      ],
+      "knowledge_scope": "REVEALED_INFORMATION_ONLY"
+    }
+  ]
+}

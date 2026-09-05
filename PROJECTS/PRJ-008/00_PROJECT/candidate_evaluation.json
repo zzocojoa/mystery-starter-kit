@@ -1,0 +1,167 @@
+{
+  "schema_family": "candidate-evaluation",
+  "schema_version": "1.3.0",
+  "project_id": "PRJ-008",
+  "weights": {
+    "crime_event_centrality_score": 25.0,
+    "character_risk_conflict_score": 25.0,
+    "scene_realizability_score": 20.0,
+    "reveal_persuasion_score": 15.0,
+    "production_score": 15.0
+  },
+  "input_hashes": {
+    "variation_candidates": "54b6b6930a25a10ceb1b2a6fc0c2ff70db7ff31566828d644293841e001dbddb",
+    "novelty_precheck": "eec941baa2deea3549a16c2f0830024845f61522899da906858b779212e8846f",
+    "candidate_eligibility": "2e215590dae371b68a67efb19640cb03610b7cc441a35dae7e5c8fbeaf46fb7a",
+    "candidate_event_briefs": "65f0f032b7ba9c6665eaf0c28f552a783af36711bc094bba19dbf388b2c09e60",
+    "candidate_event_brief_var_01": "fe09209901fae75fc3755a11c6b6f829002995942bd88070713c577373752ac6",
+    "candidate_event_brief_var_02": "330db22ce09ac45d9e3b01a84c4db97a86775369a3477fe34cde38e7e135eeba",
+    "candidate_event_brief_var_03": "53efb56b59438974d9947123f576180c546b8ba8255d517f6524afee3db2bf77",
+    "candidate_event_brief_var_04": "e21d782e35d84d7e3960a1d041e04d3789e6edd32310fafd56f40c3b9cf8729d",
+    "candidate_event_brief_var_05": "08cd7aea766537b6c0a1cde1591679fa031c485e2dac2b7a72e796ebf18a0b51"
+  },
+  "novelty_report_hash": "eec941baa2deea3549a16c2f0830024845f61522899da906858b779212e8846f",
+  "recommended_candidate_id": "VAR-02",
+  "evaluations": [
+    {
+      "candidate_id": "VAR-01",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "가족의 같은 일과 강요가 남매를 강제로 이동시키는 공동 납치로 발전하여 사건이 분명하다."
+        ],
+        "character_risk_conflict_score": [
+          "아버지와 고모의 역할 분담 및 태림의 무의식적 가담이 갈등을 만들지만 남매 두 사람의 시점을 충분히 확보해야 한다."
+        ],
+        "scene_realizability_score": [
+          "작업실과 합숙실 두 공간으로 촬영 가능하나 두 피해자와 두 가해자의 이동 전후를 혼동 없이 구분해야 한다."
+        ],
+        "reveal_persuasion_score": [
+          "서로 다른 퇴사 신청서와 태림의 목격이 가족 휴무라는 설명을 깨뜨린다. 인터뷰 의존도를 조절해야 한다."
+        ],
+        "production_score": [
+          "장소 두 곳과 주요 인물 다섯으로 상한 내 촬영 가능하지만 복수 피해자 분리 장면이 필요하다."
+        ]
+      },
+      "crime_event_centrality_score": 87,
+      "character_risk_conflict_score": 84,
+      "scene_realizability_score": 78,
+      "reveal_persuasion_score": 83,
+      "production_score": 82,
+      "total_score": 83.1,
+      "decision": "REJECTED",
+      "decision_reason": "CORE 적격성은 통과했으나 사건 중심성·인물 갈등·재연 및 제작 부담을 종합하면 VAR-02보다 우선순위가 낮다. 신규성 판정을 점수로 대체하지 않는다."
+    },
+    {
+      "candidate_id": "VAR-02",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "생활 취향과 행동·취침 시간을 맞추라는 요구가 외부 상담을 막는 감금으로 이어져 사용자의 강제 동기화 Seed가 범죄 원인과 직접 연결된다."
+        ],
+        "character_risk_conflict_score": [
+          "지안은 같은 생활표에 다시 동의해야 나갈 수 있다는 조건 아래 외부와의 약속을 지키려 한다. 도윤의 은폐 동기와 피해자의 자기결정이 대립한다."
+        ],
+        "scene_realizability_score": [
+          "닫힌 문 안팎의 독립 시점과 덧쓴 생활표·반환 열쇠 봉투를 시각화할 수 있다. 폭력 절차 없이 감금과 두 피해를 재연할 수 있다."
+        ],
+        "reveal_persuasion_score": [
+          "같은 물건의 의미가 합의와 배려에서 거절 삭제와 출입 허락 철회로 바뀐다. 피해 진술·두 독립 목격·현장 상태가 함께 맞아 책임을 확인한다."
+        ],
+        "production_score": [
+          "기본 장소 다섯과 주요 인물 일곱의 상한 내 구성 가능하다. 앱 화면은 압박 배경으로 제한하고 실물 소품·연기로 해결하되 복수 시점 촬영 부담을 반영한다."
+        ]
+      },
+      "crime_event_centrality_score": 96,
+      "character_risk_conflict_score": 95,
+      "scene_realizability_score": 92,
+      "reveal_persuasion_score": 95,
+      "production_score": 86,
+      "total_score": 93.3,
+      "decision": "RECOMMENDED",
+      "decision_reason": "Seed의 생활 강요가 감금의 동기·행동·피해·재해석 단서 전부에 이어지고 피해자 관점과 독립 입증이 가장 뚜렷하다. 적격 후보 중 가중 평가 최고점이다."
+    },
+    {
+      "candidate_id": "VAR-03",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "생활 인증 모임에서 서로 다른 취향의 탈퇴자에게 폭행으로 보복하여 사건 인과가 명확하다."
+        ],
+        "character_risk_conflict_score": [
+          "부상 피해자의 부축이 가해로 오인되는 갈등이 있으나 세 운영자와 두 피해자 모두를 존중하는 분량이 필요하다."
+        ],
+        "scene_realizability_score": [
+          "사건 후 부상과 증언으로 비폭력 화면을 구성할 수 있으나 두 시간대와 여러 역할의 구별이 까다롭다."
+        ],
+        "reveal_persuasion_score": [
+          "직원 목격으로 소희의 부축 의미를 바로잡고 공동 책임을 분리 확인하는 구조가 설득력을 갖는다."
+        ],
+        "production_score": [
+          "주요 인물 네 명의 Advisory에 비해 세 가해자와 두 피해자의 역할이 많아 부차 인물 배치와 서사 집중에 큰 제약이 있다."
+        ]
+      },
+      "crime_event_centrality_score": 88,
+      "character_risk_conflict_score": 83,
+      "scene_realizability_score": 74,
+      "reveal_persuasion_score": 80,
+      "production_score": 69,
+      "total_score": 79.9,
+      "decision": "REJECTED",
+      "decision_reason": "CORE 적격성은 통과했으나 사건 중심성·인물 갈등·재연 및 제작 부담을 종합하면 VAR-02보다 우선순위가 낮다. 신규성 판정을 점수로 대체하지 않는다."
+    },
+    {
+      "candidate_id": "VAR-04",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "낯선 두 사람이 거절 뒤에도 같은 생활을 요구하며 반복 접근하여 스토킹의 지속성을 확보한다."
+        ],
+        "character_risk_conflict_score": [
+          "야간 직원 목격 시점은 공포를 전달하지만 피해자 은채의 일상 선택을 충분히 보여주기 위한 별도 장면이 필요하다."
+        ],
+        "scene_realizability_score": [
+          "접수대와 공용 식당 두 공간에서 수정 카드와 반복 접근을 구분하기 쉽다."
+        ],
+        "reveal_persuasion_score": [
+          "서로 다른 근무 시간 목격과 두 가해자의 역할을 맞춰 개인적 호감이라는 오인을 교정한다."
+        ],
+        "production_score": [
+          "두 세트와 다섯 주요 인물의 저비용 제작이 가능하나 반복 방문 장면의 시각적 변주가 필요하다."
+        ]
+      },
+      "crime_event_centrality_score": 84,
+      "character_risk_conflict_score": 81,
+      "scene_realizability_score": 83,
+      "reveal_persuasion_score": 82,
+      "production_score": 88,
+      "total_score": 83.35,
+      "decision": "REJECTED",
+      "decision_reason": "CORE 적격성은 통과했으나 사건 중심성·인물 갈등·재연 및 제작 부담을 종합하면 VAR-02보다 우선순위가 낮다. 신규성 판정을 점수로 대체하지 않는다."
+    },
+    {
+      "candidate_id": "VAR-05",
+      "dimension_evidence": {
+        "crime_event_centrality_score": [
+          "직원의 사생활을 회사 샘플과 동일하게 만들려는 주거침입이 취향 통제를 실물 행동으로 보여준다."
+        ],
+        "character_risk_conflict_score": [
+          "성인 가족의 추적과 피해 직원의 출입 거절이 있지만 피해자 두 명의 독립 진술을 균형 있게 유지해야 한다."
+        ],
+        "scene_realizability_score": [
+          "침입 뒤 교체된 식기와 침구를 보여주는 인과적 사후 묘사가 가능하나 공개 상담과 과거 사건 연결이 복잡하다."
+        ],
+        "reveal_persuasion_score": [
+          "관리인의 실제 입실 목격과 반환 식기 이동이 허락된 배송이라는 설명을 무너뜨리며 독립 근거를 갖춘다."
+        ],
+        "production_score": [
+          "장소 다섯과 주요 인물 일곱에 걸친 인터뷰·사후 재연이 다른 후보보다 준비와 전환 부담이 크다."
+        ]
+      },
+      "crime_event_centrality_score": 86,
+      "character_risk_conflict_score": 79,
+      "scene_realizability_score": 76,
+      "reveal_persuasion_score": 84,
+      "production_score": 78,
+      "total_score": 80.75,
+      "decision": "REJECTED",
+      "decision_reason": "CORE 적격성은 통과했으나 사건 중심성·인물 갈등·재연 및 제작 부담을 종합하면 VAR-02보다 우선순위가 낮다. 신규성 판정을 점수로 대체하지 않는다."
+    }
+  ]
+}

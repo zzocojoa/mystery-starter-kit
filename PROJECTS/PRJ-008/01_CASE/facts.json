@@ -1,0 +1,210 @@
+{
+  "project_id": "PRJ-008",
+  "facts": [
+    {
+      "fact_id": "FACT-01",
+      "statement": "지안과 도윤은 동거한 연인이며 도윤은 같은 음식·옷차림·취침 시간·공동 알림을 따라야 안정된 관계라고 반복해서 요구했다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "222b9325ec0d3ae416cdaea66f82e61cb4a804a6a5d407888713394a53911eaa",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-02",
+      "statement": "지안은 종이 생활표에 자신이 원하는 다른 음식과 취침 시간을 적었지만, 도윤은 그 선택을 지우고 자기 일정과 같은 내용으로 덧썼다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "ae5ffd23e2255aadf3af25e94a543121f8a738d8925e439d4111fc4d1d92dd8b",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-03",
+      "statement": "지안은 사건 전날 이별과 동거 정리를 알렸고 도윤에게서 돌려받은 열쇠를 봉투에 넣었다. 이웃 은경은 지안이 봉투를 받으며 이제 들어오지 말라고 말하는 장면을 직접 보았다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "06a7a073487f3e7b322d5253ebfa6fa7a372a3fdb11e4c2402279ff2a42070aa",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-04",
+      "statement": "지안은 친구 서윤과 정오에 만나 외부 상담을 받기로 했으며 그 약속의 목적을 도윤에게 알렸다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "5fd1b16a87421b10ac54d077c0458445af7cf6e09b4ef925f4093fc1ec0156af",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-05",
+      "statement": "도윤은 상담 약속 당일 집에 남아 지안이 나가겠다는 요구를 거절하고 출입을 통제하여 집을 떠나지 못하게 했다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "9d2e5f73aa85ac0d74512de5d5928c8b0d4505d95e3ddd5bde7146d42f26d444",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_types": [
+        "CRIME_ACTION"
+      ]
+    },
+    {
+      "fact_id": "FACT-06",
+      "statement": "도윤은 지안이 다시 같은 생활표를 따르겠다고 동의할 때까지 나갈 수 없다는 조건을 내세웠다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "c0eec8a79bc9cc0bd30ca148f10757b716c4a6ed6e92fa761f607718f7e0ef43",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_types": [
+        "CRIME_ACTION"
+      ]
+    },
+    {
+      "fact_id": "FACT-07",
+      "statement": "도윤은 문밖 사람들에게 지안이 피곤해서 자발적으로 쉬고 있으며 자신은 돌봐 주고 있다고 주장했다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "19bfbe88c47c86e384e62167b9f1d508c32def2df4448b6f785b9bb07db1860e",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-08",
+      "statement": "친구 서윤은 약속을 확인하러 문 앞에 왔다가 지안이 나가겠다는 말과 도윤이 기다리라고 거절하는 말을 직접 들었다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "7e3b9664052567d4d7d0877b3b92a7a9cf1f086bbb08d1f5304f8be4062f8b9b",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_types": [
+        "RESPONSIBILITY"
+      ]
+    },
+    {
+      "fact_id": "FACT-09",
+      "statement": "관리인 정호도 서윤의 전언만 믿지 않고 문 앞에서 지안의 외출 요구와 도윤의 거절을 별도로 직접 들었다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "18d998b5bcf2f223d121e26250769d15f10c59d5b3e338feb0c90e7f550b3d80",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_types": [
+        "RESPONSIBILITY"
+      ]
+    },
+    {
+      "fact_id": "FACT-10",
+      "statement": "신고를 받고 온 현수는 지안이 자유롭게 나갈 수 없는 현장 상태와 명확한 외출 의사를 확인하고 두 사람을 분리했다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "b08c52209233d45d0c8065eb034849b87b7b439936558c566f90c02d1b7182c8",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_types": [
+        "CRIME_ACTION",
+        "RESPONSIBILITY"
+      ]
+    },
+    {
+      "fact_id": "FACT-11",
+      "statement": "도윤이 상담을 막은 직접 동기는 지안에게 음식·옷·취침을 강요하고 이별 의사를 무시한 행동이 외부에 알려지는 것을 막는 은폐였다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "4129a0d28056351e04a47495a3e641470fbee909aacd7664542b0c35b6ec6815",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_types": [
+        "MOTIVE_STATUS"
+      ]
+    },
+    {
+      "fact_id": "FACT-12",
+      "statement": "지안의 피해 진술, 서윤과 정호의 독립 목격, 현장 상태의 합치가 도윤의 감금 책임을 뒷받침하며 물건 하나나 앱 기록만으로 책임을 확정하지 않는다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "7903e2d61c16edf54c99d3f5da713151d665d5ba124884d2a75525d851330066",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_types": [
+        "RESPONSIBILITY"
+      ]
+    },
+    {
+      "fact_id": "FACT-13",
+      "statement": "지안은 집을 떠나 외부 상담에 갈 자유를 박탈당했고, 자기 생활을 정하겠다는 의사를 철회하도록 압박받았다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "0ed3958add40247195e5da449b518588c0d37487c70010dc5727aa84dc7fe851",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_types": [
+        "HARM_RESULT"
+      ]
+    },
+    {
+      "fact_id": "FACT-14",
+      "statement": "지안은 분리 보호 뒤에도 공동 알림과 닫힌 문 앞에서 긴장하고 음식과 잠드는 시간을 혼자 고르는 일에 망설임을 겪는다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "cf634ac565b3f6ff8a089e0a59c78b82df34e53a29cddb43d81c3642722f75ec",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_types": [
+        "HARM_RESULT"
+      ]
+    },
+    {
+      "fact_id": "FACT-15",
+      "statement": "반환 열쇠 봉투는 도윤이 배려 깊게 열쇠를 돌려준 기념물이 아니라, 지안이 동거와 출입 허락을 끝냈다는 의사 표시를 이웃 목격과 함께 보강하는 단서다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "ecc46bf0a0d901a83904ec8b13d647290ab969f81f0685ac672f006d868b61d3",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-16",
+      "statement": "생활표에서 두 사람의 선택이 같은 것은 지안의 자발적 동의가 아니라 도윤이 서로 다른 선택을 덧쓴 결과이며, 종이 원본의 흔적과 지안의 설명이 이를 드러낸다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "fe4473aa687e25299b55d98b0f18c43edd4961e405d99bb1be5ae1e581c89eb0",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-17",
+      "statement": "공동 알림과 연동 화면은 생활 압박의 배경이다. 기계 기록이 모든 행동을 감시하거나 최종적으로 범행을 입증하지 않는다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "8ea6de0b670b9cd2b76437b6b77c91a3bdcb712281ea2b08f0514ae46b9d3044",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-18",
+      "statement": "분리 뒤 지안은 친구의 지원으로 상담을 받고 자기 음료를 선택한다. 그 선택이 불안의 소멸이나 도윤의 용서를 의미하지는 않는다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "e33b98b2b8e61ee738b3aae3339317086e19513f7082d5f2e889684d6f01f4cc",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_types": [
+        "HARM_RESULT"
+      ]
+    },
+    {
+      "fact_id": "FACT-19",
+      "statement": "도윤의 감금 행위는 수사 대상이 되며 재판 결과나 형량은 이 이야기에서 확정되지 않는다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "37777ced0d5f4fcd4c28d8067a9a348f229aef9217aae14914180bd40700354c",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_types": [
+        "RESPONSIBILITY"
+      ]
+    }
+  ]
+}

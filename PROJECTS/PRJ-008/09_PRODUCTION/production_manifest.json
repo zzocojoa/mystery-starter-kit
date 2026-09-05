@@ -1,0 +1,184 @@
+{
+  "$schema": "../../STANDARD/schemas/production_manifest_1_1.schema.json",
+  "schema_family": "production-manifest",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-008",
+  "source_footprint_sha256": "6f12ab0b17fc1499d4f47a65edf01cd597979817cca94ab9c660cc876bec495a",
+  "scenes": [
+    {
+      "scene_id": "SCN-01",
+      "location_id": "약속 카페",
+      "cast_ids": [
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-02",
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-03",
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-04",
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-05",
+      "location_id": "공동 복도",
+      "cast_ids": [
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-06",
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-05"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-07",
+      "location_id": "서윤의 작업실",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-08",
+      "location_id": "공동 복도",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "IMPLIED",
+      "production_complexity": "MEDIUM"
+    },
+    {
+      "scene_id": "SCN-09",
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "IMPLIED",
+      "production_complexity": "LOW"
+    },
+    {
+      "scene_id": "SCN-10",
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "IMPLIED",
+      "production_complexity": "MEDIUM"
+    },
+    {
+      "scene_id": "SCN-11",
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "MEDIUM"
+    },
+    {
+      "scene_id": "SCN-12",
+      "location_id": "상담실 대기 공간",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW"
+    }
+  ],
+  "deliverables": [
+    {
+      "artifact_name": "production_broadcast_readable_script",
+      "path": "09_PRODUCTION/broadcast_readable_script.md",
+      "sha256": "0c74c062e515e89c17301364b1658c9f1e16314be3dca95cc54e1af86cd969d2",
+      "source_report_sha256": "cf95a62aef38f411694171538a6b63f6feef6fc95f963b19f870613201fbed15",
+      "profile_id": "BROADCAST_READABLE_SCRIPT",
+      "profile_version": "2.0.0"
+    }
+  ]
+}

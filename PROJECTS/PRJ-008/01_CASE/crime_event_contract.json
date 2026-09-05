@@ -1,0 +1,176 @@
+{
+  "$schema": "../../../STANDARD/schemas/crime_event_contract.schema.json",
+  "schema_family": "crime-event-contract",
+  "schema_version": "1.2.0",
+  "project_id": "PRJ-008",
+  "approved_candidate_id": "VAR-02",
+  "candidate_selection_sha256": "c276ec453413a26193ff126bb19d1f360d0ef44bfee54334556f7512493b8e05",
+  "candidate_event_brief_sha256": "330db22ce09ac45d9e3b01a84c4db97a86775369a3477fe34cde38e7e135eeba",
+  "event_id": "EVENT-01",
+  "primary_crime": "CONFINEMENT",
+  "related_crimes": [],
+  "core_action_type": "CONFINEMENT",
+  "responsible_agent_structure": "SINGLE_AGENT",
+  "victim_structure": "SINGLE_VICTIM",
+  "offender_role_slots": [
+    "OFFENDER-01"
+  ],
+  "victim_role_slots": [
+    "VICTIM-01"
+  ],
+  "protagonist_role_slot": "PROTAGONIST-01",
+  "role_bindings": [
+    {
+      "role_slot": "VICTIM-01",
+      "character_id": "CHAR-01",
+      "role_type": "VICTIM"
+    },
+    {
+      "role_slot": "PROTAGONIST-01",
+      "character_id": "CHAR-01",
+      "role_type": "PROTAGONIST"
+    },
+    {
+      "role_slot": "OFFENDER-01",
+      "character_id": "CHAR-02",
+      "role_type": "OFFENDER"
+    }
+  ],
+  "actor_ids": [
+    "CHAR-02"
+  ],
+  "victim_ids": [
+    "CHAR-01"
+  ],
+  "protagonist_id": "CHAR-01",
+  "relationship_context": "DATING_PARTNER",
+  "target_selection_reason": "지안의 연인 도윤은 두 사람이 같은 음식을 먹고 같은 옷을 입으며 같은 시각에 잠들어야 관계가 안정된다고 요구했다. 지안이 자기 취향을 되찾고 관계를 끝내려 하자, 자신과 함께 살았기에 강요의 전모를 아는 지안을 외부와 만나지 못하게 하려 했다.",
+  "initiating_context": "지안은 집 안에서 정오의 외부 상담 약속이 가까워지는 시간을 버틴다. 현재의 닫힌 문과 과거의 다정한 생활 제안이 교차하고, 이웃·친구·관리인의 서로 다른 관찰이 결합한다. 스마트 생활 앱의 공동 알림과 기기 연동은 일상의 압박과 시간 감각을 만들지만 책임을 입증하는 최종 근거가 되지 않는다. 집을 중심으로 공동 복도, 카페, 친구의 작업실, 상담실을 사용한다.",
+  "trigger_event": "지안은 도윤에게 연인 관계를 끝내고 동거를 정리하겠다고 알린 뒤, 친구와 정오에 만나 생활 강요와 이별 방해를 상담하겠다고 밝혔다. 도윤은 상담 전에 지안이 말을 바꾸게 하겠다며 집 밖으로 나가지 못하게 했다.",
+  "motive_category": "CONCEALMENT",
+  "motive_summary": "도윤은 지안이 거절한 음식·옷차림·취침 시간을 계속 강요해 온 사실과 이별 의사를 무시한 행동이 외부에 알려지는 것을 막으려 했다. 감금의 직접 동기는 그 통제 행동의 은폐이며, 서로 닮아야 사랑이라는 설명은 자기 합리화다.",
+  "non_actionable_method_summary": "도윤은 집에 남아 지안의 퇴거 요구를 거절하고 출입을 통제하여 예정된 외부 만남을 막았다. 지안이 다시 공동 생활표를 따르겠다고 동의할 때까지 나갈 수 없다는 조건을 내세웠다. 감금은 문 안의 지안과 문밖의 목격을 통해 암시하며 잠금 도구나 실행 절차는 제시하지 않는다.",
+  "immediate_harm": "지안은 집을 떠나 상담 약속에 갈 자유를 빼앗기고, 자기 생활을 정할 권리를 되찾겠다는 의사를 철회하도록 압박받았다.",
+  "lasting_harm": "지안은 분리 보호 뒤에도 공동 알림 소리와 닫힌 문 앞에서 통제가 반복될까 긴장하며, 음식과 수면 시간을 혼자 고르는 일에도 망설임을 겪는다. 관계 회복이나 용서를 결말의 조건으로 삼지 않는다.",
+  "concealment_or_denial": "도윤은 찾아온 사람들에게 지안이 피곤해서 자발적으로 쉬고 있고 자신은 돌봐 주는 연인이라고 주장한다. 두 사람이 함께 쓰던 생활표를 합의의 증거처럼 내세우지만, 지안이 지워 둔 선택은 도윤의 글씨로 다시 덧씌워져 있다.",
+  "discovery_path": "핵심 단서는 세 가지다. 첫째, 지안의 서로 다른 음식·취침 선택 위에 도윤이 같은 일정으로 덧쓴 종이 생활표다. 둘째, 이별을 알리며 지안이 받아 두었다고 이웃이 직접 본 반환 열쇠 봉투다. 셋째, 정오 약속을 지키러 온 친구와 관리인이 문 앞에서 지안의 나가겠다는 요구와 도윤의 거절을 각각 직접 들은 목격이다. 지안이 이미 관계와 출입 허락을 철회했다는 공개 뒤, 열쇠 반환은 도윤의 배려가 아닌 종료된 접근 권한을 가리키고 생활표는 합의 아닌 거절의 삭제로 읽힌다. 신고 뒤 현장의 출입 통제 상태와 지안의 외출 의사가 확인된다.",
+  "responsibility_path": "지안의 구체적인 피해 진술, 친구와 관리인이 직접 들은 외출 요구·거절, 현장에서 확인한 출입 통제 상태가 서로 합치하여 도윤이 지안의 의사에 반해 집을 나가지 못하게 한 책임을 확인한다. 반환 열쇠 봉투와 이웃의 독립 목격은 출입 허락 철회를, 덧쓴 생활표는 이전 통제와 은폐 동기를 보강한다. 단일 물건이나 앱 기록만으로 범행을 확정하지 않는다. 지안은 도윤과 분리되어 보호받고 도윤의 감금 행위는 수사 대상이 된다. 재판 결과나 형량은 만들어 붙이지 않는다.",
+  "central_pursuit_question": "같은 생활을 원한 다정한 연인의 돌봄이라는 설명은, 지안이 분명히 나가겠다고 했는데도 정오 약속에 갈 수 없었던 사실을 어떻게 가리고 있는가?",
+  "harm_ids": [
+    "HARM-01",
+    "HARM-02"
+  ],
+  "harm_classifications": [
+    "LIBERTY_DEPRIVATION",
+    "THREAT_OR_TRAUMA"
+  ],
+  "protagonist_goal": "PROTECT_TARGET",
+  "protagonist_risk": "RETALIATION",
+  "depiction_mode": "IMPLIED",
+  "development_functions": [
+    {
+      "development_function_id": "CDEV-001",
+      "function_type": "LIBERTY_DEPRIVATION",
+      "summary": "정오 상담을 앞둔 지안이 떠나겠다는 의사를 밝혔는데도 집 밖으로 나갈 수 없는 현재를 피해자 시점으로 고정한다.",
+      "required": true
+    },
+    {
+      "development_function_id": "CDEV-002",
+      "function_type": "THREAT_AND_CHOICE_CONSTRAINT",
+      "summary": "같은 음식·취향·취침을 요구하던 생활 강요가 공동 생활표에 다시 동의해야 나갈 수 있다는 조건으로 이어진다.",
+      "required": true
+    },
+    {
+      "development_function_id": "CDEV-003",
+      "function_type": "RESPONSE_OR_DISCOVERY",
+      "summary": "상담 약속을 지키러 온 친구와 관리인의 독립 목격, 지안의 외출 요구, 현장 확인으로 돌봄이라는 설명을 검증한다.",
+      "required": true
+    },
+    {
+      "development_function_id": "CDEV-004",
+      "function_type": "HARM_OUTCOME",
+      "summary": "자유 박탈과 이후의 생활 불안을 별개의 피해로 확인하고, 분리 보호와 도윤의 감금 책임을 후반에 명료하게 남긴다.",
+      "required": true
+    }
+  ],
+  "reveal_targets": [
+    {
+      "reveal_target_id": "REVEAL-TARGET-01",
+      "target_type": "CULPRIT",
+      "summary": "도윤은 지안을 돌보러 남은 사람이 아니라, 지안의 명시적인 외출 요구를 거절하고 집 안에 머물게 한 단독 책임자다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-02",
+      "target_type": "MOTIVE",
+      "summary": "도윤이 막으려던 것은 위험한 외출이 아니라 지안이 외부 상담에서 생활 강요와 이별 방해를 알리는 일이었다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-03",
+      "target_type": "METHOD",
+      "summary": "반환 열쇠 봉투는 이별과 출입 허락 철회 뒤의 사건임을 밝힌다. 도윤은 허락받은 공동생활을 이어 간 것이 아니라 지안의 의사를 무시한 출입 통제와 조건부 석방 요구로 자유를 박탈했다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-04",
+      "target_type": "HARM_RESULT",
+      "summary": "지안은 상담에 갈 자유를 빼앗겼고 보호 뒤에도 일상 선택과 닫힌 문에 불안을 느낀다. 직접 진술과 독립 목격·현장 상태로 감금 책임이 확인되어 분리 보호와 수사가 이어진다.",
+      "planned_phase": "LATE",
+      "planned_segment_id": null
+    }
+  ],
+  "method_detail_level": "NON_ACTIONABLE_SUMMARY_ONLY",
+  "truth_basis": {
+    "source_truth_classification": "ORIGINAL_FICTION",
+    "field_evidence": {
+      "PRIMARY_CRIME": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "CULPRIT": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "MOTIVE": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "METHOD": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "HARM_RESULT": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      },
+      "LEGAL_OUTCOME": {
+        "classification": "ORIGINAL_FICTION",
+        "claim_ids": []
+      }
+    }
+  },
+  "harms": [
+    {
+      "harm_id": "HARM-01",
+      "classification": "LIBERTY_DEPRIVATION",
+      "timing": "IMMEDIATE",
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "summary": "지안은 집을 떠나 상담 약속에 갈 자유를 빼앗기고, 자기 생활을 정할 권리를 되찾겠다는 의사를 철회하도록 압박받았다."
+    },
+    {
+      "harm_id": "HARM-02",
+      "classification": "THREAT_OR_TRAUMA",
+      "timing": "LASTING",
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "summary": "지안은 분리 보호 뒤에도 공동 알림 소리와 닫힌 문 앞에서 통제가 반복될까 긴장하며, 음식과 수면 시간을 혼자 고르는 일에도 망설임을 겪는다. 관계 회복이나 용서를 결말의 조건으로 삼지 않는다."
+    }
+  ]
+}

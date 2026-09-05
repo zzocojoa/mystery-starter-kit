@@ -1,0 +1,222 @@
+{
+  "project_id": "PRJ-008",
+  "events": [
+    {
+      "event_id": "EVT-01",
+      "start_minute": 480,
+      "end_minute": 500,
+      "location_id": "지안의 집",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "사건 전날보다 앞선 일상. 도윤이 같은 음식·옷·수면과 공동 알림을 제안하고, 지안은 다른 취향을 조심스럽게 밝힌다."
+    },
+    {
+      "event_id": "EVT-02",
+      "start_minute": 1140,
+      "end_minute": 1160,
+      "location_id": "지안의 집",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "사건 전날 저녁. 지안이 자신의 선택을 적어 둔 종이 생활표 위에 도윤이 동일한 일정을 덧쓴다."
+    },
+    {
+      "event_id": "EVT-03",
+      "start_minute": 1320,
+      "end_minute": 1340,
+      "location_id": "서윤의 작업실",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "description": "사건 전날 늦은 저녁. 지안은 서윤과 다음 날 정오에 카페에서 만나 외부 상담을 함께 가기로 한다."
+    },
+    {
+      "event_id": "EVT-04",
+      "start_minute": 1380,
+      "end_minute": 1385,
+      "location_id": "지안의 집",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-05"
+      ],
+      "description": "사건 전날 밤. 지안이 이별과 동거 정리·출입 허락 철회를 밝히고 도윤이 돌려준 열쇠를 봉투에 넣는다. 방문한 은경은 문가에서 이를 직접 본다. 지안은 정오 상담 약속도 도윤에게 알린다.",
+      "event_type": "MOTIVE_OR_TRIGGER",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": []
+    },
+    {
+      "event_id": "EVT-05",
+      "start_minute": 2120,
+      "end_minute": 2175,
+      "location_id": "지안의 집",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "사건 당일 오전부터 정오 이후까지. 짐을 정리한다며 집에 남은 도윤이 지안의 외출 요구를 거절하고 출입을 통제한다. 같은 생활표에 다시 동의해야 나갈 수 있다는 조건이 자유 박탈과 지속 불안을 일으킨다. 잠금 방식은 묘사하지 않는다.",
+      "event_type": "CRIME_EVENT",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01",
+        "HARM-02"
+      ]
+    },
+    {
+      "event_id": "EVT-06",
+      "start_minute": 2130,
+      "end_minute": 2135,
+      "location_id": "약속 카페",
+      "participant_ids": [
+        "CHAR-03"
+      ],
+      "description": "사건 당일. 정오보다 먼저 도착한 서윤이 약속을 확인하고 지안을 기다린다. 연락이 닿지 않자 약속을 취소됐다고 단정하지 않고 집으로 간다."
+    },
+    {
+      "event_id": "EVT-07",
+      "start_minute": 2145,
+      "end_minute": 2150,
+      "location_id": "공동 복도",
+      "participant_ids": [
+        "CHAR-03"
+      ],
+      "description": "서윤은 문밖에서 도윤이 지안은 피곤해 자발적으로 쉬고 있다고 설명하는 말을 듣는다. 집 안 두 사람은 계속 집에 있으며 복도로 나오지 않는다.",
+      "event_type": "CONCEALMENT_OR_DENIAL",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": []
+    },
+    {
+      "event_id": "EVT-08",
+      "start_minute": 2155,
+      "end_minute": 2160,
+      "location_id": "공동 복도",
+      "participant_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "서윤과 뒤이어 온 정호는 각자 지안의 외출 요구와 도윤의 거절을 직접 듣는다. 정호는 서윤에게 말을 맞추게 하지 않고 지안 본인의 의사를 확인한 뒤 도움을 요청한다.",
+      "event_type": "DISCOVERY_PATH",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": []
+    },
+    {
+      "event_id": "EVT-09",
+      "start_minute": 2160,
+      "end_minute": 2175,
+      "location_id": "지안의 집",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "약속한 정오가 지나도 지안은 나갈 수 없다. 함께 쉬기로 했다는 도윤의 설명을 지안이 부정하고, 공동 생활표에 동의하지 않으면 나갈 수 없다는 조건이 재차 드러난다.",
+      "event_type": "HARM_RESULT",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-01"
+      ]
+    },
+    {
+      "event_id": "EVT-10",
+      "start_minute": 2175,
+      "end_minute": 2185,
+      "location_id": "지안의 집",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-06"
+      ],
+      "description": "현수가 현장 상태와 지안의 명확한 외출 의사를 직접 확인하여 지안을 분리한다. 서윤과 정호는 집 안에 들어온 뒤에도 자신들이 직접 들은 범위만 말한다.",
+      "event_type": "RESPONSIBILITY_CONFIRMATION",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": []
+    },
+    {
+      "event_id": "EVT-11",
+      "start_minute": 2185,
+      "end_minute": 2200,
+      "location_id": "지안의 집",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "description": "현수가 각각의 진술을 분리해 확인한다. 은경의 전날 목격, 반환 열쇠 봉투, 생활표 원본의 덧쓴 흔적과 당사자 설명이 결합하여 이별과 거절을 무시한 통제 및 은폐 동기가 드러난다. 도윤의 행위가 수사 대상임을 알린다.",
+      "event_type": "RESPONSIBILITY_CONFIRMATION",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": []
+    },
+    {
+      "event_id": "EVT-12",
+      "start_minute": 5040,
+      "end_minute": 5060,
+      "location_id": "상담실 대기 공간",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "description": "사건 이틀 뒤 정오. 도윤과 분리된 지안이 서윤과 상담을 기다린다. 닫힌 문과 알림 소리에 긴장하고 음료 선택을 망설이지만 스스로 원하는 것을 고른다. 불안이 즉시 사라지거나 화해하지 않는다.",
+      "event_type": "HARM_RESULT",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-02"
+      ]
+    }
+  ]
+}

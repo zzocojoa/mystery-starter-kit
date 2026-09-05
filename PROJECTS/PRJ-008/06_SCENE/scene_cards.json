@@ -1,0 +1,570 @@
+{
+  "project_id": "PRJ-008",
+  "scenes": [
+    {
+      "scene_id": "SCN-01",
+      "order": 1,
+      "beat_id": "BEAT-01",
+      "estimated_seconds": 120,
+      "clue_ids": [],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-04"
+        }
+      ],
+      "location_id": "약속 카페",
+      "cast_ids": [
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "현재, 사건 당일 오전 11시 30분의 약속 카페. 서윤은 일찍 도착해 두 자리를 보다가 지안과 잡은 정오 약속을 확인한다. 시작은 기다림, 끝은 직접 확인하러 갈지 결정하는 걱정이다. 답이 없다는 사실과 취소 의사는 다르므로 지안이 원했는지 묻는 태도를 유지한다. 약속의 존재를 공개하고 부재의 원인은 숨긴다. 서윤이 자리를 떠나기 위해 가방을 드는 행동을 다음 장면의 질문으로 남긴다."
+    },
+    {
+      "scene_id": "SCN-02",
+      "order": 2,
+      "beat_id": "BEAT-02",
+      "estimated_seconds": 110,
+      "clue_ids": [
+        "CLUE-04"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-01"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-01"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-17"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-17"
+        }
+      ],
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "FLASHBACK, 사건 전날보다 앞선 과거 오전 8시 00분의 집. 같은 식사와 옷차림, 공동 알림 제안이 가까워지는 연인의 일상처럼 보인다. 지안은 처음의 편안함 속에서 다른 취향을 말할까 망설이고, 도윤은 같은 것을 고르는 일을 당연하게 권한다. 알림과 연동 화면은 생활의 압박을 만드는 배경으로 제시한다. 합의 여부나 기기 기록의 증명력은 단정하지 않는다. 닮는 일을 기뻐하던 감각이 어긋남을 느끼는 지안의 주관적 내레이션을 15초 배치하고, 표면의 다정함과 멈춘 선택을 남긴다. 패널 자리 35초는 후속 Task가 작성한다."
+    },
+    {
+      "scene_id": "SCN-03",
+      "order": 3,
+      "beat_id": "BEAT-03",
+      "estimated_seconds": 120,
+      "clue_ids": [],
+      "knowledge_claims": [],
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "현재, 사건 당일 오전 11시 35분의 집. 지안의 주관적 내레이션 15초로 말을 꺼내기 직전의 신체 감각과 망설임을 전한다. 이후 가방을 들었다 내려놓고 문 쪽을 살피는 지안과 같은 공간의 도윤을 보여 준다. 시작의 조심스러움은 자기 말을 고르려는 긴장으로 바뀐다. 불편은 보이되 감금 책임자, 은폐 동기와 출입 통제의 전모는 아직 설명하지 않는다. 지안이 말을 삼키는 마지막 호흡으로 과거의 생활표를 불러온다."
+    },
+    {
+      "scene_id": "SCN-04",
+      "order": 4,
+      "beat_id": "BEAT-04",
+      "estimated_seconds": 130,
+      "clue_ids": [
+        "CLUE-01"
+      ],
+      "knowledge_claims": [],
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "FLASHBACK, 사건 전날 과거 오후 7시 00분의 집. 지안이 들여다보는 종이 생활표에는 같은 음식과 취침 시간 아래 다른 글씨와 덧쓴 흔적이 남아 있다. 도윤과 마주한 자리에서 지안의 손이 멈추지만 누가 고쳤는지를 확정하는 대사나 행위자의 필기는 보여 주지 않는다. 시작의 맞추려는 마음은 설명되지 않는 거리감으로 바뀐다. 같은 표가 합의처럼 보인다는 관객 가정을 남기면서 원래부터 같았는지 묻는다. 패널 자리 35초 뒤 내레이션 15초는 좋고 싫다는 말을 소리 내기 어려웠던 지안의 감각만 다룬다. 표의 실제 의미는 후반까지 보류한다."
+    },
+    {
+      "scene_id": "SCN-05",
+      "order": 5,
+      "beat_id": "BEAT-05",
+      "estimated_seconds": 100,
+      "clue_ids": [],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-07"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-04"
+        }
+      ],
+      "location_id": "공동 복도",
+      "cast_ids": [
+        "CHAR-02",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "현재, 사건 당일 오전 11시 45분의 공동 복도. 화면의 서윤은 집 안에 있는 도윤의 목소리로 자발적 휴식이라는 설명을 듣는다. 도윤은 복도로 나오지 않으며 목소리 출연만 한다. 서윤은 처음의 안도에서 지안 본인의 답이 없다는 의문으로 이동한다. 만나기로 했던 지안의 의사와 대신 답하는 도윤의 설명이 충돌한다. 공개 정보는 도윤의 주장이고 그 진위를 숨긴다. 지안에게 직접 묻겠다는 서윤의 행동을 후크로 남긴다. 패널 자리 35초만 계획한다."
+    },
+    {
+      "scene_id": "SCN-06",
+      "order": 6,
+      "beat_id": "BEAT-06",
+      "estimated_seconds": 100,
+      "clue_ids": [
+        "CLUE-02"
+      ],
+      "knowledge_claims": [],
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-05"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "FLASHBACK, 사건 전날 과거 오후 11시 00분의 집. 지안이 도윤에게서 반환 열쇠 봉투를 받고 은경은 같은 집의 문가에서 그 모습을 본다. 지안의 출입 거절 발언과 이별 대화의 전모는 이 장면에 공개하지 않는다. 봉투를 두 손으로 받는 움직임은 배려나 동거 정리로 읽힐 수 있지만 지안은 편해지지 않는다. 시작의 정리하려는 차분함은 설명하지 못한 경계의 긴장으로 남는다. 내레이션 15초는 손에 남은 종이의 감각과 말을 다 하지 못한 기억을 전하고, 봉투를 놓지 못하는 손으로 끝낸다."
+    },
+    {
+      "scene_id": "SCN-07",
+      "order": 7,
+      "beat_id": "BEAT-07",
+      "estimated_seconds": 100,
+      "clue_ids": [],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-04"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-04"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-01"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-01"
+        }
+      ],
+      "location_id": "서윤의 작업실",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "FLASHBACK, 사건 전날 과거 오후 10시 00분의 서윤의 작업실. 지안의 기억을 여는 내레이션 15초 뒤 지안이 먼저 다음 날 정오에 만나 상담에 함께 가 달라고 요청한다. 서윤은 도움이 필요한지 확인하고 선택을 대신하지 않은 채 약속한다. 지안의 시작 감정은 말해도 될지 망설임, 끝 감정은 자기 의사가 누군가에게 닿았다는 작은 안도다. 현재의 자발적 휴식 주장과 달리 지안이 만남을 원했다는 정보를 공개하며, 상담을 막은 동기는 아직 숨긴다. 약속을 확인하는 손짓으로 현재 문 앞에 연결한다."
+    },
+    {
+      "scene_id": "SCN-08",
+      "order": 8,
+      "beat_id": "BEAT-08",
+      "estimated_seconds": 140,
+      "clue_ids": [
+        "CLUE-03"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-08"
+        },
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-09"
+        },
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-07"
+        }
+      ],
+      "location_id": "공동 복도",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "IMPLIED",
+      "production_complexity": "MEDIUM",
+      "summary": "현재, 사건 당일 오전 11시 55분의 공동 복도. 화면에는 서윤과 정호가 있고 지안과 도윤은 집 안에서 각각 목소리로만 들린다. 서윤이 들은 외출 요구와 거절 뒤 정호가 지안 본인의 의사를 따로 확인해 자신의 직접 청취를 확보한다. 두 사람이 서로의 문장을 맞추는 과정은 없다. 서윤의 불안과 정호의 유보는 도움을 연결하겠다는 판단으로 바뀐다. 독립 목격을 공개하지만 집 안에서 통제가 이루어진 전모와 동기 확정은 후반에 맡긴다. 정호의 도움 요청으로 끝내고 패널 자리 35초를 둔다.",
+      "crime_realization": [
+        {
+          "event_id": "EVENT-01",
+          "actor_ids": [
+            "CHAR-02"
+          ],
+          "victim_ids": [
+            "CHAR-01"
+          ],
+          "harm_ids": [
+            "HARM-01"
+          ],
+          "development_function_ids": [
+            "CDEV-003"
+          ],
+          "realization_mode": "IMPLIED_ACTION",
+          "action_evidence": "지안의 외출 요구 뒤 도윤의 거절이 문 너머에서 들리고, 서윤과 정호가 각각 직접 듣는 순서를 보여 준다.",
+          "dialogue_or_behavior_evidence": "정호는 서윤에게 결론을 맞추지 않고 지안 본인에게 의사를 묻는다. 서윤은 자신이 들은 범위를 구분해 말한다.",
+          "choice_or_emotion_change": "두 목격자의 조심스러운 확인이 본인 의사를 존중하는 도움 요청으로 바뀐다.",
+          "result_change": "돌봄이라는 주장을 그대로 받아들이지 않고 외출 요구의 독립 확인을 토대로 외부 도움을 연결한다.",
+          "expected_excerpt_anchor": "저도 직접 들었습니다. 나가겠다고 했습니다.",
+          "planned_segment_ids": [
+            "SEG-016"
+          ]
+        }
+      ]
+    },
+    {
+      "scene_id": "SCN-09",
+      "order": 9,
+      "beat_id": "BEAT-09",
+      "estimated_seconds": 140,
+      "clue_ids": [],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-05"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-06"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-13"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-05"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-06"
+        }
+      ],
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "IMPLIED",
+      "production_complexity": "LOW",
+      "summary": "현재, 사건 당일 정오가 된 집. 지안은 가방을 든 채 나가겠다는 의사를 분명히 말하지만 도윤은 집 안에 머물게 하고 같은 생활표에 다시 동의하라는 조건을 내세운다. 출입 자유가 거절되는 행동과 두 사람의 반응으로 감금을 드러내며 잠금 도구나 절차는 묘사하지 않는다. 지안의 떨림은 자기 의사를 철회하지 않는 단호함으로 바뀐다. 도윤의 단독 책임, 조건부 동의 요구와 즉시 자유 박탈을 공개한다. 외부 상담을 막은 은폐 동기와 이미 끝난 접근 허락의 의미는 아직 남겨 두고 지안의 명시적 거절로 끝낸다.",
+      "crime_realization": [
+        {
+          "event_id": "EVENT-01",
+          "actor_ids": [
+            "CHAR-02"
+          ],
+          "victim_ids": [
+            "CHAR-01"
+          ],
+          "harm_ids": [
+            "HARM-01"
+          ],
+          "development_function_ids": [
+            "CDEV-001",
+            "CDEV-002"
+          ],
+          "realization_mode": "IMPLIED_ACTION",
+          "action_evidence": "지안이 가방을 들고 나가겠다고 말해도 도윤은 출입을 통제하며 같은 생활표에 동의해야 한다는 조건을 내세운다. 자유를 박탈한 행동과 반응을 보여 주되 실행 절차는 제외한다.",
+          "dialogue_or_behavior_evidence": "지안은 함께 쉬기로 합의한 적이 없다고 말하고 자신의 외출 의사를 반복한다. 도윤은 지안의 답 대신 생활표 동의를 요구한다.",
+          "choice_or_emotion_change": "지안은 더 조용히 맞추려던 망설임에서 자신의 거절을 분명하게 남기는 선택으로 이동한다.",
+          "result_change": "도윤의 단독 감금 책임과 자유 박탈, 일상 동의를 떠날 조건으로 삼는 제약이 명확해진다.",
+          "expected_excerpt_anchor": "같이 쉬기로 한 적 없어. 나는 지금 나갈 거야.",
+          "planned_segment_ids": [
+            "SEG-018"
+          ]
+        }
+      ]
+    },
+    {
+      "scene_id": "SCN-10",
+      "order": 10,
+      "beat_id": "BEAT-10",
+      "estimated_seconds": 160,
+      "clue_ids": [
+        "CLUE-03"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-05"
+        },
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-10"
+        },
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-13"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-10"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-08"
+        },
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-09"
+        }
+      ],
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "IMPLIED",
+      "production_complexity": "MEDIUM",
+      "summary": "현재, 사건 당일 오후 12시 15분의 집. 현수가 직접 현장 상태와 지안의 외출 의사를 확인하고 두 사람을 분리한다. 서윤과 정호는 집 안에 들어온 뒤에도 각자 실제 들은 범위만 말한다. 현수는 전날 대화나 생활표의 작성 경위를 미리 알지 못한다. 지안의 시작 감정은 아직 답이 덮일 수 있다는 긴장, 끝 감정은 자기 답이 확인되었다는 제한된 안도다. 문 앞 목격과 현장 확인이 합치하며 독립 목격 단서를 회수한다. 분리가 사건의 모든 답을 뜻하지 않도록 은경과 각각의 진술 확인으로 연결한다. 패널 자리 35초만 둔다.",
+      "crime_realization": [
+        {
+          "event_id": "EVENT-01",
+          "actor_ids": [
+            "CHAR-02"
+          ],
+          "victim_ids": [
+            "CHAR-01"
+          ],
+          "harm_ids": [
+            "HARM-01"
+          ],
+          "development_function_ids": [
+            "CDEV-003"
+          ],
+          "realization_mode": "AFTERMATH_CAUSAL",
+          "action_evidence": "현수가 현장 상태를 직접 확인한 뒤 도윤의 답을 멈추고 지안에게 외출 의사를 물어 두 사람을 분리한다.",
+          "dialogue_or_behavior_evidence": "지안은 나가고 싶다는 답을 직접 하고 서윤과 정호는 각자 직접 들은 말만 전한다.",
+          "choice_or_emotion_change": "답을 빼앗길까 긴장하던 지안이 본인의 말을 받아 주는 사람을 보고 도움에 응한다.",
+          "result_change": "외출 요구를 거절당한 피해가 현장 확인으로 뒷받침되고 지안은 즉각적인 통제에서 분리된다.",
+          "expected_excerpt_anchor": "지안 씨, 지금 이 집에서 나가고 싶으십니까?",
+          "planned_segment_ids": [
+            "SEG-019"
+          ]
+        }
+      ]
+    },
+    {
+      "scene_id": "SCN-11",
+      "order": 11,
+      "beat_id": "BEAT-11",
+      "estimated_seconds": 160,
+      "clue_ids": [
+        "CLUE-01",
+        "CLUE-02",
+        "CLUE-03",
+        "CLUE-04"
+      ],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-02"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-03"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-11"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-12"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-15"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-16"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-19"
+        },
+        {
+          "character_id": "CHAR-02",
+          "fact_id": "FACT-11"
+        },
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-03"
+        },
+        {
+          "character_id": "CHAR-05",
+          "fact_id": "FACT-15"
+        },
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-12"
+        },
+        {
+          "character_id": "CHAR-06",
+          "fact_id": "FACT-19"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-08"
+        },
+        {
+          "character_id": "CHAR-04",
+          "fact_id": "FACT-09"
+        }
+      ],
+      "location_id": "지안의 집",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05",
+        "CHAR-06"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "MEDIUM",
+      "summary": "현재, 사건 당일 오후 12시 25분의 집. 분리된 상태에서 현수가 당사자와 목격자의 말을 각각 확인한다. 도윤이 외부 상담에서 생활 강요가 알려지는 일을 막으려 했음이 경위와 말로 드러난다. 지안은 자신이 적었던 선택을 종이 생활표의 흔적과 연결하고 은경은 반환 열쇠를 받을 당시 지안이 출입을 거절한 말을 전한다. 앞선 생활표는 합의에서 거절 삭제로, 열쇠 반환은 배려에서 끝난 허락으로 의미가 바뀐다. 과거 영상을 반복하는 재구성 장면 없이 현재의 새 대사와 물건 확인으로 재해석한다. 서로 다른 진술과 현장 상태가 책임을 뒷받침하며 공동 알림을 결정 증거로 보는 기대를 거둔다. 지안의 혼란은 자기 말이 보존되었다는 확신으로 바뀐다. 수사 연결을 공개하고 재판 결과는 확정하지 않는다. 패널 자리 35초 뒤 일상 선택의 문제를 남긴다.",
+      "crime_realization": [
+        {
+          "event_id": "EVENT-01",
+          "actor_ids": [
+            "CHAR-02"
+          ],
+          "victim_ids": [
+            "CHAR-01"
+          ],
+          "harm_ids": [
+            "HARM-01"
+          ],
+          "development_function_ids": [
+            "CDEV-002",
+            "CDEV-003"
+          ],
+          "realization_mode": "AFTERMATH_CAUSAL",
+          "action_evidence": "지안이 종이 생활표의 원래 선택과 덧쓴 흔적을 짚고 은경은 반환 열쇠를 받을 당시 들은 출입 거절을 자기 기억으로 밝힌다.",
+          "dialogue_or_behavior_evidence": "지안의 설명, 은경의 전날 목격, 서윤과 정호의 별도 청취, 현수의 현장 확인을 각각의 출처를 지킨 채 대조한다. 도윤이 상담을 막으려던 은폐 동기가 드러난다.",
+          "choice_or_emotion_change": "자기 선택을 설명하길 망설이던 지안이 겉보기 일치를 합의로 취급하지 말라고 분명히 말한다.",
+          "result_change": "생활표는 거절 삭제, 반환 열쇠는 끝난 출입 허락으로 재해석된다. 독립 근거의 합치가 감금 책임과 수사 연결을 뒷받침한다.",
+          "expected_excerpt_anchor": "같아진 게 아니에요. 제가 적은 걸 덮어쓴 거예요.",
+          "planned_segment_ids": [
+            "SEG-021"
+          ]
+        }
+      ]
+    },
+    {
+      "scene_id": "SCN-12",
+      "order": 12,
+      "beat_id": "BEAT-12",
+      "estimated_seconds": 120,
+      "clue_ids": [],
+      "knowledge_claims": [
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-14"
+        },
+        {
+          "character_id": "CHAR-01",
+          "fact_id": "FACT-18"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-14"
+        },
+        {
+          "character_id": "CHAR-03",
+          "fact_id": "FACT-18"
+        }
+      ],
+      "location_id": "상담실 대기 공간",
+      "cast_ids": [
+        "CHAR-01",
+        "CHAR-03"
+      ],
+      "child_actor_use": "NONE",
+      "vehicle_scene": "NONE",
+      "special_effect_level": "NONE",
+      "graphic_violence": "NONE",
+      "production_complexity": "LOW",
+      "summary": "현재, 사건 이틀 뒤 정오의 상담실 대기 공간. 지안은 닫힌 문과 공동 알림 소리에 몸을 굳히고 음료를 고르는 데 망설인다. 서윤은 답을 대신하지 않고 기다리며 지안은 자신이 마시고 싶은 것을 말한다. 시작의 경계와 불안은 사라지지 않지만 끝에는 스스로 고른 작은 선택이 생긴다. 지속 피해와 친구의 지원, 지안의 자기결정을 공개한다. 내레이션 15초는 아직 편하지 않은 몸 안에서 자기 답을 듣는 감각을 전하며 화해나 즉각 회복으로 결론짓지 않는다. 마지막은 지안이 선택한 컵에 손을 얹는 행동이다.",
+      "crime_realization": [
+        {
+          "event_id": "EVENT-01",
+          "actor_ids": [
+            "CHAR-02"
+          ],
+          "victim_ids": [
+            "CHAR-01"
+          ],
+          "harm_ids": [
+            "HARM-02"
+          ],
+          "development_function_ids": [
+            "CDEV-004"
+          ],
+          "realization_mode": "AFTERMATH_CAUSAL",
+          "action_evidence": "도윤이 없는 상담 대기 공간에서 지안은 알림과 닫힌 문에 몸을 굳히고 음료를 고르다 멈춘다. 이전 감금의 압박이 분리 뒤 일상 선택에도 남아 있음을 행동으로 드러낸다.",
+          "dialogue_or_behavior_evidence": "서윤이 선택을 대신하지 않고 기다리자 지안이 자기 음료를 직접 고른다.",
+          "choice_or_emotion_change": "불안이 사라지지 않은 상태에서 지안은 다른 사람의 답에 맞추는 대신 자기 취향을 말한다.",
+          "result_change": "지속 피해를 분리 보호와 구분하여 확인하고, 용서나 완치를 전제하지 않는 자기결정의 여지를 남긴다.",
+          "expected_excerpt_anchor": "마시고 싶은 건 제가 고를게요.",
+          "planned_segment_ids": [
+            "SEG-023"
+          ]
+        }
+      ]
+    }
+  ]
+}

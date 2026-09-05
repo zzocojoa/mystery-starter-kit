@@ -1,0 +1,228 @@
+{
+  "project_id": "PRJ-008",
+  "belief_states": [
+    {
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "belief": "지안이 늦거나 약속을 바꿨을 수 있지만 본인의 답은 아직 듣지 못했다.",
+      "confidence": 0.35,
+      "known_fact_ids": [
+        "FACT-04"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "belief": "같은 일상을 즐기는 연인처럼 보이지만 지안의 미세한 망설임이 남는다.",
+      "confidence": 0.48,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-17"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-03",
+      "scene_order": 3,
+      "belief": "집 안에서 지안이 말과 행동을 고르고 있다. 불편의 이유를 아직 단정할 수 없다.",
+      "confidence": 0.45,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-17"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-04",
+      "scene_order": 4,
+      "belief": "두 사람의 생활표가 똑같다. 원래부터 같았는지 누가 고친 것인지는 확인되지 않았다.",
+      "confidence": 0.4,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-17"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-05",
+      "scene_order": 5,
+      "belief": "도윤은 자발적 휴식이라 설명한다. 지안이 직접 답하지 않아 설명을 그대로 믿기 어렵다.",
+      "confidence": 0.45,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-07",
+        "FACT-17"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-06",
+      "scene_order": 6,
+      "belief": "반환 열쇠 봉투는 배려나 동거 정리의 표시처럼 보이지만 지안의 당시 말은 아직 공개되지 않았다.",
+      "confidence": 0.4,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-07",
+        "FACT-17"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-07",
+      "scene_order": 7,
+      "belief": "지안이 먼저 상담을 요청했다. 약속 취소를 도윤이 대신 설명하는 행동과 맞지 않는다.",
+      "confidence": 0.64,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-07",
+        "FACT-17"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-08",
+      "scene_order": 8,
+      "belief": "두 사람이 각각 들은 외출 요구와 거절은 자발적으로 쉬고 있다는 설명을 반박한다.",
+      "confidence": 0.8,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-17"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01",
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-09",
+      "scene_order": 9,
+      "belief": "도윤이 지안을 나가지 못하게 한 책임자다. 같은 생활표에 동의하라는 조건이 자유를 빼앗았다.",
+      "confidence": 0.94,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-13",
+        "FACT-17"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "belief": "지안의 의사와 현장 상태가 문 앞 목격에 부합한다. 현수의 분리 조치가 이뤄졌다.",
+      "confidence": 0.97,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-13",
+        "FACT-17"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-11",
+      "scene_order": 11,
+      "belief": "상담을 통한 통제 공개를 막으려는 은폐 동기다. 반환 열쇠와 덧쓴 생활표는 철회된 동의와 지워진 거절을 드러낸다.",
+      "confidence": 0.99,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-15",
+        "FACT-16",
+        "FACT-17",
+        "FACT-19"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02"
+      ]
+    },
+    {
+      "scene_id": "SCN-12",
+      "scene_order": 12,
+      "belief": "감금은 끝났지만 알림과 문 앞의 긴장은 남는다. 지안이 자기 선택을 하는 데 화해나 완전한 회복이 조건이 될 수 없다.",
+      "confidence": 0.99,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12",
+        "FACT-13",
+        "FACT-14",
+        "FACT-15",
+        "FACT-16",
+        "FACT-17",
+        "FACT-18",
+        "FACT-19"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02"
+      ]
+    }
+  ]
+}
