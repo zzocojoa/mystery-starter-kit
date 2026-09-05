@@ -1,0 +1,25 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_approval.schema.json",
+  "schema_family": "candidate-approval",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-007",
+  "selected_candidate_id": "VAR-03",
+  "recommended_candidate_id": "VAR-03",
+  "approval_type": "AUTO_POLICY",
+  "actor": "SYSTEM",
+  "reason": "적격 후보 중 최고 Soft 평가 점수를 자동 승인했습니다.",
+  "input_hashes": {
+    "production_config": "5518b4f4bebb7166d4b4212d60d8e4ac385efffad146b40c55cb8eaf07806bc1",
+    "variation_candidates": "ca95e4eb4d8a094b45b041686c82d03bbef24fc16d4aef10ef0572c963818f04",
+    "novelty_precheck": "cd0482c0126d7c4546df61ea57a670c31d2d9227f300ca05dce079930e88a45d",
+    "candidate_eligibility": "bcdc1cb87a5cce648c04a74d65e1ce34de6cb18eb28a22dbd5f92ca3ffe1d33a",
+    "candidate_evaluation": "4eb1da683b4fa6eb1ba1544a6110230c8469fc4e7826a3eb72cf917c43b7193b",
+    "candidate_event_briefs": "4b8989f40bf6d0e3d1dbc6afe8e801f89ff1cc23626c82d63553762402bcfead",
+    "candidate_event_brief_var_01": "c81ae2d8e9ed7fcfa44b6a7815a51bdd20c50120d81cc042f914036cfed171a0",
+    "candidate_event_brief_var_02": "b36ddf6db4bdc5400f3239e92b6dca43d4b51338fde7864dcd38e6b69f82f814",
+    "candidate_event_brief_var_03": "2170bb5fd857bf44f085e5e12909f80ecd41bd0fa214dfa7d56f0660a4480d7e",
+    "candidate_event_brief_var_04": "ffda5fea1562ff21eba0ed315e185719e4913beb9426da0411601abbf3491cfb",
+    "candidate_event_brief_var_05": "be64a4daa12df608cc5076a8f5ded203913d7c00aa18954d306347b37237866b"
+  },
+  "approved_at": "2026-09-04T18:34:28.728565Z"
+}

@@ -1,0 +1,143 @@
+{
+  "project_id": "PRJ-007",
+  "belief_states": [
+    {
+      "scene_id": "SCN-01",
+      "scene_order": 1,
+      "belief": "서진은 실제 외도의 흔적을 잡았다고 믿지만, 기록의 의미는 아직 검증되지 않았다.",
+      "confidence": 0.38,
+      "known_fact_ids": [
+        "FACT-01"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-01"
+      ]
+    },
+    {
+      "scene_id": "SCN-02",
+      "scene_order": 2,
+      "belief": "태균은 자발적으로 대화하는 것이 아니라 자기 집에서 퇴거와 연락을 제한당하고 있다.",
+      "confidence": 0.92,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-02",
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-05",
+      "scene_order": 5,
+      "belief": "태균의 말보다 반송표의 도움 표시가 현재의 위험을 증언한다.",
+      "confidence": 0.88,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-06"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03"
+      ]
+    },
+    {
+      "scene_id": "SCN-07",
+      "scene_order": 7,
+      "belief": "외부 목격자가 위험 신호를 독립적으로 확인했지만 운영자들의 정확한 역할은 아직 불분명하다.",
+      "confidence": 0.83,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-06",
+        "FACT-07"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03",
+        "HYP-04"
+      ]
+    },
+    {
+      "scene_id": "SCN-09",
+      "scene_order": 9,
+      "belief": "감금은 끝났지만 조작 증거를 만든 사람과 현장에 가담한 사람의 책임을 분리해 확인해야 한다.",
+      "confidence": 0.79,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-04",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-03",
+        "HYP-04"
+      ]
+    },
+    {
+      "scene_id": "SCN-10",
+      "scene_order": 10,
+      "belief": "외도는 없었고, 복구된 수정 이력과 다른 증거들이 세 사람의 공동 가담을 가리킨다.",
+      "confidence": 0.97,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-05"
+      ]
+    },
+    {
+      "scene_id": "SCN-11",
+      "scene_order": 11,
+      "belief": "서진의 보복과 운영자들의 은폐 이해가 결합했고, 예약 메시지는 감금을 감추는 수단이었다.",
+      "confidence": 0.99,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-12"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-05"
+      ]
+    },
+    {
+      "scene_id": "SCN-12",
+      "scene_order": 12,
+      "belief": "사건의 답은 의심의 진위가 아니라 태균의 자유와 안전을 빼앗은 선택, 공모, 그리고 남은 피해다.",
+      "confidence": 1.0,
+      "known_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-03",
+        "FACT-04",
+        "FACT-05",
+        "FACT-06",
+        "FACT-07",
+        "FACT-08",
+        "FACT-09",
+        "FACT-10",
+        "FACT-11",
+        "FACT-12"
+      ],
+      "active_hypothesis_ids": [
+        "HYP-05"
+      ]
+    }
+  ]
+}

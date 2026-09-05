@@ -1,0 +1,134 @@
+{
+  "$schema": "../../../STANDARD/schemas/candidate_eligibility.schema.json",
+  "schema_family": "candidate-eligibility",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-007",
+  "input_hashes": {
+    "production_config": "5518b4f4bebb7166d4b4212d60d8e4ac385efffad146b40c55cb8eaf07806bc1",
+    "project_constraints": "9f8256bf17d811fc66ee388ad7ef5cbbb8b6a6947b39bb6fc737c7c14757a95c",
+    "channel_dna": "0e8c853f32d5c95a5bb235efc7da9d75e28c202d404e3ae04e0367a9b653c6d6",
+    "variation_candidates": "3f353a2ff534b81194d1a814d12887e6ca69ee6bfb32c5e0f3c56b42d4a0524f",
+    "novelty_precheck": "cd0482c0126d7c4546df61ea57a670c31d2d9227f300ca05dce079930e88a45d",
+    "candidate_event_briefs": "4b8989f40bf6d0e3d1dbc6afe8e801f89ff1cc23626c82d63553762402bcfead",
+    "candidate_event_brief_var_01": "c81ae2d8e9ed7fcfa44b6a7815a51bdd20c50120d81cc042f914036cfed171a0",
+    "candidate_event_brief_var_02": "b36ddf6db4bdc5400f3239e92b6dca43d4b51338fde7864dcd38e6b69f82f814",
+    "candidate_event_brief_var_03": "2170bb5fd857bf44f085e5e12909f80ecd41bd0fa214dfa7d56f0660a4480d7e",
+    "candidate_event_brief_var_04": "ffda5fea1562ff21eba0ed315e185719e4913beb9426da0411601abbf3491cfb",
+    "candidate_event_brief_var_05": "be64a4daa12df608cc5076a8f5ded203913d7c00aa18954d306347b37237866b"
+  },
+  "result": "PASS",
+  "eligible_candidate_ids": [
+    "VAR-01",
+    "VAR-02",
+    "VAR-03",
+    "VAR-04",
+    "VAR-05"
+  ],
+  "candidate_results": [
+    {
+      "candidate_id": "VAR-01",
+      "result": "PASS",
+      "checks": {
+        "policy_profile": "PASS",
+        "channel_genre": "PASS",
+        "crime_threat": "PASS",
+        "trusted_domain": "PASS",
+        "safe_domain_betrayal": "PASS",
+        "responsible_agent": "PASS",
+        "structure_policy": "PASS",
+        "technical_final_proof": "PASS",
+        "required_theme": "PASS",
+        "locked_constraints": "PASS",
+        "project_constraints": "PASS",
+        "source_truth": "PASS",
+        "production_feasibility": "PASS",
+        "novelty": "PASS"
+      },
+      "reasons": []
+    },
+    {
+      "candidate_id": "VAR-02",
+      "result": "PASS",
+      "checks": {
+        "policy_profile": "PASS",
+        "channel_genre": "PASS",
+        "crime_threat": "PASS",
+        "trusted_domain": "PASS",
+        "safe_domain_betrayal": "PASS",
+        "responsible_agent": "PASS",
+        "structure_policy": "PASS",
+        "technical_final_proof": "PASS",
+        "required_theme": "PASS",
+        "locked_constraints": "PASS",
+        "project_constraints": "PASS",
+        "source_truth": "PASS",
+        "production_feasibility": "PASS",
+        "novelty": "PASS"
+      },
+      "reasons": []
+    },
+    {
+      "candidate_id": "VAR-03",
+      "result": "PASS",
+      "checks": {
+        "policy_profile": "PASS",
+        "channel_genre": "PASS",
+        "crime_threat": "PASS",
+        "trusted_domain": "PASS",
+        "safe_domain_betrayal": "PASS",
+        "responsible_agent": "PASS",
+        "structure_policy": "PASS",
+        "technical_final_proof": "PASS",
+        "required_theme": "PASS",
+        "locked_constraints": "PASS",
+        "project_constraints": "PASS",
+        "source_truth": "PASS",
+        "production_feasibility": "PASS",
+        "novelty": "PASS"
+      },
+      "reasons": []
+    },
+    {
+      "candidate_id": "VAR-04",
+      "result": "PASS",
+      "checks": {
+        "policy_profile": "PASS",
+        "channel_genre": "PASS",
+        "crime_threat": "PASS",
+        "trusted_domain": "PASS",
+        "safe_domain_betrayal": "PASS",
+        "responsible_agent": "PASS",
+        "structure_policy": "PASS",
+        "technical_final_proof": "PASS",
+        "required_theme": "PASS",
+        "locked_constraints": "PASS",
+        "project_constraints": "PASS",
+        "source_truth": "PASS",
+        "production_feasibility": "PASS",
+        "novelty": "PASS"
+      },
+      "reasons": []
+    },
+    {
+      "candidate_id": "VAR-05",
+      "result": "PASS",
+      "checks": {
+        "policy_profile": "PASS",
+        "channel_genre": "PASS",
+        "crime_threat": "PASS",
+        "trusted_domain": "PASS",
+        "safe_domain_betrayal": "PASS",
+        "responsible_agent": "PASS",
+        "structure_policy": "PASS",
+        "technical_final_proof": "PASS",
+        "required_theme": "PASS",
+        "locked_constraints": "PASS",
+        "project_constraints": "PASS",
+        "source_truth": "PASS",
+        "production_feasibility": "PASS",
+        "novelty": "PASS"
+      },
+      "reasons": []
+    }
+  ]
+}

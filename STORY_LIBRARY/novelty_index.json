@@ -2,5 +2,118 @@
   "$schema": "../STANDARD/schemas/novelty_index.schema.json",
   "schema_family": "novelty-index",
   "schema_version": "1.0.0",
-  "entries": []
+  "entries": [
+    {
+      "project_id": "PRJ-007",
+      "status": "EDITORIAL_PENDING",
+      "story_signature": {
+        "mystery_type": "WHAT",
+        "architecture": "ARCH-01_LINEAR_REVEAL",
+        "protagonist_role": "VICTIM",
+        "primary_twist": "TW-04_RESPONSIBILITY_CONFIRMED",
+        "timeline_style": "FRAGMENTED",
+        "incident_type": "CONFINEMENT",
+        "setting": "APARTMENT",
+        "culprit_structure": "MULTIPLE",
+        "setting_logic": [
+          "FAMILIAR_HOME_AS_CRIME_SCENE",
+          "LIMITED_EXIT_VISIBILITY"
+        ],
+        "information_mechanism": [
+          "PHYSICAL_EVIDENCE_CHAIN",
+          "MESSAGE_TIME_CONTRADICTION"
+        ],
+        "relationship_engine": "BROKEN_TRUST",
+        "pressure_engine": "RETALIATION_RISK",
+        "dramatic_engine": "SAFETY_COLLAPSE"
+      },
+      "updated_at": "2026-09-04T19:40:45.205482Z",
+      "fingerprint": {
+        "schema_family": "story-fingerprint",
+        "schema_version": "1.1.0",
+        "project_id": "PRJ-007",
+        "story": {
+          "mystery_type": "WHAT",
+          "architecture": "ARCH-01_LINEAR_REVEAL",
+          "protagonist_role": "VICTIM",
+          "primary_twist": "TW-04_RESPONSIBILITY_CONFIRMED",
+          "timeline_style": "FRAGMENTED",
+          "incident_type": "CONFINEMENT",
+          "setting": "APARTMENT",
+          "culprit_structure": "MULTIPLE",
+          "setting_logic": [
+            "FAMILIAR_HOME_AS_CRIME_SCENE",
+            "LIMITED_EXIT_VISIBILITY"
+          ],
+          "information_mechanism": [
+            "PHYSICAL_EVIDENCE_CHAIN",
+            "MESSAGE_TIME_CONTRADICTION"
+          ],
+          "relationship_engine": "BROKEN_TRUST",
+          "pressure_engine": "RETALIATION_RISK",
+          "dramatic_engine": "SAFETY_COLLAPSE"
+        },
+        "beat_signature": [
+          "COLD_OPEN_SURVEILLANCE",
+          "CRIME_EVENT_ENTRY",
+          "CONCEALMENT_ESCALATION",
+          "COERCIVE_PRESSURE",
+          "VICTIM_COUNTERMOVE",
+          "EXTERNAL_FRICTION",
+          "CLUE_ACTIVATION",
+          "CONCEALMENT_CRACK",
+          "RESCUE_AND_PIVOT",
+          "EVIDENCE_CHAIN_REVEAL",
+          "MOTIVE_METHOD_REVEAL",
+          "VICTIM_CENTERED_RESOLUTION"
+        ],
+        "causal": {
+          "root_cause": "배우자의 정상 일정을 배신으로 확정한 보복 욕구와 유료 감시방 운영자들의 조작 수익이 결합한다.",
+          "mechanism": "허위 목격담을 근거로 아파트를 자백 심문 장소로 바꾸고 피해자의 연락과 퇴거를 제한한다.",
+          "concealment": "피해자 명의의 예약 메시지와 감시방 수정 이력 삭제로 자발적 고립과 진짜 목격처럼 꾸민다.",
+          "discovery_path": "피해자가 남긴 반송표 표시를 수거 기사가 부재 안내와 어긋나는 인기척에 연결해 관리실에 알린다.",
+          "resolution": "물리적 표식, 메시지 시각, 복구 기록과 상충 진술의 독립 사슬이 구조와 공동 책임 확인으로 이어진다."
+        },
+        "semantic_causal": {
+          "normalized_roles": [
+            "VICTIM_PROTAGONIST",
+            "SPOUSE_OFFENDER",
+            "FABRICATOR_OFFENDER",
+            "CONCEALER_OFFENDER",
+            "EXTERNAL_WITNESS"
+          ],
+          "character_function_chain": [
+            "SURVEIL",
+            "FABRICATE",
+            "CONFINE",
+            "SIGNAL",
+            "VERIFY",
+            "RESCUE",
+            "ATTRIBUTE_RESPONSIBILITY"
+          ],
+          "audience_hypothesis_transitions": [
+            "AFFAIR_SUSPICION",
+            "COERCION_RECOGNITION",
+            "OUTSIDER_ROLE_UNCERTAIN",
+            "FABRICATION_PROOF",
+            "COMPLICITY_CONFIRMED",
+            "VICTIM_HARM_CENTERED"
+          ],
+          "edge_sequence": [
+            "ROOT_CAUSE>MOTIVE_OR_TRIGGER",
+            "MOTIVE_OR_TRIGGER>MECHANISM",
+            "MECHANISM>CRIME_EVENT",
+            "CRIME_EVENT>HARM_RESULT",
+            "CRIME_EVENT>CONCEALMENT_OR_DENIAL",
+            "CONCEALMENT_OR_DENIAL>DISCOVERY_PATH",
+            "DISCOVERY_PATH>DISCOVERY",
+            "DISCOVERY>RESPONSIBILITY_CONFIRMATION",
+            "HARM_RESULT>RESPONSIBILITY_CONFIRMATION",
+            "RESPONSIBILITY_CONFIRMATION>RESOLUTION"
+          ]
+        }
+      },
+      "indexed_at": "2026-09-04T18:35:38.994878Z"
+    }
+  ]
 }

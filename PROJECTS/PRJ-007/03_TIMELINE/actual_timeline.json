@@ -1,0 +1,290 @@
+{
+  "project_id": "PRJ-007",
+  "events": [
+    {
+      "event_id": "TLE-01",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [],
+      "event_type": "MOTIVE_OR_TRIGGER",
+      "start_minute": 0,
+      "end_minute": 20,
+      "location_id": "LOC-APARTMENT",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02"
+      ],
+      "description": "윤서진은 강태균의 일정과 생활 흔적을 몰래 대조하며 정상적인 야간 근무를 배신의 증거로 해석한다."
+    },
+    {
+      "event_id": "TLE-02",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [],
+      "event_type": "MOTIVE_OR_TRIGGER",
+      "start_minute": 21,
+      "end_minute": 60,
+      "location_id": "LOC-APARTMENT",
+      "participant_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "백기철과 오민주는 결제를 유지하려 만든 허위 목격담과 편집된 사진 설명을 서진에게 제시하고, 세 사람은 태균의 귀가를 기다린다."
+    },
+    {
+      "event_id": "TLE-03",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-31",
+        "HARM-32"
+      ],
+      "event_type": "CRIME_EVENT",
+      "start_minute": 61,
+      "end_minute": 210,
+      "location_id": "LOC-APARTMENT",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "태균이 귀가하자 세 사람은 외부 연락과 퇴거를 막고 조작 자료를 들이밀며 허위 자백을 강요한다. 실행 가능한 감금 절차는 드러내지 않는다."
+    },
+    {
+      "event_id": "TLE-04",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [],
+      "event_type": "CONCEALMENT_OR_DENIAL",
+      "start_minute": 90,
+      "end_minute": 100,
+      "location_id": "LOC-APARTMENT",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "서진은 태균이 스스로 혼자 있을 시간을 택한 것처럼 보이는 예약 메시지를 직장에 대신 보낸다."
+    },
+    {
+      "event_id": "TLE-05",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [],
+      "event_type": "CONCEALMENT_OR_DENIAL",
+      "start_minute": 110,
+      "end_minute": 130,
+      "location_id": "LOC-APARTMENT",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "기철과 민주는 서로 책임을 미루면서도 허위 목격담의 수정 흔적을 감추려 한다."
+    },
+    {
+      "event_id": "TLE-06",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-01"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [],
+      "event_type": "DISCOVERY_PATH",
+      "start_minute": 150,
+      "end_minute": 155,
+      "location_id": "LOC-APARTMENT",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "description": "태균은 식탁 아래에 남아 있던 택배 반송표에 짧은 도움 표시를 남긴다."
+    },
+    {
+      "event_id": "TLE-07",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-05"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [],
+      "event_type": "DISCOVERY_PATH",
+      "start_minute": 190,
+      "end_minute": 200,
+      "location_id": "LOC-APARTMENT",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "description": "수거 기사 박도현은 반송표의 표시와 부재 안내에 어긋나는 집 안 인기척을 함께 알아차린다."
+    },
+    {
+      "event_id": "TLE-08",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-05"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [],
+      "event_type": "DISCOVERY_PATH",
+      "start_minute": 201,
+      "end_minute": 215,
+      "location_id": "LOC-MANAGEMENT",
+      "participant_ids": [
+        "CHAR-05"
+      ],
+      "description": "도현은 단정하지 않고 관찰한 불일치를 관리실에 전달해 확인과 외부 신고를 요청한다."
+    },
+    {
+      "event_id": "TLE-09",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-05"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-31"
+      ],
+      "event_type": "DISCOVERY_PATH",
+      "start_minute": 216,
+      "end_minute": 240,
+      "location_id": "LOC-APARTMENT",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "description": "관리실의 확인과 외부 신고가 이어지고 태균의 구조 완료가 확인된다."
+    },
+    {
+      "event_id": "TLE-10",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [],
+      "event_type": "RESPONSIBILITY_CONFIRMATION",
+      "start_minute": 250,
+      "end_minute": 290,
+      "location_id": "LOC-MANAGEMENT",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "description": "반송표, 예약 메시지 시각, 복구된 수정 이력과 세 사람의 상충 진술이 감금과 공모 책임을 하나의 증거 사슬로 연결한다."
+    },
+    {
+      "event_id": "TLE-11",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-31",
+        "HARM-32"
+      ],
+      "event_type": "HARM_RESULT",
+      "start_minute": 300,
+      "end_minute": 330,
+      "location_id": "LOC-MANAGEMENT",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "description": "태균이 겪은 자유 박탈과 위협, 무너진 주거 안전감, 직장에 번진 조작된 소문의 피해가 확인된다."
+    },
+    {
+      "event_id": "TLE-12",
+      "crime_event_id": "EVENT-01",
+      "actor_ids": [
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04"
+      ],
+      "victim_ids": [
+        "CHAR-01"
+      ],
+      "harm_ids": [
+        "HARM-31",
+        "HARM-32"
+      ],
+      "event_type": "RESPONSIBILITY_CONFIRMATION",
+      "start_minute": 331,
+      "end_minute": 360,
+      "location_id": "LOC-MANAGEMENT",
+      "participant_ids": [
+        "CHAR-01",
+        "CHAR-02",
+        "CHAR-03",
+        "CHAR-04",
+        "CHAR-05"
+      ],
+      "description": "상상한 배신은 사실이 아니었고, 의심을 범죄로 바꾼 세 사람의 선택과 책임만 남는다."
+    }
+  ]
+}

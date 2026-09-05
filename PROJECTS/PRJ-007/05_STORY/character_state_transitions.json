@@ -1,0 +1,263 @@
+{
+  "$schema": "../../../STANDARD/schemas/character_state_transitions.schema.json",
+  "schema_family": "character-state-transitions",
+  "schema_version": "1.0.0",
+  "project_id": "PRJ-007",
+  "narrative_path": "SURVIVOR_RECOVERY",
+  "transitions": [
+    {
+      "transition_id": "CSTATE-001",
+      "order": 1,
+      "character_id": "CHAR-01",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-02",
+      "state_before": "늦은 귀가를 설명하면 평범한 부부 갈등으로 풀릴 것이라 기대한다.",
+      "state_after": "자기 집에서 퇴거와 연락이 막힌 감금 상황임을 인식한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-04"
+        ],
+        "clue_ids": [
+          "CLUE-02"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "RISK"
+    },
+    {
+      "transition_id": "CSTATE-002",
+      "order": 2,
+      "character_id": "CHAR-02",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-02",
+      "state_before": "조작 자료를 내밀면 태균이 외도를 인정할 것이라 확신한다.",
+      "state_after": "거부하는 태균의 자유를 제한해서라도 자백을 받아내기로 한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-04"
+        ],
+        "clue_ids": [
+          "CLUE-02"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "CHOICE"
+    },
+    {
+      "transition_id": "CSTATE-003",
+      "order": 3,
+      "character_id": "CHAR-01",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-04",
+      "state_before": "자기 집에서 퇴거와 연락이 막힌 감금 상황임을 인식한다.",
+      "state_after": "말로 설득하려는 시도를 멈추고 들키지 않는 외부 신호를 찾는다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-04"
+        ],
+        "clue_ids": [
+          "CLUE-01",
+          "CLUE-02"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "CHOICE"
+    },
+    {
+      "transition_id": "CSTATE-004",
+      "order": 4,
+      "character_id": "CHAR-01",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-05",
+      "state_before": "말로 설득하려는 시도를 멈추고 들키지 않는 외부 신호를 찾는다.",
+      "state_after": "반송표에 도움 표시를 남기고 외부인이 알아채기를 기다린다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-06"
+        ],
+        "clue_ids": [
+          "CLUE-04"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "CHOICE"
+    },
+    {
+      "transition_id": "CSTATE-005",
+      "order": 5,
+      "character_id": "CHAR-05",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-06",
+      "state_before": "부재 안내가 붙은 평범한 수거 방문이라고 여긴다.",
+      "state_after": "안내와 인기척의 불일치가 위험 신호일 수 있다고 의심한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-07"
+        ],
+        "clue_ids": [
+          "CLUE-05"
+        ],
+        "crime_event_ids": []
+      },
+      "change_category": "BELIEF"
+    },
+    {
+      "transition_id": "CSTATE-006",
+      "order": 6,
+      "character_id": "CHAR-05",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-07",
+      "state_before": "안내와 인기척의 불일치가 위험 신호일 수 있다고 의심한다.",
+      "state_after": "반송표 표시와 인기척을 함께 근거로 관리실 확인을 요청한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-07"
+        ],
+        "clue_ids": [
+          "CLUE-04",
+          "CLUE-05"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "CHOICE"
+    },
+    {
+      "transition_id": "CSTATE-007",
+      "order": 7,
+      "character_id": "CHAR-04",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-08",
+      "state_before": "익명 계정과 삭제 시도가 조작 흔적을 감춰 줄 것이라 믿는다.",
+      "state_after": "별도 계정의 수정 이력이 자신과 기철의 역할을 드러낼 수 있음을 깨닫는다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-09"
+        ],
+        "clue_ids": [
+          "CLUE-06"
+        ],
+        "crime_event_ids": []
+      },
+      "change_category": "RISK"
+    },
+    {
+      "transition_id": "CSTATE-008",
+      "order": 8,
+      "character_id": "CHAR-01",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-09",
+      "state_before": "반송표에 도움 표시를 남기고 외부인이 알아채기를 기다린다.",
+      "state_after": "신체적 안전을 확보한 뒤 세 사람의 공동 책임을 밝히려 한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-08"
+        ],
+        "clue_ids": [
+          "CLUE-03",
+          "CLUE-06",
+          "CLUE-07"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "CHOICE"
+    },
+    {
+      "transition_id": "CSTATE-009",
+      "order": 9,
+      "character_id": "CHAR-03",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-10",
+      "state_before": "태균이 자백하면 허위 목격담도 사실처럼 굳어질 것이라 계산한다.",
+      "state_after": "복구된 수정 이력이 조작 주체와 시각을 드러냈음을 인정하게 된다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-09"
+        ],
+        "clue_ids": [
+          "CLUE-02",
+          "CLUE-06"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "INFORMATION"
+    },
+    {
+      "transition_id": "CSTATE-010",
+      "order": 10,
+      "character_id": "CHAR-02",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-11",
+      "state_before": "거부하는 태균의 자유를 제한해서라도 자백을 받아내기로 한다.",
+      "state_after": "자신의 보복과 운영자들의 은폐가 하나의 공모 책임으로 연결됐음을 마주한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-10"
+        ],
+        "clue_ids": [
+          "CLUE-03",
+          "CLUE-07"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "INFORMATION"
+    },
+    {
+      "transition_id": "CSTATE-011",
+      "order": 11,
+      "character_id": "CHAR-05",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-11",
+      "state_before": "반송표 표시와 인기척을 함께 근거로 관리실 확인을 요청한다.",
+      "state_after": "독립 관찰을 증거 사슬에 보태는 책임 있는 목격자가 된다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-10"
+        ],
+        "clue_ids": [
+          "CLUE-04",
+          "CLUE-07"
+        ],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "CHOICE"
+    },
+    {
+      "transition_id": "CSTATE-012",
+      "order": 12,
+      "character_id": "CHAR-01",
+      "scope_type": "SCENE",
+      "scope_id": "SCN-12",
+      "state_before": "신체적 안전을 확보한 뒤 세 사람의 공동 책임을 밝히려 한다.",
+      "state_after": "가해자의 의심이 아니라 자신이 잃은 자유와 안전을 기준으로 회복을 시작한다.",
+      "triggers": {
+        "fact_ids": [
+          "FACT-11"
+        ],
+        "clue_ids": [],
+        "crime_event_ids": [
+          "EVENT-01"
+        ]
+      },
+      "change_category": "CHOICE",
+      "recovery_function": "AGENCY_RECOVERY"
+    }
+  ]
+}

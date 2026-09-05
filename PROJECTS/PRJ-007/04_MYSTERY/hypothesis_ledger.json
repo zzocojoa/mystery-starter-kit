@@ -1,0 +1,30 @@
+{
+  "project_id": "PRJ-007",
+  "hypotheses": [
+    {
+      "hypothesis_id": "HYP-01",
+      "status": "REJECTED",
+      "claim": "강태균의 늦은 귀가는 외도와 비밀 만남 때문이었다."
+    },
+    {
+      "hypothesis_id": "HYP-02",
+      "status": "REJECTED",
+      "claim": "강태균은 외도를 인정한 뒤 자발적으로 연락을 끊고 집에 남았다."
+    },
+    {
+      "hypothesis_id": "HYP-03",
+      "status": "SUPPORTED",
+      "claim": "윤서진은 외도 자백을 받으려 남편의 퇴거와 연락을 제한했다."
+    },
+    {
+      "hypothesis_id": "HYP-04",
+      "status": "REJECTED",
+      "claim": "백기철과 오민주는 진짜 목격 정보를 전달했을 뿐 현장 범행에는 가담하지 않았다."
+    },
+    {
+      "hypothesis_id": "HYP-05",
+      "status": "CONFIRMED",
+      "claim": "서진, 기철, 민주는 조작된 의심을 근거로 감금하고 은폐한 공동 가담자다."
+    }
+  ]
+}

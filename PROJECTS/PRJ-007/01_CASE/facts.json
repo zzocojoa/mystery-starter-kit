@@ -1,0 +1,153 @@
+{
+  "project_id": "PRJ-007",
+  "facts": [
+    {
+      "fact_id": "FACT-01",
+      "statement": "윤서진은 남편 강태균의 야간 일정, 세탁물, 공동 카드 내역을 몰래 기록했다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "166050f9749c89ff87b9f758254fa33feac824770591cc8b2943d7871e4036c3",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-02",
+      "statement": "익명 감시방 운영자 백기철과 오민주는 서진의 결제를 유지하려 허위 목격담과 편집된 사진 설명을 만들었다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "2d1dd87eefd97b773e3f5ecc46bccba7c29f58d5f0b0e4cf61bc7f803384c920",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-03",
+      "statement": "강태균의 늦은 귀가는 동료 한지아의 긴급 교대 요청 때문이었고 외도는 없었다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "9634ac6e02491777031db64dfa43dc096db655c026cf7f9ed78dc8ebc8d70e8a",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-04",
+      "statement": "서진, 기철, 민주는 아파트에서 태균의 외부 연락과 퇴거를 막고 허위 자백을 강요했다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "5a54ef2ab7a953b27157db7c5d318b482b0357a0728fb2b86ef96bfca288b07e",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false,
+      "crime_fact_type": "CRIME_ACTION"
+    },
+    {
+      "fact_id": "FACT-05",
+      "statement": "서진은 태균이 혼자 생각할 시간이 필요하다는 예약 메시지를 직장에 대신 보냈다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "8d716c3e18caa804477a602b9116b93e2bf58f95f70666fb50b07fcb3fa1fe44",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-06",
+      "statement": "태균은 식탁 아래의 오래된 택배 반송표에 도움 표시를 남겼다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "5477830a51890f8081d5432dc74859c03fce603daea68276ea69d6532b1710bd",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-07",
+      "statement": "수거 기사 박도현은 예약 메시지의 부재 설명과 집 안 인기척이 맞지 않음을 알아차리고 관리실에 알렸다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "38533d29b8372e6048e49bccd29a1f72ee0571e54fb5f68e8a6ce070fb22291d",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-08",
+      "statement": "관리실의 확인과 외부 신고로 태균은 아파트에서 구조되었다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "5f6234244c4f43ebaec0a530fc8d71668aa8a93ce92221e32b7c3aa175c60256",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-09",
+      "statement": "감시방 허위 목격담의 수정 이력은 삭제 시도 뒤 복구되어 두 운영자의 조작을 드러냈다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "4a47a989745aa51b671d80d9ad3077b531d997d53a7d75583762f0c4681c7236",
+      "source_ids": [],
+      "basis_fact_ids": [],
+      "presented_as_fact": false
+    },
+    {
+      "fact_id": "FACT-10",
+      "statement": "예약 메시지 시각, 반송표, 수정 이력, 세 사람의 상충 진술은 감금과 공모 책임을 함께 입증했다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "85ec271f4ae60d713a2d69d823d11d3be0488e9a9e830a33d41cc0f6e2a342de",
+      "source_ids": [],
+      "basis_fact_ids": [
+        "FACT-05",
+        "FACT-06",
+        "FACT-09"
+      ],
+      "presented_as_fact": false,
+      "crime_fact_type": "RESPONSIBILITY"
+    },
+    {
+      "fact_id": "FACT-11",
+      "statement": "태균은 구조 뒤에도 주거 안전감과 대인 신뢰를 잃고 조작된 소문으로 직장 피해를 입었다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "8b4570a41d0fe53c0bcda9ad5bc027f8daac9c6a59056ff7ecbe74b866df7257",
+      "source_ids": [],
+      "basis_fact_ids": [
+        "FACT-04"
+      ],
+      "presented_as_fact": false,
+      "crime_fact_type": "HARM_RESULT"
+    },
+    {
+      "fact_id": "FACT-12",
+      "statement": "서진의 보복 욕구와 두 운영자의 조작 은폐가 결합해 의심을 실제 감금 범죄로 바꾸었다.",
+      "classification": "DRAMATIZATION",
+      "normalized_statement_hash": "2e32cba0c372d3c5d3ffe7087e16672b9bfe1772b98643340d8e1b9f0cef3e5b",
+      "source_ids": [],
+      "basis_fact_ids": [
+        "FACT-01",
+        "FACT-02",
+        "FACT-04"
+      ],
+      "presented_as_fact": false,
+      "crime_fact_type": "MOTIVE_STATUS"
+    }
+  ],
+  "crime_fact_trace": [
+    {
+      "crime_fact_type": "CRIME_ACTION",
+      "fact_ids": [
+        "FACT-04"
+      ]
+    },
+    {
+      "crime_fact_type": "HARM_RESULT",
+      "fact_ids": [
+        "FACT-11"
+      ]
+    },
+    {
+      "crime_fact_type": "MOTIVE_STATUS",
+      "fact_ids": [
+        "FACT-12"
+      ]
+    },
+    {
+      "crime_fact_type": "RESPONSIBILITY",
+      "fact_ids": [
+        "FACT-10"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,226 @@
+{
+  "schema_family": "script-realization-report",
+  "schema_version": "2.0.0",
+  "project_id": "PRJ-007",
+  "applicable": true,
+  "input_hashes": {
+    "crime_event_contract": "f3f56efbd134cb04c714c06dc696c22508ab4d7c5dc7eb08b0904071b8f643c8",
+    "scene_cards": "d097742e7674b7b8425b429e9a21c265d0b261d8942f41110d806dde95237351",
+    "presentation_plan": "dd304fba810279e46217cb2234dc96fe4160a4e15be206d2d0bf67d8fcb3aef9",
+    "reaction_segments": "e8629652a740e73a61702b43e962d70bb2bd05ed9c4667db473b6dfebf23f53f",
+    "viewer_timeline": "ae8d031e7b80204afdc5757da39f39dc6a330f6c7dd43ee5368d0b435b6b3d26",
+    "final_script": "2086745ee4ddaf52951dab5c3d5f1d13ab9f629a0e98dc9a964bad26b2b5d6fa"
+  },
+  "result": "NEEDS_REVIEW",
+  "event_results": [
+    {
+      "event_id": "EVENT-01",
+      "harm_ids": [
+        "HARM-31",
+        "HARM-32"
+      ],
+      "status": "NEEDS_REVIEW",
+      "scene_id": "SCN-02",
+      "segment_id": "SEG-003",
+      "selector_type": "SEGMENT_ID",
+      "excerpt_hash": "626ed6e985e03c7427903975c5a04295c45134ce42c82476f885452aa988f091",
+      "realization_mode": "DIRECT_ACTION"
+    }
+  ],
+  "function_results": [
+    {
+      "development_function_id": "CDEV-301",
+      "function_type": "LIBERTY_DEPRIVATION",
+      "status": "NEEDS_REVIEW",
+      "evidence_link_ids": [
+        "CRIME-EVIDENCE-001"
+      ]
+    },
+    {
+      "development_function_id": "CDEV-302",
+      "function_type": "THREAT_AND_CHOICE_CONSTRAINT",
+      "status": "NEEDS_REVIEW",
+      "evidence_link_ids": [
+        "CRIME-EVIDENCE-002"
+      ]
+    },
+    {
+      "development_function_id": "CDEV-303",
+      "function_type": "RESPONSE_OR_DISCOVERY",
+      "status": "NEEDS_REVIEW",
+      "evidence_link_ids": [
+        "CRIME-EVIDENCE-003"
+      ]
+    },
+    {
+      "development_function_id": "CDEV-304",
+      "function_type": "HARM_OUTCOME",
+      "status": "NEEDS_REVIEW",
+      "evidence_link_ids": [
+        "CRIME-EVIDENCE-004"
+      ]
+    }
+  ],
+  "evidence_links": [
+    {
+      "evidence_link_id": "CRIME-EVIDENCE-001",
+      "crime_event_id": "EVENT-01",
+      "scene_id": "SCN-02",
+      "segment_id": "SEG-003",
+      "selector_type": "SEGMENT_ID",
+      "selector_id": "SEG-003",
+      "excerpt_hash": "626ed6e985e03c7427903975c5a04295c45134ce42c82476f885452aa988f091",
+      "source_script_hash": "2086745ee4ddaf52951dab5c3d5f1d13ab9f629a0e98dc9a964bad26b2b5d6fa",
+      "evidence_type": "ACTION",
+      "development_function_ids": [
+        "CDEV-301"
+      ],
+      "harm_ids": [
+        "HARM-31"
+      ],
+      "realization_mode": "DIRECT_ACTION"
+    },
+    {
+      "evidence_link_id": "CRIME-EVIDENCE-002",
+      "crime_event_id": "EVENT-01",
+      "scene_id": "SCN-04",
+      "segment_id": "SEG-008",
+      "selector_type": "SEGMENT_ID",
+      "selector_id": "SEG-008",
+      "excerpt_hash": "386f80b9c6639fede81f98ab4c9634bdc0a4639483ee9eea91083f6ed708288a",
+      "source_script_hash": "2086745ee4ddaf52951dab5c3d5f1d13ab9f629a0e98dc9a964bad26b2b5d6fa",
+      "evidence_type": "ACTION",
+      "development_function_ids": [
+        "CDEV-302"
+      ],
+      "harm_ids": [
+        "HARM-31"
+      ],
+      "realization_mode": "DIRECT_ACTION"
+    },
+    {
+      "evidence_link_id": "CRIME-EVIDENCE-003",
+      "crime_event_id": "EVENT-01",
+      "scene_id": "SCN-07",
+      "segment_id": "SEG-016",
+      "selector_type": "SEGMENT_ID",
+      "selector_id": "SEG-016",
+      "excerpt_hash": "d7f8c911298e8e45014d31e171794edd5694301e106e8b77e343fc24f80ee6d8",
+      "source_script_hash": "2086745ee4ddaf52951dab5c3d5f1d13ab9f629a0e98dc9a964bad26b2b5d6fa",
+      "evidence_type": "BEHAVIOR_OR_CHOICE",
+      "development_function_ids": [
+        "CDEV-303"
+      ],
+      "harm_ids": [
+        "HARM-31"
+      ],
+      "realization_mode": "IMPLIED_ACTION"
+    },
+    {
+      "evidence_link_id": "CRIME-EVIDENCE-004",
+      "crime_event_id": "EVENT-01",
+      "scene_id": "SCN-12",
+      "segment_id": "SEG-030",
+      "selector_type": "SEGMENT_ID",
+      "selector_id": "SEG-030",
+      "excerpt_hash": "7145b2a5f036b8f8a3fcc410ce588f30969ed0e33729f1a75a0f7e7d23d9d06f",
+      "source_script_hash": "2086745ee4ddaf52951dab5c3d5f1d13ab9f629a0e98dc9a964bad26b2b5d6fa",
+      "evidence_type": "HARM_AFTERMATH",
+      "development_function_ids": [
+        "CDEV-304"
+      ],
+      "harm_ids": [
+        "HARM-31",
+        "HARM-32"
+      ],
+      "realization_mode": "AFTERMATH_CAUSAL"
+    }
+  ],
+  "reveal_results": [
+    {
+      "reveal_target_id": "REVEAL-TARGET-31",
+      "target_type": "CULPRIT",
+      "status": "NEEDS_REVIEW",
+      "segment_id": "SEG-024",
+      "selector_type": "SEGMENT_ID",
+      "excerpt_hash": "654b46b222dea3087ae46090ce10760c270a671e94ff28b2d2a24dfd86e2a70e"
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-32",
+      "target_type": "MOTIVE",
+      "status": "NEEDS_REVIEW",
+      "segment_id": "SEG-027",
+      "selector_type": "SEGMENT_ID",
+      "excerpt_hash": "499581f09564cce29568138116ae8792d76a7c7c09f44cc389838bc436dd81d1"
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-33",
+      "target_type": "METHOD",
+      "status": "NEEDS_REVIEW",
+      "segment_id": "SEG-027",
+      "selector_type": "SEGMENT_ID",
+      "excerpt_hash": "499581f09564cce29568138116ae8792d76a7c7c09f44cc389838bc436dd81d1"
+    },
+    {
+      "reveal_target_id": "REVEAL-TARGET-34",
+      "target_type": "HARM_RESULT",
+      "status": "NEEDS_REVIEW",
+      "segment_id": "SEG-030",
+      "selector_type": "SEGMENT_ID",
+      "excerpt_hash": "7145b2a5f036b8f8a3fcc410ce588f30969ed0e33729f1a75a0f7e7d23d9d06f"
+    }
+  ],
+  "layer_results": [
+    {
+      "layer": "DRAMA",
+      "status": "NEEDS_REVIEW",
+      "segment_ids": [
+        "SEG-001",
+        "SEG-003",
+        "SEG-006",
+        "SEG-008",
+        "SEG-011",
+        "SEG-014",
+        "SEG-016",
+        "SEG-019",
+        "SEG-021",
+        "SEG-024",
+        "SEG-027",
+        "SEG-030"
+      ]
+    },
+    {
+      "layer": "NARRATION",
+      "status": "NEEDS_REVIEW",
+      "segment_ids": [
+        "SEG-002",
+        "SEG-004",
+        "SEG-007",
+        "SEG-010",
+        "SEG-012",
+        "SEG-015",
+        "SEG-018",
+        "SEG-020",
+        "SEG-022",
+        "SEG-026",
+        "SEG-028",
+        "SEG-032"
+      ]
+    },
+    {
+      "layer": "PANEL_REACTION",
+      "status": "NEEDS_REVIEW",
+      "segment_ids": [
+        "SEG-005",
+        "SEG-009",
+        "SEG-013",
+        "SEG-017",
+        "SEG-023",
+        "SEG-025",
+        "SEG-029",
+        "SEG-031"
+      ]
+    }
+  ],
+  "issues": []
+}

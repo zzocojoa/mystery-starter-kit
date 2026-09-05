@@ -59,11 +59,15 @@ def test_story_library_passes_schema() -> None:
 
 def test_novelty_index_passes_schema_without_project_records() -> None:
     """Novelty Index는 Project가 없어도 Schema를 통과해야 한다."""
-    index = load_json_object(ROOT / "STORY_LIBRARY" / "novelty_index.json")
+    repository_index = load_json_object(
+        ROOT / "STORY_LIBRARY" / "novelty_index.json"
+    )
+    index = {**repository_index, "entries": []}
     schema = load_json_object(
         ROOT / "STANDARD" / "schemas" / "novelty_index.schema.json"
     )
 
+    assert collect_schema_errors(repository_index, schema, "repository_novelty_index") == []
     assert collect_schema_errors(index, schema, "novelty_index") == []
     assert novelty_history(index) == []
 

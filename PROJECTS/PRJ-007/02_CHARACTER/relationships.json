@@ -1,0 +1,57 @@
+{
+  "$schema": "../../../STANDARD/schemas/relationships.schema.json",
+  "schema_family": "relationships",
+  "schema_version": "1.1.0",
+  "project_id": "PRJ-007",
+  "relationships": [
+    {
+      "relationship_id": "REL-01",
+      "from": "CHAR-01",
+      "to": "CHAR-02",
+      "engine": "BROKEN_TRUST",
+      "display_summary": "태균과 서진은 부부지만 서진의 감시와 감금으로 공동 주거의 신뢰가 붕괴한다."
+    },
+    {
+      "relationship_id": "REL-02",
+      "from": "CHAR-02",
+      "to": "CHAR-03",
+      "engine": "COMPLICIT_ONLINE_ALLIANCE",
+      "display_summary": "서진은 기철의 허위 목격담을 확신의 근거로 삼고 기철은 그 확신을 수익과 은폐에 이용한다."
+    },
+    {
+      "relationship_id": "REL-03",
+      "from": "CHAR-02",
+      "to": "CHAR-04",
+      "engine": "COMPLICIT_ONLINE_ALLIANCE",
+      "display_summary": "서진은 민주에게 사진 해석을 의존하고 민주는 전달자라는 말로 현장 가담 책임을 피하려 한다."
+    },
+    {
+      "relationship_id": "REL-04",
+      "from": "CHAR-03",
+      "to": "CHAR-04",
+      "engine": "MUTUAL_BLACKMAIL",
+      "display_summary": "기철과 민주는 조작 기록을 함께 알고 있어 서로를 감싸면서도 구조가 가까워지자 책임을 떠넘긴다."
+    },
+    {
+      "relationship_id": "REL-05",
+      "from": "CHAR-01",
+      "to": "CHAR-05",
+      "engine": "SIGNAL_AND_WITNESS",
+      "display_summary": "태균은 반송표에 도움 표시를 남기고 도현은 그 미세한 신호를 외부 신고로 연결한다."
+    },
+    {
+      "relationship_id": "REL-06",
+      "from": "CHAR-02",
+      "to": "CHAR-05",
+      "engine": "OBSTRUCTION_AND_DOUBT",
+      "display_summary": "서진은 도현을 문밖에서 돌려보내려 하고 도현은 부재 설명과 집 안 인기척의 모순을 추적한다."
+    },
+    {
+      "relationship_id": "REL-07",
+      "from": "CHAR-01",
+      "to": "CHAR-03",
+      "engine": "COERCIVE_INTERROGATION",
+      "display_summary": "기철은 조작 자료로 태균의 자백을 압박하고 태균은 세부 모순을 붙잡아 시간을 번다."
+    }
+  ]
+}
